@@ -4,6 +4,8 @@
 
 [Documentation home](README.md) · [Choose an SDK](README.md#choose-your-sdk) · [Decision reference](concepts.md)
 
+![QualityRag evidence gate workflow](assets/how-it-works.svg)
+
 ## 1. Define a PackSpec
 
 A PackSpec declares the evidence obligations a question must satisfy.
@@ -78,6 +80,8 @@ For the data above, evaluate at `2026-11-02T10:05:00Z`:
 > The bundled `examples/python_demo.py` demonstrates the same type of decision with its own example identifiers. The JSON above corresponds to the PackSpec and witnesses shown on this page.
 
 ## 4. Interpret the result
+
+![Three decision states](assets/three-decisions.svg)
 
 **INCONCLUSIVE** means that, under the supplied metadata, the policy's requirement of two independent origins is not met. The application should report the missing evidence rather than call the answer generator.
 
