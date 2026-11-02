@@ -37,7 +37,142 @@ Retrieved evidence + provenance metadata → QualityRag evaluation
 
 This is complementary to retrieval improvements, citations, model evaluation, and human review—not a replacement for them.
 
-## 2. Five worked examples
+## 2. Side-by-side walkthrough: Traditional RAG vs QualityRag
+
+This example uses a **fictional company reimbursement policy**, not a real employer's rules.
+
+> **Employee question:** "Can I be reimbursed for a $1,200 laptop bought for remote work?"
+
+Two governing policy passages exist:
+
+| Policy passage | Fictional rule |
+| :--- | :--- |
+| General reimbursement rule | Remote employees can be reimbursed for equipment up to **$1,500**. |
+| Purchase approval exception | Purchases **above $1,000** require manager approval **before purchase**. |
+
+### Path A — Traditional RAG, missing the exception
+
+```text
+Employee asks about $1,200 laptop
+       ↓
+Retriever finds the $1,500 general limit
+       ↓
+Model sees the correct but incomplete passage
+       ↓
+Possible answer: "Yes, $1,200 is under $1,500."
+       ↓
+⚠ Unsupported conclusion: prior manager approval was not checked
+```
+
+This is an illustrative **failure possibility**, not a claim that every standard RAG system would answer incorrectly. Better retrieval could find both passages.
+
+### Path B — RAG with a QualityRag policy gate
+
+The policy owner configures **both evidence obligations** in QualityRag Studio or a versioned PackSpec. Retrieval still finds only the general rule.
+
+```text
+Employee asks about $1,200 laptop
+       ↓
+Retriever finds the $1,500 general limit
+       ↓
+QualityRag checks the PackSpec:
+  ✓ general-reimbursement-rule: supporting evidence found
+  ? purchase-approval-exception: no evidence supplied
+       ↓
+INCONCLUSIVE — block unsupported answer generation
+       ↓
+Application asks for the missing approval-policy evidence
+```
+
+The key architectural difference: **traditional retrieval returns what was found; QualityRag can enforce what the policy says must be found before generation**.
+
+![QualityRag decision outcomes](assets/three-decisions.svg)
+
+### PackSpec for the example
+
+```json
+{
+  "id": "equipment-reimbursement",
+  "version": "1.0",
+  "requirements": [
+    {
+      "id": "general-reimbursement-rule",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "purchase-approval-exception",
+      "min_independent_sources": 1
+    }
+  ]
+}
+```
+
+### Run the existing Python SDK
+
+From the repository root:
+
+```bash
+PYTHONPATH=sdk/python python - <<'PY'
+from qualityrag import evaluate
+
+pack = {
+    "id": "equipment-reimbursement",
+    "version": "1.0",
+    "requirements": [
+        {"id": "general-reimbursement-rule"},
+        {"id": "purchase-approval-exception"},
+    ],
+}
+
+# Retrieval only supplies the broad rule.
+evidence = [{
+    "id": "witness-1",
+    "requirement_id": "general-reimbursement-rule",
+    "origin": "company-policy",
+    "source_ref": "equipment-policy#general",
+    "status": "SUPPORTS",
+    "observed_at": "2026-11-02T10:00:00Z",
+}]
+
+result = evaluate(pack, evidence, as_of="2026-11-02T10:05:00Z")
+assert result["verdict"] == "INCONCLUSIVE"
+assert {f["requirement_id"]: f["verdict"] for f in result["findings"]} == {
+    "general-reimbursement-rule": "ADMIT",
+    "purchase-approval-exception": "INCONCLUSIVE",
+}
+print(result["verdict"])
+for finding in result["findings"]:
+    print(finding["requirement_id"], finding["verdict"])
+PY
+```
+
+Expected output:
+
+```text
+INCONCLUSIVE
+general-reimbursement-rule ADMIT
+purchase-approval-exception INCONCLUSIVE
+```
+
+**Important:** This test exercises the **metadata evaluator**, not an LLM or a live retriever. To prevent generation in production, the application must enforce the decision on its trusted server, before invoking the model.
+
+### Comparison
+
+| Question | Traditional RAG | RAG with QualityRag |
+| :--- | :--- | :--- |
+| Can it retrieve relevant text? | Yes | Yes; uses the application's retriever |
+| Does relevance guarantee completeness? | No | No |
+| Can it require specific declared evidence obligations? | Not inherently | **Yes** |
+| Can it block generation when a declared exception is missing? | Requires additional application logic | **Yes, with server-side gating** |
+| Does it automatically discover an undeclared exception? | Not guaranteed | **No, not in the current SDK** |
+| Does it certify source truth or the final answer? | No | **No** |
+
+> [!IMPORTANT]
+> **QualityRag does not magically know the exception.** The policy owner must explicitly declare `purchase-approval-exception` in the PackSpec. This limitation is essential to interpreting the example accurately.
+
+---
+
+## 3. Five worked examples
 
 All scenarios below are **fictional training examples**. They are *not* actual medical, employment, eligibility, financial, or legal rules.
 
