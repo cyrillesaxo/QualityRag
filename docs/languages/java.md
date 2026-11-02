@@ -19,17 +19,38 @@ mvn -f sdk/java/pom.xml test
 
 ## 3. First decision
 
+Use a Java text block for readable policy JSON. The snippet is suitable for a Java 17 application with the QualityRag SDK and Jackson on its classpath.
+
 ```java
 import io.qualityrag.QualityRag;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
-```
 
-```swift
-ObjectMapper m = new ObjectMapper();
-var pack = m.readTree("{\"id\":\"demo\",\"version\":\"1\",\"requirements\":[{\"id\":\"r\",\"min_independent_sources\":2}]}");
-var result = QualityRag.evaluate(pack, m.readTree("[]"), Instant.parse("2026-11-02T10:05:00Z"));
-System.out.println(result.path("verdict").asText()); // INCONCLUSIVE
+ObjectMapper mapper = new ObjectMapper();
+
+String policy = """
+    {
+      "id": "demo",
+      "version": "1",
+      "requirements": [
+        {
+          "id": "r",
+          "min_independent_sources": 2
+        }
+      ]
+    }
+    """;
+
+var pack = mapper.readTree(policy);
+var evidence = mapper.readTree("[]");
+var result = QualityRag.evaluate(
+    pack,
+    evidence,
+    Instant.parse("2026-11-02T10:05:00Z")
+);
+
+System.out.println(result.path("verdict").asText());
+// INCONCLUSIVE
 ```
 
 The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
