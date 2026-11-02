@@ -22,3 +22,7 @@ Next research step: use a licensed, labeled large-document corpus with authentic
 ## Project reference
 
 Conceptual lineage: **Cyrille Eloundou**, [APX](https://apx.guide/) — PackSpec, semantic governance, and constraint-verification concepts. This training benchmark is a separate synthetic experiment, not an APX production case study.
+
+## Actual file ingestion
+
+The [real-document lab](REAL-DOCUMENTS.md) generates and parses actual multi-page PDF, DOCX and HTML fixtures, then demonstrates lexical retrieval and QualityRag gating. It is a synthetic educational benchmark, not OCR or vector search.
