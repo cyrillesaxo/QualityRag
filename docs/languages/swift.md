@@ -17,17 +17,26 @@ cd sdk/swift && swift test
 
 `Gate.evaluate(_ pack:Pack,_ evidence:[Witness],asOf:Date) -> Result`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
+
+An enterprise RAG search retrieves page 74 of a **Payments Operations Handbook** but misses page 187 of a governing **EU Financial Controls Annex**. The PackSpec declares both evidence obligations. Only the general procedure has a supporting witness.
 
 ```swift
 import Foundation
 import QualityRag
-let pack = Pack("demo","1",[Requirement("r",minIndependentSources:2)])
-let now = ISO8601DateFormatter().date(from:"2026-11-02T10:05:00Z")!
-print(Gate.evaluate(pack, [], asOf:now).verdict) // INCONCLUSIVE
+let pack = Pack("eu-recovery", "1", [
+    Requirement("recovery-procedure"), Requirement("eu-screening-control")
+])
+let format = ISO8601DateFormatter()
+let evidence = [Witness("pdf-74", "recovery-procedure",
+    "operations-handbook", "operations.pdf#page=74", "SUPPORTS",
+    format.date(from:"2026-11-02T10:00:00Z")!)]
+let result = Gate.evaluate(pack, evidence,
+    asOf:format.date(from:"2026-11-02T10:05:00Z")!)
+print(result.verdict) // INCONCLUSIVE
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. The application must not invoke its answer-generating model until the missing obligation has been resolved. This is the v0.1 **metadata gate**; it does not retrieve or parse PDFs. See [enterprise training](../TRAINING.md) and [document ingestion](../../examples/enterprise-rag/REAL-DOCUMENTS.md).
 
 ## 4. Production integration checklist
 
