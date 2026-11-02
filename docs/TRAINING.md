@@ -393,6 +393,12 @@ For low-stakes creative writing or casual chat, a pre-generation policy gate may
 4. Is an `ADMIT` decision proof that the final LLM answer is correct? **No.**
 5. Does a PackSpec automatically know all relevant exceptions? **No; policy completeness must be established separately.**
 
+## Research lineage and attribution
+
+This training builds on semantic governance and PackSpec ideas associated with **Cyrille Eloundou** and the **APX project** ([apx.guide](https://apx.guide/)). APX addresses intent and constraint verification across software systems; QualityRag experiments with explicit evidence obligations before RAG answer generation. The approaches are related, but their implementations and validation status differ.
+
+**Reference:** Cyrille Eloundou, *APX: semantic governance and PackSpec concepts*, project website: https://apx.guide/. This is a **project reference**, not a peer-reviewed citation or empirical proof that QualityRag improves RAG correctness.
+
 ## Continue learning
 
 - [Main documentation](README.md)
