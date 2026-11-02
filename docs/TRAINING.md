@@ -37,77 +37,83 @@ Retrieved evidence + provenance metadata → QualityRag evaluation
 
 This is complementary to retrieval improvements, citations, model evaluation, and human review—not a replacement for them.
 
-## 2. Side-by-side walkthrough: Traditional RAG vs QualityRag
+## 2. Realistic enterprise case: RAG over a large, unstructured document estate
 
-This example uses a **fictional company reimbursement policy**, not a real employer's rules.
+**Scenario (synthetic):** A global bank's internal assistant answers operational questions from a corpus of **85,000 files**: PDFs, scanned procedures, intranet HTML pages, exported email threads, incident postmortems, Word runbooks, and compliance appendices. The numbers, documents, policy rules, and retrieval results in this lesson are **illustrative**, not measurements of a real deployment.
 
-> **Employee question:** "Can I be reimbursed for a $1,200 laptop bought for remote work?"
+**User asks:** *“Can our on-call team automatically restore the EU payments gateway after a failed sanctions-screening dependency, or do we need approval?”*
 
-Two governing policy passages exist:
+### The underlying documents are not conveniently structured
 
-| Policy passage | Fictional rule |
-| :--- | :--- |
-| General reimbursement rule | Remote employees can be reimbursed for equipment up to **$1,500**. |
-| Purchase approval exception | Purchases **above $1,000** require manager approval **before purchase**. |
+| Source in the corpus | Example passage | Retrieval difficulty |
+| :--- | :--- | :--- |
+| **Payments Operations Handbook**, 240-page PDF, §7.3 | “On-call staff may initiate automated recovery after a dependency timeout.” | Highly relevant semantic match |
+| **EU Financial Controls Annex**, scanned PDF, Appendix D, p. 187 | “Where a sanctions-screening dependency is unavailable, restoration requires compliance sign-off unless the documented emergency exception applies.” | Scanned appendix; depends on OCR quality; weak keyword match |
+| **Incident INC-7421**, HTML postmortem | “Automated recovery reduced downtime during a gateway outage.” | Strong similarity; incident history is not governing approval |
+| **2024 Runbook**, Word export | “Restart the gateway once the upstream connection stabilizes.” | Outdated revision competes with current handbook |
+| **Regional Change Memo**, email archive | “The EU approval rule supersedes the generic recovery flow for screening outages.” | Buried in a message thread, potentially duplicate forwards |
 
-### Path A — Traditional RAG, missing the exception
+The application retrieves and chunks this corpus, embeds the text, performs vector/hybrid search, reranks matches and sends selected snippets to an LLM. **The model usually sees only a tiny fraction of the total corpus.**
 
-```text
-Employee asks about $1,200 laptop
-       ↓
-Retriever finds the $1,500 general limit
-       ↓
-Model sees the correct but incomplete passage
-       ↓
-Possible answer: "Yes, $1,200 is under $1,500."
-       ↓
-⚠ Unsupported conclusion: prior manager approval was not checked
-```
+### Path A — RAG without explicit completeness governance
 
-This is an illustrative **failure possibility**, not a claim that every standard RAG system would answer incorrectly. Better retrieval could find both passages.
-
-### Path B — RAG with a QualityRag policy gate
-
-The policy owner configures **both evidence obligations** in QualityRag Studio or a versioned PackSpec. Retrieval still finds only the general rule.
+Illustrative top-ranked passages returned by the retriever:
 
 ```text
-Employee asks about $1,200 laptop
-       ↓
-Retriever finds the $1,500 general limit
-       ↓
-QualityRag checks the PackSpec:
-  ✓ general-reimbursement-rule: supporting evidence found
-  ? purchase-approval-exception: no evidence supplied
-       ↓
-INCONCLUSIVE — block unsupported answer generation
-       ↓
-Application asks for the missing approval-policy evidence
+Rank  Score  Source                                 Extract
+ 1    .92   Payments Operations Handbook §7.3      "On-call may initiate automated recovery..."
+ 2    .88   Incident INC-7421                       "Automated recovery reduced downtime..."
+ 3    .86   2024 Runbook                            "Restart once upstream stabilizes..."
+ 4    .80   Mirrored handbook excerpt              "Automated recovery..."
 ```
 
-The key architectural difference: **traditional retrieval returns what was found; QualityRag can enforce what the policy says must be found before generation**.
+**Missing from the model's context:** the EU Financial Controls Annex and superseding change memo.
 
-**Decision summary:** `ADMIT` permits the application to proceed; `REFUSE` blocks on a governing contradiction; `INCONCLUSIVE` blocks when required evidence is missing.
+A plausible but unsupported model answer is:
 
-### PackSpec for the example
+> “Yes. On-call can automatically restart the gateway following the dependency failure, consistent with the operations handbook.”
+
+This answer can cite genuine documents and still be **operationally unsafe** because it omits the controlling regional exception. This is a *possible* failure, not a claim that all ordinary RAG systems fail.
+
+### Path B — Same retrieval, with QualityRag
+
+A domain owner uses QualityRag Studio to define a server-owned PackSpec for the decision category `eu-payments-screening-recovery`:
 
 ```json
 {
-  "id": "equipment-reimbursement",
+  "id": "eu-payments-screening-recovery",
   "version": "1.0",
   "requirements": [
-    {
-      "id": "general-reimbursement-rule",
-      "min_independent_sources": 1
-    },
-    {
-      "id": "purchase-approval-exception",
-      "min_independent_sources": 1
-    }
+    {"id": "recovery-procedure", "min_independent_sources": 1},
+    {"id": "eu-screening-control", "min_independent_sources": 1},
+    {"id": "applicable-approval-or-exception", "min_independent_sources": 1}
   ]
 }
 ```
 
-### Run the existing Python SDK
+The metadata builder maps verified retrieval candidates to obligations. It must not mark an obligation `SUPPORTS` merely because a passage mentions relevant words; the metadata builder itself needs trusted source validation and a correct requirement match.
+
+```text
+Question
+  ↓
+Vector/hybrid retrieval over 85,000 unstructured files
+  ↓
+Chunks 1–4 retrieved, all about generic recovery
+  ↓
+QualityRag checks declared evidence obligations:
+  recovery-procedure                SATISFIED
+  eu-screening-control              MISSING
+  applicable-approval-or-exception  MISSING
+  ↓
+INCONCLUSIVE
+  ↓
+Application withholds the answer and asks for the annex /
+compliance approval evidence; optionally launches targeted retrieval
+```
+
+The base evaluator **does not automatically search again**; targeted re-retrieval is a responsibility of the surrounding application. The experimental semantic compiler can expose missing declared obligations as `Wgap`.
+
+### Working SDK simulation: retrieval returned too little
 
 From the repository root:
 
@@ -116,59 +122,63 @@ PYTHONPATH=sdk/python python - <<'PY'
 from qualityrag import evaluate
 
 pack = {
-    "id": "equipment-reimbursement",
+    "id": "eu-payments-screening-recovery",
     "version": "1.0",
     "requirements": [
-        {"id": "general-reimbursement-rule"},
-        {"id": "purchase-approval-exception"},
+        {"id": "recovery-procedure"},
+        {"id": "eu-screening-control"},
+        {"id": "applicable-approval-or-exception"}
     ],
 }
-
-# Retrieval only supplies the broad rule.
+# Simplified metadata extracted from the four *retrieved* chunks.
+# No governing EU control or approval exception was retrieved.
 evidence = [{
-    "id": "witness-1",
-    "requirement_id": "general-reimbursement-rule",
-    "origin": "company-policy",
-    "source_ref": "equipment-policy#general",
+    "id": "handbook-chunk-7.3",
+    "requirement_id": "recovery-procedure",
+    "origin": "ops-handbook-current",
+    "source_ref": "pdf:ops-handbook#page=74",
     "status": "SUPPORTS",
     "observed_at": "2026-11-02T10:00:00Z",
 }]
-
 result = evaluate(pack, evidence, as_of="2026-11-02T10:05:00Z")
 assert result["verdict"] == "INCONCLUSIVE"
-assert {f["requirement_id"]: f["verdict"] for f in result["findings"]} == {
-    "general-reimbursement-rule": "ADMIT",
-    "purchase-approval-exception": "INCONCLUSIVE",
-}
-print(result["verdict"])
-for finding in result["findings"]:
-    print(finding["requirement_id"], finding["verdict"])
+for item in result["findings"]:
+    print(item["requirement_id"], item["verdict"])
 PY
 ```
 
 Expected output:
 
 ```text
-INCONCLUSIVE
-general-reimbursement-rule ADMIT
-purchase-approval-exception INCONCLUSIVE
+recovery-procedure ADMIT
+eu-screening-control INCONCLUSIVE
+applicable-approval-or-exception INCONCLUSIVE
 ```
 
-**Important:** This test exercises the **metadata evaluator**, not an LLM or a live retriever. To prevent generation in production, the application must enforce the decision on its trusted server, before invoking the model.
+This is a **deterministic metadata-gating demonstration**, not a running vector database, OCR pipeline, or generative model benchmark.
 
-### Comparison
+### What happens after targeted retrieval?
 
-| Question | Traditional RAG | RAG with QualityRag |
-| :--- | :--- | :--- |
-| Can it retrieve relevant text? | Yes | Yes; uses the application's retriever |
-| Does relevance guarantee completeness? | No | No |
-| Can it require specific declared evidence obligations? | Not inherently | **Yes** |
-| Can it block generation when a declared exception is missing? | Requires additional application logic | **Yes, with server-side gating** |
-| Does it automatically discover an undeclared exception? | Not guaranteed | **No, not in the current SDK** |
-| Does it certify source truth or the final answer? | No | **No** |
+Imagine a second retrieval finds the annex and memo. The application still must establish applicability and source authority: Is the annex effective for **this EU gateway, this outage category, and this time**? Does the emergency exception apply? Does a newer revision supersede the memo?
 
-> [!IMPORTANT]
-> **QualityRag does not magically know the exception.** The policy owner must explicitly declare `purchase-approval-exception` in the PackSpec. This limitation is essential to interpreting the example accurately.
+A document's existence is not enough; the **correct governing interpretation** may depend on cross-document references and precedence. This is why the larger roadmap includes constraint extraction, authority/scope resolution, deceptive-witness challenges and governed policy authoring.
+
+### Why the policy belongs outside the application
+
+| Application-owned logic | QualityRag Studio + external policy |
+| :--- | :--- |
+| Each service encodes its own approval checks | Domain owners maintain versioned obligations centrally |
+| Rule changes require redeployment or manual coordination | Registry can bind approved revisions to services/environments |
+| Coverage differs between Java/Python/etc. implementations | Shared policy intent; SDKs still need cross-language semantic parity |
+| Difficult to know which revision was used | Registry records binding and digest; production-grade signing is future work |
+
+**Critical boundary:** QualityRag v0.1 can only report omissions against **requirements that somebody declared**. It cannot currently discover every hidden constraint across 85,000 unstructured documents, authenticate the documents, or prove that a PackSpec is complete. The Studio/registry is a development prototype, not yet a production governance service.
+
+### What this example establishes—and what it does not
+
+- **Establishes:** an incomplete retrieved context can be blocked when a declared obligation has no supporting evidence.
+- **Does not establish:** better semantic retrieval, automated discovery of every governing exception, correct parsing of scanned PDFs, source truth, or improved accuracy at a measured rate.
+- **Practical evaluation:** build a labeled corpus with known exceptions; measure unsafe admissions, appropriate abstentions, latency, and policy authoring burden against a well-configured conventional RAG baseline.
 
 ---
 
