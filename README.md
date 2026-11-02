@@ -57,3 +57,7 @@ Only metadata and bounded evidence identifiers belong in receipts. Validate upst
 ## License
 
 Apache-2.0. See `LICENSE`.
+
+## Learn why QualityRag exists
+
+Start with the **[training guide: five RAG failure scenarios, the case for deterministic evidence gates, and a runnable lab](docs/TRAINING.md)**. It explains when QualityRag is useful, what its current SDKs guarantee, and where their limitations remain.
