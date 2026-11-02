@@ -113,6 +113,17 @@ compliance approval evidence; optionally launches targeted retrieval
 
 The base evaluator **does not automatically search again**; targeted re-retrieval is a responsibility of the surrounding application. The experimental semantic compiler can expose missing declared obligations as `Wgap`.
 
+### Reproducible synthetic document corpus and retrieval fixture
+
+The repository now contains a [six-document training corpus](../examples/enterprise-rag/corpus.json), an [executable retrieval simulation](../examples/enterprise-rag/demo.py), and [regression tests](../examples/enterprise-rag/test_demo.py). The corpus represents PDF, scanned-PDF, Word, HTML, and email formats **as JSON metadata and text excerpts**; it does not contain real binary files or run OCR, vector embedding, or a production retriever.
+
+```bash
+PYTHONPATH=sdk/python python examples/enterprise-rag/demo.py
+PYTHONPATH=sdk/python python -m unittest discover -s examples/enterprise-rag -p 'test_*.py'
+```
+
+The first scripted retrieval returns only the generic recovery rule, incident history, outdated runbook, and a mirror of the handbook. The gate returns `INCONCLUSIVE` for two missing requirements. The second scripted retrieval supplies the annex and memo; the metadata gate returns `ADMIT`, **which is not operational permission to restart the gateway**. Verification of the approval reference, source authenticity, and correct policy applicability are additional necessary controls.
+
 ### Working SDK simulation: retrieval returned too little
 
 From the repository root:
