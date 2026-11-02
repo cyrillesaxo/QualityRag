@@ -9,3 +9,5 @@ __pycache__/
 .qualityrag/
 apps/studio/node_modules/
 apps/studio/dist/
+
+examples/enterprise-rag/generated/
