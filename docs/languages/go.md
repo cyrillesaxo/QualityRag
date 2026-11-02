@@ -17,20 +17,38 @@ cd sdk/go && go test ./...
 
 `qualityrag.Evaluate(pack, witnesses, time.Time)` returns `(Result,error)`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
+
+An enterprise RAG search returns page 74 of the **Payments Operations Handbook**, which describes recovery after a dependency timeout. It does **not** return page 187 of the **EU Financial Controls Annex**, which contains a governing screening restriction.
+
+The PackSpec requires evidence for both `recovery-procedure` and `eu-screening-control`. Only the first is supplied. This is the same fictional case used in the [enterprise RAG training lab](../TRAINING.md).
 
 ```go
 package main
-import ("fmt"; "time"; q "github.com/cyrillesaxo/QualityRag/sdk/go")
+import (
+  "fmt"
+  "time"
+  q "github.com/cyrillesaxo/QualityRag/sdk/go"
+)
 func main() {
- p := q.Pack{ID:"demo",Version:"1",Requirements:[]q.Requirement{{ID:"r",MinIndependentSources:2}}}
- result,err := q.Evaluate(p,[]q.Evidence{},time.Date(2026,11,2,10,5,0,0,time.UTC))
- if err != nil {panic(err)}
- fmt.Println(result.Verdict) // INCONCLUSIVE
+  pack := q.Pack{ID:"eu-recovery", Version:"1", Requirements:[]q.Requirement{
+    {ID:"recovery-procedure"}, {ID:"eu-screening-control"},
+  }}
+  evidence := []q.Evidence{{ID:"pdf-74", RequirementID:"recovery-procedure",
+    Origin:"operations-handbook", SourceRef:"operations.pdf#page=74",
+    Status:"SUPPORTS", ObservedAt:"2026-11-02T10:00:00Z"}}
+  now, _ := time.Parse(time.RFC3339, "2026-11-02T10:05:00Z")
+  result, err := q.Evaluate(pack, evidence, now)
+  if err != nil { panic(err) }
+  fmt.Println(result.Verdict) // INCONCLUSIVE
 }
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. The recovery procedure is supported; the declared EU control remains unresolved. The application must not generate an unrestricted operational answer.
+
+**Integration rule:** evaluate the trusted retrieval metadata on your server **before** invoking an LLM. Do not invent a supporting witness for a chunk that was not retrieved. Distinct source identifiers and timestamps do not establish authenticity.
+
+**Scope:** This snippet calls the existing v0.1 metadata gate. It does not perform PDF extraction, semantic classification, or retrieval. Consult the [executable ingestion lab](../../examples/enterprise-rag/REAL-DOCUMENTS.md) for that separate demonstration.
 
 ## 4. Production integration checklist
 
