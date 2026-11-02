@@ -1,0 +1,21 @@
+{
+  "name": "@qualityrag/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QualityRag deterministic evidence gate and React integration",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/react": "^18.3.12",
+    "react": "^18.3.1"
+  }
+}
