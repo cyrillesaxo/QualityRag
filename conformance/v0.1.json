@@ -1,0 +1,142 @@
+{
+  "schema": "qualityrag.conformance/v0.1",
+  "as_of": "2026-11-02T10:05:00Z",
+  "pack": {
+    "id": "conformance",
+    "version": "1",
+    "requirements": [
+      {
+        "id": "r",
+        "min_independent_sources": 2,
+        "max_age_seconds": 3600
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "independent",
+      "evidence": [
+        [
+          "a",
+          "A",
+          "SUPPORTS"
+        ],
+        [
+          "b",
+          "B",
+          "SUPPORTS"
+        ]
+      ],
+      "verdict": "ADMIT",
+      "reasons": []
+    },
+    {
+      "name": "duplicate-origin",
+      "evidence": [
+        [
+          "a",
+          "A",
+          "SUPPORTS"
+        ],
+        [
+          "b",
+          "A",
+          "SUPPORTS"
+        ]
+      ],
+      "verdict": "INCONCLUSIVE",
+      "reasons": [
+        "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+      ]
+    },
+    {
+      "name": "contradiction",
+      "evidence": [
+        [
+          "a",
+          "A",
+          "SUPPORTS"
+        ],
+        [
+          "b",
+          "B",
+          "CONTRADICTS"
+        ]
+      ],
+      "verdict": "REFUSE",
+      "reasons": [
+        "CONTRADICTION"
+      ]
+    },
+    {
+      "name": "missing",
+      "evidence": [],
+      "verdict": "INCONCLUSIVE",
+      "reasons": [
+        "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+      ]
+    },
+    {
+      "name": "stale",
+      "evidence": [
+        [
+          "a",
+          "A",
+          "SUPPORTS",
+          "2026-10-01T10:00:00Z"
+        ],
+        [
+          "b",
+          "B",
+          "SUPPORTS"
+        ]
+      ],
+      "verdict": "INCONCLUSIVE",
+      "reasons": [
+        "INSUFFICIENT_INDEPENDENT_EVIDENCE",
+        "STALE_EVIDENCE"
+      ]
+    },
+    {
+      "name": "unknown",
+      "evidence": [
+        [
+          "a",
+          "A",
+          "SUPPORTS"
+        ],
+        [
+          "b",
+          "B",
+          "UNKNOWN"
+        ]
+      ],
+      "verdict": "INCONCLUSIVE",
+      "reasons": [
+        "INSUFFICIENT_INDEPENDENT_EVIDENCE",
+        "UNKNOWN_EVIDENCE"
+      ]
+    },
+    {
+      "name": "future",
+      "evidence": [
+        [
+          "a",
+          "A",
+          "SUPPORTS"
+        ],
+        [
+          "b",
+          "B",
+          "SUPPORTS",
+          "2026-11-03T10:00:00Z"
+        ]
+      ],
+      "verdict": "INCONCLUSIVE",
+      "reasons": [
+        "FUTURE_EVIDENCE",
+        "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+      ]
+    }
+  ]
+}
