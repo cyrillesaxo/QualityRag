@@ -17,43 +17,36 @@ mvn -f sdk/java/pom.xml test
 
 `QualityRag.evaluate(JsonNode pack, JsonNode evidence, Instant asOf)`; experimental `SemanticCompiler.compile(pack)` and `SemanticCompiler.evaluate(pack,evidence,asOf)`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
 
-Use a Java text block for readable policy JSON. The snippet is suitable for a Java 17 application with the QualityRag SDK and Jackson on its classpath.
+An enterprise RAG search returns page 74 of the **Payments Operations Handbook**, which describes recovery after a dependency timeout. It does **not** return page 187 of the **EU Financial Controls Annex**, which contains a governing screening restriction.
+
+The PackSpec requires evidence for both `recovery-procedure` and `eu-screening-control`. Only the first is supplied. This is the same fictional case used in the [enterprise RAG training lab](../TRAINING.md).
 
 ```java
 import io.qualityrag.QualityRag;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 
-ObjectMapper mapper = new ObjectMapper();
-
-String policy = """
-    {
-      "id": "demo",
-      "version": "1",
-      "requirements": [
-        {
-          "id": "r",
-          "min_independent_sources": 2
-        }
-      ]
-    }
-    """;
-
-var pack = mapper.readTree(policy);
-var evidence = mapper.readTree("[]");
-var result = QualityRag.evaluate(
-    pack,
-    evidence,
-    Instant.parse("2026-11-02T10:05:00Z")
-);
-
-System.out.println(result.path("verdict").asText());
-// INCONCLUSIVE
+var mapper = new ObjectMapper();
+var pack = mapper.readTree("""
+  {"id":"eu-recovery","version":"1","requirements":[
+    {"id":"recovery-procedure"},{"id":"eu-screening-control"}]}
+  """);
+var evidence = mapper.readTree("""
+  [{"id":"pdf-74","requirement_id":"recovery-procedure",
+    "origin":"operations-handbook","source_ref":"operations.pdf#page=74",
+    "status":"SUPPORTS","observed_at":"2026-11-02T10:00:00Z"}]
+  """);
+var result = QualityRag.evaluate(pack, evidence, Instant.parse("2026-11-02T10:05:00Z"));
+System.out.println(result.path("verdict").asText()); // INCONCLUSIVE
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. The recovery procedure is supported; the declared EU control remains unresolved. The application must not generate an unrestricted operational answer.
+
+**Integration rule:** evaluate the trusted retrieval metadata on your server **before** invoking an LLM. Do not invent a supporting witness for a chunk that was not retrieved. Distinct source identifiers and timestamps do not establish authenticity.
+
+**Scope:** This snippet calls the existing v0.1 metadata gate. It does not perform PDF extraction, semantic classification, or retrieval. Consult the [executable ingestion lab](../../examples/enterprise-rag/REAL-DOCUMENTS.md) for that separate demonstration.
 
 ## 4. Production integration checklist
 
