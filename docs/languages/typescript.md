@@ -17,15 +17,32 @@ cd sdk/typescript && npm install && npm test && npm run build
 
 `evaluate(pack,evidence,asOf?)` from `src/index.ts`; `compilePack` and `evaluateCompiled` from `src/compiler.ts`; `useQualityRag` from `src/react.ts`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
 
-```ts
-import { evaluate } from "./src/index.js";
-const pack = {id:"demo",version:"1",requirements:[{id:"r",min_independent_sources:2}]};
-console.log(evaluate(pack, [], "2026-11-02T10:05:00Z").verdict); // INCONCLUSIVE
+An enterprise RAG search returns page 74 of the **Payments Operations Handbook**, which describes recovery after a dependency timeout. It does **not** return page 187 of the **EU Financial Controls Annex**, which contains a governing screening restriction.
+
+The PackSpec requires evidence for both `recovery-procedure` and `eu-screening-control`. Only the first is supplied. This is the same fictional case used in the [enterprise RAG training lab](../TRAINING.md).
+
+```typescript
+import { evaluate, type PackSpec, type Evidence } from "./index";
+
+const pack: PackSpec = { id: "eu-recovery", version: "1", requirements: [
+  { id: "recovery-procedure" }, { id: "eu-screening-control" }
+]};
+const evidence: Evidence[] = [{
+  id: "pdf-74", requirement_id: "recovery-procedure",
+  origin: "operations-handbook", source_ref: "operations.pdf#page=74",
+  status: "SUPPORTS", observed_at: "2026-11-02T10:00:00Z"
+}];
+console.log(evaluate(pack, evidence, "2026-11-02T10:05:00Z").verdict);
+// INCONCLUSIVE
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. The recovery procedure is supported; the declared EU control remains unresolved. The application must not generate an unrestricted operational answer.
+
+**Integration rule:** evaluate the trusted retrieval metadata on your server **before** invoking an LLM. Do not invent a supporting witness for a chunk that was not retrieved. Distinct source identifiers and timestamps do not establish authenticity.
+
+**Scope:** This snippet calls the existing v0.1 metadata gate. It does not perform PDF extraction, semantic classification, or retrieval. Consult the [executable ingestion lab](../../examples/enterprise-rag/REAL-DOCUMENTS.md) for that separate demonstration.
 
 ## 4. Production integration checklist
 
