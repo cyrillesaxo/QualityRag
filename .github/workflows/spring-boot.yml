@@ -1,0 +1,11 @@
+name: Spring Boot integration
+on: [push, pull_request]
+jobs:
+  spring:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - run: mvn --batch-mode -f sdk/java/pom.xml install -DskipTests
+      - run: mvn --batch-mode -f sdk/spring-boot/pom.xml test
