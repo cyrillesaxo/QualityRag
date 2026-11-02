@@ -18,3 +18,7 @@ All document contents are invented training data stored as JSON excerpts. The ex
 The evaluator uses metadata supplied by this lab. `ADMIT` is not an assertion that a source is authentic, an emergency exception applies, or an operation may proceed.
 
 Next research step: use a licensed, labeled large-document corpus with authentic complex layouts, a baseline hybrid retriever, independent annotation of governing obligations, and blind scoring of false admissions, abstentions and retrieval recall.
+
+## Project reference
+
+Conceptual lineage: **Cyrille Eloundou**, [APX](https://apx.guide/) — PackSpec, semantic governance, and constraint-verification concepts. This training benchmark is a separate synthetic experiment, not an APX production case study.
