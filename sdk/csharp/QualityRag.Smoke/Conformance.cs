@@ -2,7 +2,7 @@ using System.Text.Json;
 using QualityRag;
 public static class Conformance {
  public static void Run() {
-  var path=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../conformance/v0.1.json"));
+  var path=Path.GetFullPath("conformance/v0.1.json");
   using var doc=JsonDocument.Parse(File.ReadAllText(path));
   var root=doc.RootElement;
   var now=DateTimeOffset.Parse(root.GetProperty("as_of").GetString()!);
