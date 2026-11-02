@@ -86,7 +86,7 @@ Application asks for the missing approval-policy evidence
 
 The key architectural difference: **traditional retrieval returns what was found; QualityRag can enforce what the policy says must be found before generation**.
 
-![QualityRag decision outcomes](assets/three-decisions.svg)
+**Decision summary:** `ADMIT` permits the application to proceed; `REFUSE` blocks on a governing contradiction; `INCONCLUSIVE` blocks when required evidence is missing.
 
 ### PackSpec for the example
 
