@@ -1,61 +1,60 @@
 # QualityRag
 
-📚 **[Documentation hub — quickstart, all 10 language SDKs, FAQ and support](docs/README.md)**
+**A deterministic evidence-completeness gate for retrieval-augmented generation.**
 
-**Evidence completeness and semantic governance for retrieval-augmented generation.**
+[**Get started →**](docs/quickstart.md) · [**Browse all 10 SDK guides →**](docs/README.md#choose-your-sdk) · [**API concepts →**](docs/concepts.md) · [**Get help →**](docs/troubleshooting.md)
 
-QualityRag evaluates a versioned **PackSpec** against retrieved evidence **before** an answer is produced. The SDK uses the same portable contract in Python, Java, and TypeScript/React.
+---
 
-**Status:** Experimental v0.1. Local, deterministic policy evaluator; not a proof of source authenticity, truth, regulatory compliance, or production readiness. No LLM is required for evaluation.
+## Why QualityRag?
 
-## Decision semantics
+A retrieved passage can be accurate while the answer remains unsupported: a missing exception, unresolved scope, stale witness, or duplicated source may change the outcome.
 
-- **ADMIT**: all declared requirements have valid supporting evidence under the supplied metadata.
-- **REFUSE**: a requirement is contradicted or an explicit violation has been recorded.
-- **INCONCLUSIVE**: evidence is absent, stale, source-dependent when independence is required, unverified, or lacks required coverage.
+QualityRag evaluates a **versioned PackSpec** against *caller-supplied evidence metadata* before an application calls an answer generator.
 
-**ADMIT only means the supplied input satisfies the specified checks; it never proves the underlying source is truthful.** Integrators should refuse or ask for more evidence on either REFUSE or INCONCLUSIVE.
+| Verdict | What it means |
+| :--- | :--- |
+| **ADMIT** | Submitted metadata meets declared requirements |
+| **REFUSE** | Governing contradiction detected |
+| **INCONCLUSIVE** | One or more evidence obligations remain unresolved |
 
-## Repository
+> [!IMPORTANT]
+> **ADMIT does not verify source truth, authority, or actual independence.** The public SDK is experimental and should not be represented as certified semantic assurance.
 
-- `contracts/qualityrag.schema.json` – portable PackSpec, witness, and evaluation contract
-- `sdk/python` – zero-dependency Python engine and tests
-- `sdk/java` – Java 17 Maven SDK with Jackson and JUnit
-- `sdk/typescript` – TypeScript SDK and React hook
-- `examples/` – shared input and expected result
+## Start building
 
-## Try it
+| Your stack | Guide |
+| :--- | :--- |
+| Java / Spring Boot | [Java SDK](docs/languages/java.md) · [Spring Boot integration](docs/SPRING-BOOT.md) |
+| Python | [Python SDK](docs/languages/python.md) |
+| TypeScript / React | [TypeScript SDK](docs/languages/typescript.md) |
+| Go · .NET · Rust · Kotlin | [Backend SDK directory](docs/README.md#choose-your-sdk) |
+| PHP · Ruby · Swift | [Application SDK directory](docs/README.md#choose-your-sdk) |
 
-Python (from repository root):
-
-```sh
+```bash
+# Clone and run the dependency-free Python gate tests
+git clone https://github.com/cyrillesaxo/QualityRag.git
+cd QualityRag
 PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests
-PYTHONPATH=sdk/python python examples/python_demo.py
 ```
 
-Java: `cd sdk/java && mvn test`
+**[Full developer documentation →](docs/README.md)**
 
-TypeScript: `cd sdk/typescript && npm install && npm test && npm run build`
+## Current capabilities
 
-## Source lineage and scope
+| Module | Status |
+| :--- | :--- |
+| Evidence metadata gate | 10 languages |
+| Shared conformance suite | 10 languages |
+| ConstraintIR · WitnessGraph · Wgap prototypes | Java / Python / TypeScript |
+| Spring Boot answer gate | Implemented |
+| Spring AI adapter | Under review in PR #9 |
+| Complete APX D15, G1–G12, HCR, TERM and RCOC | Not yet ported |
 
-Concepts adapted from private APX implementation as of 2026-11-02:
+No Maven Central, PyPI, npm, NuGet, crates.io, RubyGems, Packagist, or Swift package registry release is claimed. Build these experimental SDKs from repository source.
 
-| Capability | APX reference | Public v0.1 |
-| --- | --- | --- |
-| Versioned policy | `packages/apx-pack-spec` | Simplified portable PackSpec |
-| Evidence lineage | `packages/apx-evidence` | Origin key + source reference |
-| Decision and refusal | `packages/apx-assurance` | Deterministic ADMIT/REFUSE/INCONCLUSIVE |
-| Independent corroboration | `packages/apx-evidence` | Distinct origin count |
-| D15 deception census | `packages/apx-evidence` | **Not yet ported** |
-| HCR, RCOC, TERM, W_min, receipts | APX assurance stack | **Not yet ported** |
+## Design and provenance
 
-No private infrastructure, credentials, customer records, or private APX source tree is included. See `docs/ROADMAP.md` for parity criteria.
+The public contract is inspired by private APX work including PackSpec, witness provenance, admission/refusal, evidence independence, and bounded semantic assurance. It deliberately does not publish private APX infrastructure, customer data, or credentials.
 
-## Security
-
-Only metadata and bounded evidence identifiers belong in receipts. Validate upstream source authority; do not count repeated copies as independent corroboration. Apply access control to documents before indexing/retrieval. Avoid logging retrieved content or sensitive data.
-
-## License
-
-Apache-2.0. See `LICENSE`.
+[Architecture](docs/ADR-0001-semantic-constraint-compiler.md) · [Roadmap](docs/ROADMAP.md) · [Security & support](docs/support.md) · [Apache-2.0 license](LICENSE)
