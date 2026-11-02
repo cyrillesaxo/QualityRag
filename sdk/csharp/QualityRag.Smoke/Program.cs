@@ -7,3 +7,5 @@ if(Gate.Evaluate(p,new[]{a,b},now).Verdict!="ADMIT")throw new Exception("Expecte
 if(Gate.Evaluate(p,new[]{a,b with{Origin="A"}},now).Verdict!="INCONCLUSIVE")throw new Exception("Expected INCONCLUSIVE");
 if(Gate.Evaluate(p,new[]{a,b with{Status="CONTRADICTS"}},now).Verdict!="REFUSE")throw new Exception("Expected REFUSE");
 Console.WriteLine("QualityRag .NET smoke passed");
+
+Conformance.Run();
