@@ -17,16 +17,25 @@ cd sdk/kotlin && gradle test
 
 `io.qualityrag.Gate.evaluate(Pack,List<Witness>,Instant)`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
+
+An enterprise RAG search retrieves page 74 of a **Payments Operations Handbook** but misses page 187 of a governing **EU Financial Controls Annex**. The PackSpec requires both documents' governing evidence.
 
 ```kotlin
 import io.qualityrag.*
 import java.time.Instant
-val pack = Pack("demo","1",listOf(Requirement("r",2)))
-println(Gate.evaluate(pack, emptyList(), Instant.parse("2026-11-02T10:05:00Z")).verdict) // INCONCLUSIVE
+val pack = Pack("eu-recovery", "1", listOf(
+    Requirement("recovery-procedure"),
+    Requirement("eu-screening-control")))
+val evidence = listOf(Witness(
+    "pdf-74", "recovery-procedure", "operations-handbook",
+    "operations.pdf#page=74", "SUPPORTS",
+    Instant.parse("2026-11-02T10:00:00Z")))
+val result = Gate.evaluate(pack, evidence, Instant.parse("2026-11-02T10:05:00Z"))
+println(result.verdict) // INCONCLUSIVE
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. This is evidence metadata evaluation, not PDF parsing or a vector search. Block answer generation until required evidence is established. See [enterprise training](../TRAINING.md) and [document ingestion](../../examples/enterprise-rag/REAL-DOCUMENTS.md).
 
 ## 4. Production integration checklist
 
