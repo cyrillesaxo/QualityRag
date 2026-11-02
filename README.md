@@ -1,5 +1,7 @@
 # QualityRag
 
+📚 **[Documentation hub — quickstart, all 10 language SDKs, FAQ and support](docs/README.md)**
+
 **Evidence completeness and semantic governance for retrieval-augmented generation.**
 
 QualityRag evaluates a versioned **PackSpec** against retrieved evidence **before** an answer is produced. The SDK uses the same portable contract in Python, Java, and TypeScript/React.
