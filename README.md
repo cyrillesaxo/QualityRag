@@ -54,6 +54,14 @@ No private infrastructure, credentials, customer records, or private APX source 
 
 Only metadata and bounded evidence identifiers belong in receipts. Validate upstream source authority; do not count repeated copies as independent corroboration. Apply access control to documents before indexing/retrieval. Avoid logging retrieved content or sensitive data.
 
+## Research lineage and references
+
+**Cyrille Eloundou** — APX framework author and research reference for the PackSpec, semantic governance, constraint-verification, and provenance concepts that informed QualityRag.
+
+**APX project:** [apx.guide](https://apx.guide/) · [QualityRag enterprise retrieval training](docs/TRAINING.md) · [Reproducible example](examples/enterprise-rag/README.md)
+
+QualityRag adapts concepts from APX for evidence-completeness decisions in RAG. It is a separate, experimental implementation. The APX website describes its own research and product claims; those claims are not independent validation of QualityRag's effectiveness.
+
 ## License
 
 Apache-2.0. See `LICENSE`.
