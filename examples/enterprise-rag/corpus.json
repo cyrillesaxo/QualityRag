@@ -1,0 +1,122 @@
+{
+  "scenario": "Synthetic EU payment recovery corpus; all passages invented",
+  "question": "Can on-call automatically restore the EU payments gateway after sanctions screening dependency failure?",
+  "documents": [
+    {
+      "id": "ops-handbook",
+      "format": "PDF",
+      "pages": 240,
+      "revision": "2026",
+      "origin": "ops-handbook",
+      "chunks": [
+        {
+          "id": "ops-7.3",
+          "section": "7.3",
+          "text": "On-call staff may initiate automated recovery after a dependency timeout.",
+          "requirement_id": "recovery-procedure",
+          "status": "SUPPORTS"
+        }
+      ]
+    },
+    {
+      "id": "incident-7421",
+      "format": "HTML",
+      "revision": "2025",
+      "origin": "incident-7421",
+      "chunks": [
+        {
+          "id": "incident-summary",
+          "text": "During a prior gateway outage, automated recovery reduced downtime. This report records an incident and does not authorize a current restoration.",
+          "requirement_id": null
+        }
+      ]
+    },
+    {
+      "id": "runbook-2024",
+      "format": "DOCX",
+      "revision": "2024",
+      "origin": "legacy-runbook",
+      "chunks": [
+        {
+          "id": "runbook-restart",
+          "text": "Restart the gateway once upstream connectivity stabilizes. This document predates current regional controls.",
+          "requirement_id": null
+        }
+      ]
+    },
+    {
+      "id": "ops-mirror",
+      "format": "HTML",
+      "revision": "2026",
+      "origin": "ops-handbook",
+      "chunks": [
+        {
+          "id": "ops-mirror-7.3",
+          "text": "Copied excerpt: on-call staff may initiate automated recovery after a dependency timeout.",
+          "requirement_id": "recovery-procedure",
+          "status": "SUPPORTS"
+        }
+      ]
+    },
+    {
+      "id": "eu-annex",
+      "format": "scanned PDF",
+      "pages": 198,
+      "revision": "2026",
+      "origin": "eu-control-annex",
+      "chunks": [
+        {
+          "id": "annex-d-187",
+          "section": "Appendix D, page 187",
+          "text": "Where a sanctions-screening dependency is unavailable, restoration requires compliance sign-off unless the documented emergency exception applies.",
+          "requirement_id": "eu-screening-control",
+          "status": "SUPPORTS"
+        }
+      ]
+    },
+    {
+      "id": "regional-memo",
+      "format": "email archive",
+      "revision": "2026",
+      "origin": "regional-change-memo",
+      "chunks": [
+        {
+          "id": "memo-exception",
+          "text": "The emergency exception applies only to documented tests with a recorded approval reference. The EU control supersedes the general restart flow.",
+          "requirement_id": "applicable-approval-or-exception",
+          "status": "SUPPORTS"
+        }
+      ]
+    }
+  ],
+  "retrieval": {
+    "initial": [
+      "ops-7.3",
+      "incident-summary",
+      "runbook-restart",
+      "ops-mirror-7.3"
+    ],
+    "targeted": [
+      "annex-d-187",
+      "memo-exception"
+    ]
+  },
+  "pack": {
+    "id": "eu-payments-screening-recovery",
+    "version": "1.0",
+    "requirements": [
+      {
+        "id": "recovery-procedure",
+        "min_independent_sources": 1
+      },
+      {
+        "id": "eu-screening-control",
+        "min_independent_sources": 1
+      },
+      {
+        "id": "applicable-approval-or-exception",
+        "min_independent_sources": 1
+      }
+    ]
+  }
+}
