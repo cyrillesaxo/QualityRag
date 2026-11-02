@@ -6,6 +6,8 @@
 
 ---
 
+![Question, PackSpec, evidence, QualityRag evaluation, decision](assets/how-it-works.svg)
+
 ## Get started in three steps
 
 | Step | What to do | Link |
@@ -37,6 +39,8 @@
 | **Swift 5.9** | [Swift SDK →](languages/swift.md) | `cd sdk/swift && swift test` |
 
 ## Understand an evaluation
+
+![Three QualityRag decisions](assets/three-decisions.svg)
 
 | Decision | Meaning | Recommended application behavior |
 | :--- | :--- | :--- |
