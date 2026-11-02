@@ -1,3 +1,5 @@
+![QualityRag workflow](assets/how-it-works.svg)
+
 # Concepts and API reference
 
 ## PackSpec v0.1
@@ -9,6 +11,8 @@
 Required fields are `id`, `requirement_id`, `origin`, `source_ref`, `status`, `observed_at`. Supported statuses: `SUPPORTS`, `CONTRADICTS`, `UNKNOWN`. Timestamps should be explicit-offset RFC3339/ISO8601 strings; UTC `Z` is safest. Independent evidence is approximated by the number of **distinct supplied origin identifiers**, not the number of documents.
 
 ## Decisions
+
+![QualityRag admission outcomes](assets/three-decisions.svg)
 
 - `ADMIT`: all requirements have enough non-stale supporting origins, no in-scope contradictions, under submitted metadata.
 - `REFUSE`: a non-stale, governing contradictory witness was supplied; dominates all other findings.
