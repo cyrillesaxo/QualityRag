@@ -1,34 +1,94 @@
-# Quickstart: first evidence decision
+# Quickstart: Your First Evidence Decision
 
-Clone [QualityRag](https://github.com/cyrillesaxo/QualityRag) and follow your [language-specific guide](README.md).
+**Goal:** evaluate a PackSpec with two documents that share one origin and understand why the result is `INCONCLUSIVE`.
 
-QualityRag gates **caller-provided evidence metadata** against PackSpec requirements, before the application authorizes a generated answer.
+[Documentation home](README.md) · [Choose an SDK](README.md#choose-your-sdk) · [Decision reference](concepts.md)
 
-## Minimal policy
+## 1. Define a PackSpec
+
+A PackSpec declares the evidence obligations a question must satisfy.
 
 ```json
-{"id":"eligibility-demo","version":"1","requirements":[{"id":"rule","min_independent_sources":2,"max_age_seconds":3600}]}
+{
+  "id": "eligibility-demo",
+  "version": "1",
+  "requirements": [
+    {
+      "id": "rule",
+      "min_independent_sources": 2,
+      "max_age_seconds": 3600
+    }
+  ]
+}
 ```
 
-## Evidence
+## 2. Submit evidence metadata
+
+Both witnesses refer to **origin A**. Two documents are not necessarily two independent sources.
 
 ```json
 [
- {"id":"w1","requirement_id":"rule","origin":"A","source_ref":"doc:A#1","status":"SUPPORTS","observed_at":"2026-11-02T10:00:00Z"},
- {"id":"w2","requirement_id":"rule","origin":"A","source_ref":"doc:A#2","status":"SUPPORTS","observed_at":"2026-11-02T10:00:00Z"}
+  {
+    "id": "w1",
+    "requirement_id": "rule",
+    "origin": "A",
+    "source_ref": "doc:A#1",
+    "status": "SUPPORTS",
+    "observed_at": "2026-11-02T10:00:00Z"
+  },
+  {
+    "id": "w2",
+    "requirement_id": "rule",
+    "origin": "A",
+    "source_ref": "doc:A#2",
+    "status": "SUPPORTS",
+    "observed_at": "2026-11-02T10:00:00Z"
+  }
 ]
 ```
 
-Evaluate at a **fixed clock** of `2026-11-02T10:05:00Z`. Both records share origin A, so the result is `INCONCLUSIVE`, independent source count is 1, and the finding includes `INSUFFICIENT_INDEPENDENT_EVIDENCE`. Change w2's declared origin to B, and the metadata gate yields `ADMIT` if no other blocking evidence exists. That does **not** establish that A and B truly are independent.
+## 3. Evaluate at a fixed time
 
-For runnable examples, see `examples/python_demo.py` and `examples/hidden-exception/demo.py`.
+Run the Python example from the repository root:
 
-## Integrate safely
+```bash
+PYTHONPATH=sdk/python python examples/python_demo.py
+```
 
-1. Define a server-owned, versioned PackSpec.
-2. Retrieve documents with access control and construct validated, provenance-aware witness metadata.
-3. Evaluate **before** calling your model; on `REFUSE` or `INCONCLUSIVE`, do not invoke the answer generator.
-4. Return an appropriate clarification/refusal with bounded reasons; protect receipts from sensitive content.
-5. Reevaluate when policy, time horizon or sources change.
+For the data above, evaluate at `2026-11-02T10:05:00Z`:
 
-The base gate checks counts, timestamps and contradictions. Only the extended compiler checks declared scope and authority labels and emits Wgap. See [concepts](concepts.md).
+```json
+{
+  "schema": "qualityrag.result/v0.1",
+  "pack_id": "eligibility-demo",
+  "pack_version": "1",
+  "verdict": "INCONCLUSIVE",
+  "findings": [
+    {
+      "requirement_id": "rule",
+      "verdict": "INCONCLUSIVE",
+      "independent_sources": 1,
+      "reasons": ["INSUFFICIENT_INDEPENDENT_EVIDENCE"]
+    }
+  ]
+}
+```
+
+> [!NOTE]
+> The bundled `examples/python_demo.py` demonstrates the same type of decision with its own example identifiers. The JSON above corresponds to the PackSpec and witnesses shown on this page.
+
+## 4. Interpret the result
+
+**INCONCLUSIVE** means that, under the supplied metadata, the policy's requirement of two independent origins is not met. The application should report the missing evidence rather than call the answer generator.
+
+Changing witness `w2` to declared origin `B` yields `ADMIT` *under the submitted metadata*. It does **not** prove that A and B genuinely are independent.
+
+## 5. Integrate safely
+
+1. Keep PackSpecs server-owned and versioned.
+2. Enforce source authorization and provenance upstream.
+3. Evaluate before model generation.
+4. On `REFUSE` or `INCONCLUSIVE`, stop generation and return the bounded finding.
+5. Reevaluate after relevant evidence or policy changes.
+
+**Next:** [Choose your language](README.md#choose-your-sdk) · [Extended compiler and Wgap](concepts.md#extended-experimental-compiler) · [Troubleshooting](troubleshooting.md)
