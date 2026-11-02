@@ -1,0 +1,19 @@
+name: Studio and Registry
+on: [push, pull_request]
+jobs:
+  registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm --prefix apps/registry test
+  studio:
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: apps/studio}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install
+      - run: npm run build
