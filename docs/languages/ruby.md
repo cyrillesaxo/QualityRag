@@ -17,16 +17,22 @@ ruby sdk/ruby/test/test_qualityrag.rb && ruby sdk/ruby/test/test_conformance.rb
 
 `QualityRag.evaluate(pack,evidence,as_of: Time)`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
+
+An enterprise RAG search retrieves page 74 of a **Payments Operations Handbook** but misses page 187 of a governing **EU Financial Controls Annex**. The PackSpec declares both evidence obligations. Only the general procedure has a supporting witness.
 
 ```ruby
 require_relative "sdk/ruby/lib/qualityrag"
-pack = {"id"=>"demo","version"=>"1","requirements"=>[{"id"=>"r","min_independent_sources"=>2}]}
-result = QualityRag.evaluate(pack,[],as_of:Time.iso8601("2026-11-02T10:05:00Z"))
+pack = {"id"=>"eu-recovery","version"=>"1","requirements"=>[
+  {"id"=>"recovery-procedure"},{"id"=>"eu-screening-control"}]}
+evidence = [{"id"=>"pdf-74","requirement_id"=>"recovery-procedure",
+  "origin"=>"operations-handbook","source_ref"=>"operations.pdf#page=74",
+  "status"=>"SUPPORTS","observed_at"=>"2026-11-02T10:00:00Z"}]
+result = QualityRag.evaluate(pack, evidence, as_of: Time.iso8601("2026-11-02T10:05:00Z"))
 puts result["verdict"] # INCONCLUSIVE
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. The application must not invoke its answer-generating model until the missing obligation has been resolved. This is the v0.1 **metadata gate**; it does not retrieve or parse PDFs. See [enterprise training](../TRAINING.md) and [document ingestion](../../examples/enterprise-rag/REAL-DOCUMENTS.md).
 
 ## 4. Production integration checklist
 
