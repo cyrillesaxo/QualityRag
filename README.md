@@ -6,6 +6,8 @@
 
 ---
 
+![QualityRag evidence governance flow](docs/assets/how-it-works.svg)
+
 ## Why QualityRag?
 
 A retrieved passage can be accurate while the answer remains unsupported: a missing exception, unresolved scope, stale witness, or duplicated source may change the outcome.
@@ -20,6 +22,16 @@ QualityRag evaluates a **versioned PackSpec** against *caller-supplied evidence 
 
 > [!IMPORTANT]
 > **ADMIT does not verify source truth, authority, or actual independence.** The public SDK is experimental and should not be represented as certified semantic assurance.
+
+### What the three decisions mean
+
+![ADMIT, REFUSE and INCONCLUSIVE illustrated](docs/assets/three-decisions.svg)
+
+### A missing-exception failure
+
+![Retrieved rule without its governing exception](docs/assets/hidden-exception.svg)
+
+The missing exception must be **declared in PackSpec** for the current evaluator to detect it.
 
 ## Start building
 
