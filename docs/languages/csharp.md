@@ -17,16 +17,33 @@ dotnet run --project sdk/csharp/QualityRag.Smoke/QualityRag.Smoke.csproj
 
 `QualityRag.Gate.Evaluate(Pack,IReadOnlyList<Witness>,DateTimeOffset)`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
+
+An enterprise RAG search returns page 74 of the **Payments Operations Handbook**, which describes recovery after a dependency timeout. It does **not** return page 187 of the **EU Financial Controls Annex**, which contains a governing screening restriction.
+
+The PackSpec requires evidence for both `recovery-procedure` and `eu-screening-control`. Only the first is supplied. This is the same fictional case used in the [enterprise RAG training lab](../TRAINING.md).
 
 ```csharp
 using QualityRag;
-var pack = new Pack("demo","1",new[]{new Requirement("r",2)});
-var result = Gate.Evaluate(pack,Array.Empty<Witness>(),DateTimeOffset.Parse("2026-11-02T10:05:00Z"));
+var pack = new Pack("eu-recovery", "1", new[] {
+    new Requirement("recovery-procedure"),
+    new Requirement("eu-screening-control")
+});
+var evidence = new[] {
+    new Witness("pdf-74", "recovery-procedure",
+        "operations-handbook", "operations.pdf#page=74", "SUPPORTS",
+        DateTimeOffset.Parse("2026-11-02T10:00:00Z"))
+};
+var result = Gate.Evaluate(pack, evidence,
+    DateTimeOffset.Parse("2026-11-02T10:05:00Z"));
 Console.WriteLine(result.Verdict); // INCONCLUSIVE
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. The recovery procedure is supported; the declared EU control remains unresolved. The application must not generate an unrestricted operational answer.
+
+**Integration rule:** evaluate the trusted retrieval metadata on your server **before** invoking an LLM. Do not invent a supporting witness for a chunk that was not retrieved. Distinct source identifiers and timestamps do not establish authenticity.
+
+**Scope:** This snippet calls the existing v0.1 metadata gate. It does not perform PDF extraction, semantic classification, or retrieval. Consult the [executable ingestion lab](../../examples/enterprise-rag/REAL-DOCUMENTS.md) for that separate demonstration.
 
 ## 4. Production integration checklist
 
