@@ -1,7 +1,9 @@
-# Expanded executable conformance
+# Cross-language conformance runners
 
-This PR adds shared conformance file runners for Go, C#/.NET, Ruby and PHP, in addition to the existing Python and TypeScript runners. Each reads `conformance/v0.1.json`, checks the overall verdict and exact sorted reason codes for seven cases.
+All ten SDKs now have test runners targeting `conformance/v0.1.json`:
 
-The remaining Java, Rust, Kotlin and Swift engines still have native tests rather than shared JSON fixture runners. Advanced semantic compiler parity remains a separate project.
+Java, Python, TypeScript, Go, .NET, Rust, Kotlin, PHP, Ruby, Swift.
 
-All fixtures test caller-supplied evidence metadata, not evidence authenticity.
+The fixed-clock suite checks exact overall verdict and sorted finding reasons for independent, duplicate, contradictory, missing, stale, unknown and future evidence. Every language must pass its CI job before parity is described as verified.
+
+**Scope**: This suite covers the v0.1 metadata gate only. Advanced ConstraintIR, WitnessGraph and Wgap have not been ported to all SDKs. Caller-provided origin identifiers do not verify actual source independence.
