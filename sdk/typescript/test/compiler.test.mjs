@@ -1,0 +1,10 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {compilePack,evaluateCompiled} from "../dist/compiler.js";
+const pack={id:"p",version:"1",requirements:[{id:"r",min_independent_sources:2,scope:"GA",authority:"official"}]};
+const w=(id,origin,status="SUPPORTS")=>({id,origin,requirement_id:"r",source_ref:"doc:"+id,status,scope:"GA",authority:"official",observed_at:"2026-11-02T10:00:00Z"});
+const at="2026-11-02T10:05:00Z";
+test("compiles typed obligations",()=>assert.equal(compilePack(pack)[0].required_scope,"GA"));
+test("shared origin creates gap",()=>{const x=evaluateCompiled(pack,[w("a","x"),w("b","x")],at);assert.equal(x.verdict,"INCONCLUSIVE");assert.equal(x.wgap[0].missing_sources,1);assert.equal(x.witness_graph.dependent_groups.length,1)});
+test("independent witnesses admit",()=>assert.equal(evaluateCompiled(pack,[w("a","x"),w("b","y")],at).verdict,"ADMIT"));
+test("contradictory witness refuses",()=>assert.equal(evaluateCompiled(pack,[w("a","x"),w("b","y"),w("c","z","CONTRADICTS")],at).verdict,"REFUSE"));
