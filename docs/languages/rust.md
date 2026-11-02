@@ -17,17 +17,28 @@ cd sdk/rust && cargo test
 
 `qualityrag::evaluate(&Pack,&[Evidence],DateTime<Utc>) -> Result`.
 
-## 3. First decision
+## 3. Example: incomplete retrieval from a large PDF corpus
+
+An enterprise RAG search retrieves page 74 of a **Payments Operations Handbook** but misses page 187 of a governing **EU Financial Controls Annex**. The PackSpec requires both documents' governing evidence.
 
 ```rust
-use chrono::{DateTime,Utc};
-use qualityrag::{evaluate,Pack,Requirement};
-let pack = Pack{id:"demo".into(),version:"1".into(),requirements:vec![Requirement{id:"r".into(),min_independent_sources:2,max_age_seconds:None}]};
+use chrono::{DateTime, Utc};
+use qualityrag::{evaluate, Evidence, Pack, Requirement};
+let pack = Pack { id:"eu-recovery".into(), version:"1".into(),
+    requirements:vec![
+        Requirement{id:"recovery-procedure".into(),min_independent_sources:1,max_age_seconds:None},
+        Requirement{id:"eu-screening-control".into(),min_independent_sources:1,max_age_seconds:None}
+    ] };
+let evidence = vec![Evidence {
+    id:"pdf-74".into(), requirement_id:"recovery-procedure".into(),
+    origin:"operations-handbook".into(), source_ref:"operations.pdf#page=74".into(),
+    status:"SUPPORTS".into(), observed_at:"2026-11-02T10:00:00Z".into()
+}];
 let now: DateTime<Utc> = "2026-11-02T10:05:00Z".parse().unwrap();
-assert_eq!(evaluate(&pack,&[],now).verdict,"INCONCLUSIVE");
+assert_eq!(evaluate(&pack, &evidence, now).verdict, "INCONCLUSIVE");
 ```
 
-The empty evidence array does not satisfy two independent sources; the expected decision is `INCONCLUSIVE`. These snippets show API usage from the repository source tree; they are not package-registry installation commands. Import paths assume the corresponding local module/project is built or referenced in your application.
+**Expected verdict:** `INCONCLUSIVE`. This is evidence metadata evaluation, not PDF parsing or a vector search. Block answer generation until required evidence is established. See [enterprise training](../TRAINING.md) and [document ingestion](../../examples/enterprise-rag/REAL-DOCUMENTS.md).
 
 ## 4. Production integration checklist
 
