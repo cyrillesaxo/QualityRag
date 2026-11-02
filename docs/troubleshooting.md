@@ -1,3 +1,5 @@
+![Why a missing exception produces INCONCLUSIVE](assets/hidden-exception.svg)
+
 # Help, FAQ and troubleshooting
 
 **Why did my result say INCONCLUSIVE?** Check `findings[].reasons`. Common causes: too few distinct declared origins, stale timestamps, missing requirements, unsupported witness status, and future timestamps. On Java/Python/TypeScript extended compiler, inspect `wgap`.
