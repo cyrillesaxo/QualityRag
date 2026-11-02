@@ -1,0 +1,24 @@
+name: Additional SDKs
+on: [push, pull_request]
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: sdk/go}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.22'}
+      - run: go test ./...
+  dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: {dotnet-version: '8.0.x'}
+      - run: dotnet run --project sdk/csharp/QualityRag.Smoke/QualityRag.Smoke.csproj
+  rust:
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: sdk/rust}}
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo test
