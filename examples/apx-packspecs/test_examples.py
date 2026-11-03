@@ -12,7 +12,7 @@ DATA = json.loads(PATH.read_text(encoding="utf-8"))
 
 class APXExamples(unittest.TestCase):
     def test_every_domain_and_verdict(self):
-        self.assertEqual(len(DATA["scenarios"]), 4)
+        self.assertEqual(len(DATA["scenarios"]), 5)
         for domain in DATA["scenarios"]:
             self.assertEqual({c["expected"] for c in domain["cases"]},
                              {"ADMIT", "REFUSE", "INCONCLUSIVE"})
