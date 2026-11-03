@@ -1,0 +1,149 @@
+{
+  "schema": "rct.adversarial-text-corpus/v1",
+  "cases": [
+    {
+      "id": "stress-nursing-laterality",
+      "domain": "nursing",
+      "source": "Administer the drops to the left eye.",
+      "candidate": "Administer the drops to the right eye.",
+      "label": "DRIFT",
+      "critical_distinction": "Laterality changed without changing numeric tokens"
+    },
+    {
+      "id": "stress-nursing-recipient",
+      "domain": "nursing",
+      "source": "Give the training medication to patient Alice.",
+      "candidate": "Give the training medication to patient Bob.",
+      "label": "DRIFT",
+      "critical_distinction": "Recipient identity changed"
+    },
+    {
+      "id": "stress-nursing-order",
+      "domain": "nursing",
+      "source": "Check the patient's identity before administration.",
+      "candidate": "Check the patient's identity after administration.",
+      "label": "DRIFT",
+      "critical_distinction": "Temporal ordering reverses safety prerequisite"
+    },
+    {
+      "id": "stress-hvac-unit",
+      "domain": "hvac",
+      "source": "Set the fictional pressure threshold to 5 psi.",
+      "candidate": "Set the fictional pressure threshold to 5 bar.",
+      "label": "DRIFT",
+      "critical_distinction": "Pressure unit changes while numeric token stays constant"
+    },
+    {
+      "id": "stress-hvac-component",
+      "domain": "hvac",
+      "source": "Disconnect the fan circuit before opening the housing.",
+      "candidate": "Disconnect the compressor circuit before opening the housing.",
+      "label": "DRIFT",
+      "critical_distinction": "Targeted component changes"
+    },
+    {
+      "id": "stress-hvac-actor",
+      "domain": "hvac",
+      "source": "Only the licensed electrician may open the service panel.",
+      "candidate": "Only the trainee may open the service panel.",
+      "label": "DRIFT",
+      "critical_distinction": "Authorized actor changed"
+    },
+    {
+      "id": "stress-driving-direction",
+      "domain": "driving",
+      "source": "Turn left at the next intersection.",
+      "candidate": "Turn right at the next intersection.",
+      "label": "DRIFT",
+      "critical_distinction": "Direction reverses"
+    },
+    {
+      "id": "stress-driving-permitted_actor",
+      "domain": "driving",
+      "source": "The learner may drive when the instructor is present.",
+      "candidate": "The learner may drive when the passenger is present.",
+      "label": "DRIFT",
+      "critical_distinction": "Supervisory authority identity changes"
+    },
+    {
+      "id": "stress-legal-obligor",
+      "domain": "legal",
+      "source": "Alice must pay Bob under the fictional agreement.",
+      "candidate": "Bob must pay Alice under the fictional agreement.",
+      "label": "DRIFT",
+      "critical_distinction": "Obligor and beneficiary roles swapped with identical lexical atoms"
+    },
+    {
+      "id": "stress-legal-venue",
+      "domain": "legal",
+      "source": "Disputes will be resolved in County A.",
+      "candidate": "Disputes will be resolved in County B.",
+      "label": "DRIFT",
+      "critical_distinction": "Venue changed without changing extracted modal signatures"
+    },
+    {
+      "id": "stress-finance-beneficiary",
+      "domain": "finance",
+      "source": "Transfer the fictional grant to Account Alpha.",
+      "candidate": "Transfer the fictional grant to Account Beta.",
+      "label": "DRIFT",
+      "critical_distinction": "Financial beneficiary identity changed"
+    },
+    {
+      "id": "stress-everyday-sequence",
+      "domain": "everyday",
+      "source": "Install the battery before connecting the charger.",
+      "candidate": "Install the battery after connecting the charger.",
+      "label": "DRIFT",
+      "critical_distinction": "Action ordering reversed"
+    },
+    {
+      "id": "stress-nursing-control_paraphrase",
+      "domain": "nursing",
+      "source": "The nurse should check identity before the procedure.",
+      "candidate": "Before the procedure, the nurse should check identity.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Same actor, modality and prerequisite"
+    },
+    {
+      "id": "stress-hvac-control_paraphrase",
+      "domain": "hvac",
+      "source": "The technician must clean the filter.",
+      "candidate": "The filter must be cleaned by the technician.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Passive voice reformulation"
+    },
+    {
+      "id": "stress-driving-control_paraphrase",
+      "domain": "driving",
+      "source": "Yield to pedestrians before turning.",
+      "candidate": "Before you turn, yield to pedestrians.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Same priority relation"
+    },
+    {
+      "id": "stress-legal-control_paraphrase",
+      "domain": "legal",
+      "source": "Both parties must sign the agreement.",
+      "candidate": "The agreement must be signed by both parties.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Same signatories and obligation"
+    },
+    {
+      "id": "stress-finance-control_paraphrase",
+      "domain": "finance",
+      "source": "The invoice may be paid on Friday.",
+      "candidate": "On Friday, the invoice may be paid.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Same date and permission"
+    },
+    {
+      "id": "stress-everyday-control_paraphrase",
+      "domain": "everyday",
+      "source": "Put the lid on after filling the jar.",
+      "candidate": "After filling the jar, put the lid on.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Same sequencing"
+    }
+  ]
+}
