@@ -156,6 +156,24 @@ def inspect(path: str | Path) -> dict:
     }
 
 
+def draft_mapping(report: dict, limit: int = 15) -> dict:
+    """Create an inert review worksheet: no requirement is preapproved."""
+    return {
+        "schema": MAPPING_SCHEMA,
+        "source_sha256": report["source"]["sha256"],
+        "policy_id": "reviewed-source-projection",
+        "policy_version": "1.0",
+        "rules": [{
+            "candidate_id": candidate["candidate_id"],
+            "requirement_id": "",
+            "reviewed_by": "",
+            "approved": False,
+            "rationale": "",
+        } for candidate in report["candidate_constraints"][:limit]],
+        "notes": "Delete irrelevant items, read the source in full and verify scope, then approve specific evidence-presence mappings. No automatic approval.",
+    }
+
+
 def project(report: dict, mapping: dict) -> dict:
     """Produce only an explicitly approved *evidence-presence* projection.
 
@@ -222,10 +240,13 @@ def main(argv=None) -> int:
     cli.add_argument("source", help="Local .yaml/.json/.pdf PackSpec")
     cli.add_argument("--out", required=True, help="Output inspection JSON")
     cli.add_argument("--mapping", help="Human-approved candidate mapping JSON")
+    cli.add_argument("--draft-mapping-out", help="Write unapproved review worksheet JSON")
     cli.add_argument("--policy-out", help="Optional output standalone QualityRag policy JSON")
     args = cli.parse_args(argv)
     report = inspect(args.source)
     Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if args.draft_mapping_out:
+        Path(args.draft_mapping_out).write_text(json.dumps(draft_mapping(report), indent=2, ensure_ascii=False)+"\\n", encoding="utf-8")
     if args.mapping:
         mapping = json.loads(Path(args.mapping).read_text(encoding="utf-8"))
         compiled = project(report, mapping)
