@@ -9,3 +9,5 @@ if(Gate.Evaluate(p,new[]{a,b with{Status="CONTRADICTS"}},now).Verdict!="REFUSE")
 Console.WriteLine("QualityRag .NET smoke passed");
 
 Conformance.Run();
+
+await SourcesSmoke.Check();
