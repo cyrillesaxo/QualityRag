@@ -30,6 +30,12 @@ The API deliberately reports:
 
 Any explicitly failed cell yields the diagnostic verdict `REFUSE`. These semantics are stricter than the canonical APX local gate's possible `ADMITTED` result.
 
+## Strict exact-byte variant
+
+`verify_d15_review_with_bytes` additionally accepts a bounded map of **actual evidence-record bytes** for every cited D15 reference. It verifies each record's SHA-256 and inventory completeness **before** validating the review signature and consuming the one-use nonce. A substitution or missing record fails immediately without spending the nonce; a later retry with the correct bytes remains possible.
+
+Its resulting `submitted_evidence_content_integrity=VERIFIED_SHA256_MATCH` means that the provided bytes match the reviewer's signed hash inventory. It does **not** mean the bytes were captured from an independent original publisher, that their declarations are true, or that the adversarial probe was actually run. The fields `independent_evidence_custody=NOT_ESTABLISHED` and `deception_probe_execution=NOT_ATTESTED` are therefore unchanged.
+
 ## Verification
 
 ```bash
