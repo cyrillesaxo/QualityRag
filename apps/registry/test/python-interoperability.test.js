@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {createPublicKey} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
 import {verifySignedPolicy} from '../src/signed.js';
 
 // The private key is generated in memory by the existing Python signer.
@@ -36,7 +37,7 @@ print(json.dumps({'bundle':bundle,'key':base64.urlsafe_b64encode(pub).decode('as
 `;
 test('Python-signed QR-CJSON-1 ASCII bundle verifies in Node without private-key exchange',()=>{
  const result=spawnSync('python3',['-c',py],{
-   env:{...process.env,PYTHONPATH:'tools/packspec_compiler'},encoding:'utf8',timeout:10000
+   env:{...process.env,PYTHONPATH:fileURLToPath(new URL('../../../tools/packspec_compiler/',import.meta.url))},encoding:'utf8',timeout:10000
  });
  assert.equal(result.status,0,result.stderr);
  const data=JSON.parse(result.stdout);
