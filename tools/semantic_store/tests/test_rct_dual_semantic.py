@@ -117,6 +117,15 @@ class DualSemanticTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"exact document versions"):
             self.run_check(forged)
 
+    def test_invalid_native_payload_does_not_consume_review_nonce(self):
+        signed=self.sign()
+        wrong=native_shape()
+        wrong["candidate_sha256"]="e"*64
+        with self.assertRaisesRegex(ValueError,"exact document versions"):
+            self.run_check(wrong,signed_review=signed)
+        result=self.run_check(native_shape(),signed_review=signed)
+        self.assertEqual(result["verdict"],"INCONCLUSIVE")
+
     def test_review_signature_cannot_be_forged(self):
         with self.assertRaises(SignatureError):
             self.run_check(native_shape(),reviewer_keys={
