@@ -1,7 +1,7 @@
 use qualityrag::{evaluate,Evidence,Pack,Requirement};
 use serde_json::Value;
 use chrono::{DateTime,Utc};
-#[test]fn all_twelve_apx_examples(){
+#[test]fn all_fifteen_apx_examples(){
  let path=concat!(env!("CARGO_MANIFEST_DIR"),"/../../examples/apx-packspecs/fixtures.json");
  let f:Value=serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
  let at:DateTime<Utc>=f["as_of"].as_str().unwrap().parse().unwrap();
@@ -22,5 +22,5 @@ use chrono::{DateTime,Utc};
    count+=1;
   }
  }
- assert_eq!(count,12);
+ assert_eq!(count,15);
 }
