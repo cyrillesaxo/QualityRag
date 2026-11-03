@@ -99,6 +99,14 @@ class EndToEndTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             decode_reference_frame(bad)
 
+    def test_reference_decoder_rejects_oversized_compressed_payload(self):
+        f=encode_reference_frame(self.source)
+        bad=dict(f)
+        bad["compressed_bytes"]=9_000_000
+        bad["fingerprint"]=digest({k:v for k,v in bad.items() if k!="fingerprint"})
+        with self.assertRaisesRegex(ValueError,"Unbounded"):
+            decode_reference_frame(bad)
+
     def test_bounded_repairs_never_execute(self):
         r=bounded_repair_candidates({
             "witness_coverage":{"wgap":[{
