@@ -111,3 +111,7 @@ Unit tests use synthetic YAML, JSON, and **actual generated multi-page PDFs**, p
 ## Typed ConstraintIR (experimental)
 
 The [typed IR extension](TYPED-IR.md) records reviewed EVIDENCE_PRESENCE, TEMPORAL, AUTHORITY, PROBE and PREDICATE nodes with source hashes and reviewer mappings. Only EVIDENCE_PRESENCE can project to the existing QualityRag v0.1 metadata gate. The other four are explicitly deferred; no semantic evaluator or probe runner is implied.
+
+## Bounded semantic runtime
+
+The [bounded semantic runtime](SEMANTIC-RUNTIME.md) can check explicitly bound temporal ordering, expiry, numeric ranges and primitive equality against application-supplied observations. It never executes arbitrary probe code or free-form predicates. Unsupported kinds remain INCONCLUSIVE. Supplied source references are not authenticated.
