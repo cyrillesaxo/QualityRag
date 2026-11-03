@@ -106,3 +106,44 @@ class TenantPostgresStore:
             """,(h,object_id,revision,packspec_digest,status,reason,
                  canonical_bytes(checks).decode("utf-8")))
         return Admission(status,reason,h)
+
+
+    def record_apx_receipt(self, *, object_id: str, revision: str,
+                           engine: str, receipt: dict) -> dict:
+        """Preserve canonical HCR/RCOC receipts without trusting the source."""
+        from apx_receipts import validate_receipt
+        classification=validate_receipt(engine,receipt)
+        h=digest({"engine":engine,"object_id":object_id,"revision":revision,
+                  "receipt":receipt})
+        with self.db.transaction():
+            self.db.execute("""
+                INSERT INTO qr_store.apx_receipts
+                (tenant_id,receipt_sha256,object_id,revision,
+                 engine,schema_id,source_digests_json,receipt_json,verification)
+                VALUES (qr_private.authenticated_tenant(),%s,%s,%s,
+                        %s,%s,%s::jsonb,%s::jsonb,'UNVERIFIED_EXTERNAL_RESULT')
+                ON CONFLICT (tenant_id,receipt_sha256) DO NOTHING
+            """,(h,object_id,revision,engine,classification["schema"],
+                 canonical_bytes(classification["source_digests"]).decode("utf-8"),
+                 canonical_bytes(receipt).decode("utf-8")))
+        return {**classification,"receipt_sha256":h}
+
+    def read_edges(self, source_id: str, revision: str,
+                   *, limit: int = 100) -> list[dict]:
+        """Tenant RLS + bounded outgoing graph edges; not a public read API."""
+        if type(limit) is not int or not 1 <= limit <= 1001:
+            raise ValueError("Bounded edge lookup required")
+        rows=self.db.execute("""
+          SELECT edge_id,layer,from_id,from_revision,to_id,to_revision,
+                 relation,properties_json
+          FROM qr_store.semantic_edges
+          WHERE tenant_id=qr_private.authenticated_tenant()
+                AND from_id=%s AND from_revision=%s
+          ORDER BY edge_id LIMIT %s
+        """,(source_id,revision,limit)).fetchall()
+        return [{
+            "edge_id":row[0],"layer":row[1],
+            "from_id":row[2],"from_revision":row[3],
+            "to_id":row[4],"to_revision":row[5],
+            "relation":row[6],"properties":row[7],
+        } for row in rows]
