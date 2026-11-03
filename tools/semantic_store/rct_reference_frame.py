@@ -17,6 +17,7 @@ from store import canonical_bytes, digest
 
 SCHEMA = "rct.multiscale-reference-frame/v2"
 MAX_SOURCE_BYTES = 2_000_000
+MAX_COMPRESSED_BYTES = MAX_SOURCE_BYTES + 10_000
 
 
 def encode_reference_frame(source: dict, *, level: int = 6) -> dict:
@@ -31,6 +32,8 @@ def encode_reference_frame(source: dict, *, level: int = 6) -> dict:
         by_predicate.setdefault(f["predicate"], []).append(f["id"])
         by_origin.setdefault(f["source_ref"], []).append(f["id"])
     compressed = zlib.compress(raw, level)
+    if len(compressed) > MAX_COMPRESSED_BYTES:
+        raise ValueError("Compressed frame exceeds byte budget")
     frame = {
         "schema": SCHEMA,
         "compression": "zlib-lossless-reference-NOT-FF-RCT",
@@ -65,7 +68,10 @@ def decode_reference_frame(frame: dict) -> dict:
     n = frame.get("original_bytes")
     compressed_n = frame.get("compressed_bytes")
     if (type(n) is not int or not 1 <= n <= MAX_SOURCE_BYTES
-            or type(compressed_n) is not int or compressed_n <= 0):
+            or type(compressed_n) is not int
+            or not 1 <= compressed_n <= MAX_COMPRESSED_BYTES
+            or not isinstance(frame.get("data"), str)
+            or len(frame["data"]) > 4 * ((MAX_COMPRESSED_BYTES + 2) // 3)):
         raise ValueError("Unbounded reference frame")
     try:
         payload = base64.b64decode(frame["data"], altchars=b"-_", validate=True)
