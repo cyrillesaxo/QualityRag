@@ -1,11 +1,10 @@
 package io.qualityrag.spring;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.qualityrag.PackSpecSource;
 import java.util.Properties;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
@@ -14,6 +13,7 @@ import org.springframework.core.env.Environment;
  * No implicit policy fallback.
  */
 @AutoConfiguration
+@ConditionalOnProperty(name="qualityrag.packspec.source")
 public class QualityRagConfiguration {
  @Bean
  @ConditionalOnMissingBean(PackSpecSource.class)
