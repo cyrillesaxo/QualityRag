@@ -6,7 +6,7 @@ import unittest
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from compiler import CompileError, inspect, project, main
+from compiler import CompileError, inspect, project, draft_mapping, main
 
 
 class CompilerContractTest(unittest.TestCase):
@@ -113,6 +113,23 @@ probes:
         incorrect_candidate = {**mapping, "rules":[{**mapping["rules"][0], "candidate_id": "NONEXISTENT"}]}
         with self.assertRaisesRegex(CompileError,"unknown"):
             project(report, incorrect_candidate)
+
+    def test_draft_is_unapproved_and_cannot_compile(self):
+        source = self.file("draft.json", json.dumps({
+            "pack":{"id":"study","version":"1"},
+            "specification":{"rule":"A decision must include primary evidence"}
+        }))
+        report = inspect(source)
+        draft = draft_mapping(report)
+        self.assertFalse(draft["rules"][0]["approved"])
+        with self.assertRaises(CompileError):
+            project(report, draft)
+        worksheet = self.root / "worksheet.json"
+        result_file = self.root / "report.json"
+        self.assertEqual(0, main([str(source), "--out", str(result_file),
+                                 "--draft-mapping-out", str(worksheet)]))
+        self.assertEqual(json.loads(worksheet.read_text())["source_sha256"],
+                         report["source"]["sha256"])
 
     def test_cli_inspect_and_approved_project(self):
         source = self.file("governance.json", json.dumps({
