@@ -1,6 +1,6 @@
 # What the APX-derived cases represent
 
-The user's original PackSpecs are **high-level governing specifications**, not simply the list-of-requirements metadata accepted by QualityRag v0.1. These 12 cases are executable **projections** of four source PackSpecs. The fixture cannot verify the truth, independence or provenance of caller-supplied witness labels.
+The user's original PackSpecs are **high-level governing specifications**, not simply the list-of-requirements metadata accepted by QualityRag v0.1. These 15 cases are executable **projections** of five source artifacts (four families, with FFI Teacher Transformation as a separate addendum). The fixture cannot verify the truth, independence or provenance of caller-supplied witness labels.
 
 ## SEMLOAN v0.4.0 — Learning convergence (uploaded YAML)
 
@@ -31,6 +31,16 @@ Source-specific guards **not implemented**: 0–3 surfaced questions, rejecting 
 - **REFUSE:** A measured probe contradicts the proposed constraint.
 
 Full FFI additionally requires WitnessGraph, custody and scope, five-stratum grammar, deception census, time/version validity, receipt and observability residue. The original describes itself as a release candidate **unvalidated** for its full research program.
+
+## FFI Teacher Transformation v0.6.0 — Education (uploaded PDF)
+
+**Educational RAG assistant:** A knowledge base combines hundreds of engineering tutorials, prerequisite diagrams, code samples and training materials, and generates a lesson intended to work equally for Spring Boot and .NET engineers.
+
+- **INCONCLUSIVE:** The answer carries a minimal witness source, a prerequisite map and an atomic validation artifact, but lacks the **cross-framework back-translation probe** required by the source's agnostic-training standard.
+- **ADMIT (metadata only):** W_min, prerequisite map, atomic test, and a reported Spring-to-.NET portability check are supplied as distinct evidence classes.
+- **REFUSE:** The tested back-translation explicitly contradicts the portability claim.
+
+Full FFI Phase T also calls for B4 pathway decomposition, E2 Engine-Action-Target normalization, the Baeldung mini-fact discipline, G9 prerequisite checks, and validation of dynamic metadata routing; these operations are not executed by the v0.1 gate.
 
 ## Software-selling PackSpec v0.1.0 — Verifiable buyer value (uploaded PDF)
 
