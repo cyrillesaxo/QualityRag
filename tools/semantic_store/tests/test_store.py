@@ -54,6 +54,16 @@ class SemanticStoreTests(unittest.TestCase):
                                               [{"id": "prerequisite", "status": "FAIL"}])
         self.assertEqual(receipt.status, "REFUSE")
 
+    def test_sql_direct_changes_cannot_mutate_history(self):
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.connection.execute(
+                "UPDATE semantic_versions SET kind='ALTERED' WHERE object_id='claim'")
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.connection.execute(
+                "DELETE FROM source_versions WHERE source_id='manual'")
+        self.assertEqual(self.store.object_version("claim", "v1")["condition"],
+                         "approved-meter")
+
     def test_version_must_exist_before_receipt(self):
         with self.assertRaises(sqlite3.IntegrityError):
             self.store.record_admission("claim", "v2", "policy-digest", [])
