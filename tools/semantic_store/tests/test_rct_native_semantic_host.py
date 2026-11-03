@@ -43,6 +43,7 @@ class NativeSemanticHostTests(unittest.TestCase):
             from hashlib import sha256
             import json
             observed.update(kwargs)
+            observed["env"] = dict(kwargs["env"])
             native={
                 "schema":"qualityrag.native-semantic-transition/v1",
                 "original_engine_schema":"apx.semantic-text-transition/v0.1",
