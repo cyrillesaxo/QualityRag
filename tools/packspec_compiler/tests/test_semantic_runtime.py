@@ -7,7 +7,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from compiler import inspect
 from typed_ir import compile_ir, _fingerprint
-from semantic_runtime import evaluate_semantics
+from semantic_runtime import evaluate_semantics, main
 
 RULES = {"pack_id":"SEMLOAN","version":"0.4.0","rules":[
     {"rule":"Cold retrieval must occur after the learner's own attempt"},
@@ -113,6 +113,19 @@ class SemanticRuntimeTests(unittest.TestCase):
         self.assertEqual(evaluate_semantics(value,adjusted,AT)["verdict"],"ADMIT")
         adjusted["events"]["deadline"]["at"]="2026-11-02T10:05:00Z"
         self.assertEqual(evaluate_semantics(value,adjusted,AT)["verdict"],"REFUSE")
+
+    def test_cli_receipt(self):
+        root=Path(self.temp.name)
+        irfile=root/"ir.json"
+        obsfile=root/"observations.json"
+        output=root/"result.json"
+        irfile.write_text(json.dumps(self.ir), encoding="utf-8")
+        obsfile.write_text(json.dumps(self.base), encoding="utf-8")
+        self.assertEqual(main(["--ir",str(irfile),"--observations",str(obsfile),
+                               "--as-of",AT,"--out",str(output)]),0)
+        result=json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(result["verdict"],"ADMIT")
+        self.assertEqual(result["ir_sha256"],self.ir["ir_sha256"])
 
     def test_legacy_unbound_probes_remain_inconclusive(self):
         value=json.loads(json.dumps(self.ir))
