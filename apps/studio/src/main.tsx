@@ -5,11 +5,14 @@ import './style.css';
 type Service={id:string;displayName:string};
 type Policy={policy:{id:string;version:string;requirements:unknown[]};status:string;sha256:string};
 type Binding={serviceId:string;environment:string;policyId:string;version:string};
+type SignedPromotion={serviceId:string;environment:string;sequence:number;keyId:string;status:string;irSha256:string};
+type SignedBinding={serviceId:string;environment:string;sequence:number;irSha256:string};
 const starter={id:'eligibility',version:'1.0.0',requirements:[{id:'governing-rule',min_independent_sources:2,max_age_seconds:86400}]};
 function Studio(){
- const [token,setToken]=useState(''),[state,setState]=useState<{services:Service[];policies:Policy[];bindings:Binding[]}>({services:[],policies:[],bindings:[]});
+ const [token,setToken]=useState(''),[state,setState]=useState<{services:Service[];policies:Policy[];bindings:Binding[];signedPromotions:SignedPromotion[];signedBindings:SignedBinding[]}>({services:[],policies:[],bindings:[],signedPromotions:[],signedBindings:[]});
  const [serviceId,setServiceId]=useState('claims-api'),[name,setName]=useState('Claims API'),[environment,setEnvironment]=useState('dev');
  const [policyId,setPolicyId]=useState('eligibility'),[version,setVersion]=useState('1.0.0'),[editor,setEditor]=useState(JSON.stringify(starter,null,2)),[message,setMessage]=useState('');
+ const [signedBundle,setSignedBundle]=useState('');
  const headers=()=>({'Authorization':'Bearer '+token,'Content-Type':'application/json'});
  async function request(path:string,method='GET',data?:unknown){
   const response=await fetch(path,{method,headers:headers(),body:data===undefined?undefined:JSON.stringify(data)});
@@ -27,6 +30,18 @@ function Studio(){
    <div className="columns"><section className="panel"><h2>1. Register service</h2><p>Identify the application that will consume an approved policy.</p><label>Service ID<input value={serviceId} onChange={e=>setServiceId(e.target.value)}/></label><label>Display name<input value={name} onChange={e=>setName(e.target.value)}/></label><button disabled={!token} onClick={()=>run(()=>request('/v1/services','POST',{id:serviceId,displayName:name}))}>Register service</button><ul>{state.services.map(s=><li key={s.id}>{s.displayName} <code>{s.id}</code></li>)}</ul></section>
    <section className="panel"><h2>2. Draft and approve PackSpec</h2><p>Each version is immutable after creation; approve explicitly before binding.</p><label>PackSpec JSON<textarea spellCheck={false} value={editor} onChange={e=>setEditor(e.target.value)}/></label><button disabled={!token} onClick={()=>run(()=>request('/v1/policies/drafts','POST',JSON.parse(editor)))}>Save draft</button><ul>{state.policies.map(p=><li key={p.sha256}><code>{p.policy.id}@{p.policy.version}</code><span>{p.status}</span>{p.status==='DRAFT'&&<button disabled={!token} onClick={()=>run(()=>request('/v1/policies/'+encodeURIComponent(p.policy.id)+'/'+encodeURIComponent(p.policy.version)+'/approve','POST'))}>Approve</button>}</li>)}</ul></section></div>
    <section className="panel"><h2>3. Assign policy to environment</h2><p>Services resolve only approved versions. Application SDKs enforce the resolved requirements locally.</p><div className="line"><label>Service<input value={serviceId} onChange={e=>setServiceId(e.target.value)}/></label><label>Environment<input value={environment} onChange={e=>setEnvironment(e.target.value)}/></label><label>Policy ID<input value={policyId} onChange={e=>setPolicyId(e.target.value)}/></label><label>Version<input value={version} onChange={e=>setVersion(e.target.value)}/></label></div><button disabled={!token} onClick={()=>run(()=>request('/v1/bindings','POST',{serviceId,environment,policyId,version}))}>Bind approved policy</button><ul>{state.bindings.map(b=><li key={b.serviceId+'@'+b.environment}><code>{b.serviceId}@{b.environment}</code> → {b.policyId}@{b.version}</li>)}</ul><p>Resolve endpoint: <code>GET /v1/resolve/{serviceId}/{environment}</code></p></section>
+   <section className="panel"><h2>4. Signed policy promotion</h2>
+   <p>Sign the full reviewed ConstraintIR outside Studio with a governance-controlled private key. The registry verifies the Ed25519 signature using a pinned public key, then enforces staged → approved → published status and monotonically increasing sequence numbers. This local preview uses a shared operator token, not separate approver identities.</p>
+   <label>Externally signed policy bundle JSON<textarea spellCheck={false} value={signedBundle} onChange={e=>setSignedBundle(e.target.value)} placeholder='{"schema":"qualityrag.signed-policy/v1","canonical":"QR-CJSON-1",...}'/></label>
+   <button disabled={!token || !signedBundle.trim()} onClick={()=>run(()=>request('/v1/signed/promotions','POST',JSON.parse(signedBundle)))}>Stage signed bundle</button>
+   <ul>{state.signedPromotions.map(p=><li key={p.serviceId+'@'+p.environment+'#'+p.sequence}>
+    <code>{p.serviceId}@{p.environment} #{p.sequence}</code> <span>{p.status}</span>
+    {p.status==='STAGED'&&<button disabled={!token} onClick={()=>run(()=>request('/v1/signed/promotions/'+encodeURIComponent(p.serviceId)+'/'+encodeURIComponent(p.environment)+'/'+p.sequence+'/approve','POST'))}>Approve signed version</button>}
+    {p.status==='APPROVED'&&<button disabled={!token} onClick={()=>run(()=>request('/v1/signed/promotions/'+encodeURIComponent(p.serviceId)+'/'+encodeURIComponent(p.environment)+'/'+p.sequence+'/publish','POST'))}>Publish approved version</button>}
+   </li>)}</ul>
+   <p>Published versions:</p><ul>{state.signedBindings.map(p=><li key={p.serviceId+'@'+p.environment}><code>{p.serviceId}@{p.environment}</code> → signed sequence {p.sequence}</li>)}</ul>
+   <p>For application verification: <code>GET /v1/signed/resolve/{serviceId}/{environment}</code>. Legacy unsigned policy bindings remain separate; the signed client must never silently downgrade.</p>
+   </section>
    <footer>QualityRag v0.1 · deterministic policy enforcement · policies are not proof of source truth</footer>
  </main>;
 }
