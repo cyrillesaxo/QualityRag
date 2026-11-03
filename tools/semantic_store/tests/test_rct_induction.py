@@ -116,6 +116,14 @@ class TestInduction(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_rule(self.train,rule,self.valid,self.valid_examples)
 
+    def test_persistence_rejects_rule_modified_after_evaluation(self):
+        rule=induce_rule(self.train,self.examples,max_depth=4)
+        assessment=validate_rule(self.train,rule,self.valid,self.valid_examples)
+        rule["predicate_sequence"][0]="tampered"
+        with self.assertRaises(ValueError):
+            compile_induced_lens(self.valid,rule=rule,assessment=assessment,
+                                 lens_id="unsafe",purpose="labeled-graph-lookup")
+
     def test_same_training_validation_rejected(self):
         rule=induce_rule(self.train,self.examples,max_depth=4)
         with self.assertRaises(ValueError):
