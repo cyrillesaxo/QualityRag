@@ -12,9 +12,9 @@ public static class PackSpecSources {
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         if(root.ValueKind != JsonValueKind.Object) throw new ArgumentException("Invalid PackSpec");
-        string id = root.GetProperty("id").GetString() ?? "";
-        string version = root.GetProperty("version").GetString() ?? "";
-        var items = root.GetProperty("requirements");
+        string id = root.TryGetProperty("id",out var idNode) && idNode.ValueKind==JsonValueKind.String ? idNode.GetString()??"" : "";
+        string version = root.TryGetProperty("version",out var versionNode) && versionNode.ValueKind==JsonValueKind.String ? versionNode.GetString()??"" : "";
+        var items = root.TryGetProperty("requirements",out var requirementsNode) ? requirementsNode : default;
         if(string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(version) ||
            items.ValueKind != JsonValueKind.Array || items.GetArrayLength() == 0) throw new ArgumentException("Invalid PackSpec");
         var reqs = new List<Requirement>(); var seen = new HashSet<string>();
