@@ -29,7 +29,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map()}={}) {
   const actor='registry-token'; // Single-key local development only; replace with OIDC/RBAC before production.
   try {
    if(req.method==='GET'&&url.pathname==='/v1/state'){
-    return reply(res,200,{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings)});
+    return reply(res,200,{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings)});
    }
    if(req.method==='POST'&&url.pathname==='/v1/services') return reply(res,201,store.register(await body(req),actor));
    if(req.method==='POST'&&url.pathname==='/v1/policies/drafts') return reply(res,201,store.draft(await body(req),actor));
