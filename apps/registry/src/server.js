@@ -2,6 +2,7 @@ import http from 'node:http';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {RegistryStore} from './store.js';
+import {createPgSignedRegistryStore} from './pg-store.js';
 import {loadTrustedPolicyKeys} from './signed.js';
 import {createOidcAuthenticator,permissionFor} from './oidc.js';
 
@@ -42,18 +43,18 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
   }else if(provided!== 'Bearer '+token)return reply(res,401,{error:'UNAUTHORIZED'});
   try {
    if(req.method==='GET'&&url.pathname==='/v1/state'){
-    return reply(res,200,{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings)});
+    return reply(res,200,store.state?await store.state():{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings)});
    }
-   if(req.method==='POST'&&url.pathname==='/v1/services') return reply(res,201,store.register(await body(req),actor));
-   if(req.method==='POST'&&url.pathname==='/v1/policies/drafts') return reply(res,201,store.draft(await body(req),actor));
+   if(req.method==='POST'&&url.pathname==='/v1/services') return reply(res,201,await store.register(await body(req),actor));
+   if(req.method==='POST'&&url.pathname==='/v1/policies/drafts') return reply(res,201,await store.draft(await body(req),actor));
    const approve=url.pathname.match(/^\/v1\/policies\/([^/]+)\/([^/]+)\/approve$/);
-   if(req.method==='POST'&&approve) return reply(res,200,store.approve(decodeURIComponent(approve[1]),decodeURIComponent(approve[2]),actor,{enforceSeparation}));
+   if(req.method==='POST'&&approve) return reply(res,200,await store.approve(decodeURIComponent(approve[1]),decodeURIComponent(approve[2]),actor,{enforceSeparation}));
    if(req.method==='POST'&&url.pathname==='/v1/bindings'){
     const b=await body(req);
-    return reply(res,200,store.bind(b.serviceId,b.environment,b.policyId,b.version,actor));
+    return reply(res,200,await store.bind(b.serviceId,b.environment,b.policyId,b.version,actor));
    }
    if(req.method==='POST'&&url.pathname==='/v1/signed/promotions'){
-    return reply(res,201,store.stageSigned(await body(req),actor,trustedPolicyKeys));
+    return reply(res,201,await store.stageSigned(await body(req),actor,trustedPolicyKeys));
    }
    const signedAction=url.pathname.match(/^\/v1\/signed\/promotions\/([^/]+)\/([^/]+)\/([0-9]+)\/(approve|publish)$/);
    if(req.method==='POST'&&signedAction){
@@ -61,20 +62,20 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
     const sequence=Number(signedAction[3]);
     if(!Number.isSafeInteger(sequence)||sequence<=0)throw new Error('INVALID_SIGNED_SEQUENCE');
     const result=signedAction[4]==='approve'
-       ?store.approveSigned(service,environment,sequence,actor,trustedPolicyKeys,{enforceSeparation})
-       :store.publishSigned(service,environment,sequence,actor,trustedPolicyKeys,{enforceSeparation});
+       ?await store.approveSigned(service,environment,sequence,actor,trustedPolicyKeys,{enforceSeparation})
+       :await store.publishSigned(service,environment,sequence,actor,trustedPolicyKeys,{enforceSeparation});
     return reply(res,200,result);
    }
    const signedResolve=url.pathname.match(/^\/v1\/signed\/resolve\/([^/]+)\/([^/]+)$/);
    if(req.method==='GET'&&signedResolve){
-     const result=store.resolveSigned(decodeURIComponent(signedResolve[1]),
+     const result=await store.resolveSigned(decodeURIComponent(signedResolve[1]),
           decodeURIComponent(signedResolve[2]),trustedPolicyKeys);
      res.setHeader('etag','"'+result.signedPolicy.signature+'"');
      return reply(res,200,result);
    }
    const resolve=url.pathname.match(/^\/v1\/resolve\/([^/]+)\/([^/]+)$/);
    if(req.method==='GET'&&resolve){
-    const result=store.resolve(decodeURIComponent(resolve[1]),decodeURIComponent(resolve[2]));
+    const result=await store.resolve(decodeURIComponent(resolve[1]),decodeURIComponent(resolve[2]));
     res.setHeader('etag','"'+result.sha256+'"');
     return reply(res,200,result);
    }
@@ -84,7 +85,11 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
 }
 const own=fileURLToPath(import.meta.url);
 if(process.argv[1]&&path.resolve(process.argv[1])===own){
- const store=new RegistryStore(process.env.QUALITYRAG_REGISTRY_FILE||'./.qualityrag/registry.json');
+ const store=process.env.QUALITYRAG_REGISTRY_BACKEND==='postgres'
+   ?createPgSignedRegistryStore(process.env.DATABASE_URL)
+   :new RegistryStore(process.env.QUALITYRAG_REGISTRY_FILE||'./.qualityrag/registry.json');
+ if(process.env.QUALITYRAG_REGISTRY_BACKEND && !['postgres','file'].includes(process.env.QUALITYRAG_REGISTRY_BACKEND))
+   throw new Error('UNSUPPORTED_REGISTRY_BACKEND');
  const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
  const oidc=process.env.QUALITYRAG_AUTH_MODE==='oidc'
   ? createOidcAuthenticator({issuer:process.env.QUALITYRAG_OIDC_ISSUER,
