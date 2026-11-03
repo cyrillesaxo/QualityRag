@@ -21,16 +21,9 @@ def combine_semantic_diagnostics(
         as_of: str, nonce_accepted) -> dict:
     if not isinstance(joined, dict):
         raise ValueError("Source-bound research candidate required")
-    # This is an actual signature/policy validation, not an assertion made
-    # by an untrusted caller in a self-fingerprinted JSON receipt.
-    reviewed=verify_inventory_review(
-        joined=joined, ir=ir,
-        signed_policy=signed_policy, signed_review=signed_review,
-        policy_keys=policy_keys, reviewer_keys=reviewer_keys,
-        minimum_sequence=minimum_sequence, service=service,
-        environment=environment, as_of=as_of,
-        nonce_accepted=nonce_accepted)
-    audit=joined["source_span_audit"]
+    audit=joined.get("source_span_audit")
+    if not isinstance(audit, dict):
+        raise ValueError("Source-span audit required")
     blockers=["SIGNED_REVIEW_NOT_PROOF_OF_COMPLETE_MEANING",
               "SOURCE_AUTHORITY_UNVERIFIED",
               "NATIVE_RUNTIME_RESULT_NOT_INDEPENDENTLY_ATTESTED"]
@@ -53,6 +46,16 @@ def combine_semantic_diagnostics(
             raise ValueError("Native result cannot be bound to exact document versions")
         native_status="REPORTED_BOUNDED_LEXICAL_CHECK"
         native_verdict=native["verdict"]
+    # Only after all native input-shape/version checks are complete do we
+    # consume the one-use reviewer nonce using the canonical signature gate.
+    # A detached self-reported "VERIFIED" receipt is never trusted.
+    reviewed=verify_inventory_review(
+        joined=joined, ir=ir,
+        signed_policy=signed_policy, signed_review=signed_review,
+        policy_keys=policy_keys, reviewer_keys=reviewer_keys,
+        minimum_sequence=minimum_sequence, service=service,
+        environment=environment, as_of=as_of,
+        nonce_accepted=nonce_accepted)
     verdict=("REFUSE" if (joined.get("verdict") == "REFUSE"
                          or reviewed.get("verdict") == "REFUSE"
                          or native_verdict == "REFUSE") else "INCONCLUSIVE")
