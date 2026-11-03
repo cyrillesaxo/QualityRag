@@ -105,7 +105,7 @@ test('staging HTTP: OIDC+PostgreSQL stage/approve/publish, process restart, roll
  try{
   await checkMigrations(pool);
   const oidcURL=await listen(jwks);
-  const pub=govKey.publicKey().export({format:'der',type:'spki'}).toString('base64url');
+  const pub=govKey.publicKey.export({format:'der',type:'spki'}).toString('base64url');
   const trustFile=path.join(dir,'trusted-policy-keys.json');
   writeFileSync(trustFile,JSON.stringify({'staging-governance':pub}),{mode:0o600});
   const port=await unusedPort();
@@ -156,7 +156,7 @@ test('staging HTTP: OIDC+PostgreSQL stage/approve/publish, process restart, roll
   assert.equal(published.body.sequence,10);
   assert.equal(published.body.signedPolicy.signature,first.signature);
   assert.equal(verifySignedPolicy(published.body.signedPolicy,
-    new Map([['staging-governance',govKey.publicKey()]])).sequence,10);
+    new Map([['staging-governance',govKey.publicKey]])).sequence,10);
 
   await stop(processA);
   processA=undefined;
