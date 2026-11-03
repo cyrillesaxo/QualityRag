@@ -117,3 +117,39 @@ const policy = await load();
 ```
 
 For Studio, use `mode: "studio"` with `registryUrl`, `registryToken`, `serviceId` and `environment`. Keep operator credentials **server-side**. For browser environments supply only vetted policies from your application backend; never expose the registry's shared development token. TypeScript file loading deliberately uses an application-injected readFile adapter, keeping the SDK platform-neutral.
+
+
+## Seven additional SDKs
+
+The explicit source-selection pattern is now also available in **Go, C#, Rust, Kotlin, PHP, Ruby and Swift**. These adapters expose the same four *logical* sources: application-owned PackSpec, inline JSON configuration, mounted JSON file, and Studio-approved registry binding.
+
+| SDK | API | Studio transport |
+| :--- | :--- | :--- |
+| Go | `InternalPackSource`, `PropertyPackSource`, `FilePackSource`, `StudioPackSource`, `PackSourceFromProperties` | `net/http`, context-bound call |
+| C# | `PackSpecSources.Internal/Property/File/Studio/FromProperties` | `HttpClient` async |
+| Rust | `qualityrag::sources::{internal,property,file,studio,from_properties}` | Application-injected `HttpGet` callback |
+| Kotlin | `PackSpecSources.internal/property/file/studio/fromProperties` | JDK `HttpClient` |
+| PHP | `PackSpecSource::internal/property/file/studio/fromProperties` | PHP HTTP stream, injectable callback |
+| Ruby | `QualityRag::Sources.internal/property/file/studio/from_properties` | Net::HTTP, injectable callback |
+| Swift | `PackSpecSources.internalPolicy/property/file/studio` | async `URLSession` |
+
+**Intended logic for every language:**
+
+```text
+Explicit source configuration
+           ↓
+Load the selected PackSpec or throw (no fallback)
+           ↓
+Validate declared requirements
+           ↓
+Evaluate the RAG witnesses with the existing SDK gate
+           ↓
+Only on ADMIT: invoke the answer-generating model
+```
+
+The Studio registry currently creates SHA-256 fingerprints over Node `JSON.stringify(policy)`. Adapters check this fingerprint when available; a digest is **not** a signature or independent authorization. Schema-different JSON serializers, custom field ordering, and non-ASCII serialization can require a future canonical policy envelope. Do not silently bypass integrity checks to work around a mismatch.
+
+Rust requires a caller-provided HTTP transport rather than bundling an HTTP client. Swift uses CryptoKit and currently supports Apple platforms as declared in its package manifest. None of these sources adds caching, signed policies, per-service registry credentials or automatic discovery of undeclared constraints.
+
+**Attribution:** Cyrille Eloundou — [APX](https://apx.guide/), PackSpec and semantic governance concepts.
+
