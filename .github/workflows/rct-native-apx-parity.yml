@@ -1,6 +1,12 @@
 name: Canonical APX Native Parity (private checkout)
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'tools/semantic_store/**'
+      - '.github/workflows/rct-native-apx-parity.yml'
   workflow_dispatch:
     inputs:
       apx_ref:
@@ -34,7 +40,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: cyrillesaxo/apx
-          ref: ${{ inputs.apx_ref }}
+          ref: ${{ inputs.apx_ref || 'main' }}
           token: ${{ secrets.APX_REPO_READ_TOKEN }}
           path: apx
           persist-credentials: false
