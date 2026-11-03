@@ -76,7 +76,27 @@ export function verifySignedPolicy(bundle,keys,now=new Date()){
  demand(irDigest===p.ir.ir_sha256,'SIGNED_IR_DIGEST_MISMATCH');
  demand(p.ir.nodes.every(n=>n?.review?.approved===true &&
         n?.source?.source_sha256===p.ir.source.sha256),'UNAPPROVED_SIGNED_IR');
- demand(p.ir.summary?.total===p.ir.nodes.length,'SIGNED_IR_INVENTORY_MISMATCH');
+ const nodeIds=new Set(),requirements=new Set();
+ let evidenceCount=0,semanticCount=0;
+ for(const node of p.ir.nodes){
+   demand(node && typeof node.node_id==='string'&&node.node_id.length>0&&!nodeIds.has(node.node_id),'INVALID_SIGNED_NODE');
+   nodeIds.add(node.node_id);
+   if(node.kind==='EVIDENCE_PRESENCE'){
+     demand(node.status==='PROJECTION_ONLY' && node.runtime==='METADATA_GATE_V0_1' &&
+       typeof node.parameters?.requirement_id==='string'&&node.parameters.requirement_id.length>0 &&
+       Number.isSafeInteger(node.parameters?.min_independent_sources) &&
+       node.parameters.min_independent_sources>0 &&
+       !requirements.has(node.parameters.requirement_id),'INVALID_SIGNED_EVIDENCE_NODE');
+     requirements.add(node.parameters.requirement_id);evidenceCount++;
+   }else{
+     demand(['TEMPORAL','PROBE','AUTHORITY','PREDICATE'].includes(node.kind),'INVALID_SIGNED_NODE_KIND');
+     semanticCount++;
+   }
+ }
+ demand(p.ir.summary?.total===p.ir.nodes.length &&
+        p.ir.summary.evidence_presence_projections===evidenceCount &&
+        p.ir.summary.deferred_semantic_constraints===semanticCount &&
+        p.ir.summary.semantic_constraints_executed===0,'SIGNED_IR_INVENTORY_MISMATCH');
  return {serviceId:p.service,environment:p.environment,sequence:p.sequence,issuedAt:p.issued_at,
          expiresAt:p.expires_at,irSha256:p.ir.ir_sha256,sourceSha256:p.ir.source.sha256,
          keyId:bundle.key_id};
