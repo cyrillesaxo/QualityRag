@@ -41,7 +41,10 @@ class NativeCompatibilityEvidenceTests(unittest.TestCase):
             lambda d: d["assurance"].update(combined_native_signed_pipeline_executed=True))
 
     def test_rejects_moved_native_engine_commit(self):
-        self.mutate_manifest(lambda d: d["apx"].update(commit="not-a-commit"))
+        self.mutate_manifest(lambda d: d["apx"].update(commit="a" * 40))
+
+    def test_rejects_artifact_substitution(self):
+        self.mutate_manifest(lambda d: d["apx"].update(artifact_sha256="b" * 64))
 
     def test_rejects_versioned_contract_drift(self):
         self.mutate_manifest(
@@ -69,10 +72,16 @@ class NativeCompatibilityEvidenceTests(unittest.TestCase):
                        if k not in ("consequential_cases", "control_cases")},
             "case_outcomes": [
                 {"case_id": x["id"], "label": x["label"],
+                 "verdict": "INCONCLUSIVE",
+                 "outcome": ("consequential_abstained" if x["label"] == "DRIFT" else "control_abstained"),
                  "source_sha256": sha256(x["source"].encode()).hexdigest(),
                  "candidate_sha256": sha256(x["candidate"].encode()).hexdigest()}
                 for x in corpus["cases"]
             ],
+            "cases": 18,
+            "consequential_cases": 12,
+            "control_cases": 6,
+            "compression_authorized": False,
             "qualityrag_admission": "INCONCLUSIVE",
             "can_generate": False,
             "semantic_completeness": "UNKNOWN",
@@ -100,6 +109,16 @@ class NativeCompatibilityEvidenceTests(unittest.TestCase):
     def test_rejects_false_native_detections(self):
         score = self.scorecard()
         score["counts"]["consequential_detected"] = 12
+        self.check_score(score, expected_failure=True)
+
+    def test_rejects_inconsistent_per_case_verdict(self):
+        score = self.scorecard()
+        score["case_outcomes"][0]["verdict"] = "REFUSE"
+        self.check_score(score, expected_failure=True)
+
+    def test_rejects_duplicate_case_id(self):
+        score = self.scorecard()
+        score["case_outcomes"][1]["case_id"] = score["case_outcomes"][0]["case_id"]
         self.check_score(score, expected_failure=True)
 
     def test_rejects_native_admission_laundering(self):
