@@ -80,6 +80,16 @@ class SemanticStore:
                 REFERENCES semantic_versions(object_id, revision)
         );
         """)
+        # Physical immutability: reject direct SQL UPDATE/DELETE for all ledger tables.
+        # Administrators who can drop triggers remain outside this SQLite trust boundary.
+        for table in ("source_versions", "semantic_versions", "semantic_edges",
+                      "admission_receipts"):
+            for action in ("UPDATE", "DELETE"):
+                self.db.execute(
+                    f"CREATE TRIGGER IF NOT EXISTS immutable_{table}_{action.lower()} "
+                    f"BEFORE {action} ON {table} BEGIN "
+                    f"SELECT RAISE(ABORT, 'immutable semantic ledger'); END;"
+                )
 
     def add_source(self, source_id: str, revision: str, source_sha256: str,
                    metadata: dict[str, Any]) -> None:
