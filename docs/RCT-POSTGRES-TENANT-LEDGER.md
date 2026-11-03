@@ -47,6 +47,8 @@ The UUID above is illustrative, and the quoted password is **not** a production 
 - `add_edge` with cross-tenant-safe graph references;
 - `object_version` that cannot read other tenants;
 - `record_admission` that accepts only REFUSE / INCONCLUSIVE, never trusted ADMIT.
+- `record_apx_receipt` preserving canonical HCR/RCOC outer result envelopes as `UNVERIFIED_EXTERNAL_RESULT`, never promoting them.
+- `read_edges` and `pg_query.query_context_postgres` for bounded graph traversal with **both** database tenant RLS and mandatory per-object application authorization.
 
 The backend reads tenant identity from its authenticated database connection, not from a `tenant_id` argument. It requires psycopg v3 and an autocommit connection, using explicit small transactions for insert operations.
 
@@ -68,7 +70,7 @@ The CI suite creates two different PostgreSQL login roles and two distinct tenan
 - Highly privileged DB administrators, superusers and table owners with DDL can change schema or rewrite history. PostgreSQL cannot supply external immutability against its own superuser.
 - RLS does not replace application-layer authentication, authorization, consent, field-level disclosure policy, or independent audit.
 - Tenant-role provisioning, managed pooling, backup/restore isolation, encryption, log scrubbing and multi-region migration are not implemented.
-- The existing SQLite-only query and APX receipt importer are not automatically migrated; do not substitute this small backend as a production-ready complete service.
+- Bounded graph reads and HCR/RCOC receipt imports now have PostgreSQL equivalents, but complete behavioral parity with every SQLite feature and operational endpoint is not claimed. Do not expose this backend as a production-ready service.
 - Source truth, semantic completeness, FF-RCT reconstruction and canonical APX parity are still not established by database constraints.
 - This schema intentionally disallows ADMIT; production admission requires a separately authenticated governance/verifier design.
 
