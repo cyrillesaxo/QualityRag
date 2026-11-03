@@ -1,15 +1,17 @@
-# Python — Four APX PackSpec-derived RAG examples
+# Python — Five APX PackSpec-derived RAG examples
+| FFI Teacher Transformation | Teaching content has not passed the cross-framework back-translation check | `INCONCLUSIVE` |
 
-This guide uses **the same 12 cases** across the ten QualityRag SDKs, derived from the uploaded **SEMLOAN**, **Question Fan**, **FFI** and **software-selling** contracts. The source texts specify richer regimes than the v0.1 metadata gate can execute. These are **explicit educational projections**, not direct evaluation of the full original PackSpecs.
+This guide uses **the same 15 cases** across the ten QualityRag SDKs, derived from the uploaded **SEMLOAN**, **Question Fan**, **FFI**, **FFI Teacher Transformation (education)** and **software-selling** contracts. The source texts specify richer regimes than the v0.1 metadata gate can execute. These are **explicit educational projections**, not direct evaluation of the full original PackSpecs.
 
 | Contract and example | Missing requirement | Expected |
 | --- | --- | --- |
 | SEMLOAN: learner praise without cold retrieval / transfer | `cold-retrieval-or-transfer` | `INCONCLUSIVE` |
 | Question Fan: plausible question without decision consequence | `decision-consequence` | `INCONCLUSIVE` |
 | FFI: source excerpt + probe but no corroboration | `independent-corroboration` | `INCONCLUSIVE` |
+| FFI Teacher Transformation: tutorial lacks cross-platform probe | `cross-platform-back-translation` | `INCONCLUSIVE` |
 | Software selling: buyer interview + integration check without comparison | `controlled-comparison` | `INCONCLUSIVE` |
 
-Each domain also has an `ADMIT` example (all declared evidence labels supplied) and a `REFUSE` example (an explicit contradictory witness). The following code checks **all 12** using the SDK. It does **not** call a retriever or LLM.
+Each domain also has an `ADMIT` example (all declared evidence labels supplied) and a `REFUSE` example (an explicit contradictory witness). The following code checks **all 15** using the SDK. It does **not** call a retriever or LLM.
 
 ## SDK example
 
