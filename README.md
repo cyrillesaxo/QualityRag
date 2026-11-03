@@ -83,3 +83,7 @@ The [source PackSpec compiler](tools/packspec_compiler/README.md) inspects origi
 ## APX PackSpec-derived examples in ten languages
 
 The [APX example collection](examples/apx-packspecs/README.md) provides twelve verified metadata-gate scenarios based on SEMLOAN, Question Fan, FFI and software-selling PackSpecs, with corresponding examples for Java, Python, TypeScript, Go, C#, Rust, Kotlin, PHP, Ruby and Swift. They **project** the original semantic contracts into the experimental v0.1 evidence format; the SDKs do not execute the full originals.
+
+## Signed Studio policy promotion (experimental)
+
+The [signed Studio promotion guide](apps/registry/SIGNED-PROMOTION.md) explains offline Ed25519 signing, trust-store configuration, staged → approved → published policy distribution and signed-only Python client verification. The registry stores **public keys only**, never governance private keys. Its shared bearer token and local file storage remain development-grade; production RBAC, attested evidence custody and multi-instance sequence coordination are not yet implemented.
