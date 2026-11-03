@@ -35,12 +35,13 @@ test('migration locking, checksums, clean restart and readiness failures', {skip
       [service,'test','0']);
   assert.equal((await storeB.readiness()).ready,true);
   // Drift in migration history must block startup/readiness.
-  await poolA.query('BEGIN');
+  const conn=await poolA.connect();
   try{
-   await poolA.query("UPDATE qr_schema_migrations SET sha256=repeat('f',64) WHERE name=$1",
+   await conn.query('BEGIN');
+   await conn.query("UPDATE qr_schema_migrations SET sha256=repeat('f',64) WHERE name=$1",
       [migration.version]);
-   await assert.rejects(()=>checkMigrations(poolB),/MIGRATION_CHECKSUM_MISMATCH/);
-  }finally{await poolA.query('ROLLBACK')}
+   await assert.rejects(()=>checkMigrations(conn),/MIGRATION_CHECKSUM_MISMATCH/);
+  }finally{await conn.query('ROLLBACK');conn.release()}
  }finally{
   await poolA.query('DELETE FROM qr_governance_events WHERE service_id=$1',[service]).catch(()=>{});
   await poolA.query('DELETE FROM qr_signed_promotions WHERE service_id=$1',[service]).catch(()=>{});
