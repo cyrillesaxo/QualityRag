@@ -179,3 +179,49 @@ def verify_d15_review(*, native: dict, source_sha256: str,
     }
     result["fingerprint"]=digest(result)
     return result
+
+
+def verify_d15_review_with_bytes(*, evidence_bytes: dict[str, bytes],
+                                 native: dict, source_sha256: str,
+                                 candidate_sha256: str, reviewed_ir: dict,
+                                 evidence_registry: dict[str,str], signed_policy: dict,
+                                 signed_review: dict, policy_keys: dict,
+                                 reviewer_keys: dict, minimum_sequence: int,
+                                 service: str, environment: str, as_of: str,
+                                 nonce_accepted) -> dict:
+    """Require actual supplied bytes for each signed evidence ID.
+
+    This is content integrity only; it does not prove publisher authority or
+    independent witness provenance. Byte checks run BEFORE one-use nonce
+    consumption. A host cannot quietly replace a signed evidence record.
+    """
+    from hashlib import sha256
+    # Validate the full proposed claim inventory, including cited IDs,
+    # against the signed review before checking binary source bytes.
+    draft = proposed_d15_review(
+        native=native,source_sha256=source_sha256,
+        candidate_sha256=candidate_sha256,reviewed_ir=reviewed_ir,
+        evidence_registry=evidence_registry)
+    ids=set(draft["evidence_record_sha256"])
+    if (not isinstance(evidence_bytes,dict) or set(evidence_bytes) != ids
+            or len(evidence_bytes) > 2000):
+        raise ValueError("Every cited D15 evidence ID requires exact supplied bytes")
+    for eid, raw in evidence_bytes.items():
+        if (not isinstance(raw,bytes) or not 1 <= len(raw) <= 2_000_000
+                or sha256(raw).hexdigest() != evidence_registry[eid]):
+            raise ValueError("D15 evidence bytes differ from signed digest")
+    receipt=verify_d15_review(
+        native=native,source_sha256=source_sha256,
+        candidate_sha256=candidate_sha256,reviewed_ir=reviewed_ir,
+        evidence_registry=evidence_registry,signed_policy=signed_policy,
+        signed_review=signed_review,policy_keys=policy_keys,
+        reviewer_keys=reviewer_keys,minimum_sequence=minimum_sequence,
+        service=service,environment=environment,as_of=as_of,
+        nonce_accepted=nonce_accepted)
+    result=dict(receipt)
+    result.pop("fingerprint")
+    result["submitted_evidence_content_integrity"]="VERIFIED_SHA256_MATCH"
+    result["independent_evidence_custody"]="NOT_ESTABLISHED"
+    result["deception_probe_execution"]="NOT_ATTESTED"
+    result["fingerprint"]=digest(result)
+    return result
