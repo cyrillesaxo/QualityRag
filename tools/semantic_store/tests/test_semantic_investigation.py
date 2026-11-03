@@ -65,6 +65,11 @@ class InvestigationTests(unittest.TestCase):
                                   principal="analyst",
                                   authorize=lambda p,o,r:r=="v1")
 
+    def test_missing_version_does_not_become_deleted_facts(self):
+        r=self.execute(self.base+" COMPARE WITH 'v3'")
+        self.assertEqual(r["comparison"]["status"],"INCONCLUSIVE_MISSING_VERSION")
+        self.assertNotIn("only_in_base",r["comparison"])
+
     def test_compare_rejects_missing_revision(self):
         with self.assertRaises(SemanticSqlError):
             compile_investigation(self.base+" COMPARE WITH ''")
@@ -98,7 +103,7 @@ class InvestigationTests(unittest.TestCase):
         self.assertNotIn("SECRET",str(r))
 
     def test_gaps_require_explicit_finite_inventory(self):
-        for ids in (None,["root","root"],[""] ,list(map(str,range(101)))):
+        for ids in (None,["root","root"],[""],[{"unhashable":"value"}],list(map(str,range(101)))):
             with self.subTest(ids=ids):
                 with self.assertRaises(SemanticSqlError):
                     self.execute(self.base+" GOVERNED BY packspec1 FIND GAPS",
