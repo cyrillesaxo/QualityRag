@@ -19,7 +19,7 @@ public enum PackSpecSources {
             }
             let min=row["min_independent_sources"] as? Int ?? 1
             let max=row["max_age_seconds"] as? Int
-            guard min>0 && (max == nil || max!>=0) else {throw SourceError.invalidPolicy}
+            guard min>0 && (max == nil || max! >= 0) else {throw SourceError.invalidPolicy}
             return Requirement(name,minIndependentSources:min,maxAgeSeconds:max.map(TimeInterval.init))
         }
         return Pack(id,version,requirements)
@@ -28,7 +28,7 @@ public enum PackSpecSources {
         guard !policy.id.isEmpty && !policy.version.isEmpty && !policy.requirements.isEmpty &&
           Set(policy.requirements.map{$0.id}).count==policy.requirements.count &&
           policy.requirements.allSatisfy({!$0.id.isEmpty && $0.minIndependentSources>0 &&
-            ($0.maxAgeSeconds == nil || $0.maxAgeSeconds!>=0)}) else {throw SourceError.invalidPolicy}
+            ($0.maxAgeSeconds == nil || $0.maxAgeSeconds! >= 0)}) else {throw SourceError.invalidPolicy}
         return { policy }
     }
     public static func property(_ json:String) throws -> Loader {
@@ -37,8 +37,10 @@ public enum PackSpecSources {
     }
     public static func file(_ url:URL) -> Loader {
         return {
+            guard url.isFileURL else {throw SourceError.invalidPolicy}
             let attrs=try FileManager.default.attributesOfItem(atPath:url.path)
-            guard (attrs[.size] as? NSNumber)?.intValue ?? 262145 <= 262144 else {throw SourceError.oversized}
+            let size=(attrs[.size] as? NSNumber)?.intValue ?? 262145
+            guard size <= 262144 else {throw SourceError.oversized}
             return try parse(Data(contentsOf:url))
         }
     }
