@@ -1,0 +1,49 @@
+{
+  "schema": "qualityrag.apx-native-compatibility-evidence/v1",
+  "record_id": "apx-original-native-role-stress-2026-11-03",
+  "status": "RESEARCH_ONLY",
+  "apx": {
+    "repository": "cyrillesaxo/apx",
+    "commit": "52018f0677f53eccd75fc0951e16af5247c8f8fe",
+    "workflow_run_id": 41726055119,
+    "workflow_url": "https://github.com/cyrillesaxo/apx/actions/runs/41726055119",
+    "artifact_name": "qualityrag-original-apx-native-scorecard",
+    "engine_schema": "apx.semantic-text-transition/v0.1",
+    "scorecard_schema": "apx.qualityrag-native-stress-scorecard/v1",
+    "artifact_id": 13274960886,
+    "artifact_sha256": "aaf8bb74610216665951a162f91d70df48f5ba1ea4bdfdf9a618fc3c4a234bcd",
+    "artifact_json_valid": false,
+    "artifact_parse_status": "MALFORMED_STRESS_SCORECARD_TRAILING_LITERAL_BACKSLASH_N"
+  },
+  "qualityrag": {
+    "repository": "cyrillesaxo/QualityRag",
+    "corpus_path": "tools/semantic_store/data/semantic_role_binding_stress_v1.json",
+    "corpus_sha256": "cb01d8f9f0fc9f86e560f9f771cdae1d99be5cf01153c5a7657a69a391392ecd",
+    "governance_schema": "rct.native-relational-semantic-governance/v0.1"
+  },
+  "observed": {
+    "consequential_cases": 12,
+    "consequential_detected": 0,
+    "consequential_abstained": 12,
+    "control_cases": 6,
+    "control_flagged": 0,
+    "control_abstained": 6
+  },
+  "assurance": {
+    "native_engine_executed": "REPORTED_BY_APX_WORKFLOW",
+    "native_build_independently_attested": false,
+    "combined_native_signed_pipeline_executed": false,
+    "annotation_extraction_independently_validated": false,
+    "semantic_completeness": "UNKNOWN",
+    "source_authority": "NOT_ESTABLISHED",
+    "production_admission": "NOT_AUTHORIZED",
+    "can_generate": false,
+    "original_native_scorecard_strict_json_verified": false
+  },
+  "limitations": [
+    "Internal synthetic corpus, not independently expert adjudicated",
+    "Zero control flags does not establish detection capability",
+    "Record anchors the original native run, not an attested replay of the combined governance pipeline",
+    "A passing compatibility check does not authorize content generation or semantic compression"
+  ]
+}
