@@ -63,6 +63,55 @@ class SemanticSQLTests(unittest.TestCase):
             with self.subTest(sql=sql), self.assertRaises(SemanticSqlError):
                 compile_sql(sql)
 
+    def test_expand_reuses_bounded_graph_traversal(self):
+        r=self.run_sql("SELECT * FROM facts WHERE object_id='root' AND revision='r1' EXPAND 2 LIMIT 20")
+        self.assertEqual(r["plan"]["projection"], "EXPAND")
+        self.assertEqual(r["plan"]["limits"]["max_hops"], 2)
+        self.assertEqual({n["object_id"] for n in r["result"]["nodes"]}, {"root","visible"})
+
+    def test_collapse_is_structural_only_not_semantic_compression(self):
+        r=self.run_sql("SELECT * FROM facts WHERE object_id='root' AND revision='r1' COLLAPSE LIMIT 20")
+        self.assertEqual(r["result"]["edges"], [])
+        self.assertEqual([n["object_id"] for n in r["result"]["nodes"]], ["root"])
+        self.assertEqual(r["result"]["projection_warning"],
+                         "STRUCTURAL_ROOT_ONLY_NOT_MEANING_PRESERVING")
+        self.assertFalse(r["can_generate"])
+
+    def test_governed_by_requires_resolver(self):
+        sql="SELECT * FROM facts WHERE object_id='root' AND revision='r1' GOVERNED BY packspec1"
+        self.assertEqual(compile_sql(sql).governance_ref, "packspec1")
+        with self.assertRaisesRegex(SemanticSqlError, "requires an authenticated"):
+            self.run_sql(sql)
+
+    def test_governed_by_is_binding_not_policy_execution(self):
+        sql=("SELECT * FROM facts WHERE object_id='root' AND revision='r1' "
+             "GOVERNED BY packspec1 EXPAND 1")
+        def authorized(principal, ref):
+            self.assertEqual((principal,ref),("viewer","packspec1"))
+            return {"id":"packspec1","digest":"a"*64,"authorized":True}
+        r=execute_sql(self.store,sql,principal="viewer",
+                      authorize=lambda p,o,v: p=="viewer" and o!="private",
+                      resolve_packspec=authorized)
+        self.assertEqual(r["packspec_binding"]["id"],"packspec1")
+        self.assertEqual(r["packspec_binding"]["evaluation"],"NOT_PERFORMED")
+        self.assertEqual(r["admission"],"INCONCLUSIVE")
+
+    def test_governed_by_rejects_unauthorized_or_unversioned_policy(self):
+        sql="SELECT * FROM facts WHERE object_id='root' AND revision='r1' GOVERNED BY packspec1"
+        for resolved in (None,{},{"id":"packspec1","authorized":True},
+                         {"id":"packspec1","authorized":False,"digest":"a"*64},
+                         {"id":"wrong","authorized":True,"digest":"a"*64}):
+            with self.subTest(resolved=resolved), self.assertRaises(PermissionError):
+                execute_sql(self.store,sql,principal="viewer",
+                            authorize=lambda p,o,v:True,
+                            resolve_packspec=lambda p,r:resolved)
+
+    def test_rejects_unbounded_expand_and_ambiguous_modes(self):
+        for suffix in ("EXPAND 6","EXPAND 999","EXPAND 1 COLLAPSE",
+                       "COLLAPSE EXPAND 1","GOVERNED BY bad.policy"):
+            with self.subTest(suffix=suffix), self.assertRaises(SemanticSqlError):
+                compile_sql("SELECT * FROM facts WHERE object_id='root' AND revision='r1' "+suffix)
+
     def test_denied_root_fails_before_lookup(self):
         with self.assertRaises(PermissionError):
             execute_sql(self.store, "SELECT * FROM facts WHERE object_id='private' AND revision='r1'",
