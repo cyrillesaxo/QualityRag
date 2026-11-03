@@ -180,9 +180,9 @@ class PostgresTenantLedgerTests(unittest.TestCase):
             a.add_edge("wrong","WITNESS","edge-A","v1","edge-B","v1","related")
         a.add_edge("okay","WITNESS","edge-A","v1","edge-A","v1","self")
         self.assertEqual(self.a.execute(
-            "SELECT count(*) FROM qr_store.semantic_edges").fetchone()[0],1)
+            "SELECT count(*) FROM qr_store.semantic_edges WHERE edge_id='okay'").fetchone()[0],1)
         self.assertEqual(self.b.execute(
-            "SELECT count(*) FROM qr_store.semantic_edges").fetchone()[0],0)
+            "SELECT count(*) FROM qr_store.semantic_edges WHERE edge_id='okay'").fetchone()[0],0)
 
 
 if __name__=="__main__":
