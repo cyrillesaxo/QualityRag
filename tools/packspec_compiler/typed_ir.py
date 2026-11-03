@@ -84,15 +84,23 @@ def compile_ir(report: dict, mapping: dict) -> dict:
             relation = params.get("relation")
             _require(relation in ("BEFORE", "AFTER", "WITHIN", "EXPIRES_AT"), "Invalid temporal relation")
             anchor = _identifier(params.get("anchor"), "time anchor")
+            # Legacy typed temporal nodes omit the subject; keep those deferred.
+            subject = params.get("subject")
+            if subject is not None:
+                _identifier(subject, "time subject")
+                _require(subject != anchor, "Subject and anchor must be distinct")
+            typed = {"relation": relation, "anchor": anchor}
+            if subject is not None:
+                typed["subject"] = subject
             if relation == "WITHIN":
                 duration = params.get("duration_seconds")
                 _require(type(duration) is int and 1 <= duration <= 31_536_000,
                          "Invalid temporal interval")
-                typed = {"relation": relation, "anchor": anchor, "duration_seconds": duration}
-            else:
-                typed = {"relation": relation, "anchor": anchor}
-            runtime = "NOT_IMPLEMENTED"
-            posture = "DEFERRED"
+                typed["duration_seconds"] = duration
+            # EXPIRES_AT uses the anchor as the declared expiry instant.
+            # It is executable only when runtime receives a trusted as-of instant.
+            runtime = "BOUNDED_TEMPORAL_V0_1" if (subject is not None or relation == "EXPIRES_AT") else "NOT_IMPLEMENTED"
+            posture = "EVALUABLE" if runtime != "NOT_IMPLEMENTED" else "DEFERRED"
         elif kind == "AUTHORITY":
             role = _identifier(params.get("role"), "authority role")
             scope = params.get("scope")
@@ -106,10 +114,36 @@ def compile_ir(report: dict, mapping: dict) -> dict:
             artifact_type = params.get("artifact_type")
             _require(artifact_type in ("OBSERVATION", "TEST_RESULT", "PRIMARY_RECORD"),
                      "Unsupported probe artifact type")
+            # Optional deterministic checks over caller-supplied observation values.
+            # No arbitrary user-supplied code or external probe execution is allowed.
+            check = params.get("check")
             typed = {"probe_id": probe_id, "artifact_type": artifact_type,
                      "executor": "UNBOUND", "result": "UNMEASURED"}
-            runtime = "NOT_IMPLEMENTED"
-            posture = "DEFERRED"
+            if check is None:
+                runtime = "NOT_IMPLEMENTED"
+                posture = "DEFERRED"
+            else:
+                _require(check in ("EQUALS", "NUMERIC_RANGE"), "Unsupported probe check")
+                field = _identifier(params.get("field"), "probe observation field")
+                typed["check"] = check
+                typed["field"] = field
+                if check == "EQUALS":
+                    expected = params.get("expected")
+                    _require(type(expected) in (str, int, float, bool) and
+                             (not isinstance(expected, float) or __import__("math").isfinite(expected)) and
+                             (not isinstance(expected, str) or len(expected) <= 250),
+                             "Invalid probe expected value")
+                    typed["expected"] = expected
+                else:
+                    lower = params.get("minimum")
+                    upper = params.get("maximum")
+                    _require(type(lower) in (int, float) and type(upper) in (int, float) and
+                             __import__("math").isfinite(lower) and __import__("math").isfinite(upper) and
+                             lower <= upper, "Invalid numeric probe range")
+                    typed["minimum"] = lower
+                    typed["maximum"] = upper
+                runtime = "BOUNDED_PROBE_V0_1"
+                posture = "EVALUABLE"
         else:
             expression = params.get("expression")
             _require(isinstance(expression, str) and expression.strip() and len(expression) <= 1600,
