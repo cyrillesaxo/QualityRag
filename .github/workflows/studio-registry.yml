@@ -10,6 +10,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: python -m pip install 'cryptography>=44,<47'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
       - run: npm --prefix apps/registry test
   studio:
     runs-on: ubuntu-latest

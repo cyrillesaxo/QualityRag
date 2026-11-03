@@ -87,3 +87,7 @@ The [APX example collection](examples/apx-packspecs/README.md) provides twelve v
 ## Signed Studio policy promotion (experimental)
 
 The [signed Studio promotion guide](apps/registry/SIGNED-PROMOTION.md) explains offline Ed25519 signing, trust-store configuration, staged → approved → published policy distribution and signed-only Python client verification. The registry stores **public keys only**, never governance private keys. Its shared bearer token and local file storage remain development-grade; production RBAC, attested evidence custody and multi-instance sequence coordination are not yet implemented.
+
+## Registry identity and independent policy approval
+
+[OIDC governance and scoped RBAC](apps/registry/OIDC-GOVERNANCE.md) introduces verified JWT identities, separate policy author/approver/publisher roles, three-person signed promotion, and a local SHA-256 audit chain. The file-backed registry is still a single-writer development service; database transactions, interactive Studio login and independent audit anchoring remain outstanding.

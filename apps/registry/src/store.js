@@ -13,12 +13,14 @@ export function validatePolicy(p) {
   }
   return {id:p.id,version:p.version,requirements:p.requirements.map(r=>({...r}))};
 }
-const empty = () => ({services:{},policies:{},bindings:{},signedPromotions:{},signedBindings:{},audit:[]});
+const empty = () => ({services:{},policies:{},bindings:{},signedPromotions:{},signedBindings:{},audit:[],governanceAudit:[],governanceHead:'0'.repeat(64)});
 export class RegistryStore {
   constructor(file) {
     this.file=file;
     this.data=fs.existsSync(file)? JSON.parse(fs.readFileSync(file,'utf8')) : empty();
     this.data.signedPromotions??={};this.data.signedBindings??={};
+    this.data.governanceAudit??=[];this.data.governanceHead??='0'.repeat(64);
+    this.verifyGovernanceAudit();
   }
   save() {
     fs.mkdirSync(path.dirname(this.file),{recursive:true});
@@ -26,7 +28,29 @@ export class RegistryStore {
     fs.writeFileSync(tmp,JSON.stringify(this.data,null,2),{mode:0o600});
     fs.renameSync(tmp,this.file);
   }
-  record(actor,action,detail) {this.data.audit.push({actor,action,detail,time:new Date().toISOString()});}
+  verifyGovernanceAudit(){
+    let prev='0'.repeat(64);
+    for(const event of this.data.governanceAudit){
+      if(event.previousHash!==prev||typeof event.hash!=='string')
+        throw new Error('GOVERNANCE_AUDIT_INTEGRITY_FAILURE');
+      const {hash,...fields}=event;
+      const calculated=createHash('sha256').update(JSON.stringify(fields)).digest('hex');
+      if(hash!==calculated)throw new Error('GOVERNANCE_AUDIT_INTEGRITY_FAILURE');
+      prev=hash;
+    }
+    if(prev!==this.data.governanceHead)throw new Error('GOVERNANCE_AUDIT_INTEGRITY_FAILURE');
+  }
+  record(actor,action,detail) {
+    const time=new Date().toISOString();
+    this.data.audit.push({actor,action,detail,time});
+    if(action.startsWith('SIGNED_')){
+      this.verifyGovernanceAudit();
+      const event={previousHash:this.data.governanceHead,actor,action,detail,time};
+      const hash=createHash('sha256').update(JSON.stringify(event)).digest('hex');
+      this.data.governanceAudit.push({...event,hash});
+      this.data.governanceHead=hash;
+    }
+  }
   register(service,actor) {
     if (!service?.id || !/^[a-zA-Z0-9._-]+$/.test(service.id) || !service?.displayName) throw new Error('INVALID_SERVICE');
     const next={id:service.id,displayName:service.displayName,createdAt:this.data.services[service.id]?.createdAt??new Date().toISOString()};
@@ -39,10 +63,11 @@ export class RegistryStore {
     const entry={policy,status:'DRAFT',sha256:hashPolicy(policy),createdBy:actor};
     this.data.policies[key]=entry;this.record(actor,'POLICY_DRAFTED',key);this.save();return entry;
   }
-  approve(id,version,actor) {
+  approve(id,version,actor,{enforceSeparation=false}={}) {
     const key=id+'@'+version, entry=this.data.policies[key];
     if (!entry) throw new Error('NOT_FOUND');
     if(entry.status!=='DRAFT') throw new Error('NOT_DRAFT');
+    if(enforceSeparation && entry.createdBy===actor)throw new Error('SELF_APPROVAL_FORBIDDEN');
     entry.status='APPROVED';entry.approvedBy=actor;entry.approvedAt=new Date().toISOString();
     this.record(actor,'POLICY_APPROVED',key);this.save();return entry;
   }
@@ -70,21 +95,24 @@ export class RegistryStore {
     return {serviceId:record.serviceId,environment:record.environment,sequence:record.sequence,
       status:entry.status,keyId:record.keyId,irSha256:record.irSha256};
   }
-  approveSigned(serviceId,environment,sequence,actor,trustedKeys) {
+  approveSigned(serviceId,environment,sequence,actor,trustedKeys,{enforceSeparation=false}={}) {
     const key=serviceId+'@'+environment+'#'+sequence;
     const entry=this.data.signedPromotions[key];
     if(!entry)throw new Error('NOT_FOUND');
     if(entry.status!=='STAGED')throw new Error('SIGNED_NOT_STAGED');
+    if(enforceSeparation && entry.stagedBy===actor)throw new Error('SELF_APPROVAL_FORBIDDEN');
     verifySignedPolicy(entry.bundle,trustedKeys);
     entry.status='APPROVED';entry.approvedBy=actor;entry.approvedAt=new Date().toISOString();
     this.record(actor,'SIGNED_POLICY_APPROVED',key);this.save();
     return {serviceId,environment,sequence,status:entry.status};
   }
-  publishSigned(serviceId,environment,sequence,actor,trustedKeys) {
+  publishSigned(serviceId,environment,sequence,actor,trustedKeys,{enforceSeparation=false}={}) {
     const key=serviceId+'@'+environment+'#'+sequence;
     const entry=this.data.signedPromotions[key];
     if(!entry)throw new Error('NOT_FOUND');
     if(entry.status!=='APPROVED')throw new Error('SIGNED_NOT_APPROVED');
+    if(enforceSeparation && (entry.stagedBy===actor||entry.approvedBy===actor))
+      throw new Error('SAME_ACTOR_PROMOTION_FORBIDDEN');
     const verified=verifySignedPolicy(entry.bundle,trustedKeys);
     if(verified.serviceId!==serviceId||verified.environment!==environment||verified.sequence!==sequence)
       throw new Error('SIGNED_BINDING_MISMATCH');
