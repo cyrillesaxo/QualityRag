@@ -37,5 +37,9 @@ jobs:
         env:
           PYTHONPATH: sdk/python
         run: python -m unittest discover -s sdk/python/tests -p 'test_*.py' -v
+      - name: Native APX adapter transport and fail-closed tests
+        run: node --test tools/semantic_store/tests/test_rct_apx_native.mjs
+      - name: Single-command RCT research demonstration
+        run: python tools/semantic_store/rct_demo.py
       - name: Verify Python syntax
         run: python -m compileall -q tools/semantic_store tools/packspec_compiler sdk/python
