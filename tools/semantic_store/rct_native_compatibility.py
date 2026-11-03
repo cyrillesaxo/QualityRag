@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "data" / "apx_native_compatibility_v1.json"
 CORPUS = ROOT / "data" / "semantic_role_binding_stress_v1.json"
 SCHEMA = "qualityrag.apx-native-compatibility-evidence/v1"
+PINNED_APX_COMMIT = "52018f0677f53eccd75fc0951e16af5247c8f8fe"
 COUNTS = {
     "consequential_cases": 12,
     "consequential_detected": 0,
@@ -44,6 +45,10 @@ def verify(manifest_path: Path = MANIFEST, corpus_path: Path = CORPUS,
     _require(isinstance(apx.get("commit"), str) and
              len(apx["commit"]) == 40 and
              all(c in "0123456789abcdef" for c in apx["commit"]), "Unpinned APX revision")
+    _require(apx.get("commit") == PINNED_APX_COMMIT, "APX commit substitution")
+    _require(apx.get("artifact_id") == 13274960886 and
+             apx.get("artifact_sha256") == "aaf8bb74610216665951a162f91d70df48f5ba1ea4bdfdf9a618fc3c4a234bcd",
+             "Original workflow artifact identity mismatch")
     _require(apx.get("workflow_run_id") == 41726055119,
              "Unexpected original native workflow")
     _require(apx.get("engine_schema") == "apx.semantic-text-transition/v0.1",
@@ -89,6 +94,7 @@ def verify(manifest_path: Path = MANIFEST, corpus_path: Path = CORPUS,
                  "Original scorecard counts do not match pinned run")
         outcomes = score.get("case_outcomes")
         _require(isinstance(outcomes, list) and len(outcomes) == 18 and
+                 len({x.get("case_id") for x in outcomes}) == 18 and
                  {x.get("case_id") for x in outcomes} == {c["id"] for c in cases},
                  "Original native scorecard case mismatch")
         by_id = {c["id"]: c for c in cases}
@@ -96,6 +102,14 @@ def verify(manifest_path: Path = MANIFEST, corpus_path: Path = CORPUS,
                      x.get("source_sha256") == sha256(by_id[x["case_id"]]["source"].encode()).hexdigest() and
                      x.get("candidate_sha256") == sha256(by_id[x["case_id"]]["candidate"].encode()).hexdigest()
                      for x in outcomes), "Original native scorecard document mismatch")
+        _require(all(x.get("verdict") == "INCONCLUSIVE" and
+                     x.get("outcome") == ("consequential_abstained" if x["label"] == "DRIFT" else "control_abstained")
+                     for x in outcomes), "Native case verdict contradicts pinned observations")
+        _require(score.get("cases") == 18 and
+                 score.get("consequential_cases") == 12 and
+                 score.get("control_cases") == 6 and
+                 score.get("compression_authorized") is False,
+                 "Original scorecard dimensions or compression boundary changed")
         _require(score.get("qualityrag_admission") == "INCONCLUSIVE" and
                  score.get("can_generate") is False and
                  score.get("semantic_completeness") == "UNKNOWN",
