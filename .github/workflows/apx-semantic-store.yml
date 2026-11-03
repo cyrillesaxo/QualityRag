@@ -10,6 +10,7 @@ on:
   push:
     branches:
       - "feat/apx-semantic-store-foundation"
+      - "feat/native-apx-ci-parity"
     paths:
       - "tools/semantic_store/**"
       - ".github/workflows/apx-semantic-store.yml"
@@ -39,6 +40,13 @@ jobs:
         run: python -m unittest discover -s sdk/python/tests -p 'test_*.py' -v
       - name: Native APX adapter transport and fail-closed tests
         run: node --test tools/semantic_store/tests/test_rct_apx_native.mjs
+      - name: Verify real APX native test syntax and absent-credential failure
+        run: |
+          node --check tools/semantic_store/tests/test_rct_apx_native_real.mjs
+          if env -u APX_PACKAGES_ROOT node --test tools/semantic_store/tests/test_rct_apx_native_real.mjs; then
+            echo "::error::Native tests succeeded without a configured APX workspace"
+            exit 1
+          fi
       - name: Single-command RCT research demonstration
         run: python tools/semantic_store/rct_demo.py
       - name: Verify Python syntax
