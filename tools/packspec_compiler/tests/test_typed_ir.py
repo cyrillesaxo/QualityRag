@@ -60,7 +60,9 @@ class TypedIRTests(unittest.TestCase):
         self.assertEqual([x["status"] for x in ir["nodes"]],
                          ["PROJECTION_ONLY","DEFERRED","DEFERRED","DEFERRED","DEFERRED"])
         self.assertEqual(ir, compile_ir(self.report, self.mapping(rules)))
-        projection = project_gate(ir, "demo-semloan")
+        with self.assertRaisesRegex(IRValidationError, "acknowledgement"):
+            project_gate(ir, "demo-semloan")
+        projection = project_gate(ir, "demo-semloan", acknowledge_deferred=True)
         self.assertEqual(projection["policy"]["requirements"],
                          [{"id":"cold-retrieval","min_independent_sources":2}])
         self.assertEqual(len(projection["deferred_constraints"]), 4)
