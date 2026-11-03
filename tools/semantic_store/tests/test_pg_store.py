@@ -12,6 +12,7 @@ from uuid import UUID
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from pg_store import TenantPostgresStore
+from pg_query import query_context_postgres
 from store import digest
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -121,6 +122,52 @@ class PostgresTenantLedgerTests(unittest.TestCase):
     def test_direct_admin_update_is_stopped_by_immutable_trigger(self):
         with self.assertRaises(self.psycopg.errors.RaiseException):
             self.admin.execute("DELETE FROM qr_store.source_versions")
+
+    def test_bounded_graph_queries_and_object_policy(self):
+        a=TenantPostgresStore(self.a)
+        a.add_source("q-source","r1","a"*64,{})
+        for name in ("q-root","q-visible","q-restricted"):
+            a.add_object(name,"v1","q-source","r1","claim",{"name":name})
+        a.add_edge("q-edge-1","WITNESS","q-root","v1","q-visible","v1","links")
+        a.add_edge("q-edge-2","WITNESS","q-root","v1","q-restricted","v1","secret")
+        authorizer=lambda principal,object_id,revision: (
+            principal=="test-principal" and object_id!="q-restricted")
+        result=query_context_postgres(a,principal="test-principal",
+               authorize=authorizer,object_id="q-root",revision="v1",max_hops=2)
+        self.assertEqual(result["status"],"BOUNDED_CONTEXT")
+        self.assertEqual([n["object_id"] for n in result["nodes"]],
+                         ["q-root","q-visible"])
+        self.assertEqual([e["edge_id"] for e in result["edges"]],["q-edge-1"])
+        self.assertEqual(result["admission"],"INCONCLUSIVE")
+        with self.assertRaises(PermissionError):
+            query_context_postgres(a,principal="other",authorize=authorizer,
+                                  object_id="q-root",revision="v1")
+        with self.assertRaises(ValueError):
+            query_context_postgres(a,principal="test-principal",
+                                  authorize=authorizer,object_id="q-root",
+                                  revision="v1",max_nodes=101)
+
+    def test_native_receipts_are_stored_without_verifier_escalation(self):
+        a=TenantPostgresStore(self.a)
+        a.add_source("receipt-src","r1","a"*64,{})
+        a.add_object("receipt-object","v1","receipt-src","r1","candidate",{})
+        receipt={
+            "schema":"apx.rcoc-semantic-diff/v0.1",
+            "status":"REVIEW_REQUIRED",
+            "admission":{"status":"INCONCLUSIVE"},
+            "before":{"revision":"v1"},"after":{"revision":"v2"},
+            "boundary":"Synthetic bounded comparison",
+        }
+        result=a.record_apx_receipt(object_id="receipt-object",revision="v1",
+                                   engine="RCOC",receipt=receipt)
+        self.assertEqual(result["admission"],"INCONCLUSIVE")
+        self.assertEqual(result["authority"],"UNVERIFIED_EXTERNAL_RESULT")
+        row=self.a.execute(
+            "SELECT verification FROM qr_store.apx_receipts WHERE receipt_sha256=%s",
+            (result["receipt_sha256"],)).fetchone()
+        self.assertEqual(row[0],"UNVERIFIED_EXTERNAL_RESULT")
+        self.assertEqual(self.b.execute(
+            "SELECT count(*) FROM qr_store.apx_receipts").fetchone()[0],0)
 
     def test_cross_tenant_edges_fail_foreign_keys(self):
         a=TenantPostgresStore(self.a)
