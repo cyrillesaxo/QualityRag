@@ -10,7 +10,7 @@ QualityRag evaluates a versioned **PackSpec** against retrieved evidence **befor
 
 Keep your policy **inside the application**, supply it as a **JSON property or mounted file**, or manage versions centrally through **QualityRag Studio**. All approaches use the same evidence evaluator; the Java SDK includes an explicit, fail-closed source selector.
 
-**[PackSpec source configuration guide](docs/PACKSPEC-SOURCES.md)** · **[Studio registry](docs/STUDIO-REGISTRY.md)**
+**[PackSpec source configuration guide](docs/PACKSPEC-SOURCES.md)** (Java, Python, TypeScript) · **[Studio registry](docs/STUDIO-REGISTRY.md)**
 
 ## Decision semantics
 
