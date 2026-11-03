@@ -47,6 +47,14 @@ jobs:
             echo "::error::Native tests succeeded without a configured APX workspace"
             exit 1
           fi
+      - name: Native source-span comparator transport and strict missing-engine checks
+        run: |
+          node --test tools/semantic_store/tests/test_rct_apx_semantic_spans_transport.mjs
+          node --check tools/semantic_store/tests/test_rct_apx_semantic_spans_real.mjs
+          if env -u APX_PACKAGES_ROOT node --test tools/semantic_store/tests/test_rct_apx_semantic_spans_real.mjs; then
+            echo "::error::Native semantic tests succeeded without the original APX engine"
+            exit 1
+          fi
       - name: Single-command RCT research demonstration
         run: python tools/semantic_store/rct_demo.py
       - name: Verify Python syntax
