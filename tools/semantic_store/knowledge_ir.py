@@ -105,3 +105,53 @@ def compile_constraint_ir(ir: dict[str, Any]) -> dict[str, Any]:
         "boundary": "Semantic meaning and source authenticity remain unverified. "
                     "This bridge does not execute, infer, or authorize constraints.",
     }
+
+
+def persist_constraint_ir(store: Any, *, source_id: str, revision: str,
+                          ir: dict[str, Any]) -> dict[str, Any]:
+    """Atomically persist a reviewed candidate projection into SemanticStore.
+
+    This records source-provided fingerprints but cannot authenticate the source.
+    All projected objects are explicitly non-admitted. Nothing is inferred
+    from prose; WitnessGraph relationships require separate evidence imports.
+    """
+    _require(isinstance(source_id, str) and bool(source_id.strip())
+             and isinstance(revision, str) and bool(revision.strip()),
+             "Source identity and revision required")
+    compiled = compile_constraint_ir(ir)
+    source_hash = compiled["source_sha256"]
+    metadata = {
+        "constraint_ir_sha256": compiled["source_constraint_ir_sha256"],
+        "assurance": "UNVERIFIED_SOURCE_IDENTITY",
+        "kind": "REVIEWED_CONSTRAINT_IR",
+    }
+    with store.db:
+        store.db.execute(
+            "INSERT INTO source_versions(source_id, revision, source_sha256, metadata_json) "
+            "VALUES (?, ?, ?, ?)",
+            (source_id, revision, source_hash,
+             __import__("json").dumps(metadata, sort_keys=True, separators=(",", ":"))),
+        )
+        for item in compiled["objects"]:
+            object_id = source_id + ":" + item["object_id"]
+            payload = dict(item)
+            payload["object_id"] = object_id
+            payload["source_constraint_ir_sha256"] = compiled["source_constraint_ir_sha256"]
+            payload_hash = digest(payload)
+            store.db.execute(
+                "INSERT INTO semantic_versions(object_id, revision, source_id, "
+                "source_revision, kind, payload_json, payload_sha256) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (object_id, revision, source_id, revision,
+                 payload["kind"],
+                 __import__("json").dumps(payload, sort_keys=True,
+                                          ensure_ascii=False, separators=(",", ":")),
+                 payload_hash),
+            )
+    return {
+        "source_id": source_id,
+        "revision": revision,
+        "objects_persisted": len(compiled["objects"]),
+        "candidate_only": True,
+        "admission": "INCONCLUSIVE",
+    }
