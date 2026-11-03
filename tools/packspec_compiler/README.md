@@ -107,3 +107,7 @@ python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py'
 Unit tests use synthetic YAML, JSON, and **actual generated multi-page PDFs**, plus approval, source-drift, duplicate, invalid, and OCR-absence negative cases.
 
 **Next bounded milestone:** reviewed semantic IR, typed predicates, executable probes, and independent field validation. This is not a simple rename of source text into a JSON `requirements` array.
+
+## Typed ConstraintIR (experimental)
+
+The [typed IR extension](TYPED-IR.md) records reviewed EVIDENCE_PRESENCE, TEMPORAL, AUTHORITY, PROBE and PREDICATE nodes with source hashes and reviewer mappings. Only EVIDENCE_PRESENCE can project to the existing QualityRag v0.1 metadata gate. The other four are explicitly deferred; no semantic evaluator or probe runner is implied.
