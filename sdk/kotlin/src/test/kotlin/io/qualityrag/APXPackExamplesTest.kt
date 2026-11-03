@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class APXPackExamplesTest {
- @Test fun allTwelveCases() {
+ @Test fun allFifteenCases() {
   val fixture=ObjectMapper().readTree(Path.of("../../examples/apx-packspecs/fixtures.json").toFile())
   val at=Instant.parse(fixture["as_of"].asText())
   var count=0
@@ -22,6 +22,6 @@ class APXPackExamplesTest {
     count++
    }
   }
-  assertEquals(12,count)
+  assertEquals(15,count)
  }
 }
