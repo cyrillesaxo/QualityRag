@@ -56,8 +56,8 @@ pub fn studio(base:&str,token:&str,service:&str,environment:&str,http_get:HttpGe
   if raw.len()>262144{return Err("Studio response too large".into())}
   let envelope:Value=serde_json::from_str(&raw).map_err(|e|e.to_string())?;
   if envelope.get("status").and_then(Value::as_str)!=Some("APPROVED") ||
-   envelope.get("serviceId").and_then(Value::as_str)!=Some(&service) ||
-   envelope.get("environment").and_then(Value::as_str)!=Some(&environment) {return Err("Studio binding mismatch".into())}
+   envelope.get("serviceId").and_then(Value::as_str)!=Some(service.as_str()) ||
+   envelope.get("environment").and_then(Value::as_str)!=Some(environment.as_str()) {return Err("Studio binding mismatch".into())}
   let policy=envelope.get("policy").ok_or("missing Studio policy")?;
   let expected=envelope.get("sha256").and_then(Value::as_str).ok_or("missing digest")?;
   let digest=format!("{:x}",Sha256::digest(serde_json::to_string(policy).map_err(|e|e.to_string())?.as_bytes()));
