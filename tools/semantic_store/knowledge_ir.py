@@ -6,6 +6,7 @@ It does not execute deferred predicates or promote reviewer labels to authority.
 from __future__ import annotations
 
 from typing import Any
+import json
 
 from store import digest
 
@@ -130,7 +131,7 @@ def persist_constraint_ir(store: Any, *, source_id: str, revision: str,
             "INSERT INTO source_versions(source_id, revision, source_sha256, metadata_json) "
             "VALUES (?, ?, ?, ?)",
             (source_id, revision, source_hash,
-             __import__("json").dumps(metadata, sort_keys=True, separators=(",", ":"))),
+             json.dumps(metadata, sort_keys=True, separators=(",", ":"))),
         )
         for item in compiled["objects"]:
             object_id = source_id + ":" + item["object_id"]
@@ -144,7 +145,7 @@ def persist_constraint_ir(store: Any, *, source_id: str, revision: str,
                 "VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (object_id, revision, source_id, revision,
                  payload["kind"],
-                 __import__("json").dumps(payload, sort_keys=True,
+                 json.dumps(payload, sort_keys=True,
                                           ensure_ascii=False, separators=(",", ":")),
                  payload_hash),
             )
