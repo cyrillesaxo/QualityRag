@@ -1,34 +1,35 @@
-"""Combine signed inventory and canonical APX semantic text observations.
+"""Combine authenticated review and original APX semantic-text observations.
 
-Diagnostic-only fusion: neither a self-reported native response nor a
-reviewer signature establishes completeness. Any observed REFUSE dominates;
-absence/mismatch of the native engine is UNKNOWN, never a silent pass.
+The exact signed review is revalidated with the canonical QualityRag policy,
+Ed25519 attestation and durable nonce guard within this function. Never trust
+a detached "VERIFIED" receipt as authority. Native results are still untrusted
+observations until the host attests the original runtime and input custody.
 """
 from __future__ import annotations
 
+from rct_signed_span_review import verify_inventory_review
 from store import digest
 
 SCHEMA = "rct.dual-semantic-diagnostics/v2.2"
 
 
-def combine_semantic_diagnostics(joined: dict, reviewed: dict,
-                                 native: dict | None) -> dict:
-    if not isinstance(joined, dict) or not isinstance(reviewed, dict):
-        raise ValueError("Joined structural/span receipt and signed review receipt required")
-    j, r = dict(joined), dict(reviewed)
-    jf, rf = j.pop("fingerprint", None), r.pop("fingerprint", None)
-    if (jf != digest(j) or rf != digest(r)
-            or joined.get("schema") != "rct.source-span-joined-candidate/v2.1"
-            or reviewed.get("schema") != "rct.signed-source-span-inventory/v2.2"
-            or reviewed.get("review_signature") != "VERIFIED"
-            or reviewed.get("joined_candidate_fingerprint") != jf
-            or reviewed.get("span_audit_fingerprint") !=
-               joined.get("source_span_audit", {}).get("fingerprint")
-            or joined.get("can_generate") is not False
-            or reviewed.get("can_generate") is not False
-            or joined.get("qualityrag_admission") != "INCONCLUSIVE"
-            or reviewed.get("qualityrag_admission") != "INCONCLUSIVE"):
-        raise ValueError("Untrusted or mismatched signed source-span review")
+def combine_semantic_diagnostics(
+        joined: dict, native: dict | None, *,
+        ir: dict, signed_policy: dict, signed_review: dict,
+        policy_keys: dict, reviewer_keys: dict,
+        minimum_sequence: int, service: str, environment: str,
+        as_of: str, nonce_accepted) -> dict:
+    if not isinstance(joined, dict):
+        raise ValueError("Source-bound research candidate required")
+    # This is an actual signature/policy validation, not an assertion made
+    # by an untrusted caller in a self-fingerprinted JSON receipt.
+    reviewed=verify_inventory_review(
+        joined=joined, ir=ir,
+        signed_policy=signed_policy, signed_review=signed_review,
+        policy_keys=policy_keys, reviewer_keys=reviewer_keys,
+        minimum_sequence=minimum_sequence, service=service,
+        environment=environment, as_of=as_of,
+        nonce_accepted=nonce_accepted)
     audit=joined["source_span_audit"]
     blockers=["SIGNED_REVIEW_NOT_PROOF_OF_COMPLETE_MEANING",
               "SOURCE_AUTHORITY_UNVERIFIED",
@@ -57,8 +58,8 @@ def combine_semantic_diagnostics(joined: dict, reviewed: dict,
                          or native_verdict == "REFUSE") else "INCONCLUSIVE")
     result={
         "schema":SCHEMA,
-        "joined_candidate_fingerprint":jf,
-        "signed_review_fingerprint":rf,
+        "joined_candidate_fingerprint":joined["fingerprint"],
+        "verified_signed_review_fingerprint":reviewed["fingerprint"],
         "source_text_sha256":audit["source_sha256"],
         "candidate_text_sha256":audit["candidate_sha256"],
         "native_comparator_status":native_status,
