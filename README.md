@@ -76,6 +76,10 @@ Apache-2.0. See `LICENSE`.
 
 Start with the **[training guide: five RAG failure scenarios, the case for deterministic evidence gates, and a runnable lab](docs/TRAINING.md)**. It explains when QualityRag is useful, what its current SDKs guarantee, and where their limitations remain.
 
+## Source PackSpec compiler (experimental)
+
+The [source PackSpec compiler](tools/packspec_compiler/README.md) inspects original APX YAML, JSON and text-bearing PDF specifications, preserves source fingerprints and locations, and creates **review-required constraint inventories**. Only explicitly reviewer-mapped evidence-presence obligations can be projected into a v0.1 QualityRag policy. It does **not** implement the full APX semantic grammar or automatically approve claims.
+
 ## APX PackSpec-derived examples in ten languages
 
 The [APX example collection](examples/apx-packspecs/README.md) provides twelve verified metadata-gate scenarios based on SEMLOAN, Question Fan, FFI and software-selling PackSpecs, with corresponding examples for Java, Python, TypeScript, Go, C#, Rust, Kotlin, PHP, Ruby and Swift. They **project** the original semantic contracts into the experimental v0.1 evidence format; the SDKs do not execute the full originals.
