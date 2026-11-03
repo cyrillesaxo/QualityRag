@@ -145,3 +145,26 @@ def evaluate_semantics(ir: dict, observations: dict, as_of: str) -> dict:
         "assurance": "DETERMINISTIC_CHECKS_ON_CALLER_SUPPLIED_UNAUTHENTICATED_OBSERVATIONS",
         "meaning": "ADMIT is bounded predicate satisfaction only, not semantic/source truth",
     }
+
+
+def main(argv=None) -> int:
+    """Run deterministic checks on an already reviewed typed IR file."""
+    import argparse
+    import json
+    from pathlib import Path
+    cli = argparse.ArgumentParser(description="Evaluate bounded temporal and probe checks in a reviewed typed IR")
+    cli.add_argument("--ir", required=True, help="Compiled typed IR JSON")
+    cli.add_argument("--observations", required=True, help="Caller-supplied event and probe observations")
+    cli.add_argument("--as-of", required=True, help="Offset-aware ISO 8601 evaluation instant")
+    cli.add_argument("--out", required=True, help="JSON findings and aggregate verdict")
+    args = cli.parse_args(argv)
+    ir = json.loads(Path(args.ir).read_text(encoding="utf-8"))
+    observed = json.loads(Path(args.observations).read_text(encoding="utf-8"))
+    result = evaluate_semantics(ir, observed, args.as_of)
+    Path(args.out).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    print("Semantic checks:", result["verdict"], len(result["findings"]), "nodes")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
