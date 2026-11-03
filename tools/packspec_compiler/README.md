@@ -119,3 +119,7 @@ The [bounded semantic runtime](SEMANTIC-RUNTIME.md) can check explicitly bound t
 ## Unified decision gate
 
 The [unified gate](UNIFIED-GATE.md) joins the v0.1 evidence evaluator with bounded temporal/probe checks and blocks answer generation unless every applicable node is admitted **and** a host-owned attestation verifier accepts the supplied evidence. It does not authenticate source truth or certify the full APX PackSpec.
+
+## Signed bundles and evidence attestation
+
+See [signed policy bundles](SIGNED-BUNDLES.md) for the experimental Python Ed25519 policy-signing and signed-observation verifier, persistent nonce replay protection, anti-rollback controls, and integration with the fail-closed unified gate. The signing keys and trustworthy attestor are supplied by the host application; source truth is not proven by a signature.
