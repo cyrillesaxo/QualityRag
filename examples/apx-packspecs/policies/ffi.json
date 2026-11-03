@@ -1,0 +1,18 @@
+{
+  "id": "apx-training-ffi",
+  "version": "1.0",
+  "requirements": [
+    {
+      "id": "verbatim-source-custody",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "discriminating-probe",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "independent-corroboration",
+      "min_independent_sources": 1
+    }
+  ]
+}

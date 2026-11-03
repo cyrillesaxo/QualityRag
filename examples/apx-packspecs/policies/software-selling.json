@@ -1,0 +1,18 @@
+{
+  "id": "apx-training-software-selling",
+  "version": "1.0",
+  "requirements": [
+    {
+      "id": "current-buyer-state",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "integration-prerequisites",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "controlled-comparison",
+      "min_independent_sources": 1
+    }
+  ]
+}

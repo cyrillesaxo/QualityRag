@@ -1,0 +1,14 @@
+{
+  "id": "apx-training-semloan",
+  "version": "1.0",
+  "requirements": [
+    {
+      "id": "learner-attempt-provenance",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "cold-retrieval-or-transfer",
+      "min_independent_sources": 1
+    }
+  ]
+}

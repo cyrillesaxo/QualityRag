@@ -1,0 +1,18 @@
+{
+  "id": "apx-training-question-fan",
+  "version": "1.0",
+  "requirements": [
+    {
+      "id": "original-objective",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "challenged-assumption",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "decision-consequence",
+      "min_independent_sources": 1
+    }
+  ]
+}

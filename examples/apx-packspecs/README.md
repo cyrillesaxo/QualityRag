@@ -18,6 +18,10 @@ The `fixtures.json` file contains **five deliberately scoped v0.1 policies** wit
 
 These are **training hypotheticals**. The uploaded education PDF is FFI's teacher-transformation addendum and is modeled separately from the longer FFI investigation specification. For example, SEMLOAN only recognizes cold retrieval/transfer as a learning-confirming FieldOutcome; the fixture's `ADMIT` is *not* a substitute for checking actual learner generation, time separation, or transfer validity. The Question Fan additionally requires explicit user choice for investigation, a zero-fan route, and no more than three eligible questions; those are outside the base gate. FFI's custody, deception screening and evidence independence also require verification beyond caller-provided origin strings.
 
+## Run externally loaded PackSpecs
+
+The [external policy guide](EXTERNAL-POLICIES.md) provides standalone JSON PackSpecs for all five scenarios, demonstrates file and property loading, and tests that all fifteen decisions remain identical regardless of which source is selected. These are narrow training projections, not the full APX contracts.
+
 ## Run the shared fixture tests
 
 ```bash

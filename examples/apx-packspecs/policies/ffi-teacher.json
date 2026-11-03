@@ -1,0 +1,22 @@
+{
+  "id": "apx-training-ffi-teacher",
+  "version": "1.0",
+  "requirements": [
+    {
+      "id": "minimal-witness-core",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "prerequisite-map",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "atomic-validation-artifact",
+      "min_independent_sources": 1
+    },
+    {
+      "id": "cross-platform-back-translation",
+      "min_independent_sources": 1
+    }
+  ]
+}
