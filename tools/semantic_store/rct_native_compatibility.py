@@ -49,6 +49,7 @@ def verify(manifest_path: Path = MANIFEST, corpus_path: Path = CORPUS,
     _require(apx.get("artifact_id") == 13274960886 and
              apx.get("artifact_sha256") == "aaf8bb74610216665951a162f91d70df48f5ba1ea4bdfdf9a618fc3c4a234bcd",
              "Original workflow artifact identity mismatch")
+    _require(apx.get("artifact_json_valid") is False, "Historical artifact validity changed")
     _require(apx.get("workflow_run_id") == 41726055119,
              "Unexpected original native workflow")
     _require(apx.get("engine_schema") == "apx.semantic-text-transition/v0.1",
