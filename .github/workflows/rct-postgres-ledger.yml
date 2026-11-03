@@ -1,0 +1,53 @@
+name: PostgreSQL Tenant Ledger Integration
+
+on:
+  pull_request:
+    paths:
+      - "tools/semantic_store/pg/**"
+      - "tools/semantic_store/pg_store.py"
+      - "tools/semantic_store/tests/test_pg_store.py"
+      - ".github/workflows/rct-postgres-ledger.yml"
+  push:
+    branches:
+      - "feat/pg-tenant-ledger"
+    paths:
+      - "tools/semantic_store/pg/**"
+      - "tools/semantic_store/pg_store.py"
+      - "tools/semantic_store/tests/test_pg_store.py"
+      - ".github/workflows/rct-postgres-ledger.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: qualityrag
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d qualityrag"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install psycopg PostgreSQL integration
+        run: python -m pip install 'psycopg[binary]>=3.2,<3.3'
+      - name: Real PostgreSQL RLS, tenant isolation and immutable ledger tests
+        env:
+          QR_PG_ADMIN_DSN: "host=127.0.0.1 port=5432 dbname=qualityrag user=postgres password=postgres"
+        run: python -m unittest discover -s tools/semantic_store/tests -p 'test_pg_store.py' -v
+      - name: Syntax verification
+        run: python -m compileall -q tools/semantic_store/pg_store.py tools/semantic_store/tests/test_pg_store.py
