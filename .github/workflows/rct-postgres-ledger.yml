@@ -5,6 +5,7 @@ on:
     paths:
       - "tools/semantic_store/pg/**"
       - "tools/semantic_store/pg_store.py"
+      - "tools/semantic_store/pg_query.py"
       - "tools/semantic_store/tests/test_pg_store.py"
       - ".github/workflows/rct-postgres-ledger.yml"
   push:
@@ -13,6 +14,7 @@ on:
     paths:
       - "tools/semantic_store/pg/**"
       - "tools/semantic_store/pg_store.py"
+      - "tools/semantic_store/pg_query.py"
       - "tools/semantic_store/tests/test_pg_store.py"
       - ".github/workflows/rct-postgres-ledger.yml"
   workflow_dispatch:
@@ -50,4 +52,4 @@ jobs:
           QR_PG_ADMIN_DSN: "host=127.0.0.1 port=5432 dbname=qualityrag user=postgres password=postgres"
         run: python -m unittest discover -s tools/semantic_store/tests -p 'test_pg_store.py' -v
       - name: Syntax verification
-        run: python -m compileall -q tools/semantic_store/pg_store.py tools/semantic_store/tests/test_pg_store.py
+        run: python -m compileall -q tools/semantic_store/pg_store.py tools/semantic_store/pg_query.py tools/semantic_store/tests/test_pg_store.py
