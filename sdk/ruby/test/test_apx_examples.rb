@@ -3,7 +3,7 @@ require "json"
 require "time"
 require_relative "../lib/qualityrag"
 class APXExamplesTest < Minitest::Test
- def test_twelve_cases
+ def test_fifteen_cases
   fixture=JSON.parse(File.read(File.expand_path("../../../examples/apx-packspecs/fixtures.json",__dir__)))
   count=0
   fixture["scenarios"].each do |domain|
@@ -13,6 +13,6 @@ class APXExamplesTest < Minitest::Test
     count+=1
    end
   end
-  assert_equal 12,count
+  assert_equal 15,count
  end
 end
