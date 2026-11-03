@@ -1,6 +1,7 @@
 """Real Ed25519 policy/D15 signature verification; no self-attested evidence proof."""
 import copy
 from pathlib import Path
+from hashlib import sha256
 import sys
 import tempfile
 import unittest
@@ -11,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from signed_bundles import sign_policy,sign_attestation,SignatureError
 from signed_gate import SQLiteNonceStore
 from test_rct_signed_lineage import constraint_ir,START,NOW,END
-from rct_signed_d15 import CELLS, proposed_d15_review,verify_d15_review
+from rct_signed_d15 import CELLS, proposed_d15_review,verify_d15_review,verify_d15_review_with_bytes
 from store import digest
 
 SOURCE="a"*64
@@ -158,6 +159,65 @@ class SignedD15EvidenceTests(unittest.TestCase):
             proposed_d15_review(native=native,source_sha256=SOURCE,
                 candidate_sha256=CANDIDATE,reviewed_ir=self.ir,
                 evidence_registry=registry(native))
+
+    def test_byte_integrity_of_signed_d15_record(self):
+        native=native_d15(failure="DW_CHANNEL")
+        raw=b"one bounded independently supplied observation record"
+        ref="evidence-DW_CHANNEL"
+        record_hash=sha256(raw).hexdigest()
+        records={ref:record_hash}
+        signed=self.signed(native,records)
+        kwargs=dict(
+            evidence_bytes={ref:raw},native=native,
+            source_sha256=SOURCE,candidate_sha256=CANDIDATE,
+            reviewed_ir=self.ir,evidence_registry=records,
+            signed_policy=self.policy,signed_review=signed,
+            policy_keys={"policy":self.policy_key.public_key()},
+            reviewer_keys={"d15-review":self.reviewer_key.public_key()},
+            minimum_sequence=3,service="quality",environment="test",
+            as_of=NOW,nonce_accepted=self.nonces)
+        result=verify_d15_review_with_bytes(**kwargs)
+        self.assertEqual(result["submitted_evidence_content_integrity"],
+                         "VERIFIED_SHA256_MATCH")
+        self.assertEqual(result["independent_evidence_custody"],"NOT_ESTABLISHED")
+        self.assertEqual(result["verdict"],"REFUSE")
+        self.assertFalse(result["can_generate"])
+
+    def test_substituted_evidence_bytes_fail_without_nonce_consumption(self):
+        native=native_d15(failure="DW_CHANNEL")
+        raw=b"genuine submitted evidence bytes"
+        ref="evidence-DW_CHANNEL"
+        records={ref:sha256(raw).hexdigest()}
+        signed=self.signed(native,records)
+        kwargs=dict(
+            evidence_bytes={ref:b"altered bytes"},native=native,
+            source_sha256=SOURCE,candidate_sha256=CANDIDATE,
+            reviewed_ir=self.ir,evidence_registry=records,
+            signed_policy=self.policy,signed_review=signed,
+            policy_keys={"policy":self.policy_key.public_key()},
+            reviewer_keys={"d15-review":self.reviewer_key.public_key()},
+            minimum_sequence=3,service="quality",environment="test",
+            as_of=NOW,nonce_accepted=self.nonces)
+        with self.assertRaisesRegex(ValueError,"bytes differ"):
+            verify_d15_review_with_bytes(**kwargs)
+        kwargs["evidence_bytes"]={ref:raw}
+        self.assertEqual(verify_d15_review_with_bytes(**kwargs)["verdict"],"REFUSE")
+
+    def test_unsubmitted_evidence_record_does_not_count(self):
+        native=native_d15(failure="DD_FRAME")
+        raw=b"reviewed evidence"
+        records={"evidence-DD_FRAME":sha256(raw).hexdigest()}
+        signed=self.signed(native,records)
+        with self.assertRaisesRegex(ValueError,"exact supplied bytes"):
+            verify_d15_review_with_bytes(
+                evidence_bytes={},native=native,
+                source_sha256=SOURCE,candidate_sha256=CANDIDATE,
+                reviewed_ir=self.ir,evidence_registry=records,
+                signed_policy=self.policy,signed_review=signed,
+                policy_keys={"policy":self.policy_key.public_key()},
+                reviewer_keys={"d15-review":self.reviewer_key.public_key()},
+                minimum_sequence=3,service="quality",environment="test",
+                as_of=NOW,nonce_accepted=self.nonces)
 
     def test_policy_rollback_rejected(self):
         native=native_d15()
