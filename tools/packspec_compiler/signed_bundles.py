@@ -209,7 +209,8 @@ def verify_attestation(attestation: dict, trusted_keys: dict[str, Ed25519PublicK
     _fail(p.get("service") == service and p.get("environment") == environment and
           p.get("policy_signature") == policy_signature, "Attestation binding mismatch")
     _validate_period(p.get("issued_at"), p.get("expires_at"), as_of)
-    _fail(p.get("witnesses") == witnesses and p.get("observations") == observations,
+    _fail(canonical(p.get("witnesses")) == canonical(witnesses) and
+          canonical(p.get("observations")) == canonical(observations),
           "Attestation does not match evaluated inputs")
     nonce = _label(p.get("nonce"), "nonce")
     _fail(callable(nonce_accepted), "Durable replay guard is required")
