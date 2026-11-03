@@ -9,6 +9,7 @@ const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
 function fail(res,error) {
  const code=error.message;
+ if(code==='SELF_APPROVAL_FORBIDDEN'||code==='SAME_ACTOR_PROMOTION_FORBIDDEN')return reply(res,403,{error:code});
  return reply(res,code==='NOT_FOUND'||code==='UNKNOWN_SERVICE'||code==='UNBOUND_SERVICE'?404:
    code==='VERSION_EXISTS'||code==='NOT_DRAFT'||code==='SIGNED_SEQUENCE_EXISTS'||code==='SIGNED_SEQUENCE_ROLLBACK'||code==='SIGNED_NOT_STAGED'||code==='SIGNED_NOT_APPROVED'?409:400,{error:code});
 }
