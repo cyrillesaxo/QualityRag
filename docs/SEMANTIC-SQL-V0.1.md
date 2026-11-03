@@ -11,7 +11,7 @@ WHERE object_id = 'root'
 LIMIT 20;
 ```
 
-Optionally select one graph layer:
+Optional extensions use ordinary words:\n\n```sql\nSELECT * FROM facts\nWHERE object_id='root' AND revision='r1'\nGOVERNED BY packspec1 EXPAND 2 LIMIT 20;\n\nSELECT * FROM facts\nWHERE object_id='root' AND revision='r1'\nCOLLAPSE;\n```\n\n`GOVERNED BY` requires an authenticated caller-provided policy resolver identifying the authorized immutable PackSpec revision and digest. If none is provided, execution **fails closed**. The binding is only a policy selection receipt: no PackSpec evaluation has occurred, admission remains `INCONCLUSIVE`. `EXPAND 0..5` changes bounded graph traversal depth. `COLLAPSE` is a structural root-only *display projection*, **not** semantic compression, deletion, or proof of permitted omission. No data is modified.\n\nOptionally select one graph layer:
 
 ```sql
 SELECT * FROM facts
@@ -21,7 +21,7 @@ WHERE object_id = 'root'
 LIMIT 10;
 ```
 
-`facts` is a **virtual view of the neighborhood of a known semantic object**, not a table scan. v0.1 requires one explicit root ID and revision. No joins, aggregation, recursion, arbitrary SQL, write operations, pattern matching or semantic extraction are accepted. An omitted layer means KnowledgeGraph and WitnessGraph. REGIME is supported explicitly.
+`facts` is a **virtual view of the neighborhood of a known semantic object**, not a table scan. v0.1 requires one explicit root ID and revision. No joins, aggregation, recursion, arbitrary SQL, write operations, pattern matching or semantic extraction are accepted. Actual PackSpec clause evaluation, governed semantic abstraction and proof-carrying collapse remain future work. An omitted layer means KnowledgeGraph and WitnessGraph. REGIME is supported explicitly.
 
 ## API and execution
 
