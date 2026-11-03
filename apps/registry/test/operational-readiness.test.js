@@ -9,7 +9,11 @@ import {PgSignedRegistryStore} from '../src/pg-store.js';
 const url=process.env.PG_TEST_DATABASE_URL;
 
 test('migration locking, checksums, clean restart and readiness failures', {skip:!url}, async()=>{
- const poolA=new Pool({connectionString:url,max:5}),poolB=new Pool({connectionString:url,max:5});
+ const admin=new Pool({connectionString:url,max:2});
+ const schema='qr_operational_test';
+ await admin.query('CREATE SCHEMA IF NOT EXISTS '+schema);
+ const opts={connectionString:url,max:5,options:'-c search_path='+schema};
+ const poolA=new Pool(opts),poolB=new Pool(opts);
  const service='qr-operational-test';
  try{
   await Promise.all([migrate(poolA),migrate(poolB)]);
@@ -49,6 +53,8 @@ test('migration locking, checksums, clean restart and readiness failures', {skip
   await poolA.query('DELETE FROM qr_scopes WHERE service_id=$1',[service]).catch(()=>{});
   await poolA.query('DELETE FROM qr_services WHERE service_id=$1',[service]).catch(()=>{});
   await poolA.end();await poolB.end();
+  await admin.query('DROP SCHEMA IF EXISTS '+schema+' CASCADE');
+  await admin.end();
  }
 });
 
