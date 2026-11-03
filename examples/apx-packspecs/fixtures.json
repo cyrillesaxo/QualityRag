@@ -22,6 +22,12 @@
       "pack_id": "sel_packspec",
       "version": "0.1.0",
       "input": "sel_packspec.pdf"
+    },
+    {
+      "pack_id": "apx.method.ffi",
+      "version": "0.6.0",
+      "profile": "teacher_accelerated",
+      "input": "edu_packspec (1)(2).pdf"
     }
   ],
   "scenarios": [
@@ -438,6 +444,146 @@
             }
           ],
           "expected": "REFUSE"
+        }
+      ]
+    },
+    {
+      "id": "ffi-teacher",
+      "source": {
+        "pack_id": "apx.method.ffi",
+        "version": "0.6.0",
+        "profile": "teacher_accelerated",
+        "input": "edu_packspec (1)(2).pdf"
+      },
+      "purpose": "Teacher Transformation: factor training material into W_min evidence, prerequisite map, atomic validation artifacts, and a cross-framework back-translation check. The v0.1 evaluator does not perform these transformations or probes.",
+      "pack": {
+        "id": "apx-training-ffi-teacher",
+        "version": "1.0",
+        "requirements": [
+          {
+            "id": "minimal-witness-core",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "prerequisite-map",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "atomic-validation-artifact",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "cross-platform-back-translation",
+            "min_independent_sources": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "nice-tutorial-no-portability-check",
+          "expected": "INCONCLUSIVE",
+          "evidence": [
+            {
+              "id": "primary-extract",
+              "requirement_id": "minimal-witness-core",
+              "origin": "content-record",
+              "source_ref": "content-record#primary-extract",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "dependency-graph",
+              "requirement_id": "prerequisite-map",
+              "origin": "curriculum-review",
+              "source_ref": "curriculum-review#dependency-graph",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "code-and-assertion",
+              "requirement_id": "atomic-validation-artifact",
+              "origin": "exercise-test",
+              "source_ref": "exercise-test#code-and-assertion",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ]
+        },
+        {
+          "id": "validated-teacher-transformation",
+          "expected": "ADMIT",
+          "evidence": [
+            {
+              "id": "primary-extract",
+              "requirement_id": "minimal-witness-core",
+              "origin": "content-record",
+              "source_ref": "content-record#primary-extract",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "dependency-graph",
+              "requirement_id": "prerequisite-map",
+              "origin": "curriculum-review",
+              "source_ref": "curriculum-review#dependency-graph",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "code-and-assertion",
+              "requirement_id": "atomic-validation-artifact",
+              "origin": "exercise-test",
+              "source_ref": "exercise-test#code-and-assertion",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "framework-swap",
+              "requirement_id": "cross-platform-back-translation",
+              "origin": "cross-regime-probe",
+              "source_ref": "cross-regime-probe#framework-swap",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ]
+        },
+        {
+          "id": "broken-portability",
+          "expected": "REFUSE",
+          "evidence": [
+            {
+              "id": "primary-extract",
+              "requirement_id": "minimal-witness-core",
+              "origin": "content-record",
+              "source_ref": "content-record#primary-extract",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "dependency-graph",
+              "requirement_id": "prerequisite-map",
+              "origin": "curriculum-review",
+              "source_ref": "curriculum-review#dependency-graph",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "code-and-assertion",
+              "requirement_id": "atomic-validation-artifact",
+              "origin": "exercise-test",
+              "source_ref": "exercise-test#code-and-assertion",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "failed-framework-swap",
+              "requirement_id": "cross-platform-back-translation",
+              "origin": "cross-regime-probe",
+              "source_ref": "cross-regime-probe#failed-framework-swap",
+              "status": "CONTRADICTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ]
         }
       ]
     }
