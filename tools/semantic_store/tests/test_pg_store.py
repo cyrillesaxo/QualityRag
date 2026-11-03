@@ -29,9 +29,6 @@ class PostgresTenantLedgerTests(unittest.TestCase):
         migration=(ROOT / "pg" / "001_tenant_ledger.sql").read_text()
         cls.admin.execute(migration)
         for name in ("qr_test_a", "qr_test_b", "qr_test_unbound"):
-            cls.admin.execute("SELECT 1 FROM pg_roles WHERE rolname=%s",(name,))
-            if not cls.admin.fetchone() if False else False:
-                pass
             # The isolated CI PostgreSQL service starts without these roles.
             cls.admin.execute(
                 "CREATE ROLE " + name + " LOGIN PASSWORD 'test-only-password'")
@@ -68,7 +65,7 @@ class PostgresTenantLedgerTests(unittest.TestCase):
         self.assertEqual(a.object_version("shared-object","v1"),{"tenant":"A"})
         self.assertEqual(b.object_version("shared-object","v1"),{"tenant":"B"})
         self.assertEqual(
-            self.a.execute("SELECT count(*) FROM qr_store.source_versions").fetchone()[0],
+            self.a.execute("SELECT count(*) FROM qr_store.source_versions WHERE source_id='shared-source'").fetchone()[0],
             1)
         self.assertEqual(
             self.b.execute("SELECT count(*) FROM qr_store.source_versions").fetchone()[0],
