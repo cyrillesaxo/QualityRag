@@ -6,7 +6,9 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from store import digest
-from knowledge_ir import compile_constraint_ir, KnowledgeIRValidationError
+from knowledge_ir import compile_constraint_ir, persist_constraint_ir, KnowledgeIRValidationError
+from store import SemanticStore
+import sqlite3
 
 
 def fixture():
@@ -82,6 +84,42 @@ class KnowledgeIRTests(unittest.TestCase):
         data["summary"]["deferred_semantic_constraints"] = 0
         with self.assertRaises(KnowledgeIRValidationError):
             compile_constraint_ir(data)
+
+    def test_atomic_candidate_persistence_and_duplicate_rejection(self):
+        db = sqlite3.connect(":memory:")
+        try:
+            store = SemanticStore(db)
+            store.initialize()
+            result = persist_constraint_ir(store, source_id="manual", revision="v1",
+                                           ir=fixture())
+            self.assertEqual(result["admission"], "INCONCLUSIVE")
+            obj = store.object_version("manual:constraint:require-zero-voltage", "v1")
+            self.assertEqual(obj["verification"], "UNKNOWN")
+            self.assertEqual(obj["source"]["source_sha256"], "a" * 64)
+            with self.assertRaises(sqlite3.IntegrityError):
+                persist_constraint_ir(store, source_id="manual", revision="v1",
+                                      ir=fixture())
+            count = db.execute("SELECT COUNT(*) FROM semantic_versions").fetchone()[0]
+            self.assertEqual(count, 1)
+        finally:
+            db.close()
+
+    def test_invalid_ir_is_not_partially_persisted(self):
+        db = sqlite3.connect(":memory:")
+        try:
+            store = SemanticStore(db)
+            store.initialize()
+            data = fixture()
+            data["nodes"][0]["status"] = "ADMITTED"
+            data["ir_sha256"] = digest({"source_sha256": data["source"]["sha256"],
+                                        "nodes": data["nodes"]})
+            with self.assertRaises(KnowledgeIRValidationError):
+                persist_constraint_ir(store, source_id="manual", revision="v1",
+                                      ir=data)
+            count = db.execute("SELECT COUNT(*) FROM source_versions").fetchone()[0]
+            self.assertEqual(count, 0)
+        finally:
+            db.close()
 
     def test_evaluable_does_not_equal_executed(self):
         data = fixture()
