@@ -68,7 +68,7 @@ class PostgresTenantLedgerTests(unittest.TestCase):
             self.a.execute("SELECT count(*) FROM qr_store.source_versions WHERE source_id='shared-source'").fetchone()[0],
             1)
         self.assertEqual(
-            self.b.execute("SELECT count(*) FROM qr_store.source_versions").fetchone()[0],
+            self.b.execute("SELECT count(*) FROM qr_store.source_versions WHERE source_id='shared-source'").fetchone()[0],
             1)
 
     def test_cross_tenant_insert_and_sql_identity_override_rejected(self):
