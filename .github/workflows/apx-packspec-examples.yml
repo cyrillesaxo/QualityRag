@@ -1,0 +1,11 @@
+name: APX PackSpec-derived examples
+on: [push, pull_request]
+jobs:
+  metadata-fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: PYTHONPATH=sdk/python python -m unittest discover -s examples/apx-packspecs -p 'test_*.py'
+      - run: PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests

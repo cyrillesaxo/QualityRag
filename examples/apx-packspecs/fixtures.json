@@ -1,0 +1,591 @@
+{
+  "schema": "qualityrag.apx-training/v1",
+  "as_of": "2026-11-02T10:05:00Z",
+  "notice": "Training projections for QualityRag metadata v0.1. NOT the original APX PackSpecs or complete semantic enforcement.",
+  "source_materials": [
+    {
+      "pack_id": "SEMLOAN",
+      "version": "0.4.0",
+      "input": "packspec-semloan-v0.4.0(1).yaml"
+    },
+    {
+      "pack_id": "apx.question-fan.discovery",
+      "version": "0.1.0",
+      "input": "packspect.txt"
+    },
+    {
+      "pack_id": "apx.method.ffi",
+      "version": "0.6.0",
+      "input": "FFI_packspec_v0_6_0(6).pdf"
+    },
+    {
+      "pack_id": "sel_packspec",
+      "version": "0.1.0",
+      "input": "sel_packspec.pdf"
+    },
+    {
+      "pack_id": "apx.method.ffi",
+      "version": "0.6.0",
+      "profile": "teacher_accelerated",
+      "input": "edu_packspec (1)(2).pdf"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "semloan",
+      "source": {
+        "pack_id": "SEMLOAN",
+        "version": "0.4.0",
+        "input": "packspec-semloan-v0.4.0(1).yaml"
+      },
+      "purpose": "Do not certify learning from felt fluency; require a learner-generated attempt and cold retrieval or transfer. These are narrow evidence proxies, not SEMLOAN's learning engine.",
+      "pack": {
+        "id": "apx-training-semloan",
+        "version": "1.0",
+        "requirements": [
+          {
+            "id": "learner-attempt-provenance",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "cold-retrieval-or-transfer",
+            "min_independent_sources": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "praise-only",
+          "evidence": [
+            {
+              "id": "high-confidence",
+              "requirement_id": "self-report",
+              "origin": "session-survey",
+              "source_ref": "session-survey#high-confidence",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "INCONCLUSIVE"
+        },
+        {
+          "id": "cold-transfer",
+          "evidence": [
+            {
+              "id": "owned-attempt",
+              "requirement_id": "learner-attempt-provenance",
+              "origin": "attempt-log",
+              "source_ref": "attempt-log#owned-attempt",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "transfer-probe",
+              "requirement_id": "cold-retrieval-or-transfer",
+              "origin": "transfer-assessment",
+              "source_ref": "transfer-assessment#transfer-probe",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "ADMIT"
+        },
+        {
+          "id": "ai-shortcut",
+          "evidence": [
+            {
+              "id": "attempt",
+              "requirement_id": "learner-attempt-provenance",
+              "origin": "attempt-log",
+              "source_ref": "attempt-log#attempt",
+              "status": "CONTRADICTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "cold-recall",
+              "requirement_id": "cold-retrieval-or-transfer",
+              "origin": "recall-probe",
+              "source_ref": "recall-probe#cold-recall",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "REFUSE"
+        }
+      ]
+    },
+    {
+      "id": "question-fan",
+      "source": {
+        "pack_id": "apx.question-fan.discovery",
+        "version": "0.1.0",
+        "input": "packspect.txt"
+      },
+      "purpose": "Ground optional discovery questions in objective, specific assumption and material decision consequence. This simple gate cannot enforce fan cardinality, novelty or user consent.",
+      "pack": {
+        "id": "apx-training-question-fan",
+        "version": "1.0",
+        "requirements": [
+          {
+            "id": "original-objective",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "challenged-assumption",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "decision-consequence",
+            "min_independent_sources": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "generic-question",
+          "evidence": [
+            {
+              "id": "objective",
+              "requirement_id": "original-objective",
+              "origin": "request",
+              "source_ref": "request#objective",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "assumption",
+              "requirement_id": "challenged-assumption",
+              "origin": "assumption-register",
+              "source_ref": "assumption-register#assumption",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "INCONCLUSIVE"
+        },
+        {
+          "id": "grounded-question",
+          "evidence": [
+            {
+              "id": "objective",
+              "requirement_id": "original-objective",
+              "origin": "request",
+              "source_ref": "request#objective",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "assumption",
+              "requirement_id": "challenged-assumption",
+              "origin": "assumption-register",
+              "source_ref": "assumption-register#assumption",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "consequence",
+              "requirement_id": "decision-consequence",
+              "origin": "comparison-record",
+              "source_ref": "comparison-record#consequence",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "ADMIT"
+        },
+        {
+          "id": "unsupported-consequence",
+          "evidence": [
+            {
+              "id": "objective",
+              "requirement_id": "original-objective",
+              "origin": "request",
+              "source_ref": "request#objective",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "assumption",
+              "requirement_id": "challenged-assumption",
+              "origin": "assumption-register",
+              "source_ref": "assumption-register#assumption",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "invalid-consequence",
+              "requirement_id": "decision-consequence",
+              "origin": "review",
+              "source_ref": "review#invalid-consequence",
+              "status": "CONTRADICTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "REFUSE"
+        }
+      ]
+    },
+    {
+      "id": "ffi",
+      "source": {
+        "pack_id": "apx.method.ffi",
+        "version": "0.6.0",
+        "input": "FFI_packspec_v0_6_0(6).pdf"
+      },
+      "purpose": "Preserve custody, independent provenance and a discriminating probe when recovering governing constraints from unstructured documents. Full FFI witness graphs, deception census and grammar recovery are not implemented by the gate.",
+      "pack": {
+        "id": "apx-training-ffi",
+        "version": "1.0",
+        "requirements": [
+          {
+            "id": "verbatim-source-custody",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "discriminating-probe",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "independent-corroboration",
+            "min_independent_sources": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "search-snippets-only",
+          "evidence": [
+            {
+              "id": "span-1",
+              "requirement_id": "verbatim-source-custody",
+              "origin": "handbook",
+              "source_ref": "handbook#span-1",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "probe-1",
+              "requirement_id": "discriminating-probe",
+              "origin": "bench-test",
+              "source_ref": "bench-test#probe-1",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "INCONCLUSIVE"
+        },
+        {
+          "id": "all-witnesses",
+          "evidence": [
+            {
+              "id": "span-1",
+              "requirement_id": "verbatim-source-custody",
+              "origin": "handbook",
+              "source_ref": "handbook#span-1",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "probe-1",
+              "requirement_id": "discriminating-probe",
+              "origin": "bench-test",
+              "source_ref": "bench-test#probe-1",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "record-2",
+              "requirement_id": "independent-corroboration",
+              "origin": "regulator",
+              "source_ref": "regulator#record-2",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "ADMIT"
+        },
+        {
+          "id": "probe-disproves",
+          "evidence": [
+            {
+              "id": "span-1",
+              "requirement_id": "verbatim-source-custody",
+              "origin": "handbook",
+              "source_ref": "handbook#span-1",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "probe-fail",
+              "requirement_id": "discriminating-probe",
+              "origin": "bench-test",
+              "source_ref": "bench-test#probe-fail",
+              "status": "CONTRADICTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "record-2",
+              "requirement_id": "independent-corroboration",
+              "origin": "regulator",
+              "source_ref": "regulator#record-2",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "REFUSE"
+        }
+      ]
+    },
+    {
+      "id": "software-selling",
+      "source": {
+        "pack_id": "sel_packspec",
+        "version": "0.1.0",
+        "input": "sel_packspec.pdf"
+      },
+      "purpose": "Block claims that a software pilot proves buyer value without current buyer-state evidence, integration checks, and a rival/baseline comparison. These labels are only evidence proxies for the k-ladder.",
+      "pack": {
+        "id": "apx-training-software-selling",
+        "version": "1.0",
+        "requirements": [
+          {
+            "id": "current-buyer-state",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "integration-prerequisites",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "controlled-comparison",
+            "min_independent_sources": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "pitch-only",
+          "evidence": [
+            {
+              "id": "buyer-interview",
+              "requirement_id": "current-buyer-state",
+              "origin": "buyer-interview",
+              "source_ref": "buyer-interview#buyer-interview",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "configuration-check",
+              "requirement_id": "integration-prerequisites",
+              "origin": "technical-check",
+              "source_ref": "technical-check#configuration-check",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "INCONCLUSIVE"
+        },
+        {
+          "id": "measured-pilot",
+          "evidence": [
+            {
+              "id": "buyer-interview",
+              "requirement_id": "current-buyer-state",
+              "origin": "buyer-interview",
+              "source_ref": "buyer-interview#buyer-interview",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "configuration-check",
+              "requirement_id": "integration-prerequisites",
+              "origin": "technical-check",
+              "source_ref": "technical-check#configuration-check",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "baseline-pilot",
+              "requirement_id": "controlled-comparison",
+              "origin": "trial-logs",
+              "source_ref": "trial-logs#baseline-pilot",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "ADMIT"
+        },
+        {
+          "id": "invalid-rival",
+          "evidence": [
+            {
+              "id": "buyer-interview",
+              "requirement_id": "current-buyer-state",
+              "origin": "buyer-interview",
+              "source_ref": "buyer-interview#buyer-interview",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "configuration-check",
+              "requirement_id": "integration-prerequisites",
+              "origin": "technical-check",
+              "source_ref": "technical-check#configuration-check",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "no-rival",
+              "requirement_id": "controlled-comparison",
+              "origin": "trial-review",
+              "source_ref": "trial-review#no-rival",
+              "status": "CONTRADICTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ],
+          "expected": "REFUSE"
+        }
+      ]
+    },
+    {
+      "id": "ffi-teacher",
+      "source": {
+        "pack_id": "apx.method.ffi",
+        "version": "0.6.0",
+        "profile": "teacher_accelerated",
+        "input": "edu_packspec (1)(2).pdf"
+      },
+      "purpose": "Teacher Transformation: factor training material into W_min evidence, prerequisite map, atomic validation artifacts, and a cross-framework back-translation check. The v0.1 evaluator does not perform these transformations or probes.",
+      "pack": {
+        "id": "apx-training-ffi-teacher",
+        "version": "1.0",
+        "requirements": [
+          {
+            "id": "minimal-witness-core",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "prerequisite-map",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "atomic-validation-artifact",
+            "min_independent_sources": 1
+          },
+          {
+            "id": "cross-platform-back-translation",
+            "min_independent_sources": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "nice-tutorial-no-portability-check",
+          "expected": "INCONCLUSIVE",
+          "evidence": [
+            {
+              "id": "primary-extract",
+              "requirement_id": "minimal-witness-core",
+              "origin": "content-record",
+              "source_ref": "content-record#primary-extract",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "dependency-graph",
+              "requirement_id": "prerequisite-map",
+              "origin": "curriculum-review",
+              "source_ref": "curriculum-review#dependency-graph",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "code-and-assertion",
+              "requirement_id": "atomic-validation-artifact",
+              "origin": "exercise-test",
+              "source_ref": "exercise-test#code-and-assertion",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ]
+        },
+        {
+          "id": "validated-teacher-transformation",
+          "expected": "ADMIT",
+          "evidence": [
+            {
+              "id": "primary-extract",
+              "requirement_id": "minimal-witness-core",
+              "origin": "content-record",
+              "source_ref": "content-record#primary-extract",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "dependency-graph",
+              "requirement_id": "prerequisite-map",
+              "origin": "curriculum-review",
+              "source_ref": "curriculum-review#dependency-graph",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "code-and-assertion",
+              "requirement_id": "atomic-validation-artifact",
+              "origin": "exercise-test",
+              "source_ref": "exercise-test#code-and-assertion",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "framework-swap",
+              "requirement_id": "cross-platform-back-translation",
+              "origin": "cross-regime-probe",
+              "source_ref": "cross-regime-probe#framework-swap",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ]
+        },
+        {
+          "id": "broken-portability",
+          "expected": "REFUSE",
+          "evidence": [
+            {
+              "id": "primary-extract",
+              "requirement_id": "minimal-witness-core",
+              "origin": "content-record",
+              "source_ref": "content-record#primary-extract",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "dependency-graph",
+              "requirement_id": "prerequisite-map",
+              "origin": "curriculum-review",
+              "source_ref": "curriculum-review#dependency-graph",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "code-and-assertion",
+              "requirement_id": "atomic-validation-artifact",
+              "origin": "exercise-test",
+              "source_ref": "exercise-test#code-and-assertion",
+              "status": "SUPPORTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            },
+            {
+              "id": "failed-framework-swap",
+              "requirement_id": "cross-platform-back-translation",
+              "origin": "cross-regime-probe",
+              "source_ref": "cross-regime-probe#failed-framework-swap",
+              "status": "CONTRADICTS",
+              "observed_at": "2026-11-02T10:00:00Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

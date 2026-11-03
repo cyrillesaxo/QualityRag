@@ -16,14 +16,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with: {php-version: '8.3'}
-      - run: php -d zend.assertions=1 -d assert.exception=1 sdk/php/test.php && php sdk/php/conformance.php && php -d zend.assertions=1 -d assert.exception=1 sdk/php/sources_test.php
+      - run: php -d zend.assertions=1 -d assert.exception=1 sdk/php/test.php && php sdk/php/conformance.php && php -d zend.assertions=1 -d assert.exception=1 sdk/php/sources_test.php && php sdk/php/apx_examples_test.php
   ruby:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with: {ruby-version: '3.3'}
-      - run: ruby sdk/ruby/test/test_qualityrag.rb && ruby sdk/ruby/test/test_conformance.rb && ruby sdk/ruby/test/test_sources.rb
+      - run: ruby sdk/ruby/test/test_qualityrag.rb && ruby sdk/ruby/test/test_conformance.rb && ruby sdk/ruby/test/test_sources.rb && ruby sdk/ruby/test/test_apx_examples.rb
   swift:
     runs-on: macos-latest
     defaults: {run: {working-directory: sdk/swift}}
