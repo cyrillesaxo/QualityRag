@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.*
+*.pem
+*.key
+*.sqlite
+registry.json
+coverage
+test
+README.md
+*.md
