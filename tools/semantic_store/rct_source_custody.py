@@ -32,8 +32,14 @@ def _verify_custody_manifest(witnesses: list[dict], records: list[dict],
     A caller must provide all exact raw source bytes for every root.
     """
     lineage = _lineage(witnesses)
-    roots = {row["origin"]: row for row in witnesses
-             if not row["derives_from"]}
+    roots = {}
+    for row in witnesses:
+        if not row["derives_from"]:
+            root_id = row["origin"]
+            prior = roots.get(root_id)
+            if prior is not None and prior["source_ref"] != row["source_ref"]:
+                raise ValueError("Conflicting source references for one declared root")
+            roots[root_id] = row
     if not isinstance(records, list) or not records or len(records) > 200:
         raise ValueError("Bounded custody manifest required")
     if not isinstance(source_bytes, dict) or set(source_bytes) != set(roots):
