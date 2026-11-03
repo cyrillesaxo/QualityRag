@@ -14,7 +14,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "packspec_compiler"
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from signed_bundles import sign_attestation, sign_policy
 from signed_gate import SQLiteNonceStore
-from rct_end_to_end import run_structural_pipeline, attach_signed_governance
+from rct_end_to_end import run_structural_pipeline, attach_reviewed_signed_governance
+from rct_reviewed_obligations import proposed_review_record
 from rct_conservation import audit_finite_conservation
 from rct_reference_frame import encode_reference_frame, decode_reference_frame
 from rct_assurance_candidates import structural_drift_candidate, bounded_repair_candidates
@@ -155,10 +156,20 @@ class EndToEndTests(unittest.TestCase):
             [],{"custody_roots":custody_manifest},custodian_key,key_id="custodian",
             policy_signature=policy["signature"],service="example",
             environment="test",nonce="custody-1",issued_at=START,expires_at=END)
+        reviewer_key=Ed25519PrivateKey.generate()
+        review=proposed_review_record(lens,ir,structural["conservation"])
+        review["review_verdict"]="REVIEWED_FINITE_SCOPE"
+        signed_review=sign_attestation(
+            [],{"rct_semantic_review":review},reviewer_key,key_id="reviewer",
+            policy_signature=policy["signature"],service="example",
+            environment="test",nonce="review-1",
+            issued_at=START,expires_at=END)
         with tempfile.TemporaryDirectory() as tmp:
             nonces=SQLiteNonceStore(Path(tmp)/"nonce.db")
-            answer=attach_signed_governance(
+            answer=attach_reviewed_signed_governance(
                 structural,reviewed_ir=ir,ir_binding=bound,
+                signed_review=signed_review,
+                reviewer_keys={"reviewer":reviewer_key.public_key()},
                 evidence_pack=pack,witness_mapping=map_,
                 signed_policy=policy,signed_observations=signed_witnesses,
                 signed_custody=signed_roots,
@@ -168,6 +179,7 @@ class EndToEndTests(unittest.TestCase):
                 service="example",environment="test",minimum_sequence=1,
                 nonce_accepted=nonces,witnesses=witnesses,
                 observations=observations,source_bytes=blobs,as_of=NOW)
+        self.assertEqual(answer["reviewed_mapping"]["review_record_signature"],"VERIFIED")
         self.assertEqual(answer["verdict"],"INCONCLUSIVE")
         self.assertFalse(answer["can_generate"])
         self.assertEqual(answer["custody"]["source_custody"]["verified_root_bytes"],5)
