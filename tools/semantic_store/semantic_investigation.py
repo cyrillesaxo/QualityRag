@@ -109,8 +109,8 @@ def execute_investigation(
         # bounded traversal does not demonstrate that it is missing globally.
         inventory = binding.get("required_object_ids")
         if not (isinstance(inventory, list) and len(inventory) <= 100
-                and len(set(inventory)) == len(inventory)
-                and all(isinstance(x, str) and 0 < len(x) <= 256 for x in inventory)):
+                and all(isinstance(x, str) and 0 < len(x) <= 256 for x in inventory)
+                and len(set(inventory)) == len(inventory)):
             raise SemanticSqlError("PackSpec must supply a unique finite required_object_ids inventory (max 100)")
     root = _context(store, base, principal, authorize, base.revision)
     receipt = {
@@ -130,8 +130,14 @@ def execute_investigation(
         return receipt
     if plan.operation == "COMPARE_WITH":
         other = _context(store, base, principal, authorize, plan.comparison_revision)
-        old_nodes = {(n["object_id"], n["revision"]):n for n in root["nodes"]}
-        new_nodes = {(n["object_id"], n["revision"]):n for n in other["nodes"]}
+        if root.get("status") == "NOT_FOUND" or other.get("status") == "NOT_FOUND":
+            receipt["comparison"] = {
+                "status": "INCONCLUSIVE_MISSING_VERSION",
+                "base_revision": base.revision,
+                "other_revision": plan.comparison_revision,
+                "scope": "NO_DIFFERENCE_INFERENCE_FROM_ABSENT_VERSION",
+            }
+            return receipt
         # Comparing revision-specific versions by stable object_id. This is a
         # *structural payload* diff, not a semantic or RCOC verdict.
         old_by_id={n["object_id"]:sha256(canonical_bytes(n["payload"])).hexdigest() for n in root["nodes"]}
