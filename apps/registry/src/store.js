@@ -13,12 +13,14 @@ export function validatePolicy(p) {
   }
   return {id:p.id,version:p.version,requirements:p.requirements.map(r=>({...r}))};
 }
-const empty = () => ({services:{},policies:{},bindings:{},signedPromotions:{},signedBindings:{},audit:[]});
+const empty = () => ({services:{},policies:{},bindings:{},signedPromotions:{},signedBindings:{},audit:[],governanceAudit:[],governanceHead:'0'.repeat(64)});
 export class RegistryStore {
   constructor(file) {
     this.file=file;
     this.data=fs.existsSync(file)? JSON.parse(fs.readFileSync(file,'utf8')) : empty();
     this.data.signedPromotions??={};this.data.signedBindings??={};
+    this.data.governanceAudit??=[];this.data.governanceHead??='0'.repeat(64);
+    this.verifyGovernanceAudit();
   }
   save() {
     fs.mkdirSync(path.dirname(this.file),{recursive:true});
@@ -26,7 +28,29 @@ export class RegistryStore {
     fs.writeFileSync(tmp,JSON.stringify(this.data,null,2),{mode:0o600});
     fs.renameSync(tmp,this.file);
   }
-  record(actor,action,detail) {this.data.audit.push({actor,action,detail,time:new Date().toISOString()});}
+  verifyGovernanceAudit(){
+    let prev='0'.repeat(64);
+    for(const event of this.data.governanceAudit){
+      if(event.previousHash!==prev||typeof event.hash!=='string')
+        throw new Error('GOVERNANCE_AUDIT_INTEGRITY_FAILURE');
+      const {hash,...fields}=event;
+      const calculated=createHash('sha256').update(JSON.stringify(fields)).digest('hex');
+      if(hash!==calculated)throw new Error('GOVERNANCE_AUDIT_INTEGRITY_FAILURE');
+      prev=hash;
+    }
+    if(prev!==this.data.governanceHead)throw new Error('GOVERNANCE_AUDIT_INTEGRITY_FAILURE');
+  }
+  record(actor,action,detail) {
+    const time=new Date().toISOString();
+    this.data.audit.push({actor,action,detail,time});
+    if(action.startsWith('SIGNED_')){
+      this.verifyGovernanceAudit();
+      const event={previousHash:this.data.governanceHead,actor,action,detail,time};
+      const hash=createHash('sha256').update(JSON.stringify(event)).digest('hex');
+      this.data.governanceAudit.push({...event,hash});
+      this.data.governanceHead=hash;
+    }
+  }
   register(service,actor) {
     if (!service?.id || !/^[a-zA-Z0-9._-]+$/.test(service.id) || !service?.displayName) throw new Error('INVALID_SERVICE');
     const next={id:service.id,displayName:service.displayName,createdAt:this.data.services[service.id]?.createdAt??new Date().toISOString()};
