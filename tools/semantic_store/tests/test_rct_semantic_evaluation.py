@@ -20,6 +20,23 @@ class SemanticEvaluationTests(unittest.TestCase):
     def setUpClass(cls):
         cls.corpus=load_corpus(CORPUS)
 
+    def test_role_binding_stress_dataset_exposes_nonlexical_distinctions(self):
+        stressed=load_corpus(
+            Path(__file__).resolve().parents[1]/
+            "data"/"semantic_role_binding_stress_v1.json")
+        self.assertEqual(len(stressed["cases"]),18)
+        self.assertEqual(sum(x["label"]=="DRIFT" for x in stressed["cases"]),12)
+        self.assertEqual(sum(x["label"]=="NO_DRIFT" for x in stressed["cases"]),6)
+        self.assertTrue(any("actor" in x["critical_distinction"].lower()
+                            or "role" in x["critical_distinction"].lower()
+                            for x in stressed["cases"]))
+        r=evaluate_corpus(stressed,lexical_change_baseline,
+                          detector_id="BYTE_INEQUALITY_STRESS")
+        self.assertEqual(r["cases"],18)
+        self.assertEqual(r["counts"]["consequential_detected"],12)
+        self.assertEqual(r["counts"]["control_flagged"],6)
+        self.assertFalse(r["can_generate"])
+
     def test_fixture_has_both_labels_and_multiple_domains(self):
         self.assertEqual(len(self.corpus["cases"]),30)
         self.assertEqual({x["domain"] for x in self.corpus["cases"]},{
