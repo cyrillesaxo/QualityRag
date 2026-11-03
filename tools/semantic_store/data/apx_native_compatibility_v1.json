@@ -9,7 +9,9 @@
     "workflow_url": "https://github.com/cyrillesaxo/apx/actions/runs/41726055119",
     "artifact_name": "qualityrag-original-apx-native-scorecard",
     "engine_schema": "apx.semantic-text-transition/v0.1",
-    "scorecard_schema": "apx.qualityrag-native-stress-scorecard/v1"
+    "scorecard_schema": "apx.qualityrag-native-stress-scorecard/v1",
+    "artifact_id": 13274960886,
+    "artifact_sha256": "aaf8bb74610216665951a162f91d70df48f5ba1ea4bdfdf9a618fc3c4a234bcd"
   },
   "qualityrag": {
     "repository": "cyrillesaxo/QualityRag",
