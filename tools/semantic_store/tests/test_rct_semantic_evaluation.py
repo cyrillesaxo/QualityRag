@@ -36,6 +36,10 @@ class SemanticEvaluationTests(unittest.TestCase):
         self.assertEqual(result["counts"]["control_abstained"],0)
         self.assertEqual(result["consequential_detection_rate_lower_bound"],1.0)
         self.assertEqual(result["control_flag_rate"],1.0)
+        self.assertLess(result["consequential_detection_wilson_95"][0], 0.85)
+        self.assertEqual(result["consequential_detection_wilson_95"][1], 1.0)
+        self.assertLess(result["control_flag_wilson_95"][0], 0.80)
+        self.assertEqual(result["control_flag_wilson_95"][1], 1.0)
         self.assertFalse(result["can_generate"])
         self.assertEqual(result["qualityrag_admission"],"INCONCLUSIVE")
 
