@@ -66,6 +66,24 @@ def _rate(numerator: int, denominator: int) -> float | None:
     return round(numerator / denominator, 6) if denominator else None
 
 
+def _wilson_95(successes: int, n: int) -> list[float] | None:
+    """Descriptive 95% binomial Wilson interval for a finite labeled sample.
+
+    No inference to a production/document population is justified unless
+    cases are independently sampled from that target population.
+    """
+    if not n:
+        return None
+    from math import sqrt
+    z = 1.959963984540054
+    p = successes / n
+    denom = 1 + z * z / n
+    mid = (p + z * z / (2 * n)) / denom
+    half = z * sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return [round(max(0.0, mid - half), 6),
+            round(min(1.0, mid + half), 6)]
+
+
 def evaluate_corpus(corpus: dict, detector: Callable[[str, str], dict], *,
                     detector_id: str) -> dict:
     validate_corpus(corpus)
@@ -129,6 +147,10 @@ def evaluate_corpus(corpus: dict, detector: Callable[[str, str], dict], *,
             observed["consequential_abstained"], positive),
         "control_flag_rate": _rate(observed["control_flagged"], controls),
         "control_abstention_rate": _rate(observed["control_abstained"], controls),
+        "consequential_detection_wilson_95": _wilson_95(
+            observed["consequential_detected"], positive),
+        "control_flag_wilson_95": _wilson_95(
+            observed["control_flagged"], controls),
         "cases_not_detected": sorted(misses),
         "controls_flagged": sorted(flagged_controls),
         "domain_counts": {
@@ -142,6 +164,7 @@ def evaluate_corpus(corpus: dict, detector: Callable[[str, str], dict], *,
             "Labels are curated examples, not independently authenticated standards",
             "INCONCLUSIVE is abstention; it is not a true negative or safe admission",
             "Lower-bound drift detection treats every inconclusive consequential case as missed",
+            "Wilson intervals describe finite counts only; cases are not random population samples",
             "No semantic completeness or production false-negative-rate bound follows",
             "No generator is invoked and no successful test authorizes semantic ADMIT",
         ],
