@@ -187,3 +187,43 @@ def attach_reviewed_signed_governance(
     }
     result["fingerprint"] = digest(result)
     return result
+
+
+def attach_source_span_conservation(structural: dict, *,
+                                    source_text: str, candidate_text: str,
+                                    obligations: list[dict],
+                                    source_digest: str, candidate_digest: str,
+                                    reviewed_inventory_digest: str) -> dict:
+    """Attach bounded document-level falsification to a structural candidate.
+
+    This local inventory is not authenticated semantic authority. A detected
+    violation REFUSES the combined research candidate, and any success still
+    remains INCONCLUSIVE.
+    """
+    from rct_source_span_conservation import audit_source_spans
+    if not isinstance(structural, dict):
+        raise ValueError("Immutable structural candidate required")
+    body=dict(structural)
+    fp=body.pop("fingerprint",None)
+    if (fp != digest(body) or structural.get("stage") != "RESEARCH_CANDIDATE"
+            or structural.get("can_generate") is not False
+            or structural.get("qualityrag_admission") != "INCONCLUSIVE"):
+        raise ValueError("Untrusted structural candidate")
+    audit=audit_source_spans(
+        source_text,candidate_text,obligations,
+        source_digest=source_digest,candidate_digest=candidate_digest,
+        reviewed_inventory_digest=reviewed_inventory_digest)
+    result={
+        "schema":"rct.source-span-joined-candidate/v2.1",
+        "structural_fingerprint":fp,
+        "source_span_audit":audit,
+        "verdict":"REFUSE" if audit["verdict"] == "REFUSE" else "INCONCLUSIVE",
+        "can_generate":False,
+        "qualityrag_admission":"INCONCLUSIVE",
+        "blockers": sorted(set(structural.get("blockers",[])+[
+            "REVIEWED_OBLIGATION_AUTHORITY_NOT_ESTABLISHED",
+            "SOURCE_SPAN_INVENTORY_COMPLETENESS_UNKNOWN",
+        ])),
+    }
+    result["fingerprint"]=digest(result)
+    return result
