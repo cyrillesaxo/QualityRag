@@ -80,3 +80,40 @@ Pass these into `PackSpecSource.fromProperties(props, internalPack)`. An explici
 5. `load()` runs on demand. This initial implementation does not promise caching, background refresh, or Spring Boot auto-wiring.
 
 **Training scenario:** [Enterprise document ingestion lab](../examples/enterprise-rag/REAL-DOCUMENTS.md) illustrates why the governing obligation should be declared regardless of its policy location. All modes have the same core metadata-gate limitations.
+
+
+## Python source selection (experimental)
+
+```python
+from qualityrag import evaluate
+from qualityrag.sources import from_properties
+
+config = {
+    "qualityrag.packspec.source": "file",
+    "qualityrag.packspec.path": "/etc/qualityrag/policy.json",
+}
+load_policy = from_properties(config)
+result = evaluate(load_policy(), retrieved_evidence, as_of="2026-11-02T10:05:00Z")
+if result["verdict"] != "ADMIT":
+    # Skip model invocation: the required evidence is incomplete.
+    ...
+```
+
+Select `internal`, `property`, `file` or `studio` with the same keys used by Java. In Studio mode, use a server-held bearer token and HTTPS outside loopback. A v0.1 registry digest detects mutation in transit but is **not a signature**.
+
+## TypeScript source selection (experimental)
+
+```typescript
+import { packSpecSource } from "@qualityrag/sdk/dist/sources.js";
+
+const load = packSpecSource({
+  mode: "file",
+  path: "/etc/qualityrag/policy.json",
+  // Server-side adapter; do not use in browser code.
+  readFile: async path => (await import("node:fs/promises")).readFile(path, "utf8")
+});
+const policy = await load();
+// Use evaluate(policy, evidence, now) and only generate on ADMIT.
+```
+
+For Studio, use `mode: "studio"` with `registryUrl`, `registryToken`, `serviceId` and `environment`. Keep operator credentials **server-side**. For browser environments supply only vetted policies from your application backend; never expose the registry's shared development token. TypeScript file loading deliberately uses an application-injected readFile adapter, keeping the SDK platform-neutral.
