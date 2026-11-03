@@ -13,7 +13,7 @@ import sys
 _PACKSPEC = Path(__file__).resolve().parents[1] / "packspec_compiler"
 if str(_PACKSPEC) not in sys.path:
     sys.path.insert(0, str(_PACKSPEC))
-from signed_bundles import verify, verify_attestation, ATTEST_SCHEMA, SignatureError
+from signed_bundles import verify, verify_policy, verify_attestation, ATTEST_SCHEMA, SignatureError
 from typed_ir import _fingerprint
 from store import digest
 
@@ -59,12 +59,19 @@ def proposed_review_record(lens: dict, ir: dict, conservation: dict) -> dict:
 
 def verify_reviewed_mapping(*, lens: dict, ir: dict, conservation: dict,
                             signed_policy: dict, signed_review: dict,
-                            reviewer_keys: dict, service: str, environment: str,
+                            reviewer_keys: dict, policy_keys: dict, minimum_sequence: int,
+                            service: str, environment: str,
                             as_of: str, nonce_accepted) -> dict:
     """Verify signed exact obligations; keep quality assurance INCONCLUSIVE."""
     expected = proposed_review_record(lens, ir, conservation)
     if not isinstance(signed_review, dict) or not isinstance(signed_policy, dict):
         raise ValueError("Signed review/policy required")
+    verified_policy = verify_policy(
+        signed_policy, policy_keys, service=service,
+        environment=environment, as_of=as_of,
+        minimum_sequence=minimum_sequence)
+    if verified_policy.get("ir") != ir:
+        raise ValueError("Signed reviewed policy must match exact governing IR")
     if (signed_review.get("key_id") == signed_policy.get("key_id")
             or signed_review.get("key_id") not in reviewer_keys):
         raise SignatureError("Reviewer must use a separately trusted identity")
