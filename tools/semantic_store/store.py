@@ -68,6 +68,18 @@ class SemanticStore:
             FOREIGN KEY(to_id, to_revision)
                 REFERENCES semantic_versions(object_id, revision)
         );
+        CREATE TABLE IF NOT EXISTS apx_receipts (
+            receipt_sha256 TEXT PRIMARY KEY,
+            object_id TEXT NOT NULL,
+            revision TEXT NOT NULL,
+            engine TEXT NOT NULL CHECK(engine IN ('HCR','RCOC')),
+            schema_id TEXT NOT NULL,
+            source_digests_json TEXT NOT NULL,
+            receipt_json TEXT NOT NULL,
+            verification TEXT NOT NULL CHECK(verification='UNVERIFIED_EXTERNAL_RESULT'),
+            FOREIGN KEY(object_id, revision)
+                REFERENCES semantic_versions(object_id, revision)
+        );
         CREATE TABLE IF NOT EXISTS admission_receipts (
             receipt_hash TEXT PRIMARY KEY,
             object_id TEXT NOT NULL,
@@ -83,7 +95,7 @@ class SemanticStore:
         # Physical immutability: reject direct SQL UPDATE/DELETE for all ledger tables.
         # Administrators who can drop triggers remain outside this SQLite trust boundary.
         for table in ("source_versions", "semantic_versions", "semantic_edges",
-                      "admission_receipts"):
+                      "admission_receipts", "apx_receipts"):
             for action in ("UPDATE", "DELETE"):
                 self.db.execute(
                     f"CREATE TRIGGER IF NOT EXISTS immutable_{table}_{action.lower()} "
