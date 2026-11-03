@@ -76,10 +76,11 @@ python tools/packspec_compiler/compiler.py source.yaml \
   --typed-mapping typed-review.json \
   --ir-out typed-ir.json \
   --typed-policy-out evidence-policy.json \
-  --typed-policy-id learner-evidence
+  --typed-policy-id learner-evidence \
+  --acknowledge-deferred
 ~~~
 
-An all-deferred IR cannot produce a v0.1 evidence policy. No temporal rule, authority relation, executable probe, or semantic predicate is silently converted to a passing evidence requirement. The policy output, if produced, can be supplied by the existing internal/property/file/Studio PackSpec sources.
+Where deferred nodes exist, exporting an evidence-only projection requires explicit --acknowledge-deferred. This means a partial projection only, never semantic authorization. An all-deferred IR cannot produce a v0.1 evidence policy. No temporal rule, authority relation, executable probe, or semantic predicate is silently converted to a passing evidence requirement. The policy output, if produced, can be supplied by the existing internal/property/file/Studio PackSpec sources.
 
 ## Example boundaries from supplied APX documents
 
