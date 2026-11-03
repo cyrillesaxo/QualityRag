@@ -11,8 +11,9 @@ import {createHandler} from '../src/server.js';
 
 const {publicKey,privateKey}=generateKeyPairSync('ed25519');
 const trusted=new Map([['governance-v1',publicKey]]);
-const start='2026-11-02T10:00:00Z',end='2026-11-03T10:00:00Z';
-const now=new Date('2026-11-02T12:00:00Z');
+const start=new Date(Date.now()-5*60*1000).toISOString().replace('.000Z','Z');
+const end=new Date(Date.now()+24*60*60*1000).toISOString().replace('.000Z','Z');
+const now=new Date();
 function fixture(sequence=1,service='tutor',environment='dev'){
  const source='a'.repeat(64);
  const node={
@@ -71,7 +72,7 @@ test('tamper, bad key, expired, scope mismatch, unicode and float cannot be stag
   const modified=structuredClone(fixture());modified.payload.ir.nodes[0].parameters.requirement_id='changed';
   assert.throws(()=>s.stageSigned(modified,'operator',trusted),/POLICY_SIGNATURE_INVALID/);
   assert.throws(()=>s.stageSigned(fixture(),'operator',new Map()),/UNTRUSTED_SIGNING_KEY/);
-  assert.throws(()=>verifySignedPolicy(fixture(),trusted,new Date('2030-01-01')),/SIGNED_POLICY_EXPIRED_OR_FUTURE/);
+  assert.throws(()=>verifySignedPolicy(fixture(),trusted,new Date(Date.now()+45*24*60*60*1000)),/SIGNED_POLICY_EXPIRED_OR_FUTURE/);
   assert.throws(()=>s.stageSigned(fixture(1,'other'),'operator',trusted),/UNKNOWN_SERVICE/);
   assert.throws(()=>canonical({test:'é'}),/SIGNED_ASCII_PROFILE_REQUIRED/);
   assert.throws(()=>canonical({value:1.1}),/SIGNED_NUMBER_UNSUPPORTED/);
