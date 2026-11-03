@@ -154,7 +154,7 @@ def compile_ir(report: dict, mapping: dict) -> dict:
         "ir_sha256": _fingerprint({"source_sha256": report["source"]["sha256"], "nodes": nodes}),
     }
 
-def project_gate(ir: dict, policy_id: str, version: str = "1.0") -> dict:
+def project_gate(ir: dict, policy_id: str, version: str = "1.0", *, acknowledge_deferred: bool = False) -> dict:
     """Project only reviewed evidence requirements; fail if all constraints are deferred."""
     _require(ir.get("schema") == IR_SCHEMA, "Unsupported IR schema")
     _identifier(policy_id, "policy id")
@@ -175,6 +175,9 @@ def project_gate(ir: dict, policy_id: str, version: str = "1.0") -> dict:
     _require(ir.get("summary", {}).get("deferred_semantic_constraints") ==
              sum(n.get("kind") != "EVIDENCE_PRESENCE" for n in nodes),
              "IR deferred-constraint inventory mismatch")
+    if any(n.get("kind") != "EVIDENCE_PRESENCE" for n in nodes):
+        _require(acknowledge_deferred is True,
+                 "Deferred semantic constraints require explicit partial-projection acknowledgement")
     return {
         "policy": {"id": policy_id, "version": version, "requirements": reviewed},
         "semantic_authorization": "NOT_ESTABLISHED",
