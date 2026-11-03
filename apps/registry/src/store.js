@@ -39,10 +39,11 @@ export class RegistryStore {
     const entry={policy,status:'DRAFT',sha256:hashPolicy(policy),createdBy:actor};
     this.data.policies[key]=entry;this.record(actor,'POLICY_DRAFTED',key);this.save();return entry;
   }
-  approve(id,version,actor) {
+  approve(id,version,actor,{enforceSeparation=false}={}) {
     const key=id+'@'+version, entry=this.data.policies[key];
     if (!entry) throw new Error('NOT_FOUND');
     if(entry.status!=='DRAFT') throw new Error('NOT_DRAFT');
+    if(enforceSeparation && entry.createdBy===actor)throw new Error('SELF_APPROVAL_FORBIDDEN');
     entry.status='APPROVED';entry.approvedBy=actor;entry.approvedAt=new Date().toISOString();
     this.record(actor,'POLICY_APPROVED',key);this.save();return entry;
   }
@@ -70,21 +71,24 @@ export class RegistryStore {
     return {serviceId:record.serviceId,environment:record.environment,sequence:record.sequence,
       status:entry.status,keyId:record.keyId,irSha256:record.irSha256};
   }
-  approveSigned(serviceId,environment,sequence,actor,trustedKeys) {
+  approveSigned(serviceId,environment,sequence,actor,trustedKeys,{enforceSeparation=false}={}) {
     const key=serviceId+'@'+environment+'#'+sequence;
     const entry=this.data.signedPromotions[key];
     if(!entry)throw new Error('NOT_FOUND');
     if(entry.status!=='STAGED')throw new Error('SIGNED_NOT_STAGED');
+    if(enforceSeparation && entry.stagedBy===actor)throw new Error('SELF_APPROVAL_FORBIDDEN');
     verifySignedPolicy(entry.bundle,trustedKeys);
     entry.status='APPROVED';entry.approvedBy=actor;entry.approvedAt=new Date().toISOString();
     this.record(actor,'SIGNED_POLICY_APPROVED',key);this.save();
     return {serviceId,environment,sequence,status:entry.status};
   }
-  publishSigned(serviceId,environment,sequence,actor,trustedKeys) {
+  publishSigned(serviceId,environment,sequence,actor,trustedKeys,{enforceSeparation=false}={}) {
     const key=serviceId+'@'+environment+'#'+sequence;
     const entry=this.data.signedPromotions[key];
     if(!entry)throw new Error('NOT_FOUND');
     if(entry.status!=='APPROVED')throw new Error('SIGNED_NOT_APPROVED');
+    if(enforceSeparation && (entry.stagedBy===actor||entry.approvedBy===actor))
+      throw new Error('SAME_ACTOR_PROMOTION_FORBIDDEN');
     const verified=verifySignedPolicy(entry.bundle,trustedKeys);
     if(verified.serviceId!==serviceId||verified.environment!==environment||verified.sequence!==sequence)
       throw new Error('SIGNED_BINDING_MISMATCH');
