@@ -10,5 +10,5 @@ foreach($fixture['scenarios'] as $domain){
   $count++;
  }
 }
-if($count!==12)throw new RuntimeException('Missing examples');
-echo "PHP 12 APX derived cases passed\n";
+if($count!==15)throw new RuntimeException('Missing examples');
+echo "PHP 15 APX derived cases passed\n";
