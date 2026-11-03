@@ -91,3 +91,7 @@ The [signed Studio promotion guide](apps/registry/SIGNED-PROMOTION.md) explains 
 ## Registry identity and independent policy approval
 
 [OIDC governance and scoped RBAC](apps/registry/OIDC-GOVERNANCE.md) introduces verified JWT identities, separate policy author/approver/publisher roles, three-person signed promotion, and a local SHA-256 audit chain. The file-backed registry is still a single-writer development service; database transactions, interactive Studio login and independent audit anchoring remain outstanding.
+
+## Transactional signed-policy promotions
+
+The [PostgreSQL signed-promotion ledger](apps/registry/POSTGRES-SIGNED-LEDGER.md) implements service/environment row locking and atomic promotion/audit transactions for multiple registry instances. It is an opt-in **signed-only** backend; unsigned legacy operations explicitly fail rather than using file storage. PostgreSQL provisioning, independent audit anchoring and production deployment remain outside this implementation.
