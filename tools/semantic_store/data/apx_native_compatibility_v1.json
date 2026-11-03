@@ -11,7 +11,9 @@
     "engine_schema": "apx.semantic-text-transition/v0.1",
     "scorecard_schema": "apx.qualityrag-native-stress-scorecard/v1",
     "artifact_id": 13274960886,
-    "artifact_sha256": "aaf8bb74610216665951a162f91d70df48f5ba1ea4bdfdf9a618fc3c4a234bcd"
+    "artifact_sha256": "aaf8bb74610216665951a162f91d70df48f5ba1ea4bdfdf9a618fc3c4a234bcd",
+    "artifact_json_valid": false,
+    "artifact_parse_status": "MALFORMED_STRESS_SCORECARD_TRAILING_LITERAL_BACKSLASH_N"
   },
   "qualityrag": {
     "repository": "cyrillesaxo/QualityRag",
@@ -35,7 +37,8 @@
     "semantic_completeness": "UNKNOWN",
     "source_authority": "NOT_ESTABLISHED",
     "production_admission": "NOT_AUTHORIZED",
-    "can_generate": false
+    "can_generate": false,
+    "original_native_scorecard_strict_json_verified": false
   },
   "limitations": [
     "Internal synthetic corpus, not independently expert adjudicated",
