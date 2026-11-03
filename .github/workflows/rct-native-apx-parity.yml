@@ -82,6 +82,34 @@ jobs:
           QR_REQUIRE_NATIVE_APX: '1'
           APX_PACKAGES_ROOT: ${{ github.workspace }}/apx/packages
         run: python -m unittest discover -s qualityrag/tools/semantic_store/tests -p 'test_rct_native_semantic_host_real.py' -v
+      - name: Quantify actual native APX drift detection and false alarms
+        env:
+          APX_PACKAGES_ROOT: ${{ github.workspace }}/apx/packages
+        run: |
+          python qualityrag/tools/semantic_store/rct_semantic_evaluation.py \
+            --native-root "$APX_PACKAGES_ROOT" \
+            > native-apx-adversarial-metrics.json
+          python - <<'PY'
+          import json
+          with open('native-apx-adversarial-metrics.json') as src:
+              report=json.load(src)
+          assert report['detector_id']=='ORIGINAL_APX_NATIVE_SEMANTIC_SOURCE_COMPARATOR'
+          assert report['cases']==30 and report['consequential_cases']==18
+          assert report['control_cases']==12
+          assert report['qualityrag_admission']=='INCONCLUSIVE'
+          assert report['can_generate'] is False
+          print('Native APX consequential detection lower bound:',
+                report['consequential_detection_rate_lower_bound'])
+          print('Native APX control false alarm rate:',
+                report['control_flag_rate'])
+          print('Undetected consequential cases:',len(report['cases_not_detected']))
+          PY
+      - name: Save inspectable native evaluation metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: apx-native-adversarial-metrics
+          path: native-apx-adversarial-metrics.json
+          retention-days: 14
       - name: Record source versions without exposing private code
         shell: bash
         run: |

@@ -57,5 +57,22 @@ jobs:
           fi
       - name: Single-command RCT research demonstration
         run: python tools/semantic_store/rct_demo.py
+      - name: Reproducible 30-case adverse semantic baseline
+        run: |
+          python tools/semantic_store/rct_semantic_evaluation.py > /tmp/rct-adversarial-baseline.json
+          python - <<'PY'
+          import json
+          with open('/tmp/rct-adversarial-baseline.json') as stream:
+              r=json.load(stream)
+          assert r['cases']==30 and r['consequential_cases']==18
+          assert r['control_cases']==12
+          assert r['counts']['consequential_detected']==18
+          assert r['counts']['control_flagged']==12
+          assert r['qualityrag_admission']=='INCONCLUSIVE'
+          assert r['can_generate'] is False
+          print('Baseline detected',r['counts']['consequential_detected'],
+                'of',r['consequential_cases'],'consequential changes; flagged',
+                r['counts']['control_flagged'],'of',r['control_cases'],'controls')
+          PY
       - name: Verify Python syntax
         run: python -m compileall -q tools/semantic_store tools/packspec_compiler sdk/python
