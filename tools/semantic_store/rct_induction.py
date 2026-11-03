@@ -230,9 +230,16 @@ def compile_induced_lens(source: dict, *, rule: dict, assessment: dict,
     _validate(source)
     if not _ident(lens_id) or not _ident(purpose):
         raise ValueError("Missing lens identity/purpose")
-    a = dict(assessment)
+    candidate = dict(rule) if isinstance(rule, dict) else {}
+    rule_fingerprint = candidate.pop("fingerprint", None)
+    if (rule_fingerprint != digest(candidate)
+            or candidate.get("schema") != SCHEMA
+            or candidate.get("status") != "CANDIDATE"
+            or candidate.get("qualityrag_admission") != "INCONCLUSIVE"):
+        raise ValueError("Rule fingerprint or candidate posture mismatch")
+    a = dict(assessment) if isinstance(assessment, dict) else {}
     ah = a.pop("fingerprint", None)
-    if (ah != digest(a) or assessment.get("rule_sha256") != rule.get("fingerprint")
+    if (ah != digest(a) or assessment.get("rule_sha256") != rule_fingerprint
             or assessment.get("heldout_source_sha256") != digest(source)
             or assessment.get("qualityrag_admission") != "INCONCLUSIVE"):
         raise ValueError("Assessment fingerprint or source mismatch")
