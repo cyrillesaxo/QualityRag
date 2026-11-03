@@ -15,7 +15,7 @@ async function listen(server){
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  return 'http://127.0.0.1:'+server.address().port;
 }
-function signFixture(privateKey) {
+function signFixture(privateKey,sequence=3) {
  const source='a'.repeat(64),nodes=[{
    node_id:'evidence',kind:'EVIDENCE_PRESENCE',status:'PROJECTION_ONLY',runtime:'METADATA_GATE_V0_1',
    parameters:{requirement_id:'source',min_independent_sources:1},
@@ -28,7 +28,7 @@ function signFixture(privateKey) {
  ir.ir_sha256=createHash('sha256').update(canonical({nodes,source_sha256:source})).digest('hex');
  const issued_at=new Date(Date.now()-60000).toISOString().replace('.000Z','Z');
  const expires_at=new Date(Date.now()+3600000).toISOString().replace('.000Z','Z');
- const payload={ir,service:'api',environment:'dev',sequence:3,issued_at,expires_at};
+ const payload={ir,service:'api',environment:'dev',sequence,issued_at,expires_at};
  const sig=signEd25519(null,Buffer.concat([Buffer.from('QUALITYRAG/qualityrag.signed-policy/v1\0'),
     Buffer.from(canonical(payload))]),privateKey).toString('base64url');
  return {schema:'qualityrag.signed-policy/v1',canonical:'QR-CJSON-1',key_id:'governance',payload,signature:sig};
@@ -87,11 +87,24 @@ test('OIDC: real signed JWT roles and three distinct actors required to publish'
    assert.deepEqual((await request('POST','/v1/policies/legacy/1/approve',superuser)).data,
      {error:'SELF_APPROVAL_FORBIDDEN'});
    assert.equal((await request('POST','/v1/policies/legacy/1/approve',reviewer)).status,200);
-   // A user holding all roles still cannot publish their own staged signed policy.
-   const own=signFixture(govKey.privateKey);own.payload.sequence=4;
-   // Need a valid signature for sequence 4; instead test store separation directly.
-   assert.throws(()=>store.publishSigned('api','dev',3,'https://id.example/issuer#bob',
-       new Map([['governance',govKey.publicKey]]),{enforceSeparation:true}),/SIGNED_NOT_APPROVED/);
+   // Even an all-roles token cannot self-approve or publish its own promotion.
+   const own=signFixture(govKey.privateKey,4);
+   assert.equal((await request('POST','/v1/signed/promotions',superuser,own)).status,201);
+   assert.deepEqual((await request('POST','/v1/signed/promotions/api/dev/4/approve',superuser)).data,
+     {error:'SELF_APPROVAL_FORBIDDEN'});
+   assert.equal((await request('POST','/v1/signed/promotions/api/dev/4/approve',reviewer)).status,200);
+   assert.deepEqual((await request('POST','/v1/signed/promotions/api/dev/4/publish',superuser)).data,
+     {error:'SAME_ACTOR_PROMOTION_FORBIDDEN'});
+   assert.deepEqual((await request('POST','/v1/signed/promotions/api/dev/4/publish',reviewer)).data,
+     {error:'SAME_ACTOR_PROMOTION_FORBIDDEN'});
+   assert.equal((await request('POST','/v1/signed/promotions/api/dev/4/publish',publisher)).status,200);
+   assert.equal(store.data.governanceAudit.length,6);
+   assert.doesNotThrow(()=>new RegistryStore(path.join(dir,'registry.json')));
+   const fs=await import('node:fs');
+   const contents=JSON.parse(fs.readFileSync(path.join(dir,'registry.json'),'utf8'));
+   contents.governanceAudit[1].actor='forged-identity';
+   fs.writeFileSync(path.join(dir,'registry.json'),JSON.stringify(contents));
+   assert.throws(()=>new RegistryStore(path.join(dir,'registry.json')),/GOVERNANCE_AUDIT_INTEGRITY_FAILURE/);
  }finally{
   await new Promise(resolve=>registry.close(resolve));
   await new Promise(resolve=>idp.close(resolve));
