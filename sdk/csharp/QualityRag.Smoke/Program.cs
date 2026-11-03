@@ -11,3 +11,5 @@ Console.WriteLine("QualityRag .NET smoke passed");
 Conformance.Run();
 
 await SourcesSmoke.Check();
+
+APXExamples.Check();
