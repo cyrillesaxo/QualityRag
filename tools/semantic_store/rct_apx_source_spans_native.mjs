@@ -62,6 +62,8 @@ export async function loadNativeSemanticComparator(
       return Object.freeze({
         schema:'qualityrag.native-semantic-transition/v1',
         original_engine_schema:result.schema,
+        source_sha256:beforeDigest,
+        candidate_sha256:afterDigest,
         verdict:result.decision,
         observed_changes:result.changes.map(c=>({
           kind:c.kind,status:c.status})),
