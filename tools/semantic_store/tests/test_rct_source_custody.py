@@ -149,6 +149,13 @@ class SourceCustodyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.assess(records=wrong)
 
+    def test_conflicting_root_source_references_rejected(self):
+        records=[*self.records,
+                 witness("d","heart-evidence","root-A")]
+        # d declares the same origin as a but a different source_ref.
+        with self.assertRaisesRegex(ValueError,"Conflicting source references"):
+            self.assess(records=records)
+
     def test_contradiction_remains_refusal(self):
         altered=[dict(self.records[0]),dict(self.records[1]),dict(self.records[2])]
         altered[2]["status"]="CONTRADICTS"
