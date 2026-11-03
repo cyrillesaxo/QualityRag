@@ -95,7 +95,7 @@ class KnowledgeIRTests(unittest.TestCase):
             self.assertEqual(result["admission"], "INCONCLUSIVE")
             obj = store.object_version("manual:constraint:require-zero-voltage", "v1")
             self.assertEqual(obj["verification"], "UNKNOWN")
-            self.assertEqual(obj["source"]["source_sha256"], "a" * 64)
+            self.assertEqual(obj["provenance"]["source_sha256"], "a" * 64)
             with self.assertRaises(sqlite3.IntegrityError):
                 persist_constraint_ir(store, source_id="manual", revision="v1",
                                       ir=fixture())
