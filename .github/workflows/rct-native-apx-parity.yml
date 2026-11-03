@@ -1,0 +1,67 @@
+name: Canonical APX Native Parity (private checkout)
+
+on:
+  workflow_dispatch:
+    inputs:
+      apx_ref:
+        description: "APX ref to verify (branch, tag or exact commit)"
+        type: string
+        default: main
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  native-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Require explicitly configured APX read credentials
+        env:
+          APX_TOKEN: ${{ secrets.APX_REPO_READ_TOKEN }}
+        run: |
+          if [ -z "$APX_TOKEN" ]; then
+            echo "::error::Configure the read-only APX_REPO_READ_TOKEN repository secret before native parity can run."
+            exit 1
+          fi
+      - name: Checkout QualityRag
+        uses: actions/checkout@v4
+        with:
+          path: qualityrag
+          persist-credentials: false
+      - name: Checkout original APX packages without copying source into QualityRag
+        uses: actions/checkout@v4
+        with:
+          repository: cyrillesaxo/apx
+          ref: ${{ inputs.apx_ref }}
+          token: ${{ secrets.APX_REPO_READ_TOKEN }}
+          path: apx
+          persist-credentials: false
+          sparse-checkout: |
+            packages/apx-wbc
+            packages/apx-hcr
+            packages/apx-rcoc
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated TypeScript build toolchain
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/apx-toolchain" --ignore-scripts --no-audit --no-fund --no-save 'typescript@5.6.3' '@types/node@20.11.30'
+          ln -s "$RUNNER_TEMP/apx-toolchain/node_modules" "$GITHUB_WORKSPACE/apx/node_modules"
+      - name: Compile canonical APX engines
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/apx-toolchain/node_modules/.bin/tsc" -p apx/packages/apx-wbc/tsconfig.json
+          "$RUNNER_TEMP/apx-toolchain/node_modules/.bin/tsc" -p apx/packages/apx-hcr/tsconfig.json
+          "$RUNNER_TEMP/apx-toolchain/node_modules/.bin/tsc" -p apx/packages/apx-rcoc/tsconfig.json
+      - name: Execute actual WBC HCR and RCOC behavior tests
+        env:
+          APX_PACKAGES_ROOT: ${{ github.workspace }}/apx/packages
+        run: node --test qualityrag/tools/semantic_store/tests/test_rct_apx_native_real.mjs
+      - name: Record source versions without exposing private code
+        shell: bash
+        run: |
+          echo "QualityRag $(git -C qualityrag rev-parse HEAD)"
+          echo "APX $(git -C apx rev-parse HEAD)"
