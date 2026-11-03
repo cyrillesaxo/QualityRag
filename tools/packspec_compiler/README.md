@@ -115,3 +115,7 @@ The [typed IR extension](TYPED-IR.md) records reviewed EVIDENCE_PRESENCE, TEMPOR
 ## Bounded semantic runtime
 
 The [bounded semantic runtime](SEMANTIC-RUNTIME.md) can check explicitly bound temporal ordering, expiry, numeric ranges and primitive equality against application-supplied observations. It never executes arbitrary probe code or free-form predicates. Unsupported kinds remain INCONCLUSIVE. Supplied source references are not authenticated.
+
+## Unified decision gate
+
+The [unified gate](UNIFIED-GATE.md) joins the v0.1 evidence evaluator with bounded temporal/probe checks and blocks answer generation unless every applicable node is admitted **and** a host-owned attestation verifier accepts the supplied evidence. It does not authenticate source truth or certify the full APX PackSpec.
