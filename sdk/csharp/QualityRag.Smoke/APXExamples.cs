@@ -23,6 +23,6 @@ public static class APXExamples {
     count++;
    }
   }
-  if(count!=12)throw new Exception("Missing APX cases");
+  if(count!=15)throw new Exception("Missing APX cases");
  }
 }
