@@ -32,7 +32,7 @@ For *curated harmless controls*:
 - `REFUSE` = control flagged (false alarm relative to curator label).
 - `INCONCLUSIVE` = control abstention. **Never count it as a certified true negative or safe answer.**
 
-The evaluator reports all counts, per-domain counts, individual IDs and exact source/candidate SHA-256 values. It does not return a generic accuracy number, precision, trusted true-negative rate, semantic ADMIT, or a production false-negative guarantee.
+The evaluator reports all counts, per-domain counts, individual IDs and exact source/candidate SHA-256 values. It additionally reports **Wilson 95% descriptive binomial intervals** for the observed consequential-detection and control-flag rates. Because these cases were hand-selected rather than independently randomly sampled, these intervals must **not** be interpreted as production-population confidence bounds. It does not return a generic accuracy number, precision, trusted true-negative rate, semantic ADMIT, or a production false-negative guarantee.
 
 ## Baseline and failure controls
 
