@@ -29,5 +29,5 @@ func TestAPXExampleFixtures(t *testing.T){
    count++
   }
  }
- if count!=12 {t.Fatalf("expected 12 cases, got %d",count)}
+ if count!=15 {t.Fatalf("expected 15 cases, got %d",count)}
 }
