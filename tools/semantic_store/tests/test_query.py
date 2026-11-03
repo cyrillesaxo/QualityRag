@@ -57,6 +57,14 @@ class QueryTests(unittest.TestCase):
         self.assertEqual([x["object_id"] for x in result["nodes"]], ["root"])
         self.assertEqual(result["edges"], [])
 
+    def test_edge_fanout_limit_is_reported(self):
+        result = query_context(self.store, principal="viewer",
+                               authorize=lambda *args: True,
+                               object_id="root", revision="v1", max_edges=1)
+        self.assertTrue(result["limits"]["truncated"])
+        self.assertLessEqual(len(result["edges"]), 1)
+        self.assertLessEqual(len(result["nodes"]), 2)
+
     def test_finite_hop_and_node_limits(self):
         with self.assertRaises(ValueError):
             query_context(self.store, principal="viewer",
