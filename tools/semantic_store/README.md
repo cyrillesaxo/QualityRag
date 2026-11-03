@@ -4,6 +4,14 @@
 
 See [the canonical APX concept registry](../../docs/APX-SEMANTIC-STORE-REGISTRY.md).
 
+## End-to-end research delivery
+
+The integrated **experimental** workflow (typed grammar -> purpose lens -> all-pairs finite conservation -> reversible reference reconstruction -> independently signed reviewed obligations -> signed provenance and custody -> fail-closed QualityRag diagnostic) is documented at [RCT end-to-end research delivery](../../docs/RCT-END-TO-END-RESEARCH-DELIVERY.md).
+
+Run the synthetic single-command walkthrough with `python tools/semantic_store/rct_demo.py`. The strict signed path is `rct_end_to_end.attach_reviewed_signed_governance`; no candidate can generate an answer or become semantically ADMIT based on these checks. To use actual APX WBC/HCR/RCOC algorithms, the optional `rct_apx_native.mjs` adapter loads their independently built original private workspace packages and fails closed otherwise.
+
+The reversible `rct_reference_frame.py` codec is **not native FF-RCT**. The bounded structural proof does **not** establish universal semantic sufficiency or trusted publisher authority.
+
 ## Implemented
 
 - `store.py`: immutable source revisions; semantic versions; typed KnowledgeGraph, WitnessGraph and regime edges; non-authoritative admission receipts; native APX receipt storage. SQLite triggers reject UPDATE/DELETE while the schema is controlled by this API.
