@@ -15,8 +15,6 @@ import java.time.Duration
 /** Explicit PackSpec authority. Never fall back to a weaker policy on an error. */
 object PackSpecSources {
     private val json=ObjectMapper()
-    typealiasDummy()
-    private fun typealiasDummy() {}
     private fun checked(root: JsonNode): Pack {
         require(root.isObject && root.path("id").isTextual && root.path("id").asText().isNotBlank() &&
             root.path("version").isTextual && root.path("version").asText().isNotBlank())
@@ -35,15 +33,12 @@ object PackSpecSources {
     }
     private fun parse(text:String):Pack=checked(json.readTree(text))
     fun internal(pack:Pack):()->Pack {
-        val snapshot=json.writeValueAsString(mapOf(
-            "id" to pack.id,"version" to pack.version,
-            "requirements" to pack.requirements.map { r ->
-                mapOf("id" to r.id,"min_independent_sources" to r.minIndependentSources,
-                    "max_age_seconds" to r.maxAgeSeconds)
-            }
-        ))
-        val verified=parse(snapshot)
-        return { verified.copy(requirements=verified.requirements.toList()) }
+        require(pack.id.isNotBlank() && pack.version.isNotBlank() && pack.requirements.isNotEmpty())
+        require(pack.requirements.map { it.id }.distinct().size==pack.requirements.size)
+        require(pack.requirements.all { it.id.isNotBlank() && it.minIndependentSources>0 &&
+            (it.maxAgeSeconds==null || it.maxAgeSeconds>=0) })
+        val snapshot=pack.copy(requirements=pack.requirements.toList())
+        return { snapshot.copy(requirements=snapshot.requirements.toList()) }
     }
     fun property(text:String):()->Pack = internal(parse(text))
     fun file(path:Path):()->Pack = {
