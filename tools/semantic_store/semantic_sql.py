@@ -20,6 +20,8 @@ _GRAMMAR = re.compile(
     object_id\s*=\s*'(?P<object_id>(?:''|[^'])*)'\s+AND\s+
     revision\s*=\s*'(?P<revision>(?:''|[^'])*)'
     (?:\s+AND\s+layer\s*=\s*'(?P<layer>KNOWLEDGE|WITNESS|REGIME)')?
+    (?:\s+GOVERNED\s+BY\s+(?P<packspec>[A-Za-z][A-Za-z0-9_-]{0,127}))?
+    (?:\s+(?:(?P<expand>EXPAND)(?:\s+(?P<hops>[0-5]))?|(?P<collapse>COLLAPSE)))?
     (?:\s+LIMIT\s+(?P<limit>[0-9]+))?
     \s*;?\s*\Z""",
     re.IGNORECASE | re.VERBOSE,
