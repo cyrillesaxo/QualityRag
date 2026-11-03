@@ -1,0 +1,245 @@
+{
+  "schema": "rct.adversarial-text-corpus/v1",
+  "cases": [
+    {
+      "id": "nursing-not_removed",
+      "domain": "nursing",
+      "source": "The instruction says the nurse must NOT administer the medicine before identity verification.",
+      "candidate": "The instruction says the nurse must administer the medicine before identity verification.",
+      "label": "DRIFT",
+      "critical_distinction": "Negation reverses whether medication administration is prohibited"
+    },
+    {
+      "id": "nursing-except_removed",
+      "domain": "nursing",
+      "source": "Select all procedures EXCEPT the one requiring sterile precautions.",
+      "candidate": "Select all procedures requiring sterile precautions.",
+      "label": "DRIFT",
+      "critical_distinction": "Exception reverses the selection condition"
+    },
+    {
+      "id": "nursing-dose_changed",
+      "domain": "nursing",
+      "source": "The fictional training dose is 2 units, not 20 units.",
+      "candidate": "The fictional training dose is 20 units, not 2 units.",
+      "label": "DRIFT",
+      "critical_distinction": "Numerical dose changes in artificial exercise"
+    },
+    {
+      "id": "nursing-paraphrase",
+      "domain": "nursing",
+      "source": "Verify the patient's identity before the procedure.",
+      "candidate": "Before the procedure, confirm the patient's identity.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Paraphrase retains verification prerequisite"
+    },
+    {
+      "id": "nursing-punctuation",
+      "domain": "nursing",
+      "source": "Wear gloves when indicated.",
+      "candidate": "Wear gloves when indicated!",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Punctuation emphasis only"
+    },
+    {
+      "id": "hvac-unless_deleted",
+      "domain": "hvac",
+      "source": "Disconnect power before servicing unless the documented live test is required.",
+      "candidate": "Disconnect power before servicing.",
+      "label": "DRIFT",
+      "critical_distinction": "Exception for separately documented live testing removed"
+    },
+    {
+      "id": "hvac-temperature_shift",
+      "domain": "hvac",
+      "source": "The example compressor cutoff is 40 degrees Celsius.",
+      "candidate": "The example compressor cutoff is 60 degrees Celsius.",
+      "label": "DRIFT",
+      "critical_distinction": "Illustrative temperature threshold altered"
+    },
+    {
+      "id": "hvac-modal_changed",
+      "domain": "hvac",
+      "source": "The technician must inspect the condensate drain.",
+      "candidate": "The technician may inspect the condensate drain.",
+      "label": "DRIFT",
+      "critical_distinction": "Mandatory action becomes optional"
+    },
+    {
+      "id": "hvac-paraphrase",
+      "domain": "hvac",
+      "source": "Clean the filter before restarting the unit.",
+      "candidate": "Before restarting the unit, clean the filter.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Order of wording only"
+    },
+    {
+      "id": "hvac-punctuation",
+      "domain": "hvac",
+      "source": "Use the manufacturer's instructions.",
+      "candidate": "Use the manufacturer's instructions!",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Punctuation emphasis only"
+    },
+    {
+      "id": "driving-months_changed",
+      "domain": "driving",
+      "source": "The fictional permit wait is at least 12 months.",
+      "candidate": "The fictional permit wait is at least 6 months.",
+      "label": "DRIFT",
+      "critical_distinction": "Waiting-period threshold changed"
+    },
+    {
+      "id": "driving-negation_removed",
+      "domain": "driving",
+      "source": "Do NOT enter the intersection when blocked.",
+      "candidate": "Do enter the intersection when blocked.",
+      "label": "DRIFT",
+      "critical_distinction": "Prohibition becomes instruction"
+    },
+    {
+      "id": "driving-only_if_removed",
+      "domain": "driving",
+      "source": "The vehicle may turn only if the lane is clear.",
+      "candidate": "The vehicle may turn when the lane is clear.",
+      "label": "DRIFT",
+      "critical_distinction": "Removal of only-if exclusivity"
+    },
+    {
+      "id": "driving-paraphrase",
+      "domain": "driving",
+      "source": "Check mirrors before changing lanes.",
+      "candidate": "Before changing lanes, check mirrors.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Same sequencing obligation"
+    },
+    {
+      "id": "driving-punctuation",
+      "domain": "driving",
+      "source": "Yield at a marked crossing.",
+      "candidate": "Yield at a marked crossing!",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Punctuation emphasis only"
+    },
+    {
+      "id": "legal-deadline_changed",
+      "domain": "legal",
+      "source": "Under this fictional contract, objections are due within 30 days.",
+      "candidate": "Under this fictional contract, objections are due within 90 days.",
+      "label": "DRIFT",
+      "critical_distinction": "Fictional contractual deadline changed"
+    },
+    {
+      "id": "legal-exception_deleted",
+      "domain": "legal",
+      "source": "Refunds are excluded unless the product is defective.",
+      "candidate": "Refunds are excluded.",
+      "label": "DRIFT",
+      "critical_distinction": "Contract exception removed"
+    },
+    {
+      "id": "legal-must_to_may",
+      "domain": "legal",
+      "source": "The customer must notify the seller in writing.",
+      "candidate": "The customer may notify the seller in writing.",
+      "label": "DRIFT",
+      "critical_distinction": "Obligation becomes optional permission"
+    },
+    {
+      "id": "legal-paraphrase",
+      "domain": "legal",
+      "source": "The agreement is effective upon both signatures.",
+      "candidate": "Once both parties sign, the agreement takes effect.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Effective-date condition preserved"
+    },
+    {
+      "id": "legal-punctuation",
+      "domain": "legal",
+      "source": "This section applies to all parties.",
+      "candidate": "This section applies to all parties!",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Punctuation emphasis only"
+    },
+    {
+      "id": "finance-interest_changed",
+      "domain": "finance",
+      "source": "In this toy example, annual interest is 5 percent.",
+      "candidate": "In this toy example, annual interest is 8 percent.",
+      "label": "DRIFT",
+      "critical_distinction": "Illustrative rate changed"
+    },
+    {
+      "id": "finance-not_deleted",
+      "domain": "finance",
+      "source": "The example fee is NOT refundable.",
+      "candidate": "The example fee is refundable.",
+      "label": "DRIFT",
+      "critical_distinction": "Fee refund prohibition reversed"
+    },
+    {
+      "id": "finance-unless_deleted",
+      "domain": "finance",
+      "source": "A payment is due unless the balance was already settled.",
+      "candidate": "A payment is due.",
+      "label": "DRIFT",
+      "critical_distinction": "Payment exception omitted"
+    },
+    {
+      "id": "finance-paraphrase",
+      "domain": "finance",
+      "source": "The invoice is payable within 14 days.",
+      "candidate": "Payment for the invoice is due within 14 days.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Due period retained"
+    },
+    {
+      "id": "finance-punctuation",
+      "domain": "finance",
+      "source": "Review the monthly statement.",
+      "candidate": "Review the monthly statement!",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Punctuation emphasis only"
+    },
+    {
+      "id": "everyday-food_allergy_removed",
+      "domain": "everyday",
+      "source": "The label says the dish contains peanuts.",
+      "candidate": "The label says the dish does not contain peanuts.",
+      "label": "DRIFT",
+      "critical_distinction": "Allergen presence contradicted"
+    },
+    {
+      "id": "everyday-time_changed",
+      "domain": "everyday",
+      "source": "The meeting begins at 09:30.",
+      "candidate": "The meeting begins at 10:30.",
+      "label": "DRIFT",
+      "critical_distinction": "Scheduled time changed"
+    },
+    {
+      "id": "everyday-exception_removed",
+      "domain": "everyday",
+      "source": "Visitors may enter except during the maintenance window.",
+      "candidate": "Visitors may enter.",
+      "label": "DRIFT",
+      "critical_distinction": "Access exception omitted"
+    },
+    {
+      "id": "everyday-paraphrase",
+      "domain": "everyday",
+      "source": "The museum is closed every Tuesday.",
+      "candidate": "Every Tuesday, the museum is closed.",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Day-specific closure retained"
+    },
+    {
+      "id": "everyday-punctuation",
+      "domain": "everyday",
+      "source": "Please bring the invitation.",
+      "candidate": "Please bring the invitation!",
+      "label": "NO_DRIFT",
+      "critical_distinction": "Punctuation emphasis only"
+    }
+  ]
+}
