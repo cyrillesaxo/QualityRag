@@ -10,6 +10,8 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from rct_source_span_conservation import audit_source_spans
+from rct_end_to_end import attach_source_span_conservation, run_structural_pipeline
+from test_rct_purpose_lens import fixture, grammar
 from store import digest
 
 
@@ -125,6 +127,30 @@ class SourceSpanConservationTests(unittest.TestCase):
                 source_digest=sha256(source.encode()).hexdigest(),
                 candidate_digest=sha256(candidate.encode()).hexdigest(),
                 reviewed_inventory_digest=old)
+
+    def test_joined_pipeline_carries_semantic_refusal_without_generation(self):
+        train,tlabels=fixture("train-")
+        held,labels=fixture("held-")
+        structural=run_structural_pipeline(
+            train,tlabels,held,labels,grammar(),
+            purpose="classification-training",lens_id="source-span-joined",
+            required_predicates=["p","q","r"],
+            allowed_omission_predicates=["context"])
+        source="A nurse must NOT administer this medication."
+        candidate="A nurse must administer this medication."
+        records=[item("negation","NEGATION",source,candidate,
+                      "NOT","must",value="NEGATED",observed="AFFIRMATIVE")]
+        receipt=attach_source_span_conservation(
+            structural,source_text=source,candidate_text=candidate,
+            obligations=records,
+            source_digest=sha256(source.encode()).hexdigest(),
+            candidate_digest=sha256(candidate.encode()).hexdigest(),
+            reviewed_inventory_digest=digest(records))
+        self.assertEqual(receipt["verdict"],"REFUSE")
+        self.assertFalse(receipt["can_generate"])
+        self.assertEqual(receipt["qualityrag_admission"],"INCONCLUSIVE")
+        self.assertEqual(receipt["source_span_audit"]["findings"][0]["kind"],
+                         "NEGATION")
 
     def test_duplicate_obligations_rejected(self):
         source="Check identity twice."
