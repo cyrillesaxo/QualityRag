@@ -20,6 +20,7 @@ from store import digest
 
 SCHEMA = "rct.typed-role-binding-audit/v0.1"
 ATOM = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]{0,95}$")
+ENTITY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,95}$")
 MAX_DOC_BYTES = 200_000
 MAX_FACTS = 128
 MAX_BINDINGS = 24
@@ -60,7 +61,7 @@ def _facts(document: str, facts: list[dict], *, side: str) -> dict:
             role, entity = binding["role"], binding["entity"]
             if (not isinstance(role, str) or not ATOM.fullmatch(role)
                     or role in roles or not isinstance(entity, str)
-                    or not ATOM.fullmatch(entity)):
+                    or not ENTITY.fullmatch(entity)):
                 raise ValueError("Duplicate role or invalid entity identity")
             roles.add(role)
             quote = _span(document, binding["span"])
@@ -123,10 +124,10 @@ def audit_typed_role_graph(*, source: str, candidate: str,
             "status":status,
             "predicate_before":a["predicate"] if a else None,
             "predicate_after":b["predicate"] if b else None,
-            "changed_roles":sorted({
-                *([] if a is None else a["binding_values"]),
-                *([] if b is None else b["binding_values"]),
-            }) if status == "ROLE_BINDING_CHANGED" else [],
+            "changed_roles":sorted(
+                role for role in set(a["binding_values"]) | set(b["binding_values"])
+                if a["binding_values"].get(role) != b["binding_values"].get(role)
+            ) if status == "ROLE_BINDING_CHANGED" else [],
             "anchor_verification":"EXACT_SUBSTRING_ONLY",
             "semantic_identity_independently_verified":False,
         })
