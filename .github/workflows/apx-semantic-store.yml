@@ -1,0 +1,45 @@
+name: APX Semantic Store Prototype
+
+on:
+  pull_request:
+    paths:
+      - "tools/semantic_store/**"
+      - "tools/packspec_compiler/**"
+      - "sdk/python/**"
+      - ".github/workflows/apx-semantic-store.yml"
+  push:
+    branches:
+      - "feat/apx-semantic-store-foundation"
+    paths:
+      - "tools/semantic_store/**"
+      - ".github/workflows/apx-semantic-store.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install shared governance dependencies
+        run: python -m pip install -r tools/packspec_compiler/requirements.txt
+      - name: Semantic store unit tests
+        run: python -m unittest discover -s tools/semantic_store/tests -p 'test_*.py' -v
+      - name: PackSpec compiler regression suite
+        run: python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py' -v
+      - name: Python SDK witness/assurance regression suite
+        env:
+          PYTHONPATH: sdk/python
+        run: python -m unittest discover -s sdk/python/tests -p 'test_*.py' -v
+      - name: Native APX adapter transport and fail-closed tests
+        run: node --test tools/semantic_store/tests/test_rct_apx_native.mjs
+      - name: Single-command RCT research demonstration
+        run: python tools/semantic_store/rct_demo.py
+      - name: Verify Python syntax
+        run: python -m compileall -q tools/semantic_store tools/packspec_compiler sdk/python
