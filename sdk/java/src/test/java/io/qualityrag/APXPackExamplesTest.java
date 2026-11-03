@@ -18,6 +18,6 @@ class APXPackExamplesTest {
       domain.path("id").asText()+"/"+item.path("id").asText());
     count++;
   }
-  assertEquals(12,count);
+  assertEquals(15,count);
  }
 }
