@@ -42,6 +42,7 @@ jobs:
             packages/apx-wbc
             packages/apx-hcr
             packages/apx-rcoc
+            packages/apx-epistemic
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -56,10 +57,15 @@ jobs:
           "$RUNNER_TEMP/apx-toolchain/node_modules/.bin/tsc" -p apx/packages/apx-wbc/tsconfig.json
           "$RUNNER_TEMP/apx-toolchain/node_modules/.bin/tsc" -p apx/packages/apx-hcr/tsconfig.json
           "$RUNNER_TEMP/apx-toolchain/node_modules/.bin/tsc" -p apx/packages/apx-rcoc/tsconfig.json
+          "$RUNNER_TEMP/apx-toolchain/node_modules/.bin/tsc" --target ES2022 --module NodeNext --moduleResolution NodeNext --skipLibCheck --types node --outDir apx/packages/apx-epistemic/dist apx/packages/apx-epistemic/src/semantic-conversion.ts apx/packages/apx-epistemic/src/semantic-source-spans.ts
       - name: Execute actual WBC HCR and RCOC behavior tests
         env:
           APX_PACKAGES_ROOT: ${{ github.workspace }}/apx/packages
         run: node --test qualityrag/tools/semantic_store/tests/test_rct_apx_native_real.mjs
+      - name: Execute original APX source-to-text semantic falsification tests
+        env:
+          APX_PACKAGES_ROOT: ${{ github.workspace }}/apx/packages
+        run: node --test qualityrag/tools/semantic_store/tests/test_rct_apx_semantic_spans_real.mjs
       - name: Record source versions without exposing private code
         shell: bash
         run: |
