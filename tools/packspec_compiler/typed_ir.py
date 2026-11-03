@@ -169,7 +169,8 @@ def project_gate(ir: dict, policy_id: str, version: str = "1.0") -> dict:
         if node.get("kind") == "EVIDENCE_PRESENCE":
             _require(node.get("runtime") == "METADATA_GATE_V0_1" and node.get("status") == "PROJECTION_ONLY",
                      "Invalid metadata projection posture")
-            reviewed.append(node["parameters"])
+            reviewed.append({"id": node["parameters"]["requirement_id"],
+                             "min_independent_sources": node["parameters"]["min_independent_sources"]})
     _require(bool(reviewed), "No enforceable evidence-presence projections")
     _require(ir.get("summary", {}).get("deferred_semantic_constraints") ==
              sum(n.get("kind") != "EVIDENCE_PRESENCE" for n in nodes),
