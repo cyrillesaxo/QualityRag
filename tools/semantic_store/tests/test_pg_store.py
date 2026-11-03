@@ -78,7 +78,7 @@ class PostgresTenantLedgerTests(unittest.TestCase):
                   (tenant_id,source_id,revision,source_sha256,metadata_json)
                 VALUES (%s,'cross-tenant','v1',%s,'{}'::jsonb)
             """,(TENANT_B,"a"*64))
-        self.a.execute("SET app.tenant_id = %s",(str(TENANT_B),))
+        self.a.execute("SELECT set_config('app.tenant_id', %s, false)",(str(TENANT_B),))
         self.assertEqual(self.a.execute(
             "SELECT qr_private.authenticated_tenant()").fetchone()[0],TENANT_A)
         self.assertEqual(self.a.execute(
