@@ -103,8 +103,10 @@ class ReviewedCanonical12GTests(unittest.TestCase):
         self.assertEqual(result["verdict"],"REFUSE")
         self.assertFalse(result["can_generate"])
         self.assertEqual(result["qualityrag_admission"],"INCONCLUSIVE")
-        self.assertTrue(all(c["deltaRef"] is None for c in
-                            result["canonical_rcoc_snapshot"]["coordinates"]))
+        self.assertIsNone(result["canonical_rcoc_snapshot"])
+        self.assertEqual(
+            result["rcoc_snapshot_status"],
+            "BLOCKED_UNKNOWN_APPLICABILITY_AND_UNMEASURED_DISPLACEMENT")
 
     def test_unknown_g_code_and_incomplete_inventory_rejected(self):
         mapping=[dict(x) for x in self.mapping]
