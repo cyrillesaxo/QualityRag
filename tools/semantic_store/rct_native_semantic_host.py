@@ -50,10 +50,14 @@ def inspect_native_semantics(before: str, after: str, *,
         raise ValueError("Absolute trusted APX path and bounded timeout required")
     if not RUNNER.is_file():
         raise NativeSemanticUnavailable("Native semantic execution is not installed")
-    env = dict(os.environ)
-    env["APX_PACKAGES_ROOT"] = apx_packages_root
-    env["RCT_APX_HMAC_KEY_B64"] = base64.b64encode(
-        secrets.token_bytes(32)).decode("ascii")
+    # Do not forward deployment secrets, cloud tokens, or GitHub credentials
+    # inherited from the Python host to a separate Node executable.
+    env = {
+        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+        "APX_PACKAGES_ROOT": apx_packages_root,
+        "RCT_APX_HMAC_KEY_B64": base64.b64encode(
+            secrets.token_bytes(32)).decode("ascii"),
+    }
     payload = json.dumps({"beforeText": before, "afterText": after},
                          ensure_ascii=False, separators=(",", ":"))
     try:
