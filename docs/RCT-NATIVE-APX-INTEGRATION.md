@@ -11,13 +11,17 @@ The `Canonical APX Native Parity (private checkout)` workflow uses two independe
 
 It builds those packages with a pinned TypeScript toolchain and executes `tools/semantic_store/tests/test_rct_apx_native_real.mjs`. The tests check actual WBC verdict-preserving removal; HCR authorized versus unauthorized hypothesis elimination; RCOC observed deterioration and stable snapshots.
 
-The workflow records both source commit IDs. Native runtime tests are NOT the same as the transport/stub tests in the normal QualityRag CI.
+The workflow records both source commit IDs. Native runtime tests are NOT the same as the transport/stub tests in the normal QualityRag CI. It also runs the original APX semantic source-span comparator and the Python signed-review end-to-end host test.
 
 ## One-time GitHub setup
 
 Create a repository secret named `APX_REPO_READ_TOKEN` in QualityRag that grants **read-only Contents** access to `cyrillesaxo/apx`. A fine-grained access token or properly scoped GitHub App installation token is sufficient. Do not use a token with write or administrator permissions. This secret is never printed or committed.
 
-From the QualityRag Actions tab, select **Canonical APX Native Parity (private checkout)** and run it with `apx_ref=main`, or preferably an exact reviewed APX commit SHA. The action **fails** when the credential is absent or when the actual packages cannot compile. It never reports a green result by substituting mock packages.
+The workflow now starts **automatically when relevant Semantic Store code or the native workflow changes land on `main`**, using the current APX `main` revision. No repeated manual activation is necessary for normal merges. It records both repository commit SHAs.
+
+For a pinned APX version, the QualityRag Actions tab still supports **Canonical APX Native Parity (private checkout)** → **Run workflow**, with `apx_ref` set to an exact reviewed APX commit SHA. The action **fails** when the read-only credential is absent or when the actual packages cannot compile. It never reports a green result by substituting mock packages.
+
+A missing `APX_REPO_READ_TOKEN` therefore produces a deliberate **red native-parity run** after relevant merges. It is a configuration blocker, not evidence that semantic checks passed, and the workflow never deploys an application.
 
 Once the native workflow passes, its two source commit SHAs and run ID must be attached to the release review. Any APX dependency update must rerun the native workflow against the new source commit.
 
@@ -52,5 +56,5 @@ APX_PACKAGES_ROOT=/absolute/path/to/apx/packages \
 - [x] Workflow compiles *original* APX modules with no mock substitution.
 - [x] Missing private-repo credential causes explicit failure.
 - [x] Host adapter preserves `INCONCLUSIVE` even when the native algorithm reports bounded success.
-- [ ] Workflow executed successfully against a specific APX SHA in a configured private-run environment.
+- [ ] Automated or manually pinned native workflow executed successfully against a specific APX SHA in a configured private-run environment.
 - [ ] Results externally reviewed against APX's canonical regression corpus before claiming broad behavioral parity.
