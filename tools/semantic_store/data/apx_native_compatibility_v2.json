@@ -1,0 +1,48 @@
+{
+  "schema": "qualityrag.apx-native-compatibility-evidence/v2",
+  "record_id": "apx-original-native-role-stress-corrected-json-2026-11-03",
+  "status": "RESEARCH_ONLY",
+  "apx": {
+    "repository": "cyrillesaxo/apx",
+    "run_commit": "ce5a65671a17b373281e3ee4d187d1e5d481e414",
+    "merged_fix_commit": "9a4f8a3e4a3fe77d576369217525e54d0162b8b0",
+    "workflow_run_id": 41731710651,
+    "workflow_url": "https://github.com/cyrillesaxo/apx/actions/runs/41731710651",
+    "artifact_id": 13277955469,
+    "artifact_name": "qualityrag-original-apx-native-scorecard",
+    "artifact_sha256": "818bbd1753ee958f027005f01c5b9e8a04b7e0a9ab0d58a1ffa3aa80d295d3ec",
+    "engine_schema": "apx.semantic-text-transition/v0.1",
+    "scorecard_schema": "apx.qualityrag-native-stress-scorecard/v1",
+    "artifact_json_valid": true
+  },
+  "qualityrag": {
+    "repository": "cyrillesaxo/QualityRag",
+    "corpus_path": "tools/semantic_store/data/semantic_role_binding_stress_v1.json",
+    "corpus_sha256": "cb01d8f9f0fc9f86e560f9f771cdae1d99be5cf01153c5a7657a69a391392ecd",
+    "governance_schema": "rct.native-relational-semantic-governance/v0.1"
+  },
+  "observed": {
+    "consequential_cases": 12,
+    "consequential_detected": 0,
+    "consequential_abstained": 12,
+    "control_cases": 6,
+    "control_flagged": 0,
+    "control_abstained": 6
+  },
+  "assurance": {
+    "artifact_archive_digest_verified": true,
+    "artifact_json_parsed": true,
+    "scorecard_hashes_cross_checked": false,
+    "combined_native_signed_pipeline_executed": false,
+    "native_build_independently_attested": false,
+    "semantic_completeness": "UNKNOWN",
+    "production_admission": "NOT_AUTHORIZED",
+    "can_generate": false
+  },
+  "limitations": [
+    "Artifact archive SHA-256 independently matched to GitHub digest; GitHub provenance is not independent build attestation",
+    "Parser validity and observed counts are verified, but this record does not certify all row-level case hashes",
+    "Native original comparator run is separate from QualityRag signed governance pipeline",
+    "Synthetic corpus and no independent expert adjudication"
+  ]
+}
