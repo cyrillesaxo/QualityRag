@@ -3,7 +3,7 @@ import XCTest
 @testable import QualityRag
 
 final class APXPackExamplesTests: XCTestCase {
- func testAllTwelveCases() throws {
+ func testAllFifteenCases() throws {
   let path=URL(fileURLWithPath:FileManager.default.currentDirectoryPath)
     .appendingPathComponent("../../examples/apx-packspecs/fixtures.json")
   let data=try Data(contentsOf:path)
@@ -27,6 +27,6 @@ final class APXPackExamplesTests: XCTestCase {
     count+=1
    }
   }
-  XCTAssertEqual(12,count)
+  XCTAssertEqual(15,count)
  }
 }
