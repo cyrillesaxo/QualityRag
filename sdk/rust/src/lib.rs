@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use std::collections::{BTreeSet, HashSet};
 #[derive(Clone, Debug)]
 pub struct Requirement {pub id:String,pub min_independent_sources:usize,pub max_age_seconds:Option<i64>}
+#[derive(Clone, Debug)]
 pub struct Pack {pub id:String,pub version:String,pub requirements:Vec<Requirement>}
 #[derive(Clone, Debug)]
 pub struct Evidence {pub id:String,pub requirement_id:String,pub origin:String,pub source_ref:String,pub status:String,pub observed_at:String}
