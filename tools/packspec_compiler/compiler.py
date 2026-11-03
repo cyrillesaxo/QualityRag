@@ -246,7 +246,7 @@ def main(argv=None) -> int:
     report = inspect(args.source)
     Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     if args.draft_mapping_out:
-        Path(args.draft_mapping_out).write_text(json.dumps(draft_mapping(report), indent=2, ensure_ascii=False)+"\\n", encoding="utf-8")
+        Path(args.draft_mapping_out).write_text(json.dumps(draft_mapping(report), indent=2, ensure_ascii=False)+"\n", encoding="utf-8")
     if args.mapping:
         mapping = json.loads(Path(args.mapping).read_text(encoding="utf-8"))
         compiled = project(report, mapping)
