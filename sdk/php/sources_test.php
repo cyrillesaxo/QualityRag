@@ -17,7 +17,7 @@ try {
 $approved=$load();
 $digest=hash('sha256',json_encode($approved,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
 $envelope=['serviceId'=>'app','environment'=>'dev','status'=>'APPROVED','policy'=>$approved,'sha256'=>$digest];
-$read=static fn()=>json_encode($envelope);
+$read=static function() use (&$envelope) { return json_encode($envelope); };
 assert(PackSpecSource::studio('http://127.0.0.1:5055','token','app','dev',$read)()['id']==='eu');
 $envelope['sha256']=str_repeat('0',64);
 try { PackSpecSource::studio('http://127.0.0.1:5055','token','app','dev',$read)(); throw new Exception('tampered policy admitted'); }
