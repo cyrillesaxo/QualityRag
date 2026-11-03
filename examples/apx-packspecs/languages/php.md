@@ -1,6 +1,7 @@
-# PHP — Four APX PackSpec-derived QualityRag examples
+# PHP — Five APX PackSpec-derived QualityRag examples
+| FFI Teacher Transformation | Teaching content has not passed the cross-framework back-translation check | `INCONCLUSIVE` |
 
-Use the same 12 evidence-gate cases across SDKs, based on the uploaded **SEMLOAN v0.4.0**, **Question Fan v0.1.0**, **FFI v0.6.0**, and **Software-selling PackSpec v0.1.0**. These are *scoped training projections* for QualityRag metadata v0.1—not execution of the complete APX contracts.
+Use the same 15 evidence-gate cases across SDKs, based on the uploaded **SEMLOAN v0.4.0**, **Question Fan v0.1.0**, **FFI v0.6.0**, **FFI Teacher Transformation**, and **Software-selling PackSpec v0.1.0**. These are *scoped training projections* for QualityRag metadata v0.1—not execution of the complete APX contracts.
 
 | Domain | Initial incomplete RAG evidence | Gate |
 | --- | --- | --- |
@@ -9,7 +10,7 @@ Use the same 12 evidence-gate cases across SDKs, based on the uploaded **SEMLOAN
 | FFI | Source excerpt and probe present; independent corroboration missing | `INCONCLUSIVE` |
 | Software selling | Buyer pain and technical prerequisites present; no controlled comparison | `INCONCLUSIVE` |
 
-For each domain, the [shared fixture](../fixtures.json) also supplies an `ADMIT` case and a `REFUSE` case. The snippet below checks all 12. An `ADMIT` confirms only the declared **evidence metadata categories**—it does **not** certify learning, investigation quality, sales effectiveness, or regulatory compliance.
+For each domain, the [shared fixture](../fixtures.json) also supplies an `ADMIT` case and a `REFUSE` case. The snippet below checks all 15. An `ADMIT` confirms only the declared **evidence metadata categories**—it does **not** certify learning, investigation quality, sales effectiveness, or regulatory compliance.
 
 ## SDK example
 
@@ -20,7 +21,8 @@ require 'sdk/php/src/QualityRag.php';
 $data=json_decode(file_get_contents('examples/apx-packspecs/fixtures.json'),true,512,JSON_THROW_ON_ERROR);
 foreach($data['scenarios'] as $domain) {
     foreach($domain['cases'] as $case) {
-        $result=\QualityRag\Gate::evaluate($domain['pack'],$case['evidence'],
+        $result=\| FFI Teacher Transformation: tutorial lacks cross-platform probe | `cross-platform-back-translation` | `INCONCLUSIVE` |
+QualityRag\Gate::evaluate($domain['pack'],$case['evidence'],
             new DateTimeImmutable($data['as_of']));
         if($result['verdict']!==$case['expected'])throw new RuntimeException('Unexpected verdict');
         echo $domain['id'].' '.$case['id'].' '.$result['verdict']."\n";
