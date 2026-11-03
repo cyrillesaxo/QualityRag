@@ -64,7 +64,7 @@ test('OIDC: real signed JWT roles and three distinct actors required to publish'
  }
  try{
    const writer=await token('alice',['policy.author']);
-   const reviewer=await token('bob',['policy.approver']);
+   const reviewer=await token('bob',['policy.approver','policy.publisher']);
    const publisher=await token('carol',['policy.publisher']);
    const reader=await token('dave',['policy.reader']);
    const superuser=await token('eve',['policy.author','policy.approver','policy.publisher','policy.reader']);
