@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
+import {verifySignedPolicy} from './signed.js';
 
 export const hashPolicy = (policy) => createHash('sha256').update(JSON.stringify(policy)).digest('hex');
 export function validatePolicy(p) {
@@ -12,11 +13,12 @@ export function validatePolicy(p) {
   }
   return {id:p.id,version:p.version,requirements:p.requirements.map(r=>({...r}))};
 }
-const empty = () => ({services:{},policies:{},bindings:{},audit:[]});
+const empty = () => ({services:{},policies:{},bindings:{},signedPromotions:{},signedBindings:{},audit:[]});
 export class RegistryStore {
   constructor(file) {
     this.file=file;
     this.data=fs.existsSync(file)? JSON.parse(fs.readFileSync(file,'utf8')) : empty();
+    this.data.signedPromotions??={};this.data.signedBindings??={};
   }
   save() {
     fs.mkdirSync(path.dirname(this.file),{recursive:true});
@@ -52,6 +54,63 @@ export class RegistryStore {
     const key=serviceId+'@'+environment;
     const binding={serviceId,environment,policyId,version,sha256:entry.sha256};
     this.data.bindings[key]=binding;this.record(actor,'BINDING_UPDATED',key);this.save();return binding;
+  }
+  stageSigned(bundle,actor,trustedKeys) {
+    const record=verifySignedPolicy(bundle,trustedKeys);
+    if(!this.data.services[record.serviceId])throw new Error('UNKNOWN_SERVICE');
+    const scope=record.serviceId+'@'+record.environment;
+    const floor=this.data.signedBindings[scope]?.sequence??0;
+    if(record.sequence<=floor)throw new Error('SIGNED_SEQUENCE_ROLLBACK');
+    const key=scope+'#'+record.sequence;
+    if(this.data.signedPromotions[key])throw new Error('SIGNED_SEQUENCE_EXISTS');
+    const entry={...record,status:'STAGED',bundle,stagedBy:actor,stagedAt:new Date().toISOString()};
+    this.data.signedPromotions[key]=entry;
+    this.record(actor,'SIGNED_POLICY_STAGED',key);
+    this.save();
+    return {serviceId:record.serviceId,environment:record.environment,sequence:record.sequence,
+      status:entry.status,keyId:record.keyId,irSha256:record.irSha256};
+  }
+  approveSigned(serviceId,environment,sequence,actor,trustedKeys) {
+    const key=serviceId+'@'+environment+'#'+sequence;
+    const entry=this.data.signedPromotions[key];
+    if(!entry)throw new Error('NOT_FOUND');
+    if(entry.status!=='STAGED')throw new Error('SIGNED_NOT_STAGED');
+    verifySignedPolicy(entry.bundle,trustedKeys);
+    entry.status='APPROVED';entry.approvedBy=actor;entry.approvedAt=new Date().toISOString();
+    this.record(actor,'SIGNED_POLICY_APPROVED',key);this.save();
+    return {serviceId,environment,sequence,status:entry.status};
+  }
+  publishSigned(serviceId,environment,sequence,actor,trustedKeys) {
+    const key=serviceId+'@'+environment+'#'+sequence;
+    const entry=this.data.signedPromotions[key];
+    if(!entry)throw new Error('NOT_FOUND');
+    if(entry.status!=='APPROVED')throw new Error('SIGNED_NOT_APPROVED');
+    const verified=verifySignedPolicy(entry.bundle,trustedKeys);
+    if(verified.serviceId!==serviceId||verified.environment!==environment||verified.sequence!==sequence)
+      throw new Error('SIGNED_BINDING_MISMATCH');
+    const scope=serviceId+'@'+environment;
+    const floor=this.data.signedBindings[scope]?.sequence??0;
+    if(sequence<=floor)throw new Error('SIGNED_SEQUENCE_ROLLBACK');
+    // Preserve exact signature and immutable bundle; no server-side signing keys.
+    this.data.signedBindings[scope]={serviceId,environment,sequence,promotionKey:key,
+      irSha256:entry.irSha256,signature:entry.bundle.signature};
+    entry.status='PUBLISHED';entry.publishedBy=actor;entry.publishedAt=new Date().toISOString();
+    this.record(actor,'SIGNED_POLICY_PUBLISHED',key);this.save();
+    return {serviceId,environment,sequence,status:entry.status,irSha256:entry.irSha256};
+  }
+  resolveSigned(serviceId,environment,trustedKeys) {
+    if(!this.data.services[serviceId])throw new Error('UNKNOWN_SERVICE');
+    const binding=this.data.signedBindings[serviceId+'@'+environment];
+    if(!binding)throw new Error('UNBOUND_SERVICE');
+    const entry=this.data.signedPromotions[binding.promotionKey];
+    if(!entry||entry.status!=='PUBLISHED'||entry.bundle.signature!==binding.signature)
+      throw new Error('SIGNED_POLICY_INTEGRITY_FAILURE');
+    const verified=verifySignedPolicy(entry.bundle,trustedKeys);
+    if(verified.serviceId!==serviceId||verified.environment!==environment||
+       verified.sequence!==binding.sequence||verified.irSha256!==binding.irSha256)
+      throw new Error('SIGNED_POLICY_INTEGRITY_FAILURE');
+    return {serviceId,environment,sequence:binding.sequence,status:'PUBLISHED',
+      signedPolicy:entry.bundle};
   }
   resolve(serviceId,environment) {
     if (!this.data.services[serviceId]) throw new Error('UNKNOWN_SERVICE');
