@@ -29,6 +29,7 @@ def joined_shape(verdict="INCONCLUSIVE"):
            "verdict":verdict}
     audit["fingerprint"]=digest(audit)
     joined={"schema":"rct.source-span-joined-candidate/v2.1",
+            "structural_fingerprint":"f"*64,
             "source_span_audit":audit,"verdict":verdict,
             "qualityrag_admission":"INCONCLUSIVE","can_generate":False}
     joined["fingerprint"]=digest(joined)
@@ -139,8 +140,10 @@ class DualSemanticTest(unittest.TestCase):
             if k!="fingerprint"})
         changed["fingerprint"]=digest({
             k:v for k,v in changed.items() if k!="fingerprint"})
+        updated_native=native_shape()
+        updated_native["source_sha256"]="d"*64
         with self.assertRaisesRegex(ValueError,"exact inventory"):
-            self.run_check(native_shape(),joined=changed)
+            self.run_check(updated_native,joined=changed)
 
     def test_review_attestation_replay_fails(self):
         signed=self.sign()
