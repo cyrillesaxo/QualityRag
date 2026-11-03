@@ -242,6 +242,11 @@ def main(argv=None) -> int:
     cli.add_argument("--mapping", help="Human-approved candidate mapping JSON")
     cli.add_argument("--draft-mapping-out", help="Write unapproved review worksheet JSON")
     cli.add_argument("--policy-out", help="Optional output standalone QualityRag policy JSON")
+    cli.add_argument("--typed-mapping", help="Reviewed mapping with typed constraint kinds")
+    cli.add_argument("--typed-draft-out", help="Inert typed-constraint review worksheet")
+    cli.add_argument("--ir-out", help="Output typed ConstraintIR JSON; requires --typed-mapping")
+    cli.add_argument("--typed-policy-out", help="Evidence-only projection from typed IR")
+    cli.add_argument("--typed-policy-id", help="Identifier for projected evidence policy")
     args = cli.parse_args(argv)
     report = inspect(args.source)
     Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -254,6 +259,27 @@ def main(argv=None) -> int:
             raise CompileError("--policy-out required with --mapping")
         Path(args.policy_out).write_text(json.dumps(compiled["policy"], indent=2) + "\n", encoding="utf-8")
         Path(args.out).write_text(json.dumps({**report, "approved_projection": compiled}, indent=2, ensure_ascii=False)+"\n", encoding="utf-8")
+    if args.typed_draft_out or args.typed_mapping:
+        from typed_ir import draft_typed_mapping, compile_ir, project_gate, IRValidationError
+        if args.typed_draft_out:
+            Path(args.typed_draft_out).write_text(
+                json.dumps(draft_typed_mapping(report), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        if args.typed_mapping:
+            if not args.ir_out:
+                raise CompileError("--ir-out required with --typed-mapping")
+            try:
+                mapping = json.loads(Path(args.typed_mapping).read_text(encoding="utf-8"))
+                ir = compile_ir(report, mapping)
+                if args.typed_policy_out:
+                    if not args.typed_policy_id:
+                        raise CompileError("--typed-policy-id required for typed projection")
+                    result = project_gate(ir, args.typed_policy_id)
+                    Path(args.typed_policy_out).write_text(
+                        json.dumps(result["policy"], indent=2) + "\n", encoding="utf-8")
+                Path(args.ir_out).write_text(
+                    json.dumps(ir, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            except IRValidationError as e:
+                raise CompileError(str(e)) from e
     print(f"Inspect: {len(report['candidate_constraints'])} candidate passages, zero automatic semantic admissions")
     return 0
 
