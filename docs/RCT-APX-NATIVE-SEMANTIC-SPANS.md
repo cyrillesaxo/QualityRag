@@ -35,3 +35,12 @@ The two candidate evaluators serve different purposes:
 - Original APX semantic-source comparator: candidate observations from bounded lexical patterns, with no externally authenticated authority.
 
 For a future combined gate, a difference flagged by either evaluator should trigger a refusal or review; neither evaluator is authorized to assert complete meaning conservation or grant generation.
+
+
+## Safe dual-check orchestration
+
+`tools/semantic_store/rct_dual_semantic.py` provides `combine_semantic_diagnostics`. It joins the exact source/candidate SHA-256 digests from the bounded APX comparator and the source-span inventory, then **rechecks the original Ed25519 reviewer attestation** using the canonical signed PackSpec policy and durable nonce guard. A detached `review_signature: VERIFIED` flag is never trusted.
+
+A malformed native payload is rejected **before the one-use reviewer nonce is consumed**. A mismatch of source or candidate digest fails closed. A REFUSE from either observed path dominates. If the original private APX engine was not run, its status remains explicitly UNAVAILABLE, not a synthetic pass.
+
+This combined receipt is not an authenticated attestation of which APX executable ran. It preserves `NATIVE_RUNTIME_RESULT_NOT_INDEPENDENTLY_ATTESTED`; no ADMIT or generation is permitted. Tests use actual signed review verification while native payload interface fixtures remain distinguished from the opt-in original-APX execution tests.
