@@ -138,3 +138,52 @@ def attach_signed_governance(structural: dict, *,
     }
     receipt["fingerprint"] = digest(receipt)
     return receipt
+
+
+def attach_reviewed_signed_governance(
+        structural: dict, *,
+        reviewed_ir: dict, signed_review: dict, reviewer_keys: dict,
+        signed_policy: dict, policy_keys: dict,
+        service: str, environment: str, minimum_sequence: int,
+        nonce_accepted, as_of: str, **custody_arguments) -> dict:
+    """Strict combined research entry point: signed reviewer AND custody.
+
+    Each independently signed attestation is one-shot and consumes a durable
+    nonce. There is no automatic ADMIT or generation capability.
+    """
+    from rct_reviewed_obligations import verify_reviewed_mapping
+    if not isinstance(structural, dict) or structural.get("stage") != "RESEARCH_CANDIDATE":
+        raise ValueError("Full research pipeline requires a structural candidate")
+    reviewed = verify_reviewed_mapping(
+        lens=structural["purpose_lens"],
+        ir=reviewed_ir, conservation=structural["conservation"],
+        signed_policy=signed_policy, signed_review=signed_review,
+        reviewer_keys=reviewer_keys, policy_keys=policy_keys,
+        minimum_sequence=minimum_sequence,
+        service=service, environment=environment,
+        as_of=as_of, nonce_accepted=nonce_accepted)
+    custody = attach_signed_governance(
+        structural,
+        reviewed_ir=reviewed_ir, signed_policy=signed_policy,
+        policy_keys=policy_keys,
+        service=service, environment=environment,
+        minimum_sequence=minimum_sequence,
+        nonce_accepted=nonce_accepted, as_of=as_of,
+        **custody_arguments)
+    result = {
+        "schema": "rct.reviewed-end-to-end/v2",
+        "structural_receipt_sha256": structural["fingerprint"],
+        "reviewed_mapping": reviewed,
+        "custody": custody["custody"],
+        "signed_path_receipt_sha256": custody["fingerprint"],
+        "verdict": "REFUSE" if custody["verdict"] == "REFUSE" else "INCONCLUSIVE",
+        "qualityrag_admission": "INCONCLUSIVE",
+        "can_generate": False,
+        "blockers": sorted(set(custody["blockers"] + [
+            "SEMANTIC_SUFFICIENCY_NOT_ESTABLISHED",
+            "EXTERNAL_NATIVE_APX_PARITY_NOT_ATTESTED",
+            "NATIVE_FF_RCT_NOT_IMPLEMENTED",
+        ])),
+    }
+    result["fingerprint"] = digest(result)
+    return result
