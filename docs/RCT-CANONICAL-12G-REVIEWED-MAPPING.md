@@ -39,7 +39,11 @@ An observed source-span contradiction propagates to a G coordinate as `OBSERVED_
 
 ## RCOC interface
 
-The adapter produces `apx.semantic-assurance-snapshot/v0.1` with all 12 coordinate IDs, the candidate revision and `deltaRef=null` for every coordinate. **No metric has been measured.** Passing this source-bound snapshot to the canonical APX RCOC comparator therefore cannot justify a movement or improvement claim. A genuine measured distance, transformation order, and independently reviewed authority remain additional inputs.
+The adapter **does not emit an APX RCOC snapshot**. Instead it returns `canonical_rcoc_snapshot=null` and `rcoc_snapshot_status=BLOCKED_UNKNOWN_APPLICABILITY_AND_UNMEASURED_DISPLACEMENT`.
+
+This is a necessary semantic distinction: original APX RCOC interprets `applicable=false` as **NOT_APPLICABLE**, whereas an unobserved G coordinate is **UNKNOWN**, not proven inapplicable. The current inventory also lacks measured `deltaRef` displacement. Constructing a canonical RCOC input from the current finite source-span observations would invent both applicability and measurement.
+
+A future input must independently establish which G coordinates are applicable, provide measured evidence-bound distances and an explicit transformation order before invoking canonical RCOC. No semantic movement or improvement is claimed in the meantime.
 
 ## Run
 

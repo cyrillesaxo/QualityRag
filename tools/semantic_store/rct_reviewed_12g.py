@@ -134,16 +134,13 @@ def verify_reviewed_g_mapping(*, joined: dict, ir: dict, mapping: list[dict],
             "source_observed":entry["observed"],
             "semantic_adequacy":"UNKNOWN",
         })
-    # The canonical APX RCOC snapshot expects measurements deltaRef/pHat
-    # that these finite text witnesses cannot provide. Set null explicitly.
-    snapshot={
-        "schema":"apx.semantic-assurance-snapshot/v0.1",
-        "revision":joined["source_span_audit"]["candidate_sha256"],
-        "coordinates":[{"id":c["code"],
-                        "applicable":c["source_observed"],
-                        "deltaRef":None}
-                       for c in coordinates],
-    }
+    # Deliberately DO NOT emit an APX RCOC snapshot here. That engine
+    # interprets applicable=False as NOT_APPLICABLE, while an unobserved
+    # coordinate means UNKNOWN applicability. Further, there is no measured
+    # deltaRef. Projecting these flags would fabricate semantic stability.
+    # An independently reviewed applicability + metric contract must precede
+    # any canonical RCOC input construction.
+    snapshot=None
     refused=(span_review["verdict"]=="REFUSE"
              or any(c["observed_status"]=="OBSERVED_VIOLATION" for c in coordinates))
     receipt={
@@ -154,6 +151,7 @@ def verify_reviewed_g_mapping(*, joined: dict, ir: dict, mapping: list[dict],
         "governing_ir_sha256":ir["ir_sha256"],
         "coordinates":coordinates,
         "canonical_rcoc_snapshot":snapshot,
+        "rcoc_snapshot_status":"BLOCKED_UNKNOWN_APPLICABILITY_AND_UNMEASURED_DISPLACEMENT",
         "verdict":"REFUSE" if refused else "INCONCLUSIVE",
         "qualityrag_admission":"INCONCLUSIVE",
         "can_generate":False,
