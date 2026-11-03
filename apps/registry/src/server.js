@@ -28,6 +28,14 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
  return async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
   if (url.pathname==='/health') return reply(res,200,{ok:true,service:'qualityrag-registry'});
+  if(url.pathname==='/ready'){
+   try{
+    const status=store.readiness?await store.readiness():{ready:true,backend:'file'};
+    return reply(res,200,status);
+   }catch{
+    return reply(res,503,{ready:false,reason:'REGISTRY_NOT_READY'});
+   }
+  }
   const provided=req.headers.authorization;
   let actor='registry-token';
   if(authenticate){
@@ -85,19 +93,32 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
 }
 const own=fileURLToPath(import.meta.url);
 if(process.argv[1]&&path.resolve(process.argv[1])===own){
- const store=process.env.QUALITYRAG_REGISTRY_BACKEND==='postgres'
-   ?createPgSignedRegistryStore(process.env.DATABASE_URL)
-   :new RegistryStore(process.env.QUALITYRAG_REGISTRY_FILE||'./.qualityrag/registry.json');
- if(process.env.QUALITYRAG_REGISTRY_BACKEND && !['postgres','file'].includes(process.env.QUALITYRAG_REGISTRY_BACKEND))
-   throw new Error('UNSUPPORTED_REGISTRY_BACKEND');
- const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
- const oidc=process.env.QUALITYRAG_AUTH_MODE==='oidc'
-  ? createOidcAuthenticator({issuer:process.env.QUALITYRAG_OIDC_ISSUER,
-      audience:process.env.QUALITYRAG_OIDC_AUDIENCE,jwksUri:process.env.QUALITYRAG_OIDC_JWKS_URI,
-      roleClaim:process.env.QUALITYRAG_OIDC_ROLE_CLAIM||'roles'}) : null;
- if(process.env.QUALITYRAG_AUTH_MODE && !['oidc','local'].includes(process.env.QUALITYRAG_AUTH_MODE))
-  throw new Error('UNSUPPORTED_AUTH_MODE');
- const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
-   {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc}));
- server.listen(Number(process.env.PORT||5055),'127.0.0.1',()=>console.log('QualityRag local registry listening on '+server.address().port));
+ const backend=process.env.QUALITYRAG_REGISTRY_BACKEND||'file';
+ const authMode=process.env.QUALITYRAG_AUTH_MODE||'local';
+ if(!['file','postgres'].includes(backend))throw new Error('UNSUPPORTED_REGISTRY_BACKEND');
+ if(!['oidc','local'].includes(authMode))throw new Error('UNSUPPORTED_AUTH_MODE');
+ // PostgreSQL is not an opt-in weakening of governance: no shared token.
+ if(backend==='postgres' && authMode!=='oidc')throw new Error('POSTGRES_REQUIRES_OIDC');
+ const store=backend==='postgres'?createPgSignedRegistryStore(process.env.DATABASE_URL):
+    new RegistryStore(process.env.QUALITYRAG_REGISTRY_FILE||'./.qualityrag/registry.json');
+ const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?
+    loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
+ if(backend==='postgres' && keys.size===0)throw new Error('TRUSTED_POLICY_KEYS_REQUIRED');
+ const oidc=authMode==='oidc'
+  ?createOidcAuthenticator({issuer:process.env.QUALITYRAG_OIDC_ISSUER,
+     audience:process.env.QUALITYRAG_OIDC_AUDIENCE,jwksUri:process.env.QUALITYRAG_OIDC_JWKS_URI,
+     roleClaim:process.env.QUALITYRAG_OIDC_ROLE_CLAIM||'roles'}):null;
+ try{
+  // Require explicit, checksummed migration before serving any requests.
+  if(store.readiness)await store.readiness();
+  const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
+    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc}));
+  const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
+  server.listen(Number(process.env.PORT||5055),host,
+    ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));
+ }catch(error){
+  console.error('QualityRag startup blocked:',error.message);
+  if(store.close)await store.close();
+  process.exitCode=1;
+ }
 }
