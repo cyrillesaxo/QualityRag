@@ -95,3 +95,7 @@ The [signed Studio promotion guide](apps/registry/SIGNED-PROMOTION.md) explains 
 ## Transactional signed-policy promotions
 
 The [PostgreSQL signed-promotion ledger](apps/registry/POSTGRES-SIGNED-LEDGER.md) implements service/environment row locking and atomic promotion/audit transactions for multiple registry instances. It is an opt-in **signed-only** backend; unsigned legacy operations explicitly fail rather than using file storage. PostgreSQL provisioning, independent audit anchoring and production deployment remain outside this implementation.
+
+## Operational signed-registry readiness
+
+The [PostgreSQL deployment and recovery runbook](apps/registry/DEPLOYMENT-RUNBOOK.md) describes checksummed advisory-locked migration, fail-closed startup, liveness/readiness probes, and a non-root registry container. It does not provision production database, identity or signing credentials.
