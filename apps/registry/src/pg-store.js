@@ -108,16 +108,16 @@ export class PgSignedRegistryStore {
   ]);
   return {services:ss.rows,policies:[],bindings:[],signedPromotions:ps.rows.map(x=>({...x,sequence:Number(x.sequence)})),signedBindings:bs.rows.map(x=>({...x,sequence:Number(x.sequence)}))};
  }
- async verifyGovernanceIntegrity(){
+ async verifyGovernanceIntegrity(queryable=this.pool){
   // Read-only validation, detecting missing events, altered links, mismatched
   // heads and status/audit inconsistencies without mutating operator state.
-  const scopes=await this.pool.query('SELECT service_id,environment,published_sequence FROM qr_scopes ORDER BY service_id,environment');
+  const scopes=await queryable.query('SELECT service_id,environment,published_sequence FROM qr_scopes ORDER BY service_id,environment');
   for(const scope of scopes.rows){
    const s=scope.service_id,e=scope.environment;
    const [head,events,promotions]=await Promise.all([
-    this.pool.query('SELECT last_hash FROM qr_governance_heads WHERE service_id=$1 AND environment=$2',[s,e]),
-    this.pool.query('SELECT sequence,actor,action,previous_hash,event_hash FROM qr_governance_events WHERE service_id=$1 AND environment=$2 ORDER BY event_id',[s,e]),
-    this.pool.query('SELECT sequence,status,staged_by,approved_by,published_by FROM qr_signed_promotions WHERE service_id=$1 AND environment=$2',[s,e])
+    queryable.query('SELECT last_hash FROM qr_governance_heads WHERE service_id=$1 AND environment=$2',[s,e]),
+    queryable.query('SELECT sequence,actor,action,previous_hash,event_hash FROM qr_governance_events WHERE service_id=$1 AND environment=$2 ORDER BY event_id',[s,e]),
+    queryable.query('SELECT sequence,status,staged_by,approved_by,published_by FROM qr_signed_promotions WHERE service_id=$1 AND environment=$2',[s,e])
    ]);
    if(head.rowCount!==1)err('GOVERNANCE_AUDIT_INTEGRITY_FAILURE');
    let previous=ZERO,actions=new Map();
@@ -148,10 +148,19 @@ export class PgSignedRegistryStore {
   return {scopes:scopes.rowCount};
  }
  async readiness(){
-  await this.pool.query('SELECT 1');
-  const migration=await checkMigrations(this.pool);
-  const audit=await this.verifyGovernanceIntegrity();
-  return {ready:true,backend:'postgres',migration:migration.version,checkedScopes:audit.scopes};
+  const c=await this.pool.connect();
+  try{
+   // One consistent snapshot across scopes, heads and events under concurrent publishing.
+   await c.query('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
+   await c.query('SELECT 1');
+   const migration=await checkMigrations(c);
+   const audit=await this.verifyGovernanceIntegrity(c);
+   await c.query('COMMIT');
+   return {ready:true,backend:'postgres',migration:migration.version,checkedScopes:audit.scopes};
+  }catch(error){
+   await c.query('ROLLBACK').catch(()=>{});
+   throw error;
+  }finally{c.release()}
  }
  async draft(){err('UNSUPPORTED_IN_POSTGRES_MODE')}
  async approve(){err('UNSUPPORTED_IN_POSTGRES_MODE')}
