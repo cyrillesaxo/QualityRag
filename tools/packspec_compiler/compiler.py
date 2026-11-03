@@ -247,6 +247,7 @@ def main(argv=None) -> int:
     cli.add_argument("--ir-out", help="Output typed ConstraintIR JSON; requires --typed-mapping")
     cli.add_argument("--typed-policy-out", help="Evidence-only projection from typed IR")
     cli.add_argument("--typed-policy-id", help="Identifier for projected evidence policy")
+    cli.add_argument("--acknowledge-deferred", action="store_true", help="Allow explicitly partial evidence-only projection")
     args = cli.parse_args(argv)
     report = inspect(args.source)
     Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -273,7 +274,7 @@ def main(argv=None) -> int:
                 if args.typed_policy_out:
                     if not args.typed_policy_id:
                         raise CompileError("--typed-policy-id required for typed projection")
-                    result = project_gate(ir, args.typed_policy_id)
+                    result = project_gate(ir, args.typed_policy_id, acknowledge_deferred=args.acknowledge_deferred)
                     Path(args.typed_policy_out).write_text(
                         json.dumps(result["policy"], indent=2) + "\n", encoding="utf-8")
                 Path(args.ir_out).write_text(
