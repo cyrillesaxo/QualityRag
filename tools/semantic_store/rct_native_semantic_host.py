@@ -133,3 +133,109 @@ def execute_dual_semantic_check(
         reviewer_keys=reviewer_keys, minimum_sequence=minimum_sequence,
         service=service, environment=environment, as_of=as_of,
         nonce_accepted=nonce_accepted)
+
+
+def execute_relational_semantic_check(
+        joined: dict, *, source_text: str, candidate_text: str,
+        source_facts: list[dict], candidate_facts: list[dict],
+        apx_packages_root: str, ir: dict, signed_policy: dict,
+        signed_span_review: dict, signed_role_review: dict,
+        policy_keys: dict, span_reviewer_keys: dict, role_reviewer_keys: dict,
+        minimum_sequence: int, service: str, environment: str,
+        as_of: str, nonce_accepted) -> dict:
+    """Native lexical + signed span + signed typed role conservation.
+
+    A lexical INCONCLUSIVE must not override a reviewed role violation.
+    All three checks bind the identical document SHA-256 and governing IR.
+    None establishes complete semantic extraction or truth of annotations.
+
+    The signed span and role reviews use independent one-use nonces; validation
+    is not an atomic transaction. The host must manage retry/re-sign on a
+    partially spent nonce after a later failure.
+    """
+    from rct_signed_role_grammar import (
+        proposed_role_review, verify_signed_role_review)
+    from rct_signed_span_review import proposed_inventory_review
+    from rct_dual_semantic import combine_semantic_diagnostics
+    from store import digest
+    if (not isinstance(joined, dict)
+            or not isinstance(joined.get("source_span_audit"), dict)
+            or sha256(source_text.encode()).hexdigest() !=
+               joined["source_span_audit"].get("source_sha256")
+            or sha256(candidate_text.encode()).hexdigest() !=
+               joined["source_span_audit"].get("candidate_sha256")):
+        raise ValueError("Source and candidate must match reviewed documents")
+    if (not isinstance(signed_role_review,dict)
+            or not isinstance(signed_span_review,dict)
+            or not isinstance(signed_policy,dict)
+            or len({
+                signed_role_review.get("key_id"),
+                signed_span_review.get("key_id"),
+                signed_policy.get("key_id"),
+            }) != 3):
+        raise ValueError("Independent policy, span and role reviewer identities required")
+    # Preflight the exact version and signed observation payloads so malformed
+    # document/inventory differences fail BEFORE native execution and replay.
+    role_draft=proposed_role_review(
+        source=source_text,candidate=candidate_text,
+        source_facts=source_facts,candidate_facts=candidate_facts,ir=ir)
+    span_draft=proposed_inventory_review(joined,ir)
+    from signed_bundles import ATTEST_SCHEMA, verify
+    role_body=verify(signed_role_review,role_reviewer_keys,schema=ATTEST_SCHEMA)
+    span_body=verify(signed_span_review,span_reviewer_keys,schema=ATTEST_SCHEMA)
+    if (role_body.get("observations") != {
+            "typed_role_graph_review":dict(
+                role_draft,review_status="REVIEWED_FINITE_ROLE_BINDINGS")}
+            or role_body.get("witnesses") != []
+            or span_body.get("observations") != {
+                "source_span_inventory_review":dict(
+                    span_draft,review_status="REVIEWED_FINITE_SCOPE")}
+            or span_body.get("witnesses") != []):
+        raise ValueError("Signed role or source-span claims differ from source versions")
+    native=inspect_native_semantics(
+        source_text,candidate_text,apx_packages_root=apx_packages_root)
+    # The role checker verifies its own signed policy, actual original bytes,
+    # trusted reviewer key and nonce. The original native result is never a
+    # substitute for the signed role semantics.
+    relational=verify_signed_role_review(
+        source=source_text,candidate=candidate_text,
+        source_facts=source_facts,candidate_facts=candidate_facts,
+        ir=ir,signed_policy=signed_policy,signed_review=signed_role_review,
+        policy_keys=policy_keys,reviewer_keys=role_reviewer_keys,
+        minimum_sequence=minimum_sequence,service=service,
+        environment=environment,as_of=as_of,
+        nonce_accepted=nonce_accepted)
+    lexical_and_spans=combine_semantic_diagnostics(
+        joined,native,ir=ir,signed_policy=signed_policy,
+        signed_review=signed_span_review,policy_keys=policy_keys,
+        reviewer_keys=span_reviewer_keys,
+        minimum_sequence=minimum_sequence,service=service,
+        environment=environment,as_of=as_of,
+        nonce_accepted=nonce_accepted)
+    if (relational["source_sha256"] != lexical_and_spans["source_text_sha256"]
+            or relational["candidate_sha256"] != lexical_and_spans["candidate_text_sha256"]
+            or relational["governing_ir_sha256"] != ir["ir_sha256"]):
+        raise ValueError("Relational and native document/PackSpec versions differ")
+    verdict=("REFUSE" if "REFUSE" in (
+        relational["verdict"],lexical_and_spans["verdict"])
+             else "INCONCLUSIVE")
+    combined={
+        "schema":"rct.native-relational-semantic-governance/v0.1",
+        "source_sha256":relational["source_sha256"],
+        "candidate_sha256":relational["candidate_sha256"],
+        "governing_ir_sha256":ir["ir_sha256"],
+        "native_span_receipt_sha256":lexical_and_spans["fingerprint"],
+        "signed_role_receipt_sha256":relational["fingerprint"],
+        "native_lexical_verdict":lexical_and_spans["native_verdict"],
+        "signed_role_verdict":relational["verdict"],
+        "signed_span_verdict":lexical_and_spans["reviewed_span_verdict"],
+        "verdict":verdict,
+        "qualityrag_admission":"INCONCLUSIVE",
+        "can_generate":False,
+        "semantic_completeness":"UNKNOWN",
+        "publisher_authority":"NOT_ESTABLISHED",
+        "role_extraction":"EXTERNAL_REVIEWED_ANNOTATIONS_NOT_AUTOMATED",
+        "native_runtime_authority":"NOT_INDEPENDENTLY_ATTESTED",
+    }
+    combined["fingerprint"]=digest(combined)
+    return combined
