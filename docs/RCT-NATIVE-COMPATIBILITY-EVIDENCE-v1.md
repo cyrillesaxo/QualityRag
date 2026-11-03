@@ -8,6 +8,10 @@ This change pins the **reported original APX stress execution**, not a semantic-
 - Reported outcomes: **0/12 consequential detections**, **0/6 control flags**. All 18 original comparator results were unresolved (`INCONCLUSIVE`).
 - Current combined governance schema: `rct.native-relational-semantic-governance/v0.1`. The combined signed path was previously exercised with a **mock native interface**, not with this independently verified original executable.
 
+## Historical artifact defect (confirmed)
+
+The downloaded ZIP from APX run `41726055119` matches GitHub's artifact SHA-256, but its stress scorecard ends with literal `\\n` after the closing JSON brace. Thus the original on-disk stress scorecard **fails strict JSON parsing**. The record deliberately sets `artifact_json_valid=false`. APX [PR #128](https://github.com/cyrillesaxo/apx/pull/128) corrects the exporter and adds a round-trip parse assertion. A fresh APX native run and a new separately versioned compatibility record are required; do not silently patch or overwrite the historical artifact.
+
 ## Checks
 
 Run without a scorecard to check the local immutable corpus/record relationship:
