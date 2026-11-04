@@ -11,14 +11,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - uses: actions/checkout@v4
-        with:
-          repository: cyrillesaxo/apx
-          ref: 9a4f8a3e4a3fe77d576369217525e54d0162b8b0
-          path: .apx-native
-          sparse-checkout: |
-            packages/apx-wbc/src
-            packages/apx-rcoc/src
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg libseccomp2
       - run: python -m pip install -r tools/activation_runtime/research/requirements.lock.txt playwright==1.56.0
       - run: python -m playwright install --with-deps chromium
@@ -27,7 +19,7 @@ jobs:
       - run: python -m unittest discover -s tools/packspec_compiler -p 'test_finite_activation.py' -v
       - run: python -m unittest discover -s tools/activation_runtime/tests -p 'test_*.py' -v
         env:
-          QUALITYRAG_APX_ROOT: ${{ github.workspace }}/.apx-native
+          QUALITYRAG_APX_ROOT: ${{ github.workspace }}/tools/activation_runtime/vendor/apx
           QUALITYRAG_BROWSER_TESTS: '1'
       - run: python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py' -v
       - run: python -m unittest discover -s tools/research_ledger/tests -p 'test_*.py' -v

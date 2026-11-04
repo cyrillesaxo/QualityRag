@@ -7,6 +7,25 @@ from tools.activation_runtime.native_apx import evaluate
 
 
 class NativeAPXMissingTests(unittest.TestCase):
+    def test_vendored_source_identity_and_tampering_refusal(self):
+        import hashlib
+        import json
+        import shutil
+        from tools.activation_runtime.native_apx import SOURCES, COMMIT
+        vendor = Path(__file__).resolve().parents[1] / "vendor" / "apx"
+        provenance = json.loads((vendor / "PROVENANCE.json").read_text())
+        self.assertEqual(provenance["commit"], COMMIT)
+        self.assertEqual(provenance["sha256"], SOURCES)
+        for path, expected in SOURCES.items():
+            self.assertEqual(hashlib.sha256((vendor / path).read_bytes()).hexdigest(), expected)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "apx"
+            shutil.copytree(vendor, root)
+            target = root / next(iter(SOURCES))
+            target.write_bytes(target.read_bytes() + b"\n// altered source\n")
+            with self.assertRaisesRegex(ValueError, "differs from pinned"):
+                evaluate(root, {"operation": "WBC", "witnessIds": [], "decisions": {"": "UNKNOWN"}})
+
     def test_missing_original_source_does_not_substitute(self):
         with tempfile.TemporaryDirectory() as root:
             with self.assertRaises(FileNotFoundError):

@@ -2,15 +2,15 @@
   "schema": "qualityrag.recovery-verification/v1",
   "date": "2026-11-04",
   "scope": "LOCAL_ENGINEERING_VERIFICATION",
-  "remote_ci": "NOT_YET_OBSERVED",
+  "remote_ci": "FIRST_COMMIT_OTHER_SUITES_PASSED_ACTIVATION_BLOCKED_BY_APX_PRIVATE_CHECKOUT",
   "independent_acceptance": "NOT_ESTABLISHED",
   "checks": [
     {
       "name": "activation-runtime",
-      "discovered": 65,
-      "passed": 65,
+      "discovered": 66,
+      "passed": 66,
       "skipped": 0,
-      "log_sha256": "19c1a7d5932dfe2c67c2ac2ba4de257a99e2575b2f76e2e574a5f0f45fe63e93"
+      "log_sha256": "d91f4199adc6161d4ae5fd3cbf692eb33a05c3eab58f1183aeabcb5bb5e24d4c"
     },
     {
       "name": "finite-activation",
@@ -93,7 +93,7 @@
     "tools/activation_runtime/tests/test_device_authority.py": "5bb29e483e1828e3579f9d7e6af432e7d36c49595ffe35871312d30cf2664add",
     "tools/activation_runtime/tests/test_experiments.py": "3e420833ad1f25bbbbadf74dddc43cc74ef5be906c3fee21c1bb88456f647684",
     "tools/activation_runtime/tests/test_ledger_validation.py": "0c6856c3ef98e9af09d1b20619ebad2e0ec49c0eb1bbde3aafff1a582c77db57",
-    "tools/activation_runtime/tests/test_native_apx.py": "8b3fac59472c28aab3ba1727ca26410259ea701c3ab0c18f795c7e830ff3a24e",
+    "tools/activation_runtime/tests/test_native_apx.py": "3651ee7519b670912cda378f4a98a5f2c3e345e902670de192bbc41670ee57b5",
     "tools/activation_runtime/tests/test_preservation.py": "358185d61e726c4511eaabeeb38137ba4a5588f951d9754acb58919a2bf0406f",
     "tools/activation_runtime/tests/test_profiles.py": "b4838de1257d24c3071429468835533b01b569031be2def69fdfcfe8e4c9cb51",
     "tools/activation_runtime/tests/test_proposals.py": "80fc1b0372f38e685c5dfc4aeaeab3455c8f38d5403c94fb2c9e6ad107388f94",
@@ -102,8 +102,12 @@
     "tools/activation_runtime/tests/test_search_pilot.py": "e0ef4fa405b6841a0f28852fd32b202965f1fc520458ec097fc242a43dc8d962",
     "tools/activation_runtime/tests/test_service_sdk.py": "1fbb19ae633a0c1775b399e20f833d4aaa890ca33905e07d9b121631c0c81450",
     "tools/activation_runtime/tests/test_streaming.py": "a4f1f0e733943cd1ec2d4b566ddf43e693dc82300699f872e173704f983897ad",
+    "tools/activation_runtime/vendor/apx/packages/apx-rcoc/src/canonical-taxonomy.ts": "315588fd9efaf20b8021e7ca4da19066bfd86c3d22b82a40f088f0e5908eee97",
+    "tools/activation_runtime/vendor/apx/packages/apx-rcoc/src/index.ts": "33bf9a1ffe7e18ac28e859de514bf1a3beb8e39f9c4014c6764cd32d224f110a",
+    "tools/activation_runtime/vendor/apx/packages/apx-wbc/src/index.ts": "d25ab8317bfd37407fa68a711985e567317faf89f97fd3aadc65d2cd26217898",
     "tools/activation_runtime/web/app.js": "c186490c06c8d79240ce1be8d54b5fe3cdf7c2f0ca6b103f10d5bd235246b685",
     "tools/activation_runtime/web/index.html": "5390178aa43c9d9e03ab014248974afc83f876952cbba3f51cc26ffaff4e1991",
     "tools/activation_runtime/web/style.css": "850e74cea15d2cfab13c64ae78a791c492a8ef919fb787b580360d0555a1800d"
-  }
+  },
+  "native_apx_source": "vendor/apx unmodified hash-pinned subset; private checkout removed"
 }

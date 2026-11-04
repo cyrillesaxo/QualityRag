@@ -616,3 +616,12 @@ they are explicitly skipped locally, never counted as passing.
 Real corpus licensing/annotation, independent domain adjudication, physical
 mobile/TV power measurements, qualified neural weights and canonical FF-RCT
 parity remain external acceptance gates. No criteria have been removed.
+
+### Canonical APX CI recovery
+
+The first recovery commit encountered a private cross-repository checkout
+failure before tests ran. The activation workflow now uses three unmodified
+Apache-2.0 APX source files pinned to the same upstream commit and SHA-256 values
+in vendor/apx. Their license and provenance are retained. Both existing runners
+verify source hashes before execution; a tamper test refuses altered source.
+This removes a credential dependency without substituting canonical behavior.

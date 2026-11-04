@@ -23,7 +23,8 @@ The authored fixture clips are not a representative 100-clip corpus.
 The measured reference codec is larger than AV1 in the committed experiment.
 No byte, quality, cost or energy advantage is inferred from that run.
 
-For pinned original APX WBC/RCoC checks, set QUALITYRAG_APX_ROOT to an APX checkout
+For pinned original APX WBC/RCoC checks, set QUALITYRAG_APX_ROOT to the absolute
+path of tools/activation_runtime/vendor/apx, or to an APX checkout
 at 9a4f8a3e4a3fe77d576369217525e54d0162b8b0 with packages/apx-wbc/src and
 packages/apx-rcoc/src present. A missing source is an explicit error; optional
 tests SKIP when the checkout is not configured. There is no Python substitute.
