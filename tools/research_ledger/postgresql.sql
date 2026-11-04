@@ -1,10 +1,5 @@
-"""Portable PostgreSQL 16+ foundation for the QualityRag research evidence ledger.
-
-No Supabase service or proprietary extension is required. Migration is
-create-only and does not modify existing application tables. Graph edges are
-first-class relational records; vector storage is optional and separately
-enabled with CREATE EXTENSION vector if available.
-"""
+-- Portable PostgreSQL foundation; no Supabase dependency.
+-- Create-only schema: apply to a dedicated, secured PostgreSQL database.
 CREATE SCHEMA IF NOT EXISTS research;
 
 CREATE TABLE IF NOT EXISTS research.claims (
@@ -12,7 +7,7 @@ CREATE TABLE IF NOT EXISTS research.claims (
   project text NOT NULL,
   kind text NOT NULL CHECK (kind IN ('HYPOTHESIS','CAPABILITY','EXPERIMENT','DECISION')),
   statement text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
+  created_at text NOT NULL,
   content_hash char(64) NOT NULL
 );
 CREATE TABLE IF NOT EXISTS research.evidence (
@@ -21,7 +16,7 @@ CREATE TABLE IF NOT EXISTS research.evidence (
   uri text NOT NULL,
   description text NOT NULL,
   content_sha256 char(64),
-  observed_at timestamptz NOT NULL DEFAULT now(),
+  observed_at text NOT NULL,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
   record_hash char(64) NOT NULL
 );
@@ -30,7 +25,7 @@ CREATE TABLE IF NOT EXISTS research.assessment_events (
   claim_id text NOT NULL REFERENCES research.claims(claim_id),
   assessment text NOT NULL CHECK(assessment IN ('UNVERIFIED','IMPLEMENTED','TESTED','VALIDATED','REFUTED','SUPERSEDED','INCONCLUSIVE')),
   reason text NOT NULL,
-  observed_at timestamptz NOT NULL DEFAULT now(),
+  observed_at text NOT NULL,
   actor text NOT NULL,
   evidence_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
   previous_event_hash char(64),
@@ -42,7 +37,7 @@ CREATE TABLE IF NOT EXISTS research.claim_links (
   from_claim text NOT NULL REFERENCES research.claims(claim_id),
   to_claim text NOT NULL REFERENCES research.claims(claim_id),
   relation text NOT NULL CHECK(relation IN ('SUPPORTS','CHALLENGES','DEPENDS_ON','SUPERSEDES','QUALIFIES')),
-  created_at timestamptz NOT NULL DEFAULT now(),
+  created_at text NOT NULL,
   link_hash char(64) NOT NULL,
   CHECK(from_claim<>to_claim)
 );
