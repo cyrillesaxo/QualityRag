@@ -706,3 +706,25 @@ Actual representative/licensed corpus, fresh blinded holdouts, final sample plan
 and independent evaluators are still required. US-048 remains BLOCKED and the
 full inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE. No research acceptance
 criterion is removed or satisfied by authored keys and software tests alone.
+
+
+## 18. Pilot approval scope and bounded CI installation
+
+US-042/044/051 now require the pilot approval to bind exact source, encoded
+artifact, policy, grammar, model and decoder hashes, run ID, tenant, target
+service/environment, release sequence and host version floor. A host subject map
+checks the reviewer identity before nonce consumption. Malformed evidence hashes
+block readiness rather than raising incidental type errors. Critical-field loss
+and unknown economics remain hard blockers. Pilot permission never grants
+production release or can_generate. Legacy unbound approvals require re-signing.
+
+Thirteen real-signature regression tests cover altered bindings, wrong/revoked
+reviewers, expiry, replay, version policy, changed evidence and blocked outcomes.
+See docs/PILOT-RELEASE-AUTHORITY.md. Independent source/domain review, licensing,
+physical devices and real economics remain required; US-051 stays BLOCKED.
+
+The preceding PR CI run stalled in package installation despite the same-commit
+push workflow passing all checks. Dependency installation steps now have explicit
+three-minute limits; media package acquisition and lock waits and Python network
+requests/retries are bounded. Tests are not skipped or weakened on install failure.
+The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.

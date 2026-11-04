@@ -73,9 +73,15 @@ def check_review(envelope,keys, *, context, author_public_key, as_of):
             "boundary":"Signature authenticates the configured reviewer, not universal semantic truth"}
 
 
-def verify_review(envelope,keys, *, context, author_public_key, as_of, nonce_store, tenant):
+def verify_review(envelope,keys, *, context, author_public_key, as_of, nonce_store, tenant,reviewer_subjects=None):
     identity(tenant)
     checked=check_review(envelope,keys,context=context,author_public_key=author_public_key,as_of=as_of)
+    if reviewer_subjects is not None:
+        if not isinstance(reviewer_subjects,dict) or set(reviewer_subjects)!=set(keys):
+            raise PermissionError("Host reviewer subject map is incomplete")
+        subject=reviewer_subjects[checked["review_key_id"]]
+        identity(subject)
+        if subject!=checked["reviewer"]:raise PermissionError("Review signer differs from host-assigned subject")
     if not isinstance(nonce_store,SQLiteNonceStore) or not nonce_store("activation-review",tenant,checked["nonce"]):
         raise PermissionError("Review replay or nondurable replay guard")
     return {key:value for key,value in checked.items() if key!="nonce"}
