@@ -1505,10 +1505,30 @@
         {
           "path": "tools/research_ledger/ledger.py",
           "sha256": "5febe4b3cb5403645c67c881cbfb22e797b352117f1a1cd281733a4cdab52769"
+        },
+        {
+          "path": "tools/activation_runtime/postgres_validation.py",
+          "sha256": "153d5aa22c0d3cf2f32a7eb68284b4dc497872b499d7b4d0fc4b8cdb33537d3d"
+        },
+        {
+          "path": "tools/research_ledger/postgres.py",
+          "sha256": "cfb681e3cd5551347dd06f27a1e8f2ecf452ff48f020bff9dd8d97616001bd35"
+        },
+        {
+          "path": "tools/research_ledger/postgresql.sql",
+          "sha256": "c9691d7d74560839bf957ab362a84dc4ac6b2f0c130f5b62eb14698e207158c1"
+        },
+        {
+          "path": "tools/research_ledger/migrate_sqlite_to_postgres.py",
+          "sha256": "294928c28de4468538e1bc2cb102e95c39c11bdf8011031ca9323365cad7f32e"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_postgres_validation.py",
+          "sha256": "3c8017eb1c9c3b7432d96f5dc1971f89148ea609ff59b2401378b3c161408190"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_ledger_validation.py",
-      "remaining": "Real independently authorized scope-bounded validation/evidence; PostgreSQL validation extension remains a separate integration boundary.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_ledger_validation.py; tools/activation_runtime/tests/test_postgres_validation.py",
+      "remaining": "Real independently authorized scope-bounded validation/evidence and deployment review; SQLite and PostgreSQL signed validation are implemented.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },
@@ -1798,7 +1818,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/authority.py",
-          "sha256": "7c2fafb7e968a02395f7bff8c9c0c3e44bb07b251a0d3c56cb0631f851f65a77"
+          "sha256": "31c87e02785eb6150ac46eb0060b269bf27e619741b748beea9709c133bdb51a"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py",

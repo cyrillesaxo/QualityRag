@@ -587,7 +587,7 @@ listed below. It does not mean all software or research acceptance is satisfied.
 | US-033 | IN_REVIEW | Network/device startup, buffering and seek measurements against conventional playback. |
 | US-034 | IN_REVIEW | Merged review and independent restart/custody replay. |
 | US-035 | IN_REVIEW | Merged review and independently observed research-continuity behavior. |
-| US-036 | IN_REVIEW | Real independently authorized scope-bounded validation/evidence; PostgreSQL validation extension remains a separate integration boundary. |
+| US-036 | IN_REVIEW | Real independently authorized scope-bounded validation/evidence and deployment review; SQLite and PostgreSQL signed validation are implemented. |
 | US-037 | IN_REVIEW | Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported. |
 | US-038 | IN_REVIEW | Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim. |
 | US-039 | IN_REVIEW | Merged review of six distinct role contracts and disagreement/escalation behavior. |
@@ -625,3 +625,20 @@ Apache-2.0 APX source files pinned to the same upstream commit and SHA-256 value
 in vendor/apx. Their license and provenance are retained. Both existing runners
 verify source hashes before execution; a tamper test refuses altered source.
 This removes a credential dependency without substituting canonical behavior.
+
+
+## 14. US-036 PostgreSQL signed validation
+
+The PostgreSQL adapter now supports the same evidence-gated VALIDATED path as
+the SQLite reference through a trusted host verifier. The new
+`tools/activation_runtime/postgres_validation.py` binds signed review to the
+claim, evidence, ledger identity, tenant, event actor, event ID and chain head.
+An append-only receipt table supplies transactionally atomic replay protection;
+failed writes roll back the approval reservation. Backdated event appends and
+automatic transfer of SQLite VALIDATED labels are refused.
+
+The activation CI job now provisions PostgreSQL 16 and enables the real database
+tests, including migration, concurrent replay, write failure/retry, altered scope,
+wrong signer, stale review and corruption. Authored cryptographic fixtures do not
+supply independent research validation. Story counts remain 37 IN_REVIEW,
+14 BLOCKED, 0 DONE. See docs/RESEARCH-MEMORY-SIGNED-POSTGRES-VALIDATION.md.

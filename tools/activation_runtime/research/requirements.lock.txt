@@ -16,6 +16,7 @@ packaging==26.3
 pycparser==3.12
 pyparsing==3.3.2
 pypdf==6.10.0
+psycopg[binary]==3.3.8
 python-dateutil==3.0.0
 referencing==0.37.0
 reportlab==4.4.9

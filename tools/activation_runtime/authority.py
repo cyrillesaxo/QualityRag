@@ -52,7 +52,8 @@ def review_binding(context, *, decision, reviewer, author_key_id, key, key_id,
                  "issued_at":issued_at,"expires_at":expires_at},key,key_id=key_id,schema=ATTEST_SCHEMA)
 
 
-def verify_review(envelope,keys, *, context, author_public_key, as_of, nonce_store, tenant):
+def check_review(envelope,keys, *, context, author_public_key, as_of):
+    """Check authority and exact scope; the caller must atomically record the nonce."""
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
     payload=verify(envelope,keys,schema=ATTEST_SCHEMA)
     if set(payload)!={"review","issued_at","expires_at"}: raise ValueError("Wrong attestation purpose")
@@ -60,14 +61,21 @@ def verify_review(envelope,keys, *, context, author_public_key, as_of, nonce_sto
     review=payload["review"]
     if not isinstance(review,dict) or set(review)!={"context","decision","reviewer","author_key_id","nonce"}:
         raise ValueError("Invalid review")
-    identity(review["reviewer"]);identity(review["nonce"]);identity(tenant)
+    identity(review["reviewer"]);identity(review["nonce"])
     if canonical(review["context"])!=canonical(context) or review["decision"]!="APPROVE":
         raise PermissionError("Review rejected or stale context")
     actual=keys[envelope["key_id"]].public_bytes(Encoding.Raw,PublicFormat.Raw)
     if actual==author_public_key.public_bytes(Encoding.Raw,PublicFormat.Raw):
         raise PermissionError("Same signing key under different identity cannot self-review")
-    if not isinstance(nonce_store,SQLiteNonceStore) or not nonce_store("activation-review",tenant,review["nonce"]):
-        raise PermissionError("Review replay or nondurable replay guard")
     return {"reviewer":review["reviewer"],"review_key_id":envelope["key_id"],
+            "nonce":review["nonce"],
             "context_sha256":fingerprint(context),"review":"HOST_AUTHORIZED_APPROVAL",
             "boundary":"Signature authenticates the configured reviewer, not universal semantic truth"}
+
+
+def verify_review(envelope,keys, *, context, author_public_key, as_of, nonce_store, tenant):
+    identity(tenant)
+    checked=check_review(envelope,keys,context=context,author_public_key=author_public_key,as_of=as_of)
+    if not isinstance(nonce_store,SQLiteNonceStore) or not nonce_store("activation-review",tenant,checked["nonce"]):
+        raise PermissionError("Review replay or nondurable replay guard")
+    return {key:value for key,value in checked.items() if key!="nonce"}
