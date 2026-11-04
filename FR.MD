@@ -684,3 +684,25 @@ PackSpec/source-backed examples and the transport contract.
 The canonical server remains the evaluator. Shape validation and SDK parity
 do not establish independent semantic correctness. Story counts remain
 37 IN_REVIEW, 14 BLOCKED, 0 DONE pending review and remaining acceptance.
+
+
+## 17. Signed holdout opening and statistical work bounds
+
+US-040/048 now use host-configured evaluator keys and subject mappings rather
+than caller role strings to authorize registered holdout openings. Signed grants
+bind registry, tenant, actor, protocol, corpus hash and observed registration.
+Append-only receipts and nonce reservations commit atomically with opening
+events. Replay, proposer-key aliases, unknown/revoked keys, expired grants,
+changed datasets, corrupted protocols and clock regression refuse. Legacy
+registrations without an observed receipt cannot be silently grandfathered.
+
+The paired bootstrap now bounds seed, resample count and total draws, rejects
+nonfinite/overflowing values and explicitly labels independence as caller-declared
+and unverified. Tests use actual signatures and concurrent durable SQLite
+connections. See docs/EXPERIMENT-HOLDOUT-AUTHORITY.md for API migration and
+limits. The registry does not serve corpus bytes or independently attest time.
+
+Actual representative/licensed corpus, fresh blinded holdouts, final sample plan
+and independent evaluators are still required. US-048 remains BLOCKED and the
+full inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE. No research acceptance
+criterion is removed or satisfied by authored keys and software tests alone.

@@ -1164,7 +1164,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/experiments.py",
-          "sha256": "532bba629b45abbc44f13b37e46f3558edf3065e245fced3df77dc11f139e729"
+          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_experiments.py",
@@ -1701,9 +1701,21 @@
         {
           "path": "tools/activation_runtime/adversaries.py",
           "sha256": "024a35f2da3a47abcf819a15cc1fa4f242e7767e055c3e45688dcf535b5ebcda"
+        },
+        {
+          "path": "tools/activation_runtime/experiments.py",
+          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_holdout_authority.py",
+          "sha256": "ebb440f6f2434a408a58e52500d37efb307506e4e6cd7901ca8230522d2e225a"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_experiments.py",
+          "sha256": "8333f416a0025862f18371540af6bca29469816ade331d1903786c4e2d1e97db"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_adversaries.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_holdout_authority.py; tools/activation_runtime/tests/test_experiments.py",
       "remaining": "Independently adjudicated family-hidden real cases; authored finite false-accept counts do not generalize.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1742,7 +1754,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/experiments.py",
-          "sha256": "532bba629b45abbc44f13b37e46f3558edf3065e245fced3df77dc11f139e729"
+          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/research/receipts/engineering-v1.json",
@@ -2060,10 +2072,18 @@
       "modules": [
         {
           "path": "tools/activation_runtime/experiments.py",
-          "sha256": "532bba629b45abbc44f13b37e46f3558edf3065e245fced3df77dc11f139e729"
+          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_holdout_authority.py",
+          "sha256": "ebb440f6f2434a408a58e52500d37efb307506e4e6cd7901ca8230522d2e225a"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_experiments.py",
+          "sha256": "8333f416a0025862f18371540af6bca29469816ade331d1903786c4e2d1e97db"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_experiments.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_holdout_authority.py; tools/activation_runtime/tests/test_experiments.py",
       "remaining": "Actual final protocol registration bound to a real corpus/sample plan before opening its holdout.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
