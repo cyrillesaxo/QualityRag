@@ -1,4 +1,5 @@
 Pillow==13.0.0
+PyYAML==6.0.3
 attrs==26.1.0
 cffi==2.1.1
 charset-normalizer==3.5.2
