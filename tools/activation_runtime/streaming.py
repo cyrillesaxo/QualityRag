@@ -2,11 +2,53 @@
 from copy import deepcopy
 from hashlib import sha256
 import json
+from fractions import Fraction
 from time import perf_counter_ns
-from .scene_codec import canon,digest,decode_frames,_model
-from .common import identity,HEX
+from .scene_codec import canon,digest,decode_frames,_model,MAX_FRAMES,MAX_RAW,PAYLOAD_SCHEMA
+from .common import identity,HEX,strict_json
 from .artifacts import ArtifactStore
 from signed_bundles import sign,verify,ATTEST_SCHEMA,_validate_period
+
+
+def _index(index):
+    """Validate the signed index before allocating placeholders or fetching frames."""
+    if (not isinstance(index,dict) or set(index)!={"schema","header","model_object","segments","variants"}
+        or index["schema"]!="qualityrag.scene-segment-index/v1" or index["variants"]!=["reference","raw"]):
+        raise ValueError("Unsupported segment index")
+    header=index["header"]
+    if (not isinstance(header,dict) or "frames" in header or header.get("schema")!=PAYLOAD_SCHEMA or
+        header.get("codec")!="scene-palette-rgb/v1" or header.get("runtime_abi")!="python-scene-reference/v1" or
+        header.get("normalized_profile")!="RGB24_CFR_AND_PCM32_AUDIO"):
+        raise ValueError("Unsupported streaming header")
+    for address in (index["model_object"],header.get("model_sha256"),header.get("source_sha256")):
+        if not isinstance(address,str) or not HEX.fullmatch(address):raise ValueError("Pinned streaming hashes required")
+    if index["model_object"]!=header["model_sha256"]:raise ValueError("Index/model mismatch")
+    count=header.get("frame_count");width=header.get("width");height=header.get("height")
+    if (any(type(n) is not int for n in (count,width,height)) or not 1<=count<=MAX_FRAMES or
+        not 1<=width<=512 or not 1<=height<=512 or count*width*height*3>MAX_RAW):
+        raise ValueError("Streaming memory/frame budget")
+    def rational(value):
+        if not isinstance(value,str) or not 1<=len(value)<=64:raise ValueError("Bounded timestamp string required")
+        try:return Fraction(value)
+        except (ValueError,ZeroDivisionError) as exc:raise ValueError("Invalid streaming time") from exc
+    fps=rational(header.get("fps"))
+    if not 0<fps<=30 or count/fps>10:raise ValueError("Streaming rate/duration budget")
+    times=header.get("source_frame_pts")
+    if not isinstance(times,list) or len(times)!=count:raise ValueError("Missing streaming timestamps")
+    pts=[rational(value) for value in times]
+    if any(value<0 or abs(value-Fraction(i)/fps)>Fraction(1,1000) or (i>0 and value<=pts[i-1])
+           for i,value in enumerate(pts)):
+        raise ValueError("Unsupported streaming timeline")
+    rows=index["segments"]
+    if not isinstance(rows,list) or len(rows)!=count:raise ValueError("Missing streaming segments")
+    for i,row in enumerate(rows):
+        if (not isinstance(row,dict) or set(row)!={"index","variants","dependencies","frame_sha256"} or
+            type(row["index"]) is not int or row["index"]!=i or row["dependencies"]!=[index["model_object"]] or
+            not isinstance(row["variants"],dict) or set(row["variants"])!={"reference","raw"}):
+            raise ValueError("Streaming dependency, variant or ordering mismatch")
+        for address in [row["frame_sha256"],*row["variants"].values()]:
+            if not isinstance(address,str) or not HEX.fullmatch(address):raise ValueError("Pinned segment hashes required")
+    return index
 
 
 def package(payload,model,store):
@@ -25,12 +67,15 @@ def package(payload,model,store):
                      "dependencies":[model_sha],"frame_sha256":original["frame_sha256"]})
     index={"schema":"qualityrag.scene-segment-index/v1","header":header,"model_object":model_sha,
            "segments":rows,"variants":["reference","raw"]}
+    _index(index)
     return store.put(canon(index)),index
 
 
 def release(index_sha,index,*,tenant,policy_ir_sha256,run_id,sequence):
     identity(tenant);identity(run_id)
-    if type(sequence) is not int or sequence<1:raise ValueError("Release sequence")
+    _index(index)
+    if digest(index)!=index_sha:raise ValueError("Release index hash mismatch")
+    if type(sequence) is not int or not 1<=sequence<=1_000_000_000:raise ValueError("Release sequence")
     if any(not isinstance(h,str) or not HEX.fullmatch(h) for h in (index_sha,policy_ir_sha256,index["model_object"],index["header"]["source_sha256"])):
         raise ValueError("Pinned release hashes required")
     return {"schema":"qualityrag.scene-release/v1","codec":"scene-palette-rgb/v1",
@@ -56,7 +101,7 @@ class StreamSession:
         index=self.load(manifest["index_sha256"])
         expected=release(manifest["index_sha256"],index,tenant=store.tenant,policy_ir_sha256=expected_policy_sha256,
                          run_id=manifest["run_id"],sequence=manifest["sequence"])
-        if manifest!=expected or type(minimum_sequence) is not int or manifest["sequence"]<minimum_sequence:
+        if manifest!=expected or type(minimum_sequence) is not int or not 1<=minimum_sequence<=1_000_000_000 or manifest["sequence"]<minimum_sequence:
             raise ValueError("Release tenant, policy, model, ABI or version mismatch")
         self.index=index
         self.model=self.load(index["model_object"])
@@ -66,7 +111,7 @@ class StreamSession:
     def load(self,address):
         raw=self.store.get(address)
         self.loads.append({"address":address,"bytes":len(raw)})
-        return json.loads(raw)
+        return strict_json(raw,max_bytes=2_000_000)
 
     def pause(self):self.paused=True
     def resume(self):self.paused=False
@@ -96,7 +141,7 @@ class StreamSession:
                     "seek_ns":perf_counter_ns()-started,"downloaded_segments":len(self.loads)-before,
                     "downloaded_bytes":sum(r["bytes"] for r in self.loads[before:]),
                     "can_generate":False}
-        except (ValueError,KeyError,IndexError,FileNotFoundError):
+        except (ValueError,KeyError,IndexError,TypeError,OSError):
             return {"action":"FALLBACK","frames":[],"reference":self.fallback_ref,
                     "reason":"SEGMENT_OR_MODEL_UNAVAILABLE","can_generate":False}
 
@@ -124,3 +169,15 @@ def benchmark_seek(session_factory,baseline_path,indices):
     return {"schema":"qualityrag.local-seek-benchmark/v1","rows":rows,
             "scope":"LOCAL_FILESYSTEM_COLD_SESSION_VS_FRESH_FFMPEG_PROCESS","network_buffering":"UNMEASURED",
             "physical_device_playback":"UNMEASURED","performance_advantage":"NOT_ESTABLISHED"}
+
+
+def open_stream(store,*,signed_release,keys,expected_policy_sha256,minimum_sequence,as_of,fallback_ref):
+    """Host entry point: unavailable or invalid startup state selects its fallback."""
+    try:
+        session=StreamSession(store,signed_release=signed_release,keys=keys,
+            expected_policy_sha256=expected_policy_sha256,minimum_sequence=minimum_sequence,
+            as_of=as_of,fallback_ref=fallback_ref)
+    except (ValueError,KeyError,IndexError,TypeError,OSError):
+        return {"action":"FALLBACK","session":None,"reference":fallback_ref,
+                "reason":"RELEASE_INDEX_OR_MODEL_UNAVAILABLE","can_generate":False}
+    return {"action":"READY","session":session,"can_generate":False}

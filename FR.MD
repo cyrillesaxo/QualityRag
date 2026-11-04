@@ -766,3 +766,19 @@ No previous pointer bypasses fresh signature or compatibility checks. See
 `docs/DEVICE-UPDATE-RECOVERY.md` for API and accounting semantics. Physical-device
 A/B reconstruction, supported-platform security review and measured device costs
 remain outstanding. The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.
+
+
+## 21. Bounded streaming indexes and startup fallback
+
+US-033 now validates signed index shape, resource budgets, complete segment
+ordering/dependencies, variant hashes and bounded CFR timelines before frame
+allocation. Release creation refuses index/address mismatches; version floors
+must be positive and bounded. Strict object JSON parsing rejects duplicate keys.
+
+The host `open_stream` entry point selects fallback for unavailable/invalid
+release, index or model state. Corrupt requested frames also fall back without
+advancing playback position. Tests cover authentically signed malformed indexes,
+missing startup objects, revocation/expiry/floor failures and bounded random
+access. See `docs/STREAMING-INDEX-BOUNDARIES.md`. These checks do not establish
+external source truth, adaptive audio, perceptual bitrate levels or measured
+network/device playback. The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.

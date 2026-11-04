@@ -996,7 +996,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/streaming.py",
-          "sha256": "3ae6d286149947b04db003ea51c8f473e7b79b63101c067b4020f1afc41b0e1b"
+          "sha256": "4b8ff19646621589a16d24ac03bcec7406c3ae41f397da13b95682f305b30b25"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py",
@@ -1394,10 +1394,18 @@
       "modules": [
         {
           "path": "tools/activation_runtime/streaming.py",
-          "sha256": "3ae6d286149947b04db003ea51c8f473e7b79b63101c067b4020f1afc41b0e1b"
+          "sha256": "4b8ff19646621589a16d24ac03bcec7406c3ae41f397da13b95682f305b30b25"
+        },
+        {
+          "path": "docs/STREAMING-INDEX-BOUNDARIES.md",
+          "sha256": "3a707a749c331a2ecb0b561ff294fc6e3fedeacb811da6d8ddf6a26337faf6bf"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_streaming_boundaries.py",
+          "sha256": "86be9f9031e63b37816810092695087b08cdf0d83f11cbf23da1726aa85b6510"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py; tools/activation_runtime/tests/test_streaming_boundaries.py",
       "remaining": "Network/device startup, buffering and seek measurements against conventional playback.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1924,7 +1932,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/streaming.py",
-          "sha256": "3ae6d286149947b04db003ea51c8f473e7b79b63101c067b4020f1afc41b0e1b"
+          "sha256": "4b8ff19646621589a16d24ac03bcec7406c3ae41f397da13b95682f305b30b25"
         },
         {
           "path": "tools/activation_runtime/release.py",
