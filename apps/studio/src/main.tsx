@@ -27,6 +27,27 @@ function Studio(){
  type VisualResult={source_id:string;format:string;distance:number;revision:string;identity_status:string;anchor:{kind:string;timestamp_ms?:number}};
  const [visualResults,setVisualResults]=useState<VisualResult[]>([]);
  const [visualStatus,setVisualStatus]=useState('');
+ const [sceneReady,setSceneReady]=useState(false);
+ const [scenePrompt,setScenePrompt]=useState('someone presenting in a conference room');
+ const [sceneStatus,setSceneStatus]=useState('');
+ type SceneHit={source_id:string;revision:string;anchor:{kind:string;timestamp_ms?:number};similarity:number;match_type:string};
+ const [sceneHits,setSceneHits]=useState<SceneHit[]>([]);
+ async function sceneIndex(){
+  setSemanticRunning(true);
+  try {
+   const r=await semanticRequest('/semantic/scenes/index',{});
+   setSceneStatus('Encoded '+r.indexed_sources+' visual sources; '+r.skipped_sources+' skipped; '+r.failed_sources+' failed.'+(r.truncated?' Index truncated.':''));
+  }catch(e){setSceneStatus(String(e))}finally{setSemanticRunning(false)}
+ }
+ async function sceneFind(){
+  setSemanticRunning(true);
+  try {
+   const r=await semanticRequest('/semantic/scenes/find',{prompt:scenePrompt});
+   setSceneHits(r.results);
+   setSceneStatus(r.results.length+' model-ranked scene candidates (uncalibrated; not verified facts).'+(r.truncated?' Results truncated.':''));
+  }catch(e){setSceneStatus(String(e));setSceneHits([])}finally{setSemanticRunning(false)}
+ }
+
  async function visualFind(){
   setSemanticRunning(true);
   try {
@@ -49,7 +70,7 @@ function Studio(){
  async function semanticConnect(){
   setSemanticRunning(true);try{
    const status=await semanticRequest('/semantic/status');
-   setSemanticNamespace(status.namespace);setSemanticDirectory(status.directory);
+   setSemanticNamespace(status.namespace);setSemanticDirectory(status.directory);setSceneReady(Boolean(status.scene_model_ready));
    setSemanticStatus('Connected: local directory '+status.directory+' (CSV, JSON, VTT, PDF, DOCX, HTML, TXT)');
   }catch(e){setSemanticStatus(String(e))}finally{setSemanticRunning(false)}
  }
@@ -154,6 +175,24 @@ function Studio(){
     <strong>{result.source_id}</strong> <code>{result.format}</code> ·
     Perceptual distance: {result.distance}/64 · {result.anchor.kind==='video_frame'?
       'At '+((result.anchor.timestamp_ms||0)/1000).toFixed(1)+'s':'Image'} · Identity: unknown
+   </li>)}</ul>
+   <hr/>
+   <h3>Search visual scenes using a prompt</h3>
+   <p>Optional local vision-language model. Uses sampled images/frames rather than captions; model rankings are unverified
+   and do not identify named people. Enable the local model in the worker configuration.</p>
+   <button disabled={!semanticDirectory||!sceneReady||semanticRunning} onClick={sceneIndex}>Build scene index</button>
+   {!sceneReady&&<p>Scene model unavailable. Enable the local OpenCLIP model to search visual content with prompts.</p>}
+   <div className="line">
+    <label>Visual scene prompt<input value={scenePrompt} onChange={e=>setScenePrompt(e.target.value)}
+      placeholder="someone presenting in a conference room"/></label>
+    <button disabled={!semanticDirectory||!sceneReady||!scenePrompt.trim()||semanticRunning}
+      onClick={sceneFind}>Find scenes</button>
+   </div>
+   <p className="status" role="status">{sceneStatus}</p>
+   <ul>{sceneHits.map((hit,i)=><li key={hit.source_id+hit.revision+i}>
+    <strong>{hit.source_id}</strong> · {hit.anchor.kind==='video_frame'?
+     'At '+((hit.anchor.timestamp_ms||0)/1000).toFixed(1)+'s':'Image'} ·
+    Similarity: {hit.similarity.toFixed(3)} (not probability) · Unverified model candidate
    </li>)}</ul>
    </section>
    <footer>QualityRag v0.1 · deterministic policy enforcement · policies are not proof of source truth</footer>
