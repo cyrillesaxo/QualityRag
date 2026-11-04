@@ -16,11 +16,14 @@ from typing import Callable
 
 from semantic_codex import CodexError, SCHEMA
 from document_codex import compile_document
+from visual_codex import compile_visual, IMAGE_FORMATS, VIDEO_FORMATS, hamming64
 from store import SemanticStore, canonical_bytes, digest
 
 EXTENSIONS = {".csv": "csv", ".json": "json", ".vtt": "vtt",
               ".pdf": "pdf", ".docx": "docx", ".html": "html",
-              ".htm": "htm", ".txt": "txt"}
+              ".htm": "htm", ".txt": "txt", ".png": "png",
+              ".jpg": "jpg", ".jpeg": "jpeg", ".webp": "webp",
+              ".mp4": "mp4", ".mov": "mov", ".mkv": "mkv"}
 MAX_FILES = 200
 MAX_BYTES_TOTAL = 20_000_000
 MAX_SOURCE_BYTES = 2_000_000
@@ -171,7 +174,9 @@ def index_directory(
                 if not authorize_source(principal, sid, rev):
                     counters["denied"] += 1
                     continue
-                artifact = compile_document(data, source_id=sid, revision=rev, format=fmt)
+                artifact = (compile_visual(data, source_id=sid, revision=rev, format=fmt)
+                            if fmt in IMAGE_FORMATS | VIDEO_FORMATS else
+                            compile_document(data, source_id=sid, revision=rev, format=fmt))
                 result = persist_codex(store, artifact)
                 counters["indexed" if result["persisted"] else "unchanged"] += 1
                 counters["bytes_indexed"] += len(data)
@@ -241,3 +246,81 @@ def search_store(
             "scope": "INDEXED_RECORDS_ONLY_NOT_ALL_DIRECTORY_CONTENT",
             "visual_identity_recognition": "NOT_PERFORMED",
             "admission": "INCONCLUSIVE", "can_generate": False}
+
+
+def find_visual_similar(
+    store: SemanticStore, *, reference_source_id: str, namespace: str,
+    principal: str, authorize_source: Callable[[str, str, str], bool],
+    max_distance: int = 10, max_hits: int = 50, max_records: int = 5000,
+) -> dict:
+    """Find images/video frames resembling an already indexed source image.
+
+    Perceptual hash is a *whole-frame appearance* proxy. A similar score says
+    nothing about who is present, whether two people are the same, or meaning.
+    """
+    if not principal or not callable(authorize_source):
+        raise PermissionError("Source-level authorization is required")
+    if (not _valid_namespace(namespace) or not isinstance(reference_source_id,str)
+            or not reference_source_id.startswith(namespace+"/")
+            or type(max_distance) is not int or not 0 <= max_distance <= 64
+            or type(max_hits) is not int or not 1 <= max_hits <= 100
+            or type(max_records) is not int or not 1 <= max_records <= 5000):
+        raise CodexError("Invalid visual reference or search bounds")
+    prefix = namespace + "/"
+    rows = store.db.execute(
+        "SELECT s.source_id,s.source_revision,v.payload_json,m.metadata_json "
+        "FROM semantic_versions v JOIN source_versions m "
+        "ON m.source_id=v.source_id AND m.revision=v.source_revision "
+        "JOIN (SELECT source_id,source_revision FROM semantic_versions "
+        "WHERE kind='CODEX_RECORD' GROUP BY source_id,source_revision) s "
+        "ON s.source_id=v.source_id AND s.source_revision=v.source_revision "
+        "WHERE v.kind='CODEX_RECORD' AND substr(v.source_id,1,?)=? "
+        "ORDER BY s.source_id,s.source_revision,v.object_id LIMIT ?",
+        (len(prefix), prefix, max_records+1)).fetchall()
+    truncated = len(rows)>max_records
+    reference=[]
+    candidates=[]
+    for sid, rev, payload, metadata in rows[:max_records]:
+        # Check permissions before parsing/disclosing source values.
+        if not authorize_source(principal,sid,rev):
+            continue
+        fmt=json.loads(metadata).get("format")
+        if fmt not in IMAGE_FORMATS | VIDEO_FORMATS:
+            continue
+        record=json.loads(payload)
+        key=record.get("fields",{}).get("visual_hash",{}).get("value")
+        if not isinstance(key,str) or len(key)!=16:
+            raise CodexError("Malformed indexed visual hash")
+        item={"source_id":sid,"revision":rev,"format":fmt,
+              "anchor":record["anchor"],"hash":key}
+        candidates.append(item)
+        if sid==reference_source_id and fmt in IMAGE_FORMATS:
+            reference.append(item)
+    if not reference:
+        raise CodexError("Indexed authorized image reference not found")
+    # Reference identity is not tied to a face. Prefer current exact source
+    # revision by providing the content-hash-based latest version separately.
+    if len(reference)!=1:
+        raise CodexError("Ambiguous reference versions; use an unambiguous indexed image")
+    matches=[]
+    ref=reference[0]
+    for item in candidates:
+        if item["source_id"]==ref["source_id"] and item["revision"]==ref["revision"]:
+            continue
+        distance=hamming64(ref["hash"],item["hash"])
+        if distance<=max_distance:
+            matches.append({"source_id":item["source_id"],"revision":item["revision"],
+                            "format":item["format"],"anchor":item["anchor"],
+                            "distance":distance,
+                            "match_type":"WHOLE_FRAME_VISUAL_APPEARANCE_CANDIDATE",
+                            "identity_status":"UNKNOWN"})
+    matches.sort(key=lambda x:(x["distance"],x["source_id"],x["revision"]))
+    return {"schema":"qualityrag.visual-reference-search/v0.4",
+            "reference_source_id":reference_source_id,
+            "results":matches[:max_hits],
+            "truncated":truncated or len(matches)>max_hits,
+            "scanned_authorized_visual_records":len(candidates),
+            "method":"64_BIT_DHASH",
+            "scope":"BOUNDED_VISUAL_APPEARANCE_NOT_PERSON_IDENTITY",
+            "identity_recognition":"NOT_PERFORMED",
+            "admission":"INCONCLUSIVE","can_generate":False}
