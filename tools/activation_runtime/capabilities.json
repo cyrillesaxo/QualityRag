@@ -1038,7 +1038,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/device.py",
-          "sha256": "fbadfd6c15bfae7840f9456476875b9b37f9a5c27e9fa213ee9ad1d360f12999"
+          "sha256": "69deb26a4dfc6281aa3195aeb1c04ccfa575257fafcf3ce45d1efac9dc543076"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_device_authority.py",
@@ -1122,10 +1122,18 @@
       "modules": [
         {
           "path": "tools/activation_runtime/device.py",
-          "sha256": "fbadfd6c15bfae7840f9456476875b9b37f9a5c27e9fa213ee9ad1d360f12999"
+          "sha256": "69deb26a4dfc6281aa3195aeb1c04ccfa575257fafcf3ce45d1efac9dc543076"
+        },
+        {
+          "path": "docs/DEVICE-UPDATE-RECOVERY.md",
+          "sha256": "02477c28ca05a3c343b44f21376768fd8559da0ccee381e5d9cf550a26c585ce"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_device_recovery.py",
+          "sha256": "df937081e719f9114748ebc8d5b063d00785a620653011c4b6cde9e03098f47d"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_device_authority.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_device_authority.py; tools/activation_runtime/tests/test_device_recovery.py",
       "remaining": "Supported-device old/new-runtime A/B and interrupted update/rollback measurements.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"

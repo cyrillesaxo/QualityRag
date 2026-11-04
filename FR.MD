@@ -749,3 +749,20 @@ uncertainty, negative results, missing data, Pareto dimensions and CLI parity.
 See docs/LIFECYCLE-UNCERTAINTY.md. Actual measured lifecycle/energy costs,
 independent review and promotion evidence remain outstanding. The inventory
 remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.
+
+
+## 20. Recoverable device transfers and signed rollback
+
+US-027 now pins transfer totals in durable metadata, reports persisted resume
+positions and byte/cache accounting, serializes writers with a nonblocking
+per-tenant POSIX file lock, and persists object publication before recovery-state
+cleanup. Lost replies reuse verified cache entries; failed publication retains a
+retryable partial. Legacy unbound partial files require explicit discard.
+
+Activation pointers are serialized, atomic and directory-synced, with signed
+sequence and previous-address metadata. Tests exercise an actual old/new/signed
+rollback sequence after restart, plus floor, revocation, expiry and policy refusal.
+No previous pointer bypasses fresh signature or compatibility checks. See
+`docs/DEVICE-UPDATE-RECOVERY.md` for API and accounting semantics. Physical-device
+A/B reconstruction, supported-platform security review and measured device costs
+remain outstanding. The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.
