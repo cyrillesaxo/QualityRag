@@ -14,10 +14,13 @@ import stat
 from pathlib import Path
 from typing import Callable
 
-from semantic_codex import CodexError, SCHEMA, compile_source
+from semantic_codex import CodexError, SCHEMA
+from document_codex import compile_document
 from store import SemanticStore, canonical_bytes, digest
 
-EXTENSIONS = {".csv": "csv", ".json": "json", ".vtt": "vtt"}
+EXTENSIONS = {".csv": "csv", ".json": "json", ".vtt": "vtt",
+              ".pdf": "pdf", ".docx": "docx", ".html": "html",
+              ".htm": "htm", ".txt": "txt"}
 MAX_FILES = 200
 MAX_BYTES_TOTAL = 20_000_000
 MAX_SOURCE_BYTES = 2_000_000
@@ -168,7 +171,7 @@ def index_directory(
                 if not authorize_source(principal, sid, rev):
                     counters["denied"] += 1
                     continue
-                artifact = compile_source(data, source_id=sid, revision=rev, format=fmt)
+                artifact = compile_document(data, source_id=sid, revision=rev, format=fmt)
                 result = persist_codex(store, artifact)
                 counters["indexed" if result["persisted"] else "unchanged"] += 1
                 counters["bytes_indexed"] += len(data)
