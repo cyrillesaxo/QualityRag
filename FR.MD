@@ -1,7 +1,7 @@
 # FR.MD — QualityRag Semantic Codex, RCT, PackSpec & Activation Grammar
 
 > **Document:** Functional requirements, implementation plan, user stories and acceptance criteria  
-> **Version:** 0.1 · **Date:** 2026-11-04 · **Owner:** APX / QualityRag research program  
+> **Version:** 0.2 · **Date:** 2026-11-04 · **Owner:** APX / QualityRag research program  
 > **Status:** Planning baseline; no story is complete merely because it appears here.  
 > **Source of truth:** This backlog plus linked PRs, source files, independent test receipts and reviewer decisions.  
 > **Research lineage:** Cyrille Eloundou · [apx.guide](https://apx.guide/)  
@@ -189,7 +189,7 @@ As a semantic reviewer, I need extraction candidates with precise provenance.
 
 **US-020 · P1 · Reusable grammar registry and dependency DAG**  
 As a decoder developer, I want grammar components addressed by stable content hash and dependent versions.  
-**Acceptance:** (1) DAG is acyclic and dependencies are typed. (2) Resolution identifies missing/incompatible modules before use. (3) Signed release metadata covers transitive dependencies. (4) Safe rollback to previous version is tested.
+**Acceptance:** (1) DAG is acyclic and dependencies are typed. (2) Resolution identifies missing/incompatible modules before use. (3) Signed release metadata covers transitive dependencies. (4) Authorized rollback to a signed, compatible, non-revoked release is tested; minimum-version policy remains enforced.
 
 **US-021 · P2 · FF-RCT native-regime integration**  
 As an APX researcher, I want FF-RCT reconstruction to use authentic canonical semantics, not a renamed reference-frame prototype.  
@@ -199,11 +199,11 @@ As an APX researcher, I want FF-RCT reconstruction to use authentic canonical se
 
 **US-022 · P0 · Activation grammar v0.1 baseline**  
 As a grammar author, I want bounded `PRESERVE/TRANSITION/ACTIVATE/VERIFY/FALLBACK` declarations and finite budget checks.  
-**Acceptance:** (1) PR #69 merged after full CI; or recorded IN_REVIEW with blocking failure. (2) Synthetic clinical/video fixtures and deterministic tests pass. (3) Unsupported operators rejected. (4) The baseline returns `INCONCLUSIVE` and `can_generate=false` without independent review. **Current status: IN_REVIEW**.
+**Acceptance:** (1) PR #69 merged after required CI and review. IN_REVIEW or a blocking failure never satisfies completion. (2) Synthetic clinical/video fixtures and deterministic tests pass. (3) Unsupported operators rejected. (4) The baseline returns `INCONCLUSIVE` and `can_generate=false` without independent review. **Current status: IN_REVIEW**.
 
 **US-023 · P0 · Executable finite ACTIVATE/VERIFY/FALLBACK**  
 As a client developer, I want operators that can execute a constrained transformation and verify declared requirements.  
-**Acceptance:** (1) Typed interpreter implements bounded, sandboxed operators with no `eval`/dynamic imports. (2) Uses actual transformed output, not merely stated `preserves` lists. (3) VERIFY compares output to anchored source obligations; failed comparison FALLBACKs. (4) Replay emits deterministic execution trace.
+**Acceptance:** (1) Typed interpreter implements bounded, sandboxed operators with no `eval`/dynamic imports. (2) Uses actual transformed output, not merely stated `preserves` lists. (3) VERIFY compares actual output to all anchored obligations; fallback must independently satisfy authorization, compatibility, preservation and resource limits. At most one fallback attempt; failure terminates in REFUSE without releasing output. (4) Replay emits deterministic execution trace.
 
 **US-024 · P0 · Model and grammar compatibility manifest**  
 As a streaming client, I want exact dependency and version checks before playback.  
@@ -295,7 +295,7 @@ As an enterprise user, I want provenance and data access enforced for every tran
 
 **US-044 · P0 · Signed artifact and anti-replay pipeline**  
 As a client, I want to reject tampered PackSpecs, grammar modules and evidence receipts.  
-**Acceptance:** (1) Key rotation and version policy documented. (2) Signatures bind source, grammar, policy, model, decoder and relevant run IDs. (3) Replay/rollback attacks produce refusal. (4) Existing signed-bundle code reused, not silently substituted with raw hashes.
+**Acceptance:** (1) Key rotation and version policy documented. (2) Signatures bind source, grammar, policy, model, decoder and relevant run IDs. (3) Unauthorized replay/downgrade attacks produce refusal; explicit authorized rollback must respect compatibility, revocation and minimum-version policy. (4) Existing signed-bundle code reused, not silently substituted with raw hashes.
 
 **US-045 · P1 · SDK and CLI parity**  
 As an integrator, I want the runtime through Python and at least one of Java/TypeScript, consistent with QualityRag SDK practices.  
@@ -331,12 +331,12 @@ As a deployment owner, I want a release gate with rollback and measurable discon
 
 | Batch | Order | Stories | Exit gate |
 |---|---|---|---|
-| **A — Governance and spec** | First | 001,002,003,005,006,007,008,011,022,043,044,047 | Versioned schema, enforceable custody and fail-closed finite verdicts; PR #69 merged only after CI |
-| **B — Real semantic executable slice** | After A | 010,012,015,016,017,019,023,026 | Reviewed source → typed AST → reversible transition → residual → verified finite obligations |
-| **C — RCT + economics** | After B | 013,014,020,025,032 | Compile/reuse cost measured; stay-vs-transition decision justified on capability-matched workloads |
-| **D — Media proof-of-concept** | After B/C | 028,029,030,031,033 | Actual decodable video, exact-field guardrails and matched AV1 comparison |
+| **A — Governance and spec** | First | 001,002,003,004,005,006,007,008,011,022,024,043,044,047,048a | Versioned schema, enforceable custody and fail-closed finite verdicts; PR #69 merged only after CI |
+| **B — Real semantic executable slice** | After A | 009,010,012,015,016,017,018a,019,023,026 | Reviewed source → typed AST → reversible transition → residual → verified finite obligations |
+| **C — RCT + economics** | After B | 013,014,020,025,032a | Compile/reuse cost measured; stay-vs-transition decision justified on capability-matched workloads |
+| **D — Media proof-of-concept** | After B/C | 028,029,030,031,032b,033 | Actual decodable video, exact-field guardrails and matched AV1 comparison |
 | **E — Research memory + agents** | After evidence baseline | 034,035,036,038,039,040,041,042 | Agent improvements evaluated on hidden holdouts with immutable provenance and promotion gate |
-| **F — Production feasibility** | Conditional | 018,021,024,027,037,045,046,048,049,050,051 and remaining P1/P2 | Independently reviewed reproducibility, real-device results, signed release and rollback |
+| **F — Production feasibility** | Conditional | 018b,021,027,037,045,046,048b,049,050,051 | Independently reviewed reproducibility, real-device results, signed release and rollback |
 
 Dependencies are **logical, not permission to postpone all tests**: write failing acceptance tests and synthetic counterexamples early. Batch B may be developed in parallel with controlled baseline setup in Batch D; promotion remains gated.
 
@@ -417,3 +417,57 @@ See `docs/RCT-END-TO-END-RESEARCH-DELIVERY.md`, `docs/RCT-TYPED-GRAMMAR-v1.4.md`
 - Existing research-memory persistence: `tools/research_ledger/ledger.py` and `postgres.py`.
 
 **Backlog total: 51 numbered user stories across 10 epics.** Counts describe planned scope, not completed scope. Update this file whenever story status or evidence changes; preserve prior decisions in append-only research records.
+
+
+## 11. Review amendments, execution dependencies and evidence (v0.2)
+
+Stable parent story IDs US-001–US-051 remain unchanged. Suffixes below are
+implementation tasks, not additional completed stories.
+
+- **US-018a / Batch B:** one real UTF-8 structured-text adapter with exact byte custody,
+  duplicate-key rejection, scalar type preservation and a replayable transform.
+  **US-018b / Batch F:** remaining document adapters and page/row anchors.
+- **US-032a / Batch C:** versioned lifecycle-cost model with explicit assumed/unknown
+  inputs. **US-032b / Batch D:** populate measured encoder/decoder and baseline costs;
+  predictions must not be reported as observed results.
+- **US-048a / Batch A:** register hypotheses, metrics, thresholds, sample-size rationale,
+  dataset-family split and blinded scoring rubric before holdout access.
+  **US-048b / Batch F:** independently analyze registered experiments, report evaluator
+  agreement, confidence intervals, abstentions, deviations and negative results.
+- **US-024 precedes US-023, US-025 and US-030.** Prototype compatibility fingerprints
+  do not satisfy signed production compatibility. Untrusted hashes never establish authority.
+- **US-006/007/036/047 authority contract:** document trusted reviewer keys, role/scope,
+  proposer/reviewer separation, expiry, revocation and binding to policy, data, output and
+  run identity. Unauthorized, self-approved, expired or revoked receipts cannot authorize
+  admission. Missing trusted verifier remains INCONCLUSIVE.
+- **US-009/031/037/040/048 measurement contract:** pin metric versions, tolerances,
+  rubric, evaluator-selection rules, agreement measure and rejection thresholds before
+  final evaluation. Measurement alone is not a passing acceptance criterion.
+- **US-016 semantic traceability task:** map canonical 12G, K/B/C/T, WitnessGraph,
+  WBC and RCoC definitions to source specification/version, schema fields, operators,
+  invariants and golden tests. Do not invent meanings for unavailable canonical concepts;
+  missing source definitions block parity claims. US-021 canonical FF-RCT parity remains separate.
+- **Gate order:** executable semantic slice → reusable activation and measured economics →
+  real media evidence → Gardener/agent experiments → conditional supported-device pilot.
+  Tests accompany each gate; no completion claim follows from implementing a subset.
+
+### Implementation evidence — initial finite slice
+
+| Stories | Implementation | Status / remaining boundary |
+|---|---|---|
+| US-012,018a,023,026 | tools/packspec_compiler/finite_activation.py | PARTIAL: real scalar JSON bijective field transform; pinned runtime/hash checks; actual reconstructed values compared to source; existing unified gate reused |
+| US-003,011,017,024 | finite activation receipts and regression tests | PARTIAL: deterministic source/artifact/policy fingerprints and refusal tests; no signed authority, persistent custody service, general interpreter or complete manifest |
+| All 51 parent stories | This backlog | No parent story marked DONE by this increment |
+
+Reproduce the initial finite-slice checks:
+
+~~~bash
+python -m unittest discover -s tools/packspec_compiler -p 'test_finite_activation.py' -v
+~~~
+
+This research API returns candidate output only as research_output and never grants
+can_generate. It accepts host-provided original bytes and a pinned artifact fingerprint;
+it does not authenticate caller custody, policy completeness or semantic truth.
+Fallback supplies an unreleased source reference and terminates; it does not execute
+unverified code or release a failed reconstruction. Real RCT candidate selection,
+signed compatibility and independent admission remain subsequent integration tasks.
