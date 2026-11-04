@@ -22,6 +22,7 @@ def review_context(conn, *, claim, evidence, scope, tenant, ledger_id, actor, ev
             "database":database,"ledger_id":ledger_id,"tenant":tenant,"event_id":event_id,"actor":actor,
             "claim_id":claim["claim_id"],"claim_record_sha256":claim["content_hash"],
             "previous_event_hash":previous[0] if previous else None,
+            "dependencies":ledger.dependency_context(postgres.progress(conn)["claims"],claim["claim_id"]),
             "evidence_record_sha256":{row["evidence_id"]:row["record_hash"] for row in evidence},
             "validation_scope":scope,"assessment":"VALIDATED"}
 

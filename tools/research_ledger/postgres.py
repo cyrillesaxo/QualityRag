@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from ledger import (
     LedgerError, KIND, EVIDENCE, ASSESSMENTS, RELATIONS, _id, _summary,
-    _HASH, _utc, canon, sha, SCHEMA,
+    _HASH, _utc, canon, sha, SCHEMA, apply_dependency_states,
 )
 
 
@@ -85,6 +85,9 @@ def assess(conn,*,event_id:str,claim_id:str,assessment:str,reason:str,
         if assessment=="TESTED" and not set(kinds.values()).intersection(("CI_RUN","TEST_RESULT")):
             raise LedgerError("TESTED requires test evidence")
         if assessment=="VALIDATED":
+            item=next(item for item in progress(conn)["claims"] if item["claim_id"]==claim_id)
+            if item["dependency_state"]!="SATISFIED":
+                raise LedgerError("Validation dependencies remain unresolved")
             if not callable(verify_validation) or not evidence_ids:
                 raise LedgerError("VALIDATED requires independent host verification and evidence")
             if "REVIEW" not in kinds.values() or not set(kinds.values()).intersection({"MEASUREMENT","TEST_RESULT","OBSERVATION"}):
@@ -123,11 +126,7 @@ def link(conn,*,link_id:str,from_claim:str,to_claim:str,relation:str,at:str|None
 
 def progress(conn,project:str|None=None):
     query="SELECT claim_id,project,kind,statement FROM research.claims"
-    args=()
-    if project is not None:
-        query+=" WHERE project=%s"
-        args=(project,)
-    rows=conn.execute(query+" ORDER BY claim_id",args).fetchall()
+    rows=conn.execute(query+" ORDER BY claim_id").fetchall()
     items=[]
     for cid,proj,kind,statement in rows:
         events=[]
@@ -143,9 +142,12 @@ def progress(conn,project:str|None=None):
         items.append({"claim_id":cid,"project":proj,"kind":kind,"statement":statement,
                       "status":events[-1]["assessment"] if events else "UNVERIFIED",
                       "events":events,"links":links})
+    apply_dependency_states(items)
+    if project is not None:items=[item for item in items if item["project"]==project]
     return {"schema":SCHEMA,"claims":items,
             "counts":{"total":len(items),"by_status":{
-                s:sum(x["status"]==s for x in items) for s in sorted(ASSESSMENTS)}},
+                s:sum(x["status"]==s for x in items) for s in sorted(ASSESSMENTS)},
+                "by_effective_status":{s:sum(x["effective_status"]==s for x in items) for s in sorted(ASSESSMENTS)}},
             "source_authenticity":"UNVERIFIED_UNLESS_EXTERNALLY_ATTESTED",
             "independent_validation":"HOST_VERIFIER_REQUIRED_PER_VALIDATED_EVENT"}
 

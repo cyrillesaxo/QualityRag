@@ -164,6 +164,29 @@ class PostgresValidationTests(unittest.TestCase):
         with self.assertRaises(ledger.LedgerError):self.validate(envelope)
         self.assertEqual(self.receipts(),0)
 
+    def test_dependency_refutation_changes_effective_status_without_rewriting_history(self):
+        parent=self.cid+".parent"
+        postgres.claim(self.conn,claim_id=parent,project="outside-fixture",kind="HYPOTHESIS",statement="Authored parent prerequisite",at=AT)
+        parent_event=self.event+".parent"
+        row=self.conn.execute("SELECT content_hash FROM research.claims WHERE claim_id=%s",(parent,)).fetchone()
+        envelope=self.signed(nonce=self.tag+"parent",context=self.context(
+            claim={"claim_id":parent,"content_hash":row[0]},event_id=parent_event))
+        self.validate(envelope,claim_id=parent,event_id=parent_event)
+        # A review signed before a new dependency is stale even when the parent is valid.
+        stale=self.signed()
+        postgres.link(self.conn,link_id="dep."+self.tag,from_claim=self.cid,to_claim=parent,relation="DEPENDS_ON",at=AT)
+        with self.assertRaises(ledger.LedgerError):self.validate(stale)
+        self.validate(self.signed())
+        postgres.assess(self.conn,event_id=parent_event+".refuted",claim_id=parent,assessment="REFUTED",
+            reason="Authored adverse evidence",actor="reviewer",evidence_ids=[self.tid],at="2026-11-04T12:00:01Z")
+        item=next(item for item in postgres.progress(self.conn,"fixture")["claims"] if item["claim_id"]==self.cid)
+        self.assertEqual(item["status"],"VALIDATED")
+        self.assertEqual(item["effective_status"],"INCONCLUSIVE")
+        self.assertEqual(item["dependency_blockers"],[parent])
+        with self.assertRaisesRegex(ledger.LedgerError,"dependencies"):
+            self.validate(self.signed(context=self.context(event_id=self.event+".retry")),
+                          event_id=self.event+".retry",as_of="2026-11-04T12:00:02Z")
+
     def test_migration_cannot_launder_validation_without_destination_review(self):
         import sqlite3
         import tempfile

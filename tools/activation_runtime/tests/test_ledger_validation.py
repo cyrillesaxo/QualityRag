@@ -4,9 +4,8 @@ import tempfile
 import unittest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from tools.activation_runtime.gardener import ledger
-from tools.activation_runtime.ledger_validation import validate_claim
+from tools.activation_runtime.ledger_validation import validate_claim,review_context
 from tools.activation_runtime.authority import review_binding
-from signed_gate import SQLiteNonceStore
 
 
 class LedgerValidationTests(unittest.TestCase):
@@ -22,18 +21,19 @@ class LedgerValidationTests(unittest.TestCase):
                 ledger.assess(db,event_id="unverified",claim_id="claim1",assessment="VALIDATED",reason="Must refuse",actor="proposer",evidence_ids=["review1","test1"],at=at)
             claim_hash=db.execute("SELECT content_hash FROM research_claims WHERE claim_id='claim1'").fetchone()[0]
             evidence=dict(db.execute("SELECT evidence_id,record_hash FROM research_evidence"))
-            context={"claim_id":"claim1","claim_record_sha256":claim_hash,"evidence_record_sha256":evidence,
-                     "validation_scope":"AUTHORED_TEST_ONLY_NOT_REAL_RESEARCH","assessment":"VALIDATED"}
+            context=review_context(db,claim={"claim_id":"claim1","content_hash":claim_hash},
+                evidence=[{"evidence_id":eid,"record_hash":h} for eid,h in evidence.items()],
+                scope="AUTHORED_TEST_ONLY_NOT_REAL_RESEARCH",tenant="test",ledger_id="fixture-ledger",
+                actor="test-reviewer",event_id="verified")
             reviewer=Ed25519PrivateKey.generate();author=Ed25519PrivateKey.generate()
             signed=review_binding(context,decision="APPROVE",reviewer="test-reviewer",author_key_id="author",key=reviewer,key_id="reviewer",
                 issued_at="2026-11-04T00:00:00Z",expires_at="2026-11-05T00:00:00Z",nonce="review-once")
-            nonce=SQLiteNonceStore(Path(root)/"nonce.sqlite")
             result=validate_claim(db,event_id="verified",claim_id="claim1",actor="test-reviewer",evidence_ids=["review1","test1"],
                 scope=context["validation_scope"],signed_review=signed,reviewer_keys={"reviewer":reviewer.public_key()},
-                author_public_key=author.public_key(),as_of=at,nonce_store=nonce,tenant="test")
+                author_public_key=author.public_key(),as_of=at,tenant="test",ledger_id="fixture-ledger")
             self.assertEqual(result["assessment"],"VALIDATED")
             self.assertTrue(ledger.verify_integrity(db)["consistent"])
             with self.assertRaises(ledger.LedgerError):
                 validate_claim(db,event_id="replay",claim_id="claim1",actor="test-reviewer",evidence_ids=["review1","test1"],
                     scope=context["validation_scope"],signed_review=signed,reviewer_keys={"reviewer":reviewer.public_key()},
-                    author_public_key=author.public_key(),as_of=at,nonce_store=nonce,tenant="test")
+                    author_public_key=author.public_key(),as_of=at,tenant="test",ledger_id="fixture-ledger")

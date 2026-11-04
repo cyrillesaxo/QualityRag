@@ -642,3 +642,29 @@ tests, including migration, concurrent replay, write failure/retry, altered scop
 wrong signer, stale review and corruption. Authored cryptographic fixtures do not
 supply independent research validation. Story counts remain 37 IN_REVIEW,
 14 BLOCKED, 0 DONE. See docs/RESEARCH-MEMORY-SIGNED-POSTGRES-VALIDATION.md.
+
+
+## 15. Atomic SQLite validation and dependency uncertainty
+
+US-036 now uses an atomic receipt/replay guard for both SQLite and PostgreSQL.
+SQLite's former external nonce database is no longer used by the research
+validation API: `ledger_id` is required and approvals must be re-signed using
+`ledger_validation.review_context`. Old unbound approvals are refused.
+SQLite serializes appends and preserves outer transactions with savepoints,
+so an event failure or caller rollback also rolls back its review reservation.
+
+Both ledger reports now expose `effective_status`, `dependency_state` and
+`dependency_blockers`, plus counts by effective status. Stored `status` remains
+historical: it is not a current admission decision. A validated claim whose
+prerequisites are unreviewed, refuted, missing or cyclic is effectively
+INCONCLUSIVE. Project-filtered reports still evaluate dependencies outside the
+selected project. New validation refuses unresolved prerequisites before invoking
+the reviewer verifier. Signed contexts bind transitive dependency heads and
+graph structure; a changed prerequisite requires fresh review. Parent validation
+does not validate a child automatically.
+
+Tests cover actual durable SQLite rollback/retry, concurrent nonce races, stale
+review, actor/tenant/ledger/signature/expiry refusal, receipt immutability, nested
+caller rollback, cyclic prerequisites and cross-project/transitive refutation.
+PostgreSQL CI also covers dependency invalidation. Story counts remain
+37 IN_REVIEW, 14 BLOCKED, 0 DONE; independent acceptance is still outstanding.

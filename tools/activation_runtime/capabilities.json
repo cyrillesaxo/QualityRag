@@ -1500,19 +1500,19 @@
       "modules": [
         {
           "path": "tools/activation_runtime/ledger_validation.py",
-          "sha256": "0f03664b6dc08f9c93ba4b26fb5007f398e10151ab1ab6a49c9af29988532171"
+          "sha256": "65fba4387c714944557b9e4718fdd5d266a2dafb8edd44556403304e6e91cd05"
         },
         {
           "path": "tools/research_ledger/ledger.py",
-          "sha256": "5febe4b3cb5403645c67c881cbfb22e797b352117f1a1cd281733a4cdab52769"
+          "sha256": "a4bbe4986a238969e65494c0ac2e682793dbeb740d50e6da54af2da165d6e81c"
         },
         {
           "path": "tools/activation_runtime/postgres_validation.py",
-          "sha256": "153d5aa22c0d3cf2f32a7eb68284b4dc497872b499d7b4d0fc4b8cdb33537d3d"
+          "sha256": "61a879cf73b95f6240c8994b20f7a30c06523d680e5d561f227143b8af101270"
         },
         {
           "path": "tools/research_ledger/postgres.py",
-          "sha256": "cfb681e3cd5551347dd06f27a1e8f2ecf452ff48f020bff9dd8d97616001bd35"
+          "sha256": "993e84094f88c69c9d8f99d7a80123ce03e3d8c6d4eee2d942085ef13e4cd28f"
         },
         {
           "path": "tools/research_ledger/postgresql.sql",
@@ -1524,10 +1524,18 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_postgres_validation.py",
-          "sha256": "3c8017eb1c9c3b7432d96f5dc1971f89148ea609ff59b2401378b3c161408190"
+          "sha256": "583ed74876999eb6381de33213c412cb02766cf92bcc35bf275c9444d7a9f68e"
+        },
+        {
+          "path": "tools/research_ledger/tests/test_dependencies.py",
+          "sha256": "dae9898095ba61323fc788fbaabecf46914d89e104e45839d83dc42a0b6276dd"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_sqlite_validation_atomic.py",
+          "sha256": "2ec9f7826ae1005c38f60ff4d9aa100fc19f3ebfdfada62aaa5e32d21877d9e1"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_ledger_validation.py; tools/activation_runtime/tests/test_postgres_validation.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_ledger_validation.py; tools/activation_runtime/tests/test_sqlite_validation_atomic.py; tools/activation_runtime/tests/test_postgres_validation.py; tools/research_ledger/tests/test_dependencies.py",
       "remaining": "Real independently authorized scope-bounded validation/evidence and deployment review; SQLite and PostgreSQL signed validation are implemented.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"

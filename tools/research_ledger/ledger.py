@@ -77,8 +77,15 @@ def initialize(db: sqlite3.Connection):
     );
     CREATE INDEX IF NOT EXISTS research_events_claim_idx ON research_events(claim_id,observed_at,event_id);
     CREATE INDEX IF NOT EXISTS research_claims_project_idx ON research_claims(project);
+    CREATE TABLE IF NOT EXISTS research_validation_receipts(
+      service TEXT NOT NULL,tenant TEXT NOT NULL,nonce TEXT NOT NULL,
+      event_id TEXT NOT NULL UNIQUE,
+      reviewer TEXT NOT NULL,context_sha256 TEXT NOT NULL,review_envelope TEXT NOT NULL,
+      PRIMARY KEY(service,tenant,nonce),
+      FOREIGN KEY(event_id) REFERENCES research_events(event_id) DEFERRABLE INITIALLY DEFERRED
+    );
     """)
-    for table in ("research_claims","research_evidence","research_events","research_links"):
+    for table in ("research_claims","research_evidence","research_events","research_links","research_validation_receipts"):
         for action in ("UPDATE","DELETE"):
             db.execute(
                 f"CREATE TRIGGER IF NOT EXISTS forbid_{table}_{action.lower()} "
@@ -116,6 +123,24 @@ def evidence(db,*,evidence_id:str,kind:str,uri:str,description:str,
 
 def assess(db,*,event_id:str,claim_id:str,assessment:str,reason:str,
            actor:str,evidence_ids:list[str],at:str|None=None,verify_validation=None):
+    """Serialize appends; preserve an existing caller transaction with a savepoint."""
+    nested=db.in_transaction
+    db.execute("SAVEPOINT research_assessment" if nested else "BEGIN IMMEDIATE")
+    try:
+        result=_assess_record(db,event_id=event_id,claim_id=claim_id,assessment=assessment,
+            reason=reason,actor=actor,evidence_ids=evidence_ids,at=at,verify_validation=verify_validation)
+        if nested:db.execute("RELEASE research_assessment")
+        else:db.commit()
+        return result
+    except Exception:
+        if nested:
+            db.execute("ROLLBACK TO research_assessment")
+            db.execute("RELEASE research_assessment")
+        else:db.rollback()
+        raise
+
+
+def _assess_record(db,*,event_id,claim_id,assessment,reason,actor,evidence_ids,at,verify_validation):
     _id(event_id,"event");_id(claim_id,"claim");_id(actor,"actor")
     _summary(reason,"assessment reason")
     if assessment not in ASSESSMENTS:raise LedgerError("Invalid assessment")
@@ -125,6 +150,11 @@ def assess(db,*,event_id:str,claim_id:str,assessment:str,reason:str,
     for eid in evidence_ids:_id(eid,"evidence")
     if not db.execute("SELECT 1 FROM research_claims WHERE claim_id=?",(claim_id,)).fetchone():
         raise LedgerError("Unknown claim")
+    row=db.execute("SELECT event_hash,observed_at,event_id FROM research_events WHERE claim_id=? ORDER BY observed_at DESC,event_id DESC LIMIT 1",(claim_id,)).fetchone()
+    observed_at=at or _utc()
+    if row and (observed_at,event_id)<=(row[1],row[2]):
+        raise LedgerError("Assessment must append after the current event-chain head")
+    previous=row[0] if row else None
     for eid in evidence_ids:
         if not db.execute("SELECT 1 FROM research_evidence WHERE evidence_id=?",(eid,)).fetchone():
             raise LedgerError("Unknown evidence")
@@ -140,6 +170,9 @@ def assess(db,*,event_id:str,claim_id:str,assessment:str,reason:str,
         ("CI_RUN","TEST_RESULT") for eid in evidence_ids):
         raise LedgerError("TESTED requires test evidence")
     if assessment=="VALIDATED":
+        item=next(item for item in progress(db)["claims"] if item["claim_id"]==claim_id)
+        if item["dependency_state"]!="SATISFIED":
+            raise LedgerError("Validation dependencies remain unresolved")
         # Only host-owned code can install this verifier. Never derive it from
         # source text, agent proposals or a caller-supplied boolean.
         if not callable(verify_validation) or not evidence_ids:
@@ -161,14 +194,10 @@ def assess(db,*,event_id:str,claim_id:str,assessment:str,reason:str,
         if not verified:raise LedgerError("Independent validation refused")
     if assessment in ("REFUTED","SUPERSEDED") and not evidence_ids:
         raise LedgerError("Refutation/supersession requires evidence")
-    row=db.execute(
-      "SELECT event_hash FROM research_events WHERE claim_id=? "
-      "ORDER BY observed_at DESC,event_id DESC LIMIT 1",(claim_id,)).fetchone()
-    previous=row[0] if row else None
     payload={"event_id":event_id,"claim_id":claim_id,"assessment":assessment,
              "reason":reason.strip(),"actor":actor,"evidence_ids":evidence_ids,
-             "observed_at":at or _utc(),"previous_event_hash":previous}
-    with db:db.execute("INSERT INTO research_events VALUES(?,?,?,?,?,?,?,?,?)",
+             "observed_at":observed_at,"previous_event_hash":previous}
+    db.execute("INSERT INTO research_events VALUES(?,?,?,?,?,?,?,?,?)",
         (event_id,claim_id,assessment,payload["reason"],payload["observed_at"],actor,
          canon(evidence_ids),previous,sha(payload)))
     return payload
@@ -188,9 +217,8 @@ def link(db,*,link_id:str,from_claim:str,to_claim:str,relation:str,at:str|None=N
 
 
 def progress(db,project:str|None=None):
-    args=() if project is None else (project,)
     rows=db.execute("SELECT claim_id,project,kind,statement,created_at,content_hash FROM research_claims "+
-                    ("WHERE project=? " if project is not None else "")+"ORDER BY claim_id",args).fetchall()
+                    "ORDER BY claim_id").fetchall()
     items=[]
     for id_,proj,kind,statement,created,hash_ in rows:
         all_events=db.execute("SELECT event_id,assessment,reason,observed_at,actor,evidence_ids_json,previous_event_hash,event_hash "
@@ -202,10 +230,56 @@ def progress(db,project:str|None=None):
         items.append({"claim_id":id_,"project":proj,"kind":kind,"statement":statement,
                       "status":events[-1]["assessment"] if events else "UNVERIFIED",
                       "events":events,"links":[{"to":e[0],"relation":e[1]} for e in edges]})
+    apply_dependency_states(items)
+    if project is not None:items=[item for item in items if item["project"]==project]
     return {"schema":SCHEMA,"claims":items,"counts":{"total":len(items),
-            "by_status":{s:sum(x["status"]==s for x in items) for s in sorted(ASSESSMENTS)}},
+            "by_status":{s:sum(x["status"]==s for x in items) for s in sorted(ASSESSMENTS)},
+            "by_effective_status":{s:sum(x["effective_status"]==s for x in items) for s in sorted(ASSESSMENTS)}},
             "source_authenticity":"UNVERIFIED_UNLESS_EXTERNALLY_ATTESTED",
             "independent_validation":"HOST_VERIFIER_REQUIRED_PER_VALIDATED_EVENT"}
+
+
+def apply_dependency_states(items):
+    """Conservative fixed point: unreviewed roots and cycles never become validated."""
+    from collections import defaultdict,deque
+    by_id={item["claim_id"]:item for item in items}
+    dependencies={cid:{edge["to"] for edge in item["links"] if edge["relation"]=="DEPENDS_ON"}
+                  for cid,item in by_id.items()}
+    pending={cid:len(targets) for cid,targets in dependencies.items()}
+    reverse=defaultdict(set)
+    for cid,targets in dependencies.items():
+        for target in targets:reverse[target].add(cid)
+    ready=deque(cid for cid in by_id if by_id[cid]["status"]=="VALIDATED" and pending[cid]==0)
+    safe=set()
+    while ready:
+        cid=ready.popleft();safe.add(cid)
+        for dependent in reverse[cid]:
+            pending[dependent]-=1
+            if pending[dependent]==0 and by_id[dependent]["status"]=="VALIDATED":ready.append(dependent)
+    for cid,item in by_id.items():
+        blockers=sorted(dependencies[cid]-safe)
+        item["dependency_state"]="UNRESOLVED" if blockers else "SATISFIED"
+        item["dependency_blockers"]=blockers
+        item["effective_status"]=("INCONCLUSIVE" if item["status"]=="VALIDATED" and cid not in safe else item["status"])
+    return items
+
+
+def dependency_context(items,claim_id):
+    """Bind review to every transitive prerequisite, including head and graph changes."""
+    by_id={item["claim_id"]:item for item in items}
+    def targets(item):return sorted({e["to"] for e in item["links"] if e["relation"]=="DEPENDS_ON"})
+    pending=targets(by_id[claim_id]);seen=set();result=[]
+    while pending:
+        cid=pending.pop()
+        if cid in seen:continue
+        seen.add(cid)
+        item=by_id.get(cid)
+        if item is None:
+            result.append({"claim_id":cid,"status":"MISSING"});continue
+        edges=targets(item);pending.extend(edges)
+        result.append({"claim_id":cid,"status":item["status"],"effective_status":item["effective_status"],
+                       "head":item["events"][-1]["event_hash"] if item["events"] else None,"dependencies":edges})
+    return sorted(result,key=lambda item:item["claim_id"])
 
 
 def verify_integrity(db):

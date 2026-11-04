@@ -61,3 +61,35 @@ evidence, corruption, forced write failure with approval reuse, stale reviews,
 backdated appends and validation laundering through migration. Without a DSN,
 these integration tests explicitly skip. Authored test approvals are never
 reported as independent scientific evidence.
+
+## SQLite parity and dependency admission
+
+SQLite research validation now uses `ledger_validation.review_context` and
+`validate_claim` with a required host-configured `ledger_id`. The research API
+no longer takes an external `nonce_store`: a durable receipt in the same SQLite
+database supplies replay protection. Re-sign prior approvals using the new
+context; there is no permissive fallback for the old, unbound signature format.
+`ledger.initialize` adds the receipt table and append-only triggers to existing
+ledgers. This validation API refuses an in-memory database.
+
+`ledger.assess` takes a write reservation for standalone SQLite appends and uses
+a savepoint inside an existing caller transaction. It never commits the caller's
+outer transaction. A rollback removes both the event and receipt; the same signed
+approval can then be retried. General preservation/release APIs retain their own
+nonce-store contracts; this change is specific to research-ledger validation.
+
+Both database providers compute dependency eligibility over the complete ledger
+before project filtering. `status` and counts.by_status describe stored history.
+For current decisions, consume `effective_status`, `dependency_state`,
+`dependency_blockers` and counts.by_effective_status. An unresolved, refuted or
+cyclic prerequisite makes historical child validation effectively INCONCLUSIVE.
+The history is not overwritten, and no child becomes validated merely because
+its parents are validated. Review still needs its own signature and evidence.
+
+Signed review contexts include the transitive dependency graph, statuses and
+chain heads. A graph or prerequisite assessment change invalidates an old review.
+PostgreSQL uses transactional assessment writes and computes current effective
+status on read; historical receipt status does not assert that prerequisites
+remain valid forever. SQLite and PostgreSQL owners remain inside the trust
+boundary. Deployment authorization and independent domain review are not supplied
+by these authored tests.
