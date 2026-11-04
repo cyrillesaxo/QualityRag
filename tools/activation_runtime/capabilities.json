@@ -1914,15 +1914,31 @@
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
-          "sha256": "b176b5d8bcd34ef9a829970d6a305ddc2233c3a3d235b7ebc31cb81af9b733cc"
+          "sha256": "5c70042dfcf0c9c8b6887d618c795f4e15b31a0803bf73171f95cce44c2a50a1"
         },
         {
           "path": "sdk/typescript/src/activation.ts",
-          "sha256": "9366941a13b9eff744a86c481a266ed3ccf128497d0661b15e37040b6b4cb0c2"
+          "sha256": "fbfbe8d052ea170c6b6960a4730ceda8f664e9fc77475c42b854bdba9cbe8125"
+        },
+        {
+          "path": "sdk/typescript/src/index.ts",
+          "sha256": "ad37c10a90f97bb562af3b2d9ad9c69de864983edd3d1cc16a9a7a66342a73dd"
+        },
+        {
+          "path": "sdk/typescript/test/activation.test.mjs",
+          "sha256": "0a6370fc391b6e75b9910e63f7d8d46b175c144405741ca9d5b07ff34529ad9e"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "64039dcbae098b551137492c1e2ef88e1d6d7d0023721788224f52d7f548b849"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_service_sdk.py",
+          "sha256": "7199be29ee97f2d8cd60fd7cadbf6c718c1ee5e4941f28717e548f5b5839ee44"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py",
-      "remaining": "Merged review and remote package/SDK CI. Python/TypeScript actual HTTP parity and CLI are implemented.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs",
+      "remaining": "Merged review and release/package acceptance; Python/TypeScript/CLI golden parity covers all four operations and refusal behavior.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },

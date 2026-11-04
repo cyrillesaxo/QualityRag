@@ -1,27 +1,42 @@
 /** Wire SDK for Node 24+. The server remains the canonical decision engine. */
 export type SignedEnvelope={schema:string;canonical:string;key_id:string;payload:Record<string,unknown>;signature:string};
-export type FiniteReceipt={finite_constraint_result:'SAT'|'UNSAT'|'UNKNOWN';qualityrag_admission:'INCONCLUSIVE'|'REFUSE';can_generate:false;trace:unknown[];[key:string]:unknown};
+export type FiniteReceipt={finite_constraint_result:'SAT'|'UNSAT'|'UNKNOWN';qualityrag_admission:'INCONCLUSIVE'|'REFUSE';can_generate:false;trace:string[];[key:string]:unknown};
+export type ValidationResult={valid:true;semantic_admission:'INCONCLUSIVE'};
+export type FallbackResult={source_sha256:string;base64:string;fallback:'AUTHORIZED_ORIGINAL_BYTES'};
 function base64(bytes:Uint8Array):string {return btoa(Array.from(bytes,value=>String.fromCharCode(value)).join(""));}
+function endpoint(value:string):string {
+  if(typeof value!=='string'||value.includes('\\')||/[\u0000-\u0020\u007f]/.test(value)||!/^[a-z][a-z0-9+.-]*:\/\/[^/?#]/i.test(value))throw Error('Trusted HTTPS or loopback endpoint required');
+  const url=new URL(value);
+  if(!['http:','https:'].includes(url.protocol)||!url.hostname||url.username||url.password||url.search||url.hash
+      ||(url.protocol==='http:'&&(!/^http:\/\/127\.0\.0\.1(?::[0-9]+)?(?:\/|$)/i.test(value)||url.hostname!=='127.0.0.1'))||url.port==='0')throw Error('Trusted HTTPS or loopback endpoint required');
+  return url.toString().replace(/\/$/,'');
+}
+function wireJson(value:unknown):string {
+  return JSON.stringify(value,(_key,item)=>{
+    if(['undefined','function','symbol','bigint'].includes(typeof item)||(typeof item==='number'&&!Number.isFinite(item)))
+      throw Error('Unsupported JSON value');
+    return item;
+  });
+}
 export class ActivationClient {
   private baseUrl:string;
   private bearer:string;
   constructor(baseUrl:string,token:SignedEnvelope){
-    if(!baseUrl.startsWith('http://127.0.0.1:')&&!baseUrl.startsWith('https://'))throw Error('Trusted HTTPS or loopback endpoint required');
-    this.baseUrl=baseUrl.replace(/\/$/,'');
-    this.bearer=base64(new TextEncoder().encode(JSON.stringify(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
+    this.baseUrl=endpoint(baseUrl);
+    this.bearer=base64(new TextEncoder().encode(wireJson(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
   }
   async request(route:string,payload:Record<string,unknown>):Promise<any>{
     if(!['validate','evaluate','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome'].includes(route))throw Error('Unsupported SDK route');
     const response=await fetch(this.baseUrl+'/api/'+route,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+this.bearer},
-      body:JSON.stringify(payload),signal:AbortSignal.timeout(10000)});
+      body:wireJson(payload),redirect:'error',signal:AbortSignal.timeout(10000)});
     const body=await response.json();
     if(!response.ok)throw Error('Activation request refused: '+body.error);
     return body;
   }
-  validate(schema:string,value:unknown){return this.request('validate',{schema,value});}
+  validate(schema:string,value:unknown):Promise<ValidationResult>{return this.request('validate',{schema,value});}
   evaluate(input:Record<string,unknown>):Promise<FiniteReceipt>{return this.request('evaluate',input);}
-  async trace(input:Record<string,unknown>){return (await this.evaluate(input)).trace;}
-  fallback(source_sha256:string){return this.request('fallback',{source_sha256});}
+  async trace(input:Record<string,unknown>):Promise<string[]>{return (await this.evaluate(input)).trace;}
+  fallback(source_sha256:string):Promise<FallbackResult>{return this.request('fallback',{source_sha256});}
   upload(raw:Uint8Array){return this.request('source',{base64:base64(raw)});}
 }

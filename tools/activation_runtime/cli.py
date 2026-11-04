@@ -21,6 +21,7 @@ def main(argv=None):
     sub=parser.add_subparsers(dest="command",required=True)
     p=sub.add_parser("validate");p.add_argument("schema");p.add_argument("file")
     p=sub.add_parser("evaluate");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
+    p=sub.add_parser("trace");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("fallback");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--source-sha256",required=True)
     p=sub.add_parser("train-scene");p.add_argument("--source",action="append",required=True);p.add_argument("--out",required=True)
     p=sub.add_parser("encode-scene");p.add_argument("--source",required=True);p.add_argument("--model",required=True);p.add_argument("--out",required=True)
@@ -28,13 +29,15 @@ def main(argv=None):
     p=sub.add_parser("serve");p.add_argument("--root",required=True);p.add_argument("--keys",required=True);p.add_argument("--port",type=int,default=8769)
     args=parser.parse_args(argv)
     if args.command=="validate":
-        validate(args.schema,read(args.file));result={"valid":True}
-    elif args.command in {"evaluate","fallback"}:
+        validate(args.schema,read(args.file));result={"valid":True,"semantic_admission":"INCONCLUSIVE"}
+    elif args.command in {"evaluate","trace","fallback"}:
         sdk=str(Path(__file__).resolve().parents[2]/"sdk"/"python")
         if sdk not in sys.path:sys.path.insert(0,sdk)
         from qualityrag_activation import Client
         client=Client(args.endpoint,read(args.token))
-        result=client.evaluate(**read(args.request)) if args.command=="evaluate" else client.fallback(args.source_sha256)
+        if args.command=="fallback":result=client.fallback(args.source_sha256)
+        elif args.command=="trace":result=client.trace(**read(args.request))
+        else:result=client.evaluate(**read(args.request))
     elif args.command=="train-scene":
         result=train_model(args.source);Path(args.out).write_text(json.dumps(result,sort_keys=True))
     elif args.command=="encode-scene":

@@ -596,7 +596,7 @@ listed below. It does not mean all software or research acceptance is satisfied.
 | US-042 | IN_REVIEW | Measured energy/total-cost frontier plus actual independent signed promotion authority. |
 | US-043 | IN_REVIEW | Configured real tenant principals, reviewer/custodian authority and deployment privacy review. |
 | US-044 | IN_REVIEW | Real release/reviewer trust maps, durable deployment and independent replay/revocation review. |
-| US-045 | IN_REVIEW | Merged review and remote package/SDK CI. Python/TypeScript actual HTTP parity and CLI are implemented. |
+| US-045 | IN_REVIEW | Merged review and release/package acceptance; Python/TypeScript/CLI golden parity covers all four operations and refusal behavior. |
 | US-046 | BLOCKED | Two actual mobile/TV device classes with thermal, sustained-power and update-traffic instrumentation. |
 | US-047 | IN_REVIEW | Passing commit-bound CI, merged review and real signed per-story completion receipts. |
 | US-048 | BLOCKED | Actual final protocol registration bound to a real corpus/sample plan before opening its holdout. |
@@ -668,3 +668,19 @@ review, actor/tenant/ledger/signature/expiry refusal, receipt immutability, nest
 caller rollback, cyclic prerequisites and cross-project/transitive refutation.
 PostgreSQL CI also covers dependency invalidation. Story counts remain
 37 IN_REVIEW, 14 BLOCKED, 0 DONE; independent acceptance is still outstanding.
+
+
+## 16. US-045 complete operation parity
+
+CLI trace now exposes the actual authenticated evaluation trace. Python,
+TypeScript and CLI golden tests cover validate, evaluate, trace and fallback for
+exact reconstruction and an altered NOT instruction. The altered signed payload
+must refuse with UNSAT, no reconstructed output and can_generate=false.
+Both SDKs expose typed results and refuse unsafe endpoint forms and redirects;
+unsupported options, foreign-tenant fallback and lossy JSON serialization have
+explicit negative checks. See docs/ACTIVATION-SDK-CLI-PARITY.md for external
+PackSpec/source-backed examples and the transport contract.
+
+The canonical server remains the evaluator. Shape validation and SDK parity
+do not establish independent semantic correctness. Story counts remain
+37 IN_REVIEW, 14 BLOCKED, 0 DONE pending review and remaining acceptance.

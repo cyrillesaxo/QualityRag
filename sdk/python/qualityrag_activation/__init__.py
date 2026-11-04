@@ -1,27 +1,82 @@
 """Typed wire client for the authenticated QualityRag activation API."""
 import base64
 import json
-from urllib.request import Request,urlopen
+import math
+from urllib.error import HTTPError
+from urllib.parse import urlsplit
+from urllib.request import Request,HTTPRedirectHandler,build_opener
+from typing import Literal,TypedDict,NotRequired
+
+
+class ValidationResult(TypedDict):
+    valid: Literal[True]
+    semantic_admission: Literal["INCONCLUSIVE"]
+
+
+class FiniteReceipt(TypedDict):
+    schema: Literal["qualityrag.finite-activation-receipt/v0.1"]
+    source_sha256: str
+    artifact_sha256: str
+    policy_ir_sha256: str
+    finite_constraint_result: Literal["SAT","UNSAT","UNKNOWN"]
+    qualityrag_admission: Literal["INCONCLUSIVE","REFUSE"]
+    can_generate: Literal[False]
+    trace: list[str]
+    action: Literal["REFUSE","REQUIRES_REVIEW"]
+    reason: str|None
+    research_output: dict[str,str|int|float|bool|None]|None
+    fallback: dict[str,object]
+    gate: dict[str,object]
+    limitations: str
+    compatibility: NotRequired[dict[str,object]]
+
+
+class FallbackResult(TypedDict):
+    source_sha256: str
+    base64: str
+    fallback: Literal["AUTHORIZED_ORIGINAL_BYTES"]
+
+
+class _NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self,req,fp,code,msg,headers,newurl):
+        raise HTTPError(req.full_url,code,"Activation redirect refused",headers,fp)
+
+
+def _endpoint(base_url):
+    if not isinstance(base_url,str) or "\\" in base_url or any(ord(c)<=32 or ord(c)==127 for c in base_url):
+        raise ValueError("Trusted HTTPS or loopback endpoint required")
+    try:
+        parsed=urlsplit(base_url)
+        port=parsed.port
+        valid=(parsed.scheme in {"http","https"} and parsed.hostname
+               and parsed.username is None and parsed.password is None
+               and not parsed.query and not parsed.fragment
+               and (port is None or 1<=port<=65535)
+               and (parsed.scheme=="https" or parsed.hostname=="127.0.0.1"))
+    except ValueError as exc:raise ValueError("Invalid activation endpoint") from exc
+    if not valid:raise ValueError("Trusted HTTPS or loopback endpoint required")
+    return base_url.rstrip("/")
 
 
 class Client:
     def __init__(self,base_url,token,*,timeout=10):
-        if not isinstance(base_url,str) or not base_url.startswith(("http://127.0.0.1:","https://")):
-            raise ValueError("Loopback HTTP or trusted HTTPS endpoint required")
-        self.url=base_url.rstrip("/")
-        self.token=base64.urlsafe_b64encode(json.dumps(token,separators=(",",":")).encode()).decode().rstrip("=")
+        self.url=_endpoint(base_url)
+        if type(timeout) not in (int,float) or not math.isfinite(timeout) or not 0<timeout<=60:
+            raise ValueError("Bounded positive timeout required")
+        self.token=base64.urlsafe_b64encode(json.dumps(token,separators=(",",":"),allow_nan=False).encode()).decode().rstrip("=")
         self.timeout=timeout
+        self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
         if route not in {"validate","evaluate","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
-        with urlopen(request,timeout=self.timeout) as response:
+        with self.opener.open(request,timeout=self.timeout) as response:
             return json.load(response)
 
-    def validate(self,schema,value):return self.request("validate",{"schema":schema,"value":value})
-    def evaluate(self,**payload):return self.request("evaluate",payload)
-    def trace(self,**payload):return self.evaluate(**payload)["trace"]
-    def fallback(self,source_sha256):return self.request("fallback",{"source_sha256":source_sha256})
+    def validate(self,schema:str,value:object)->ValidationResult:return self.request("validate",{"schema":schema,"value":value})
+    def evaluate(self,**payload)->FiniteReceipt:return self.request("evaluate",payload)
+    def trace(self,**payload)->list[str]:return self.evaluate(**payload)["trace"]
+    def fallback(self,source_sha256:str)->FallbackResult:return self.request("fallback",{"source_sha256":source_sha256})
     def upload(self,raw):return self.request("source",{"base64":base64.b64encode(raw).decode()})

@@ -37,4 +37,4 @@ export function evaluate(pack:PackSpec, evidence:Evidence[], asOf:string = new D
 
 
 export {ActivationClient} from "./activation.js";
-export type {SignedEnvelope,FiniteReceipt} from "./activation.js";
+export type {SignedEnvelope,FiniteReceipt,ValidationResult,FallbackResult} from "./activation.js";
