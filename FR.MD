@@ -529,3 +529,17 @@ python -m tools.activation_runtime.audit
 Set QUALITYRAG_APX_ROOT to the trusted checkout of the pinned APX commit to run
 original WBC/RCoC tests. Without that checkout those optional tests are explicitly
 SKIP, never synthetic PASS. The CI workflow provisions the pinned source itself.
+
+
+## 13. Interrupted implementation run - recovery checkpoint
+
+The next implementation increment was developed and locally tested, but the
+execution workspace became unavailable before its source could be pushed.
+The last observed full runtime run passed 65 tests; those results are not
+commit-bound CI and do not establish delivery of the uncommitted source.
+
+See [the recovery checkpoint](docs/ACTIVATION-WORKSPACE-RECOVERY.md) for the exact
+delivery boundary, local files to recover, verification observations and pending
+steps. The earlier committed acceptance counts remain authoritative until the
+source and its evidence are recovered, reviewed and pushed. No story is marked
+DONE by this interruption record.
