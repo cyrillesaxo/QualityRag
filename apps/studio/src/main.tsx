@@ -20,7 +20,7 @@ function Studio(){
  const [semanticTerm,setSemanticTerm]=useState('Cyrille');
  const [semanticRunning,setSemanticRunning]=useState(false);
  const [semanticCoverage,setSemanticCoverage]=useState<Record<string,number>|null>(null);
- type SemanticHit={source_id:string;revision:string;format:string;anchor:{kind:string;row_number?:number;pointer?:string;start_ms?:number;end_ms?:number};field:string;matched_text:string};
+ type SemanticHit={source_id:string;revision:string;format:string;anchor:{kind:string;row_number?:number;pointer?:string;start_ms?:number;end_ms?:number;page_number?:number;paragraph_number?:number;line_number?:number};field:string;matched_text:string};
  const [semanticHits,setSemanticHits]=useState<SemanticHit[]>([]);
  const [semanticTruncated,setSemanticTruncated]=useState(false);
  const semanticRequest=async(path:string,data?:unknown)=>{
@@ -35,7 +35,7 @@ function Studio(){
   setSemanticRunning(true);try{
    const status=await semanticRequest('/semantic/status');
    setSemanticNamespace(status.namespace);setSemanticDirectory(status.directory);
-   setSemanticStatus('Connected: local directory '+status.directory+' (CSV, JSON, VTT)');
+   setSemanticStatus('Connected: local directory '+status.directory+' (CSV, JSON, VTT, PDF, DOCX, HTML, TXT)');
   }catch(e){setSemanticStatus(String(e))}finally{setSemanticRunning(false)}
  }
  async function semanticIndex(){
@@ -57,7 +57,11 @@ function Studio(){
   finally{setSemanticRunning(false)}
  }
  const anchorLabel=(a:SemanticHit['anchor'])=>a.kind==='csv_row'?'Row '+a.row_number:
-  a.kind==='json_pointer'?'JSON '+(a.pointer||'/'):a.kind==='time_range'?
+  a.kind==='json_pointer'?'JSON '+(a.pointer||'/'):
+  a.kind==='pdf_page'?'Page '+a.page_number:
+  a.kind==='docx_paragraph'?'Paragraph '+a.paragraph_number:
+  a.kind==='html_line'||a.kind==='text_line'?'Line '+a.line_number:
+  a.kind==='time_range'?
   ((a.start_ms||0)/1000).toFixed(3)+'s–'+((a.end_ms||0)/1000).toFixed(3)+'s':'Source anchor';
  const headers=()=>({'Authorization':'Bearer '+token,'Content-Type':'application/json'});
  async function request(path:string,method='GET',data?:unknown){
@@ -90,7 +94,7 @@ function Studio(){
    </section>
    <section className="panel" aria-label="Semantic Store directory search">
    <h2>5. Semantic Store · Local directory</h2>
-   <p>Search indexed CSV, flat JSON and WebVTT subtitles with a familiar FIND statement. Run the separate loopback-only workbench; the server's directory is fixed at startup. This interface does not access server paths directly.</p>
+   <p>Search indexed CSV, JSON, WebVTT, PDF text, Word paragraphs, HTML and TXT with a familiar FIND statement. Run the separate loopback-only workbench; the server's directory is fixed at startup. This interface does not access server paths directly.</p>
    <div className="line">
     <label>Local Semantic Workbench token<input type="password" autoComplete="off"
       value={semanticToken} onChange={e=>setSemanticToken(e.target.value)}
@@ -109,7 +113,7 @@ function Studio(){
    {semanticCoverage&&<p>Indexed: {semanticCoverage.indexed} · Unchanged: {semanticCoverage.unchanged} ·
     Unsupported: {semanticCoverage.unsupported} · Failed: {semanticCoverage.failed} ·
     Access denied: {semanticCoverage.denied} · Symlinks skipped: {semanticCoverage.symlinks_skipped}</p>}
-   <p><strong>Source-linked results</strong> · Indexed text only; not exhaustive directory search, OCR, visual matching, or identity verification.</p>
+   <p><strong>Source-linked results</strong> · Indexed text only; partial document extraction without OCR, embedded media, visual matching, or identity verification.</p>
    {semanticTruncated&&<p role="alert">Results are truncated. Narrow the search or increase safe backend coverage.</p>}
    <ul>{semanticHits.map((hit,i)=><li key={hit.source_id+'#'+hit.revision+'#'+i}>
     <strong>{hit.source_id}</strong> <code>{hit.format}</code> · {anchorLabel(hit.anchor)} ·

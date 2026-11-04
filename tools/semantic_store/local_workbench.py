@@ -82,7 +82,7 @@ def create_app(root: Path, db_path: Path, token: str, *, namespace: str = "local
                 self._reply(200, {"schema": "qualityrag.semantic-local-status/v0.1",
                                   "namespace": namespace,
                                   "directory": root.name,
-                                  "formats": ["csv", "json", "vtt"],
+                                  "formats": ["csv", "json", "vtt", "pdf", "docx", "html", "htm", "txt"],
                                   "mode": "LOOPBACK_LOCAL_ONLY",
                                   "visual_identity_recognition": "NOT_PERFORMED"})
             else:
