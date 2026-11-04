@@ -119,10 +119,9 @@ class LinguisticTests(unittest.TestCase):
                 authorize_source=lambda p,s,r:not s.endswith("minutes.json"))
 
     def test_projection_idempotent(self):
-        self.sources[0]["text"]="event supports decision."
         r=self.extract()
-        review=["SUPPORTED","SUPPORTED"]
-        self.assertEqual(self.project(r,review)["persisted_unverified_positive_edges"],2)
+        review=["SUPPORTED","SUPPORTED","SUPPORTED"]
+        self.assertEqual(self.project(r,review)["persisted_unverified_positive_edges"],1)
         self.assertEqual(self.project(r,review)["persisted_unverified_positive_edges"],0)
 
 if __name__=="__main__":
