@@ -203,7 +203,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "dfcdc1ed36050df7fe4fa300a3f37bec4a93f5b851dc7675be11cf016e250259"
+          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
@@ -245,10 +245,18 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "dfcdc1ed36050df7fe4fa300a3f37bec4a93f5b851dc7675be11cf016e250259"
+          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
+        },
+        {
+          "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
+          "sha256": "131e96b66161ae0f3b8fd8750e494e0404aa0c9805b4f5ca4fdc14d003c42abc"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_omission_authority.py",
+          "sha256": "9e364cbf0549176c49b10adc9f1db0415e265c4a90c6bbcf8c0ba26381bbc8f4"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py",
       "remaining": "Real authorized reviewer signature and qualified source/policy binding.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -329,10 +337,18 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "dfcdc1ed36050df7fe4fa300a3f37bec4a93f5b851dc7675be11cf016e250259"
+          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
+        },
+        {
+          "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
+          "sha256": "131e96b66161ae0f3b8fd8750e494e0404aa0c9805b4f5ca4fdc14d003c42abc"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_omission_authority.py",
+          "sha256": "9e364cbf0549176c49b10adc9f1db0415e265c4a90c6bbcf8c0ba26381bbc8f4"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py",
       "remaining": "Real omission-review evidence before any optional distinction is discarded.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -665,7 +681,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "dfcdc1ed36050df7fe4fa300a3f37bec4a93f5b851dc7675be11cf016e250259"
+          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",

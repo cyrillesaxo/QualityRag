@@ -782,3 +782,20 @@ missing startup objects, revocation/expiry/floor failures and bounded random
 access. See `docs/STREAMING-INDEX-BOUNDARIES.md`. These checks do not establish
 external source truth, adaptive audio, perceptual bitrate levels or measured
 network/device playback. The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.
+
+
+## 22. Exact-output omission authority and contract reconstruction
+
+US-006/008 now require a host-mapped independent signer for preservation binding
+and one-time omission approval scoped to the exact source, policy, reconstructed
+contract, output and omitted fields. Boolean approval flags refuse. Contract
+review and output omission use separate signed purposes; wrong subjects/scopes
+and otherwise invalid outputs refuse before consuming the valid review nonce.
+
+Audits reconstruct anchors, residual defaults and obligation inventories against
+the current checked IR. Unknown missing fields stay unknown and require residual.
+Approximation uses exact decimal rational arithmetic, avoiding tolerance-boundary
+rounding errors and large-integer float overflow. See
+`docs/PRESERVATION-OMISSION-AUTHORITY.md` for API migration and receipt boundaries.
+Real independent reviewer authority and domain omission evidence remain required.
+The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.

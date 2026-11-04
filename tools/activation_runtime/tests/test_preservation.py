@@ -81,13 +81,13 @@ class SignedBindingTests(unittest.TestCase):
         from tools.activation_runtime.common import fingerprint
         from signed_gate import SQLiteNonceStore
         reviewer=Ed25519PrivateKey.generate();author=Ed25519PrivateKey.generate()
-        context={"source_sha256":self.contract["source_sha256"],"policy_ir_sha256":self.ir["ir_sha256"],
+        context={"purpose":"PRESERVATION_CONTRACT_REVIEW","source_sha256":self.contract["source_sha256"],"policy_ir_sha256":self.ir["ir_sha256"],
                  "policy_source_sha256":self.ir["source"]["sha256"],"contract_sha256":fingerprint(self.contract)}
         signed=review_binding(context,decision="APPROVE",reviewer="reviewer",author_key_id="author",key=reviewer,key_id="reviewer",
             issued_at="2026-11-04T00:00:00Z",expires_at="2026-11-05T00:00:00Z",nonce="contract-review")
         with tempfile.TemporaryDirectory() as root:
             nonce=SQLiteNonceStore(Path(root)/"nonce.sqlite")
             result=bind_reviewed_contract(self.raw,self.contract,self.ir,signed_review=signed,reviewer_keys={"reviewer":reviewer.public_key()},
-                author_public_key=author.public_key(),as_of="2026-11-04T12:00:00Z",nonce_store=nonce)
+                reviewer_subjects={"reviewer":"reviewer"},author_public_key=author.public_key(),as_of="2026-11-04T12:00:00Z",nonce_store=nonce)
             self.assertEqual(result["review"]["review"],"HOST_AUTHORIZED_APPROVAL")
             self.assertFalse(result["can_generate"])
