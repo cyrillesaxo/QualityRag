@@ -10,6 +10,7 @@ from __future__ import annotations
 from hashlib import sha256
 import json
 import os
+import stat
 from pathlib import Path
 from typing import Callable
 
@@ -149,7 +150,14 @@ def index_directory(
                 if entry.stat(follow_symlinks=False).st_size > MAX_SOURCE_BYTES:
                     counters["failed"] += 1
                     continue
-                with open(entry.path, "rb") as handle:
+                # Pin the open to a regular file: reject symlink replacement
+                # between scandir and open (O_NOFOLLOW where supported).
+                flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+                fd = os.open(entry.path, flags)
+                with os.fdopen(fd, "rb") as handle:
+                    details = os.fstat(handle.fileno())
+                    if not stat.S_ISREG(details.st_mode):
+                        raise CodexError("Not a regular file")
                     data = handle.read(MAX_SOURCE_BYTES + 1)
                 if len(data) > MAX_SOURCE_BYTES or counters["bytes_indexed"] + len(data) > MAX_BYTES_TOTAL:
                     counters["failed"] += 1
