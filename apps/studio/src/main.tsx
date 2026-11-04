@@ -23,6 +23,21 @@ function Studio(){
  type SemanticHit={source_id:string;revision:string;format:string;anchor:{kind:string;row_number?:number;pointer?:string;start_ms?:number;end_ms?:number;page_number?:number;paragraph_number?:number;line_number?:number};field:string;matched_text:string};
  const [semanticHits,setSemanticHits]=useState<SemanticHit[]>([]);
  const [semanticTruncated,setSemanticTruncated]=useState(false);
+ const [visualReference,setVisualReference]=useState('');
+ type VisualResult={source_id:string;format:string;distance:number;revision:string;identity_status:string;anchor:{kind:string;timestamp_ms?:number}};
+ const [visualResults,setVisualResults]=useState<VisualResult[]>([]);
+ const [visualStatus,setVisualStatus]=useState('');
+ async function visualFind(){
+  setSemanticRunning(true);
+  try {
+   const r=await semanticRequest('/semantic/visual-similar',
+      {reference_source_id:visualReference});
+   setVisualResults(r.results);
+   setVisualStatus(r.results.length+' whole-frame appearance candidates. No person identity verification.');
+  } catch(e){setVisualStatus(String(e));setVisualResults([])}
+  finally{setSemanticRunning(false)}
+ }
+
  const semanticRequest=async(path:string,data?:unknown)=>{
   const response=await fetch(path,{method:data===undefined?'GET':'POST',
    headers:{'Authorization':'Bearer '+semanticToken,'Content-Type':'application/json'},
@@ -58,6 +73,8 @@ function Studio(){
  }
  const anchorLabel=(a:SemanticHit['anchor'])=>a.kind==='csv_row'?'Row '+a.row_number:
   a.kind==='json_pointer'?'JSON '+(a.pointer||'/'):
+  a.kind==='image_frame'?'Image pixels':
+  a.kind==='video_frame'?'Video frame':
   a.kind==='pdf_page'?'Page '+a.page_number:
   a.kind==='docx_paragraph'?'Paragraph '+a.paragraph_number:
   a.kind==='html_line'||a.kind==='text_line'?'Line '+a.line_number:
@@ -94,7 +111,7 @@ function Studio(){
    </section>
    <section className="panel" aria-label="Semantic Store directory search">
    <h2>5. Semantic Store · Local directory</h2>
-   <p>Search indexed CSV, JSON, WebVTT, PDF text, Word paragraphs, HTML and TXT with a familiar FIND statement. Run the separate loopback-only workbench; the server's directory is fixed at startup. This interface does not access server paths directly.</p>
+   <p>Search indexed documents and reference image appearance across supported photos and sampled video frames with a familiar FIND statement. Run the separate loopback-only workbench; the server's directory is fixed at startup. This interface does not access server paths directly.</p>
    <div className="line">
     <label>Local Semantic Workbench token<input type="password" autoComplete="off"
       value={semanticToken} onChange={e=>setSemanticToken(e.target.value)}
@@ -118,6 +135,25 @@ function Studio(){
    <ul>{semanticHits.map((hit,i)=><li key={hit.source_id+'#'+hit.revision+'#'+i}>
     <strong>{hit.source_id}</strong> <code>{hit.format}</code> · {anchorLabel(hit.anchor)} ·
     <span>{hit.field}: {hit.matched_text.slice(0,350)}</span>
+   </li>)}</ul>
+   <hr/>
+   <h3>Find visually similar images and video frames</h3>
+   <p>Select an indexed source image by its exact namespace-relative identifier
+    (for example <code>local/reference.png</code>). Results describe whole-frame appearance similarity,
+    <strong> not whether the same person appears in the images.</strong>
+    Video sampling requires FFmpeg on the local worker.</p>
+   <div className="line">
+    <label>Indexed reference image ID<input value={visualReference}
+      onChange={e=>setVisualReference(e.target.value)}
+      placeholder="local/reference.png" aria-label="Indexed visual reference"/></label>
+    <button disabled={!semanticDirectory||!visualReference.trim()||semanticRunning}
+      onClick={visualFind}>Find similar media</button>
+   </div>
+   <p className="status" role="status">{visualStatus}</p>
+   <ul>{visualResults.map((result,i)=><li key={result.source_id+result.revision+i}>
+    <strong>{result.source_id}</strong> <code>{result.format}</code> ·
+    Perceptual distance: {result.distance}/64 · {result.anchor.kind==='video_frame'?
+      'At '+((result.anchor.timestamp_ms||0)/1000).toFixed(1)+'s':'Image'} · Identity: unknown
    </li>)}</ul>
    </section>
    <footer>QualityRag v0.1 · deterministic policy enforcement · policies are not proof of source truth</footer>
