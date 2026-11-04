@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import RLock
 
 from directory_codex import index_directory, search_store, find_visual_similar
+from visual_semantic import OpenClipEncoder, index_visual_semantics, find_visual_scenes
 from semantic_find_sql import execute_find
 from semantic_codex import CodexError
 from store import SemanticStore
@@ -35,6 +36,11 @@ def create_app(root: Path, db_path: Path, token: str, *, namespace: str = "local
     conn = sqlite3.connect(db_path, check_same_thread=False)
     store = SemanticStore(conn)
     store.initialize()
+    # Vision-language inference is deliberately opt-in. No silent stub/model
+    # fallback; model weights may require a one-time approved download.
+    semantic_model = None
+    if os.environ.get("QUALITYRAG_ENABLE_SCENE_MODEL") == "1":
+        semantic_model = OpenClipEncoder()
 
     def authorized(principal: str, source: str, revision: str) -> bool:
         return principal == "local-owner" and source.startswith(namespace + "/")
@@ -84,14 +90,16 @@ def create_app(root: Path, db_path: Path, token: str, *, namespace: str = "local
                                   "directory": root.name,
                                   "formats": ["csv", "json", "vtt", "pdf", "docx", "html", "htm", "txt", "png", "jpg", "jpeg", "webp", "mp4", "mov", "mkv"],
                                   "mode": "LOOPBACK_LOCAL_ONLY",
-                                  "visual_identity_recognition": "NOT_PERFORMED"})
+                                  "visual_identity_recognition": "NOT_PERFORMED",
+                                  "scene_model_ready": semantic_model is not None,
+                                  "scene_model_id": semantic_model.model_id if semantic_model else None})
             else:
                 self._reply(404, {"error": "NOT_FOUND"})
 
         def do_POST(self):
             if not self._auth():
                 return
-            if self.path not in ("/semantic/index", "/semantic/find", "/semantic/visual-similar"):
+            if self.path not in ("/semantic/index", "/semantic/find", "/semantic/visual-similar", "/semantic/scenes/index", "/semantic/scenes/find"):
                 return self._reply(404, {"error": "NOT_FOUND"})
             try:
                 data = self._payload()
@@ -102,6 +110,24 @@ def create_app(root: Path, db_path: Path, token: str, *, namespace: str = "local
                         result = index_directory(store, root, namespace=namespace,
                                                  principal="local-owner",
                                                  authorize_source=authorized)
+                elif self.path in ("/semantic/scenes/index", "/semantic/scenes/find"):
+                    if semantic_model is None:
+                        return self._reply(503, {"error":"SCENE_MODEL_NOT_CONFIGURED"})
+                    if self.path == "/semantic/scenes/index":
+                        if data:
+                            raise ValueError("SCENE_INDEX_ARGUMENTS_NOT_ALLOWED")
+                        with LOCK:
+                            result = index_visual_semantics(
+                                store, root, namespace=namespace, principal="local-owner",
+                                authorize_source=authorized, encoder=semantic_model)
+                    else:
+                        if (set(data)!={"prompt"} or not isinstance(data["prompt"],str)):
+                            raise ValueError("EXPECTED_SCENE_PROMPT")
+                        with LOCK:
+                            result = find_visual_scenes(
+                                store, data["prompt"], namespace=namespace,
+                                principal="local-owner", authorize_source=authorized,
+                                encoder=semantic_model)
                 elif self.path == "/semantic/visual-similar":
                     if (set(data) != {"reference_source_id"}
                             or not isinstance(data["reference_source_id"], str)):
