@@ -13,6 +13,52 @@ function Studio(){
  const [serviceId,setServiceId]=useState('claims-api'),[name,setName]=useState('Claims API'),[environment,setEnvironment]=useState('dev');
  const [policyId,setPolicyId]=useState('eligibility'),[version,setVersion]=useState('1.0.0'),[editor,setEditor]=useState(JSON.stringify(starter,null,2)),[message,setMessage]=useState('');
  const [signedBundle,setSignedBundle]=useState('');
+ const [semanticToken,setSemanticToken]=useState('');
+ const [semanticStatus,setSemanticStatus]=useState('Not connected');
+ const [semanticNamespace,setSemanticNamespace]=useState('local');
+ const [semanticDirectory,setSemanticDirectory]=useState('');
+ const [semanticTerm,setSemanticTerm]=useState('Cyrille');
+ const [semanticRunning,setSemanticRunning]=useState(false);
+ const [semanticCoverage,setSemanticCoverage]=useState<Record<string,number>|null>(null);
+ type SemanticHit={source_id:string;revision:string;format:string;anchor:{kind:string;row_number?:number;pointer?:string;start_ms?:number;end_ms?:number};field:string;matched_text:string};
+ const [semanticHits,setSemanticHits]=useState<SemanticHit[]>([]);
+ const [semanticTruncated,setSemanticTruncated]=useState(false);
+ const semanticRequest=async(path:string,data?:unknown)=>{
+  const response=await fetch(path,{method:data===undefined?'GET':'POST',
+   headers:{'Authorization':'Bearer '+semanticToken,'Content-Type':'application/json'},
+   body:data===undefined?undefined:JSON.stringify(data)});
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||'Semantic workbench unavailable');
+  return result;
+ };
+ async function semanticConnect(){
+  setSemanticRunning(true);try{
+   const status=await semanticRequest('/semantic/status');
+   setSemanticNamespace(status.namespace);setSemanticDirectory(status.directory);
+   setSemanticStatus('Connected: local directory '+status.directory+' (CSV, JSON, VTT)');
+  }catch(e){setSemanticStatus(String(e))}finally{setSemanticRunning(false)}
+ }
+ async function semanticIndex(){
+  setSemanticRunning(true);try{
+   const r=await semanticRequest('/semantic/index',{});
+   setSemanticCoverage(r.coverage);
+   setSemanticStatus('Index complete'+(r.truncated?' — file limit reached':'')+
+    '. Unsupported, failed and denied files are excluded.');
+  }catch(e){setSemanticStatus(String(e))}finally{setSemanticRunning(false)}
+ }
+ async function semanticFind(){
+  setSemanticRunning(true);try{
+   const escaped=semanticTerm.replace(/'/g,"''");
+   const r=await semanticRequest('/semantic/find',
+      {statement:"FIND '"+escaped+"' IN '"+semanticNamespace+"' LIMIT 50;"});
+   setSemanticHits(r.result.hits);setSemanticTruncated(r.result.truncated);
+   setSemanticStatus('Indexed text search: '+r.result.hits.length+' matches. No visual recognition performed.');
+  }catch(e){setSemanticStatus(String(e));setSemanticHits([])}
+  finally{setSemanticRunning(false)}
+ }
+ const anchorLabel=(a:SemanticHit['anchor'])=>a.kind==='csv_row'?'Row '+a.row_number:
+  a.kind==='json_pointer'?'JSON '+(a.pointer||'/'):a.kind==='time_range'?
+  ((a.start_ms||0)/1000).toFixed(3)+'s–'+((a.end_ms||0)/1000).toFixed(3)+'s':'Source anchor';
  const headers=()=>({'Authorization':'Bearer '+token,'Content-Type':'application/json'});
  async function request(path:string,method='GET',data?:unknown){
   const response=await fetch(path,{method,headers:headers(),body:data===undefined?undefined:JSON.stringify(data)});
@@ -41,6 +87,34 @@ function Studio(){
    </li>)}</ul>
    <p>Published versions:</p><ul>{state.signedBindings.map(p=><li key={p.serviceId+'@'+p.environment}><code>{p.serviceId}@{p.environment}</code> → signed sequence {p.sequence}</li>)}</ul>
    <p>For application verification: <code>GET /v1/signed/resolve/{serviceId}/{environment}</code>. Legacy unsigned policy bindings remain separate; the signed client must never silently downgrade.</p>
+   </section>
+   <section className="panel" aria-label="Semantic Store directory search">
+   <h2>5. Semantic Store · Local directory</h2>
+   <p>Search indexed CSV, flat JSON and WebVTT subtitles with a familiar FIND statement. Run the separate loopback-only workbench; the server's directory is fixed at startup. This interface does not access server paths directly.</p>
+   <div className="line">
+    <label>Local Semantic Workbench token<input type="password" autoComplete="off"
+      value={semanticToken} onChange={e=>setSemanticToken(e.target.value)}
+      placeholder="Separate semantic token (not registry token)"/></label>
+    <button disabled={!semanticToken||semanticRunning} onClick={semanticConnect}>Connect directory</button>
+    <button disabled={!semanticDirectory||semanticRunning} onClick={semanticIndex}>Index files</button>
+   </div>
+   {semanticDirectory&&<p>Configured folder: <code>{semanticDirectory}</code> · Namespace: <code>{semanticNamespace}</code></p>}
+   <div className="line">
+    <label>Find in indexed files<input value={semanticTerm} onChange={e=>setSemanticTerm(e.target.value)}
+     placeholder="Cyrille" aria-label="Find text"/></label>
+    <button disabled={!semanticDirectory||!semanticTerm.trim()||semanticRunning}
+     onClick={semanticFind}>Find</button>
+   </div>
+   <p className="status" role="status">{semanticStatus}</p>
+   {semanticCoverage&&<p>Indexed: {semanticCoverage.indexed} · Unchanged: {semanticCoverage.unchanged} ·
+    Unsupported: {semanticCoverage.unsupported} · Failed: {semanticCoverage.failed} ·
+    Access denied: {semanticCoverage.denied} · Symlinks skipped: {semanticCoverage.symlinks_skipped}</p>}
+   <p><strong>Source-linked results</strong> · Indexed text only; not exhaustive directory search, OCR, visual matching, or identity verification.</p>
+   {semanticTruncated&&<p role="alert">Results are truncated. Narrow the search or increase safe backend coverage.</p>}
+   <ul>{semanticHits.map((hit,i)=><li key={hit.source_id+'#'+hit.revision+'#'+i}>
+    <strong>{hit.source_id}</strong> <code>{hit.format}</code> · {anchorLabel(hit.anchor)} ·
+    <span>{hit.field}: {hit.matched_text.slice(0,350)}</span>
+   </li>)}</ul>
    </section>
    <footer>QualityRag v0.1 · deterministic policy enforcement · policies are not proof of source truth</footer>
  </main>;
