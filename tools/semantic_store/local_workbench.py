@@ -14,7 +14,7 @@ import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import RLock
 
-from directory_codex import index_directory, search_store
+from directory_codex import index_directory, search_store, find_visual_similar
 from semantic_find_sql import execute_find
 from semantic_codex import CodexError
 from store import SemanticStore
@@ -82,7 +82,7 @@ def create_app(root: Path, db_path: Path, token: str, *, namespace: str = "local
                 self._reply(200, {"schema": "qualityrag.semantic-local-status/v0.1",
                                   "namespace": namespace,
                                   "directory": root.name,
-                                  "formats": ["csv", "json", "vtt", "pdf", "docx", "html", "htm", "txt"],
+                                  "formats": ["csv", "json", "vtt", "pdf", "docx", "html", "htm", "txt", "png", "jpg", "jpeg", "webp", "mp4", "mov", "mkv"],
                                   "mode": "LOOPBACK_LOCAL_ONLY",
                                   "visual_identity_recognition": "NOT_PERFORMED"})
             else:
@@ -91,7 +91,7 @@ def create_app(root: Path, db_path: Path, token: str, *, namespace: str = "local
         def do_POST(self):
             if not self._auth():
                 return
-            if self.path not in ("/semantic/index", "/semantic/find"):
+            if self.path not in ("/semantic/index", "/semantic/find", "/semantic/visual-similar"):
                 return self._reply(404, {"error": "NOT_FOUND"})
             try:
                 data = self._payload()
@@ -102,6 +102,15 @@ def create_app(root: Path, db_path: Path, token: str, *, namespace: str = "local
                         result = index_directory(store, root, namespace=namespace,
                                                  principal="local-owner",
                                                  authorize_source=authorized)
+                elif self.path == "/semantic/visual-similar":
+                    if (set(data) != {"reference_source_id"}
+                            or not isinstance(data["reference_source_id"], str)):
+                        raise ValueError("EXPECTED_INDEXED_IMAGE_SOURCE_ID")
+                    with LOCK:
+                        result = find_visual_similar(
+                            store, reference_source_id=data["reference_source_id"],
+                            namespace=namespace, principal="local-owner",
+                            authorize_source=authorized)
                 else:
                     if set(data) != {"statement"} or not isinstance(data["statement"], str):
                         raise ValueError("EXPECTED_FIND_STATEMENT")

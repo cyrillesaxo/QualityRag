@@ -44,7 +44,8 @@ class DirectoryCodexTests(unittest.TestCase):
         report = self.index()
         self.assertEqual(report["coverage"]["indexed"], 2)
         self.assertEqual(report["coverage"]["denied"], 1)
-        self.assertEqual(report["coverage"]["unsupported"], 1)
+        self.assertEqual(report["coverage"]["unsupported"], 0)
+        self.assertEqual(report["coverage"]["failed"], 1)  # Invalid JPEG now recognized and rejected
         hits = self.search()["hits"]
         self.assertEqual({h["format"] for h in hits}, {"csv", "vtt"})
         self.assertEqual(next(h for h in hits if h["format"] == "vtt")["anchor"]["start_ms"], 2250)
