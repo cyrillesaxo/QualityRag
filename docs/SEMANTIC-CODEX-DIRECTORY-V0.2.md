@@ -36,7 +36,7 @@ print("Truncated:", results["truncated"])
 PY
 ```
 
-Create `example-files` containing a `team.csv` such as `name,role\nCyrille,architect\n`, a `meeting.json` such as `{"note":"Cyrille attended"}`, and a `clip.vtt` WebVTT caption with the word Cyrille. The result is retrieved from an **immutable, persistent SQLite Semantic Store**, not from in-memory artifacts.
+Create `example-files` containing a `team.csv` such as `name,role\nCyrille,architect\n`, a `meeting.json` such as `{"note":"Cyrille attended"}`, and a `clip.vtt` WebVTT caption with the word Cyrille. The result is retrieved from an **immutable, persistent SQLite Semantic Store**, not from in-memory artifacts. `FIND` is a strictly bounded indexed lexical search; it is not a general SQL parser, visual entity recognition, or semantic similarity engine.
 
 ## Implementation details
 
