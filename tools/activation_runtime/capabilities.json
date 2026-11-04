@@ -1332,7 +1332,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/economics.py",
-          "sha256": "096d14298fac48383d193419bc1fdc09efa55b81718976f15e1b8ab8badef0a1"
+          "sha256": "54bb3a51fe1841ab68c77f5b3369312fa666ed68b62d2d016b0406b2bbc9ac65"
         },
         {
           "path": "tools/activation_runtime/agents.py",
@@ -1344,7 +1344,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
-          "sha256": "ca158b745b0e61edf0a0b07119183cd121ff09636425a18119653ce61155ba84"
+          "sha256": "0c98315a33bc0dbaadcc221903730abd944c2a3a8d0b2929ff0d14e28cbfc8c6"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py; tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1808,7 +1808,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/economics.py",
-          "sha256": "096d14298fac48383d193419bc1fdc09efa55b81718976f15e1b8ab8badef0a1"
+          "sha256": "54bb3a51fe1841ab68c77f5b3369312fa666ed68b62d2d016b0406b2bbc9ac65"
         },
         {
           "path": "tools/activation_runtime/release.py",
@@ -1832,7 +1832,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
-          "sha256": "ca158b745b0e61edf0a0b07119183cd121ff09636425a18119653ce61155ba84"
+          "sha256": "0c98315a33bc0dbaadcc221903730abd944c2a3a8d0b2929ff0d14e28cbfc8c6"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py; tools/activation_runtime/tests/test_economic_uncertainty.py",

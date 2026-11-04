@@ -77,6 +77,36 @@ class EconomicUncertaintyTests(unittest.TestCase):
         self.assertEqual(row["earliest_crossover_views"],2)
         self.assertIsNone(row["guaranteed_crossover_views"])
 
+    def test_baseline_setup_can_create_temporary_savings_that_later_reverse(self):
+        costs=groups();costs["fixed"]=group(compile=interval(10))
+        costs["baseline_fixed"]=group(compile=interval(100))
+        costs["baseline_per_view"]=group(bandwidth=interval(1))
+        costs["candidate_per_view"]=group(decode=interval(2))
+        row=catalog_uncertainty(costs,catalog_sizes=[1],cohorts=cohorts(views=89))["rows"][0]
+        self.assertEqual(row["result"],"GUARANTEED_SAVINGS_ONLY_IN_FINITE_VIEW_WINDOW")
+        self.assertEqual(row["guaranteed_savings_views"],{"first":0,"last":89})
+        self.assertIsNone(row["guaranteed_crossover_views"])
+        self.assertEqual(row["savings_usd"],{"lower":1,"upper":1})
+        equal=catalog_uncertainty(costs,catalog_sizes=[1],cohorts=cohorts(views=90))["rows"][0]
+        self.assertEqual(equal["savings_usd"],{"lower":0,"upper":0})
+        self.assertEqual(equal["at_declared_views"],"NO_SAVINGS_WITHIN_INPUT_BOUNDS")
+
+    def test_all_baseline_workload_scopes_are_counted(self):
+        costs=groups()
+        for scope,component,value in (("baseline_fixed","compile",2),("baseline_per_title","encode",3),
+                ("baseline_per_install","model_distribution",5),("baseline_per_update","update",7)):
+            costs[scope]=group(**{component:interval(value)})
+        row=catalog_uncertainty(costs,catalog_sizes=[2],cohorts=cohorts(views=5,installs=3,updates=4))["rows"][0]
+        self.assertEqual(row["baseline_setup_usd"],{"lower":51,"upper":51})
+        self.assertEqual(row["savings_usd"],{"lower":51,"upper":51})
+        self.assertEqual(row["guaranteed_savings_views"],{"first":0,"last":None})
+
+    def test_unknown_baseline_cost_is_not_silently_treated_as_sunk(self):
+        costs=groups();costs["baseline_fixed"]["compile"]={"lower":None,"upper":None,"unit":"USD","evidence":"UNKNOWN"}
+        result=catalog_uncertainty(costs,catalog_sizes=[1],cohorts=cohorts())
+        self.assertEqual(result["classification"],"INCONCLUSIVE")
+        self.assertIsNone(result["rows"][0]["baseline_usd"])
+
     def test_no_crossover_is_retained_when_even_best_marginal_is_nonpositive(self):
         costs=groups();costs["baseline_per_view"]=group(bandwidth=interval(1,2))
         costs["candidate_per_view"]=group(decode=interval(2,3))

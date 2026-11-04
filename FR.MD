@@ -736,6 +736,8 @@ US-032 now supports deterministic cost intervals across all lifecycle components
 and fixed/title/install/update/per-view scopes for cold-new, frequent, TV and
 mobile cohorts. It reports best-case and guaranteed-within-input-bounds strict
 crossover thresholds, no-crossover results and inconclusive unknown costs.
+Both baseline and candidate setup costs are included; finite initial savings
+windows are distinguished from savings that persist as views grow.
 The bounds are not statistical confidence intervals or measured financial gains.
 The CLI economics command and authored assumption fixture make the model runnable.
 

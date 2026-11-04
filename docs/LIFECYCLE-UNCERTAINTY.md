@@ -21,7 +21,7 @@ lifecycle_interval reports a known subtotal range but leaves total_usd null
 when any component is unknown. OBSERVED is a caller assertion about inputs, not
 independent authentication. ASSUMED costs keep the result a scenario.
 
-Catalog comparisons require six complete groups:
+Catalog comparisons require ten complete groups:
 
 | Group | Multiplier |
 |---|---|
@@ -29,6 +29,10 @@ Catalog comparisons require six complete groups:
 | per_title | Declared catalog titles |
 | per_install | Declared cohort installations |
 | per_update | Declared cohort update events |
+| baseline_fixed | One per baseline scenario |
+| baseline_per_title | Declared catalog titles |
+| baseline_per_install | Declared cohort installations |
+| baseline_per_update | Declared cohort update events |
 | baseline_per_view | Declared baseline views |
 | candidate_per_view | Declared candidate views |
 
@@ -44,17 +48,20 @@ would currently multiply that scope by zero.
 The model holds installations, updates and catalog size fixed while varying
 views to calculate crossover. It does not infer how these counts grow together.
 
-Setup includes fixed, title, installation and update costs. Let setup range be
-[Smin,Smax], baseline per-view costs [Bmin,Bmax] and candidate per-view costs
-[Cmin,Cmax]. The marginal-saving range is [Bmin-Cmax,Bmax-Cmin].
+Both options include fixed, title, installation and update setup costs. Savings
+at view count v equal baseline setup minus candidate setup plus v times the
+baseline-minus-candidate per-view cost. Endpoint combinations give conservative
+best and worst savings lines.
 
-- If even the best marginal saving is nonpositive, report NO_CROSSOVER.
-- If the best marginal saving is positive, the earliest bound is
-  floor(Smin / best_marginal) + 1.
-- If the worst marginal saving is positive, the guaranteed-within-input-bounds
-  threshold is floor(Smax / worst_marginal) + 1.
-- If the worst marginal saving is nonpositive, no guaranteed threshold is
-  reported, even if a best-case crossover is possible.
+possible_savings_views and guaranteed_savings_views report integer view windows
+with strictly positive best-case and worst-case savings respectively. A null
+window means no savings; a null last endpoint means savings persist indefinitely.
+An option can be cheaper initially yet become more expensive as views grow.
+Such finite windows are reported explicitly, without a sustained crossover claim.
+earliest_crossover_views and guaranteed_crossover_views are populated only for
+unbounded savings windows. Zero is valid when the setup advantage already suffices.
+The legacy point catalog_scenarios function explicitly assumes baseline setup
+costs have already been incurred and are excluded from comparison.
 
 Equality is not savings. With setup USD 0.30 and per-view saving USD 0.10,
 strict savings start at four views, not three. The code uses exact decimal

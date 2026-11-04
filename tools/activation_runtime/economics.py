@@ -5,7 +5,8 @@ from fractions import Fraction
 COMPONENTS = ("compile", "encode", "residual", "model_distribution", "update",
               "storage", "bandwidth", "decode", "verification", "energy", "review")
 COHORTS=("cold-new","frequent","smart-tv","mobile")
-SCOPES=("fixed","per_title","per_install","per_update","baseline_per_view","candidate_per_view")
+SCOPES=("fixed","per_title","per_install","per_update","baseline_fixed","baseline_per_title",
+        "baseline_per_install","baseline_per_update","baseline_per_view","candidate_per_view")
 
 
 def _amount(value):
@@ -112,6 +113,7 @@ def catalog_scenarios(*,model_bytes,compile_usd,encode_usd_per_title,baseline_us
             rows.append({"cohort":name,"titles":titles,"baseline_usd":_number(cohort["views"]*baseline_usd_per_view),
                 "candidate_usd":_number(setup+cohort["views"]*candidate_usd_per_view),"break_even_views":crossover,
                 "model_distribution_bytes":model_bytes*cohort["installs"],
+                "baseline_setup_assumption":"ALREADY_INCURRED_NOT_COMPARED",
                 "result":"NO_CROSSOVER" if crossover is None else "SCENARIO_CROSSOVER",
                 "evidence":"ASSUMED_SCENARIO_NOT_MEASURED_SAVINGS"})
     return rows
@@ -166,6 +168,14 @@ def lifecycle_interval(values):
             "evidence_authority":"CALLER_DECLARED_NOT_INDEPENDENTLY_AUTHENTICATED","economic_advantage":"NOT_ESTABLISHED"}
 
 
+def _savings_window(setup_difference,marginal):
+    """Nonnegative integer view counts giving strict savings for a linear bound."""
+    if marginal>0:return max(0,math.floor(setup_difference/marginal)+1),None
+    if marginal==0:return (0,None) if setup_difference<0 else (None,None)
+    if setup_difference<0:return 0,math.ceil(setup_difference/marginal)-1
+    return None,None
+
+
 def catalog_uncertainty(groups,*,catalog_sizes,cohorts):
     """Linear cost scenarios with explicit deterministic bounds, never ROI forecasts."""
     if not isinstance(groups,dict) or set(groups)!=set(SCOPES):raise ValueError("All fixed, workload and per-view cost scopes required")
@@ -179,21 +189,30 @@ def catalog_uncertainty(groups,*,catalog_sizes,cohorts):
             cohort=cohorts[name]
             row={"cohort":name,"titles":titles,**cohort,"economic_advantage":"NOT_ESTABLISHED"}
             if unknown:
-                rows.append({**row,"result":"INCONCLUSIVE","setup_usd":None,"baseline_usd":None,"candidate_usd":None,
-                    "savings_usd":None,"earliest_crossover_views":None,"guaranteed_crossover_views":None,"at_declared_views":"UNKNOWN"})
+                rows.append({**row,"result":"INCONCLUSIVE","setup_usd":None,"baseline_setup_usd":None,"baseline_usd":None,"candidate_usd":None,
+                    "savings_usd":None,"earliest_crossover_views":None,"guaranteed_crossover_views":None,
+                    "possible_savings_views":None,"guaranteed_savings_views":None,"at_declared_views":"UNKNOWN"})
                 continue
             setup=[sum((intervals[scope][i]*multiplier for scope,multiplier in
                    (("fixed",1),("per_title",titles),("per_install",cohort["installs"]),("per_update",cohort["update_events"]))),Fraction(0)) for i in (0,1)]
+            baseline_setup=[sum((intervals[scope][i]*multiplier for scope,multiplier in
+                   (("baseline_fixed",1),("baseline_per_title",titles),("baseline_per_install",cohort["installs"]),("baseline_per_update",cohort["update_events"]))),Fraction(0)) for i in (0,1)]
             base=intervals["baseline_per_view"][:2];candidate=intervals["candidate_per_view"][:2]
             marginal=[base[0]-candidate[1],base[1]-candidate[0]]
-            earliest=None if marginal[1]<=0 else math.floor(setup[0]/marginal[1])+1
-            guaranteed=None if marginal[0]<=0 else math.floor(setup[1]/marginal[0])+1
-            baseline=[cohort["views"]*v for v in base]
+            delta=[setup[0]-baseline_setup[1],setup[1]-baseline_setup[0]]
+            possible=_savings_window(delta[0],marginal[1]);guaranteed=_savings_window(delta[1],marginal[0])
+            earliest=possible[0] if possible[1] is None else None
+            sustained=guaranteed[0] if guaranteed[1] is None else None
+            baseline=[baseline_setup[i]+cohort["views"]*base[i] for i in (0,1)]
             current=[setup[i]+cohort["views"]*candidate[i] for i in (0,1)]
             savings=[baseline[0]-current[1],baseline[1]-current[0]]
-            rows.append({**row,"setup_usd":_bounds(*setup),"baseline_usd":_bounds(*baseline),"candidate_usd":_bounds(*current),
-                "savings_usd":_bounds(*savings),"earliest_crossover_views":earliest,"guaranteed_crossover_views":guaranteed,
-                "result":"NO_CROSSOVER" if earliest is None else ("GUARANTEED_CROSSOVER_WITHIN_INPUT_BOUNDS" if guaranteed is not None else "POSSIBLE_CROSSOVER_ONLY"),
+            result=("NO_CROSSOVER" if possible[0] is None else ("GUARANTEED_CROSSOVER_WITHIN_INPUT_BOUNDS" if sustained is not None else
+                    ("GUARANTEED_SAVINGS_ONLY_IN_FINITE_VIEW_WINDOW" if guaranteed[0] is not None else
+                     ("POSSIBLE_SAVINGS_ONLY_IN_FINITE_VIEW_WINDOW" if possible[1] is not None else "POSSIBLE_CROSSOVER_ONLY"))))
+            rows.append({**row,"setup_usd":_bounds(*setup),"baseline_setup_usd":_bounds(*baseline_setup),"baseline_usd":_bounds(*baseline),"candidate_usd":_bounds(*current),
+                "savings_usd":_bounds(*savings),"earliest_crossover_views":earliest,"guaranteed_crossover_views":sustained,
+                "possible_savings_views":None if possible[0] is None else {"first":possible[0],"last":possible[1]},
+                "guaranteed_savings_views":None if guaranteed[0] is None else {"first":guaranteed[0],"last":guaranteed[1]},"result":result,
                 "at_declared_views":"GUARANTEED_SAVINGS_WITHIN_INPUT_BOUNDS" if savings[0]>0 else ("NO_SAVINGS_WITHIN_INPUT_BOUNDS" if savings[1]<=0 else "UNCERTAIN")})
     return {"schema":"qualityrag.catalog-uncertainty/v1","rows":rows,"unknown_components":unknown,"assumed_components":assumed,
             "interpretation":"DETERMINISTIC_INPUT_BOUNDS_NOT_CONFIDENCE_INTERVALS","classification":"INCONCLUSIVE" if unknown else "SCENARIO_NOT_MEASURED_SAVINGS",
