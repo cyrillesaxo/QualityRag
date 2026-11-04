@@ -60,16 +60,27 @@ def research_round(parent_grammar,tasks):
 
 
 def schedule(experiments,*,budget):
-    if type(budget) not in (int,float) or not __import__("math").isfinite(budget) or budget<0:raise ValueError("Nonnegative investigation budget")
-    if not isinstance(experiments,list) or len(experiments)>128:raise ValueError("Bounded experiment set")
+    from fractions import Fraction
+    from .common import identity
     import math
+    def amount(value):
+        try:valid=type(value) in (int,float) and math.isfinite(value) and value>=0
+        except OverflowError:valid=False
+        if not valid:raise ValueError("Nonnegative finite investigation value required")
+        return Fraction(str(value))
+    remaining=amount(budget)
+    if not isinstance(experiments,list) or len(experiments)>128:raise ValueError("Bounded experiment set")
+    costs={};values={}
     for item in experiments:
-        if set(item)!={"id","expected_value","cost"} or any(type(item[k]) not in (int,float) or not math.isfinite(item[k]) or item[k]<0 for k in ("expected_value","cost")) or item["cost"]==0:
-            raise ValueError("Finite positive experiment cost required")
-    ordered=sorted(experiments,key=lambda x:(-x["expected_value"]/x["cost"],x["id"]))
+        if not isinstance(item,dict) or set(item)!={"id","expected_value","cost"}:raise ValueError("Explicit experiment value and cost required")
+        identity(item["id"])
+        if item["id"] in costs:raise ValueError("Duplicate experiment ID")
+        costs[item["id"]]=amount(item["cost"]);values[item["id"]]=amount(item["expected_value"])
+        if not costs[item["id"]]:raise ValueError("Positive experiment cost required")
+    ordered=sorted(experiments,key=lambda x:(-values[x["id"]]/costs[x["id"]],x["id"]))
     selected=[]
-    remaining=budget
     for item in ordered:
-        if item["cost"]<=remaining:
-            selected.append(item["id"]);remaining-=item["cost"]
-    return {"selected":selected,"remaining_budget":remaining,"skipped":[x["id"] for x in ordered if x["id"] not in selected]}
+        cost=costs[item["id"]]
+        if cost<=remaining:
+            selected.append(item["id"]);remaining-=cost
+    return {"selected":selected,"remaining_budget":float(remaining),"skipped":[x["id"] for x in ordered if x["id"] not in selected]}

@@ -1332,10 +1332,22 @@
       "modules": [
         {
           "path": "tools/activation_runtime/economics.py",
-          "sha256": "9f08c6c54448d5229fc2fe17a96518d7aa311f51e54de8e90e7669a72072a2d1"
+          "sha256": "096d14298fac48383d193419bc1fdc09efa55b81718976f15e1b8ab8badef0a1"
+        },
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "bb8bb8d6344db9e93270afc8677e2c7cd8af02d8a5cb349a5fc9b5da35cc7f96"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
+          "sha256": "ca158b745b0e61edf0a0b07119183cd121ff09636425a18119653ce61155ba84"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py; tools/activation_runtime/tests/test_economic_uncertainty.py",
       "remaining": "Measured full lifecycle inputs and uncertainty by real catalog/viewer/device cohort.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1616,7 +1628,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/agents.py",
-          "sha256": "9afdabed67a27221f32033d31cb7c6f86e2b9909e0ba72529cc4cb4e246928da"
+          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_agents.py",
@@ -1796,7 +1808,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/economics.py",
-          "sha256": "9f08c6c54448d5229fc2fe17a96518d7aa311f51e54de8e90e7669a72072a2d1"
+          "sha256": "096d14298fac48383d193419bc1fdc09efa55b81718976f15e1b8ab8badef0a1"
         },
         {
           "path": "tools/activation_runtime/release.py",
@@ -1809,9 +1821,21 @@
         {
           "path": "tools/activation_runtime/tests/test_release_authority.py",
           "sha256": "35f7d2c21b5a391b65a2c689769e26c197449e72795564760963772a033cf55c"
+        },
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "bb8bb8d6344db9e93270afc8677e2c7cd8af02d8a5cb349a5fc9b5da35cc7f96"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
+          "sha256": "ca158b745b0e61edf0a0b07119183cd121ff09636425a18119653ce61155ba84"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py; tools/activation_runtime/tests/test_economic_uncertainty.py",
       "remaining": "Measured energy/total-cost frontier plus actual independent signed promotion authority.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1966,7 +1990,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "64039dcbae098b551137492c1e2ef88e1d6d7d0023721788224f52d7f548b849"
+          "sha256": "bb8bb8d6344db9e93270afc8677e2c7cd8af02d8a5cb349a5fc9b5da35cc7f96"
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",

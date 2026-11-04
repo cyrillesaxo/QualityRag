@@ -1,0 +1,438 @@
+{
+  "groups": {
+    "fixed": {
+      "compile": {
+        "lower": 10,
+        "upper": 20,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "encode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "residual": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "model_distribution": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "update": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "storage": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "bandwidth": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "decode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "verification": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "energy": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "review": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      }
+    },
+    "per_title": {
+      "compile": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "encode": {
+        "lower": 0.05,
+        "upper": 0.1,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "residual": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "model_distribution": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "update": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "storage": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "bandwidth": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "decode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "verification": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "energy": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "review": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      }
+    },
+    "per_install": {
+      "compile": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "encode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "residual": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "model_distribution": {
+        "lower": 0.25,
+        "upper": 0.5,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "update": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "storage": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "bandwidth": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "decode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "verification": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "energy": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "review": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      }
+    },
+    "per_update": {
+      "compile": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "encode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "residual": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "model_distribution": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "update": {
+        "lower": 0.1,
+        "upper": 0.2,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "storage": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "bandwidth": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "decode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "verification": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "energy": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "review": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      }
+    },
+    "baseline_per_view": {
+      "compile": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "encode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "residual": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "model_distribution": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "update": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "storage": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "bandwidth": {
+        "lower": 2,
+        "upper": 3,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "decode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "verification": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "energy": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "review": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      }
+    },
+    "candidate_per_view": {
+      "compile": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "encode": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "residual": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "model_distribution": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "update": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "storage": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "bandwidth": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "decode": {
+        "lower": 1,
+        "upper": 1,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "verification": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "energy": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      },
+      "review": {
+        "lower": 0,
+        "upper": 0,
+        "evidence": "ASSUMED",
+        "unit": "USD"
+      }
+    }
+  },
+  "catalog_sizes": [
+    1,
+    100
+  ],
+  "cohorts": {
+    "cold-new": {
+      "installs": 100,
+      "views": 100,
+      "update_events": 100
+    },
+    "frequent": {
+      "installs": 10,
+      "views": 1000,
+      "update_events": 10
+    },
+    "smart-tv": {
+      "installs": 25,
+      "views": 500,
+      "update_events": 25
+    },
+    "mobile": {
+      "installs": 50,
+      "views": 200,
+      "update_events": 100
+    }
+  }
+}

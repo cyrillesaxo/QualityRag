@@ -728,3 +728,22 @@ push workflow passing all checks. Dependency installation steps now have explici
 three-minute limits; media package acquisition and lock waits and Python network
 requests/retries are bounded. Tests are not skipped or weakened on install failure.
 The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.
+
+
+## 19. Lifecycle uncertainty and exact investigation budgets
+
+US-032 now supports deterministic cost intervals across all lifecycle components
+and fixed/title/install/update/per-view scopes for cold-new, frequent, TV and
+mobile cohorts. It reports best-case and guaranteed-within-input-bounds strict
+crossover thresholds, no-crossover results and inconclusive unknown costs.
+The bounds are not statistical confidence intervals or measured financial gains.
+The CLI economics command and authored assumption fixture make the model runnable.
+
+US-042 now rejects duplicate candidate and experiment IDs, validates finite
+dimensions even on excluded rows, and uses exact decimal arithmetic for ranking
+and budget subtraction. Point cost sums and break-even boundaries also use exact
+arithmetic; overflow refuses. Tests cover decimal boundaries, all workload scopes,
+uncertainty, negative results, missing data, Pareto dimensions and CLI parity.
+See docs/LIFECYCLE-UNCERTAINTY.md. Actual measured lifecycle/energy costs,
+independent review and promotion evidence remain outstanding. The inventory
+remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.
