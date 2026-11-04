@@ -1,0 +1,218 @@
+"""Append-only research provenance ledger: implementation != validation.
+
+SQLite is the zero-service local reference implementation. An equivalent
+PostgreSQL schema is in tools/research_ledger/postgresql.sql. No automatic
+claims of scientific verification, source authenticity, or production
+readiness arise from GitHub merges, tests, or notes.
+"""
+from __future__ import annotations
+import hashlib
+import json
+import re
+import sqlite3
+from datetime import datetime,timezone
+from typing import Any
+
+SCHEMA="qualityrag.research-ledger/v0.1"
+KIND={"HYPOTHESIS","CAPABILITY","EXPERIMENT","DECISION"}
+EVIDENCE={"CODE_COMMIT","CI_RUN","TEST_RESULT","MEASUREMENT","REVIEW","SOURCE_DOCUMENT","DEPLOYMENT","OBSERVATION"}
+ASSESSMENTS={"UNVERIFIED","IMPLEMENTED","TESTED","VALIDATED","REFUTED","SUPERSEDED","INCONCLUSIVE"}
+RELATIONS={"SUPPORTS","CHALLENGES","DEPENDS_ON","SUPERSEDES","QUALIFIES"}
+_ID=re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$")
+_HASH=re.compile(r"^[0-9a-f]{64}$")
+
+
+class LedgerError(ValueError):
+    pass
+
+
+def canon(x: Any) -> str:
+    return json.dumps(x,sort_keys=True,ensure_ascii=False,separators=(",",":"),allow_nan=False)
+
+
+def sha(x: Any) -> str:
+    return hashlib.sha256(canon(x).encode()).hexdigest()
+
+
+def _id(value: str, label: str):
+    if not isinstance(value,str) or not _ID.fullmatch(value):
+        raise LedgerError("Invalid "+label+" ID")
+
+
+def _summary(value: str,label: str):
+    if not isinstance(value,str) or not 1<=len(value.strip())<=2000:
+        raise LedgerError("Invalid "+label)
+
+
+def _utc():
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+
+
+def initialize(db: sqlite3.Connection):
+    db.execute("PRAGMA foreign_keys=ON")
+    db.executescript("""
+    CREATE TABLE IF NOT EXISTS research_claims(
+      claim_id TEXT PRIMARY KEY,project TEXT NOT NULL,kind TEXT NOT NULL,
+      statement TEXT NOT NULL,created_at TEXT NOT NULL,content_hash TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS research_evidence(
+      evidence_id TEXT PRIMARY KEY,kind TEXT NOT NULL,uri TEXT NOT NULL,
+      description TEXT NOT NULL,content_sha256 TEXT,observed_at TEXT NOT NULL,
+      metadata_json TEXT NOT NULL,record_hash TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS research_events(
+      event_id TEXT PRIMARY KEY,claim_id TEXT NOT NULL,
+      assessment TEXT NOT NULL,reason TEXT NOT NULL,
+      observed_at TEXT NOT NULL,actor TEXT NOT NULL,
+      evidence_ids_json TEXT NOT NULL,previous_event_hash TEXT,
+      event_hash TEXT NOT NULL,
+      FOREIGN KEY(claim_id) REFERENCES research_claims(claim_id)
+    );
+    CREATE TABLE IF NOT EXISTS research_links(
+      link_id TEXT PRIMARY KEY,from_claim TEXT NOT NULL,to_claim TEXT NOT NULL,
+      relation TEXT NOT NULL,created_at TEXT NOT NULL,link_hash TEXT NOT NULL,
+      FOREIGN KEY(from_claim) REFERENCES research_claims(claim_id),
+      FOREIGN KEY(to_claim) REFERENCES research_claims(claim_id),
+      CHECK(from_claim<>to_claim)
+    );
+    CREATE INDEX IF NOT EXISTS research_events_claim_idx ON research_events(claim_id,observed_at,event_id);
+    CREATE INDEX IF NOT EXISTS research_claims_project_idx ON research_claims(project);
+    """)
+    for table in ("research_claims","research_evidence","research_events","research_links"):
+        for action in ("UPDATE","DELETE"):
+            db.execute(
+                f"CREATE TRIGGER IF NOT EXISTS forbid_{table}_{action.lower()} "
+                f"BEFORE {action} ON {table} BEGIN "
+                "SELECT RAISE(ABORT,'research ledger is append-only'); END;")
+
+
+def claim(db,*,claim_id:str,project:str,kind:str,statement:str,at:str|None=None):
+    _id(claim_id,"claim");_id(project,"project");_summary(statement,"statement")
+    if kind not in KIND:raise LedgerError("Invalid claim kind")
+    payload={"claim_id":claim_id,"project":project,"kind":kind,"statement":statement.strip(),"created_at":at or _utc()}
+    with db:db.execute("INSERT INTO research_claims VALUES(?,?,?,?,?,?)",
+        (claim_id,project,kind,payload["statement"],payload["created_at"],sha(payload)))
+    return payload
+
+
+def evidence(db,*,evidence_id:str,kind:str,uri:str,description:str,
+             content_sha256:str|None=None,metadata:dict|None=None,at:str|None=None):
+    _id(evidence_id,"evidence");_summary(description,"description")
+    if kind not in EVIDENCE:raise LedgerError("Invalid evidence kind")
+    if not isinstance(uri,str) or not 1<=len(uri)<=1000 or "://" not in uri:
+        raise LedgerError("Expected a retrievable provenance URI")
+    if content_sha256 is not None and (not isinstance(content_sha256,str) or not _HASH.fullmatch(content_sha256)):
+        raise LedgerError("Invalid evidence content SHA")
+    if metadata is None:metadata={}
+    if not isinstance(metadata,dict) or len(canon(metadata))>20000:raise LedgerError("Invalid metadata")
+    payload={"evidence_id":evidence_id,"kind":kind,"uri":uri,
+             "description":description,"content_sha256":content_sha256,
+             "observed_at":at or _utc(),"metadata":metadata}
+    with db:db.execute("INSERT INTO research_evidence VALUES(?,?,?,?,?,?,?,?)",
+        (evidence_id,kind,uri,description,content_sha256,payload["observed_at"],
+         canon(metadata),sha(payload)))
+    return payload
+
+
+def assess(db,*,event_id:str,claim_id:str,assessment:str,reason:str,
+           actor:str,evidence_ids:list[str],at:str|None=None):
+    _id(event_id,"event");_id(claim_id,"claim");_id(actor,"actor")
+    _summary(reason,"assessment reason")
+    if assessment not in ASSESSMENTS:raise LedgerError("Invalid assessment")
+    if (not isinstance(evidence_ids,list) or len(evidence_ids)>50 or
+            len(set(evidence_ids))!=len(evidence_ids)):
+        raise LedgerError("Assessment evidence IDs must be unique and bounded")
+    for eid in evidence_ids:_id(eid,"evidence")
+    if not db.execute("SELECT 1 FROM research_claims WHERE claim_id=?",(claim_id,)).fetchone():
+        raise LedgerError("Unknown claim")
+    for eid in evidence_ids:
+        if not db.execute("SELECT 1 FROM research_evidence WHERE evidence_id=?",(eid,)).fetchone():
+            raise LedgerError("Unknown evidence")
+    # Supported workflow hierarchy: a commit can prove implementation, not
+    # independently validated semantics; a CI run cannot certify deployed
+    # behavior or scientific validity.
+    if assessment=="IMPLEMENTED" and not any(
+        db.execute("SELECT kind FROM research_evidence WHERE evidence_id=?",(eid,)).fetchone()[0] in
+        ("CODE_COMMIT","DEPLOYMENT") for eid in evidence_ids):
+        raise LedgerError("IMPLEMENTED requires code/deployment evidence")
+    if assessment=="TESTED" and not any(
+        db.execute("SELECT kind FROM research_evidence WHERE evidence_id=?",(eid,)).fetchone()[0] in
+        ("CI_RUN","TEST_RESULT") for eid in evidence_ids):
+        raise LedgerError("TESTED requires test evidence")
+    if assessment=="VALIDATED":
+        raise LedgerError("Research validation is gated: independent verifier integration not implemented")
+    if assessment in ("REFUTED","SUPERSEDED") and not evidence_ids:
+        raise LedgerError("Refutation/supersession requires evidence")
+    row=db.execute(
+      "SELECT event_hash FROM research_events WHERE claim_id=? "
+      "ORDER BY observed_at DESC,event_id DESC LIMIT 1",(claim_id,)).fetchone()
+    previous=row[0] if row else None
+    payload={"event_id":event_id,"claim_id":claim_id,"assessment":assessment,
+             "reason":reason.strip(),"actor":actor,"evidence_ids":evidence_ids,
+             "observed_at":at or _utc(),"previous_event_hash":previous}
+    with db:db.execute("INSERT INTO research_events VALUES(?,?,?,?,?,?,?,?,?)",
+        (event_id,claim_id,assessment,payload["reason"],payload["observed_at"],actor,
+         canon(evidence_ids),previous,sha(payload)))
+    return payload
+
+
+def link(db,*,link_id:str,from_claim:str,to_claim:str,relation:str,at:str|None=None):
+    for key,value in (("link",link_id),("claim",from_claim),("claim",to_claim)):_id(value,key)
+    if relation not in RELATIONS or from_claim==to_claim:raise LedgerError("Invalid claim relation")
+    for key in (from_claim,to_claim):
+        if not db.execute("SELECT 1 FROM research_claims WHERE claim_id=?",(key,)).fetchone():
+            raise LedgerError("Unknown linked claim")
+    payload={"link_id":link_id,"from_claim":from_claim,"to_claim":to_claim,
+             "relation":relation,"created_at":at or _utc()}
+    with db:db.execute("INSERT INTO research_links VALUES(?,?,?,?,?,?)",
+                       (link_id,from_claim,to_claim,relation,payload["created_at"],sha(payload)))
+    return payload
+
+
+def progress(db,project:str|None=None):
+    args=() if project is None else (project,)
+    rows=db.execute("SELECT claim_id,project,kind,statement,created_at,content_hash FROM research_claims "+
+                    ("WHERE project=? " if project is not None else "")+"ORDER BY claim_id",args).fetchall()
+    items=[]
+    for id_,proj,kind,statement,created,hash_ in rows:
+        all_events=db.execute("SELECT event_id,assessment,reason,observed_at,actor,evidence_ids_json,previous_event_hash,event_hash "
+                              "FROM research_events WHERE claim_id=? ORDER BY observed_at,event_id",(id_,)).fetchall()
+        events=[{"event_id":e[0],"assessment":e[1],"reason":e[2],"observed_at":e[3],
+                 "actor":e[4],"evidence_ids":json.loads(e[5]),"previous_event_hash":e[6],
+                 "event_hash":e[7]} for e in all_events]
+        edges=db.execute("SELECT to_claim,relation FROM research_links WHERE from_claim=? ORDER BY link_id",(id_,)).fetchall()
+        items.append({"claim_id":id_,"project":proj,"kind":kind,"statement":statement,
+                      "status":events[-1]["assessment"] if events else "UNVERIFIED",
+                      "events":events,"links":[{"to":e[0],"relation":e[1]} for e in edges]})
+    return {"schema":SCHEMA,"claims":items,"counts":{"total":len(items),
+            "by_status":{s:sum(x["status"]==s for x in items) for s in sorted(ASSESSMENTS)}},
+            "source_authenticity":"UNVERIFIED_UNLESS_EXTERNALLY_ATTESTED",
+            "independent_validation":"NOT_IMPLEMENTED"}
+
+
+def verify_integrity(db):
+    """Detect accidental row corruption; NOT a defense against DBA rewrite."""
+    issues=[]
+    for id_,project,kind,statement,at,h in db.execute("SELECT * FROM research_claims"):
+        if sha({"claim_id":id_,"project":project,"kind":kind,"statement":statement,"created_at":at})!=h:
+            issues.append("claim_hash:"+id_)
+    for row in db.execute("SELECT * FROM research_evidence"):
+        id_,kind,uri,description,content_sha256,at,metadata,h=row
+        payload={"evidence_id":id_,"kind":kind,"uri":uri,"description":description,
+                 "content_sha256":content_sha256,"observed_at":at,"metadata":json.loads(metadata)}
+        if sha(payload)!=h:issues.append("evidence_hash:"+id_)
+    for claim_id, in db.execute("SELECT claim_id FROM research_claims"):
+        prev=None
+        rows=db.execute("SELECT * FROM research_events WHERE claim_id=? ORDER BY observed_at,event_id",(claim_id,)).fetchall()
+        for row in rows:
+            id_,cid,assessment,reason,at,actor,evidence_ids,previous,event_hash=row
+            payload={"event_id":id_,"claim_id":cid,"assessment":assessment,"reason":reason,
+                     "actor":actor,"evidence_ids":json.loads(evidence_ids),
+                     "observed_at":at,"previous_event_hash":previous}
+            if previous!=prev or sha(payload)!=event_hash:issues.append("event_chain:"+id_)
+            prev=event_hash
+    for id_,fr,to,relation,at,h in db.execute("SELECT * FROM research_links"):
+        if sha({"link_id":id_,"from_claim":fr,"to_claim":to,"relation":relation,"created_at":at})!=h:
+            issues.append("link_hash:"+id_)
+    return {"consistent":not issues,"issues":issues,
+            "trust_boundary":"HASHES_AND_SQLITE_TRIGGERS_NOT_EXTERNAL_ATTESTATION"}
