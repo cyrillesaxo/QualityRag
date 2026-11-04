@@ -1,0 +1,32 @@
+name: Activation runtime research
+on: [push, pull_request]
+jobs:
+  bounded-activation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/checkout@v4
+        with:
+          repository: cyrillesaxo/apx
+          ref: 9a4f8a3e4a3fe77d576369217525e54d0162b8b0
+          path: .apx-native
+          sparse-checkout: |
+            packages/apx-wbc/src
+            packages/apx-rcoc/src
+      - run: python -m pip install -r tools/packspec_compiler/requirements.txt -r tools/activation_runtime/requirements.txt
+      - run: python -m unittest discover -s tools/packspec_compiler -p 'test_finite_activation.py' -v
+      - run: python -m unittest discover -s tools/activation_runtime/tests -p 'test_*.py' -v
+        env:
+          QUALITYRAG_APX_ROOT: ${{ github.workspace }}/.apx-native
+      - run: python -m tools.activation_runtime.audit
+      - run: python -m tools.activation_runtime.demo --out /tmp/activation-demo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: finite-activation-receipts
+          path: /tmp/activation-demo

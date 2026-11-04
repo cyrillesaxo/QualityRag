@@ -1,7 +1,7 @@
 # FR.MD — QualityRag Semantic Codex, RCT, PackSpec & Activation Grammar
 
 > **Document:** Functional requirements, implementation plan, user stories and acceptance criteria  
-> **Version:** 0.2 · **Date:** 2026-11-04 · **Owner:** APX / QualityRag research program  
+> **Version:** 0.3 · **Date:** 2026-11-04 · **Owner:** APX / QualityRag research program  
 > **Status:** Planning baseline; no story is complete merely because it appears here.  
 > **Source of truth:** This backlog plus linked PRs, source files, independent test receipts and reviewer decisions.  
 > **Research lineage:** Cyrille Eloundou · [apx.guide](https://apx.guide/)  
@@ -471,3 +471,61 @@ it does not authenticate caller custody, policy completeness or semantic truth.
 Fallback supplies an unreleased source reference and terminates; it does not execute
 unverified code or release a failed reconstruction. Real RCT candidate selection,
 signed compatibility and independent admission remain subsequent integration tasks.
+
+## 12. Executable foundation delivery and full acceptance inventory
+
+Implementation now lives in tools/activation_runtime/ and reuses existing
+ConstraintIR, unified_gate, typed RCT induction/validation and Research Ledger code.
+
+| Delivered implementation | Verification | Remaining acceptance boundary |
+|---|---|---|
+| Eight local versioned JSON Schemas | Schema meta-validation and negative schema/version/operator/size cases | Shape does not certify authority or semantic completeness |
+| Signed compatibility and immutable tenant-scoped custody | Tamper, revoked key, expiry, wrong tenant/policy, version floor, symlink and transitive module tests | Host authentication, production signing/reviewer trust and model ABI remain external integrations |
+| Actual RCT + PackSpec execution with reusable decision cache | Existing engine invoked; held-out inversion counterexample; policy invalidation; artifact bytes/time | Full hard resource scheduler and independently reviewed source semantics remain pending |
+| CSV + structured JSON source paths | Multiline row anchors, duplicate/shape failures, exact reconstructed values | Complete PDF and further document-adapter acceptance remains pending |
+| Append-only Gardener linked to existing Research Ledger | Fork, synthesis, prune, reopen, restart replay, tamper and mutation rejection | No validation inheritance, periodic agent loop or review UI |
+| Original APX WBC and RCoC native execution | Pinned original TypeScript source, finite golden/negative cases in Node 24 | Not FF-RCT reconstruction parity, metric authenticity, K/B/C/T parity or independent semantic admission |
+| Complete explicit lifecycle cost components and Pareto function | Unknown cost remains null; fidelity failures excluded | Catalog/client measurements, uncertainty and break-even analysis remain pending |
+| Actual AV1 encode/decode harness | Lossless normalized frame-byte equality on generated test clip | Baseline only: not shared-grammar video compression; no real-corpus quality or energy claim |
+| Four-case one-command finite demo | Two separate runs produce byte-identical structural receipts | Authored synthetic examples; no independent clinical/legal/video validation |
+| Dedicated CI workflow | Tests, pinned native APX checkout and demo receipt artifact configured | Remote required-check completion and independent review must be observed separately |
+
+Canonical semantic traceability:
+
+| Concept | Canonical source pinned for this increment | Integration boundary |
+|---|---|---|
+| 12G G1–G12 | APX packages/apx-rcoc/src/canonical-taxonomy.ts at 9a4f8a3e4a3fe77d576369217525e54d0162b8b0 | Existing reviewed_g mapping plus original RCoC; unknown applicability cannot be encoded as false |
+| WBC | APX packages/apx-wbc/src/index.ts at the same commit | Original reduceToWMin / verifyWMin over a complete finite decision table |
+| RCoC | APX packages/apx-rcoc/src/index.ts at the same commit | Original snapshot comparator; supplied metric values are not independently authenticated |
+| WitnessGraph | sdk/python/qualityrag/compiler.py and tools/semantic_store/rct_witness_bridge.py | Existing canonical graph retained; origin labels alone do not establish independence |
+| K/B/C/T and FF-RCT | No new parity claim from this increment | Requires canonical source/API mapping and separate golden/economic evidence |
+
+Full per-story status and remaining acceptance are recorded in
+tools/activation_runtime/capabilities.json. The inventory has exactly 51 stable
+story IDs and cryptographic fingerprints of the linked implementation modules.
+Run python -m tools.activation_runtime.audit to check coverage and detect changed
+implementation evidence. The checker rejects local DONE claims because local
+metadata cannot establish merged review or independent research acceptance.
+
+**Current acceptance count:** 36 PARTIAL, 10 NOT_STARTED, 5 BLOCKED, 0 DONE.
+This is an explicit incomplete delivery record, not a claim that all 51 stories
+are implemented. Remaining software includes the actual semantic video codec,
+sparse device runtime/streaming, agent sandbox/provider integrations, review UI,
+SDK parity, controlled-experiment registry and peer-review package. External
+requirements include an authorized representative 100-clip corpus, actual
+mobile/TV devices and independently authorized reviewers. Generated test clips,
+ephemeral demo signing keys and passing CI are not substitutes for that evidence.
+
+Reproduce:
+
+~~~bash
+python -m pip install -r tools/packspec_compiler/requirements.txt -r tools/activation_runtime/requirements.txt
+python -m unittest discover -s tools/activation_runtime/tests -p 'test_*.py' -v
+python -m unittest discover -s tools/packspec_compiler -p 'test_finite_activation.py' -v
+python -m tools.activation_runtime.demo --out /tmp/activation-demo
+python -m tools.activation_runtime.audit
+~~~
+
+Set QUALITYRAG_APX_ROOT to the trusted checkout of the pinned APX commit to run
+original WBC/RCoC tests. Without that checkout those optional tests are explicitly
+SKIP, never synthetic PASS. The CI workflow provisions the pinned source itself.

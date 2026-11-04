@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/schemas/operator-ast/v1.0",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "const": "EDGE"
+        },
+        "predicate": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "op",
+        "predicate"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "enum": [
+            "PATH",
+            "AND"
+          ]
+        },
+        "left": {
+          "$ref": "#/$defs/ast"
+        },
+        "right": {
+          "$ref": "#/$defs/ast"
+        }
+      },
+      "required": [
+        "op",
+        "left",
+        "right"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "ast": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "EDGE"
+            },
+            "predicate": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "op",
+            "predicate"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "enum": [
+                "PATH",
+                "AND"
+              ]
+            },
+            "left": {
+              "$ref": "#/$defs/ast"
+            },
+            "right": {
+              "$ref": "#/$defs/ast"
+            }
+          },
+          "required": [
+            "op",
+            "left",
+            "right"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

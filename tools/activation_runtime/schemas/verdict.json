@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/schemas/verdict/v1.0",
+  "type": "object",
+  "properties": {
+    "finite_constraint_result": {
+      "enum": [
+        "SAT",
+        "UNSAT",
+        "UNKNOWN"
+      ]
+    },
+    "qualityrag_admission": {
+      "enum": [
+        "INCONCLUSIVE",
+        "REFUSE"
+      ]
+    },
+    "can_generate": {
+      "const": false
+    }
+  },
+  "required": [
+    "finite_constraint_result",
+    "qualityrag_admission",
+    "can_generate"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,798 @@
+{
+  "schema": "qualityrag.activation-capabilities/v1",
+  "stories": [
+    {
+      "story_id": "US-001",
+      "title": "Source and capability inventory",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/common.py",
+          "sha256": "53eecc70d24bf2da6841e231e3f8c63f5467a0ff56622fe8ee46340020cf28c6"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Inventory validation; merged review and independently verified completion receipts remain required.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-002",
+      "title": "Versioned schema catalog",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/contracts.py",
+          "sha256": "fb62698e40ec12d84044f10d6db6fdd6907ddf92d8235b89b84f6cf5e8b88adb"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Schema catalog implemented; full grammar/policy semantic coverage remains separately checked.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-003",
+      "title": "Independently replayable research harness",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/demo.py",
+          "sha256": "3de1f6af060f606d7f721996eb134faf6b83eda1fd6d55314b3f748b3c4141c9"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Reproducible authored finite demo; full pinned external research environment remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-004",
+      "title": "Risk, prior art and novelty register",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Prior-art comparator register and independent novelty review remain to be written.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-005",
+      "title": "Purpose-scoped information obligations",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Strict full-preservation mapping; independently reviewed purpose/omission contract remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-006",
+      "title": "ConstraintIR-to-activation binding",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Canonical gate and binding reused; trusted independent-review authority remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-007",
+      "title": "WitnessGraph and evidence independence",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/native_apx.py",
+          "sha256": "90e2d1d1df9a5b1529027d06b853594372775829264f04ea0888e3a5121a0e15"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing WitnessGraph/custody bridge reusable; authenticated real independent-source evidence absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-008",
+      "title": "Omission and residual audit",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Exact all-field comparison blocks loss; general reviewed omission/residual audit not implemented.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-009",
+      "title": "Domain preservation profiles",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/demo.py",
+          "sha256": "3de1f6af060f606d7f721996eb134faf6b83eda1fd6d55314b3f748b3c4141c9"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Four authored source fixtures; independently scored domain profiles absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-010",
+      "title": "RCT typed grammar integration",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing typed RCT induction/held-out checks integrated; merged review pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-011",
+      "title": "SAT/UNSAT/UNKNOWN semantics",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing finite verdicts and gate reused; complete acceptance evidence pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-012",
+      "title": "Purpose-preserving regime transition",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Real exact reversible field mapping; reviewed semantic regime mappings remain pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-013",
+      "title": "RCT candidate search with early stopping",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing finite candidate/work limits reused; hard process CPU/RAM limits and baseline search integration remain pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-014",
+      "title": "Constraint compilation and reusable decisions",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Compiled decision cache, invalidation, bytes/timing measured; reusable-operator compilation remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-015",
+      "title": "Finite equivalence proof and counterexamples",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing held-out labels/counterexamples reused; exhaustive relevant-query domain coverage remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-016",
+      "title": "Typed semantic intermediate representation",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/contracts.py",
+          "sha256": "fb62698e40ec12d84044f10d6db6fdd6907ddf92d8235b89b84f6cf5e8b88adb"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Typed AST/field schemas; full canonical K/B/C/T and 12G source-observation mapping remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-017",
+      "title": "Exact information and reversible source custody",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Immutable byte store and exact integrity checks; production custody authority and durable deployment remain pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-018",
+      "title": "Source adapters (text, PDF, HTML, CSV/SQL)",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "CSV and exact structured JSON implemented; complete PDF/second document adapter acceptance remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-019",
+      "title": "Review-gated relation and role extraction",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing reviewed extractors available; new source-adapter extraction integration remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-020",
+      "title": "Reusable grammar registry and dependency DAG",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Signed transitive data DAG resolution; production release service/rollback audit remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-021",
+      "title": "FF-RCT native-regime integration",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/native_apx.py",
+          "sha256": "90e2d1d1df9a5b1529027d06b853594372775829264f04ea0888e3a5121a0e15"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Original APX WBC/RCoC executed; canonical FF-RCT reconstruction parity is not established.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-022",
+      "title": "Activation grammar v0.1 baseline",
+      "status": "BLOCKED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "PR #69 remains open; merging and required independent review/CI are acceptance prerequisites.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-023",
+      "title": "Executable finite ACTIVATE/VERIFY/FALLBACK",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Exact constrained execution/verification and terminal refusal; general operator interpreter absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-024",
+      "title": "Model and grammar compatibility manifest",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Signed source/policy/runtime/dependency manifest; model/codec ABI compatibility not implemented.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-025",
+      "title": "Sparse activation and resource controls",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Measured sparse CPU/GPU model activation and hard device-resource enforcement absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-026",
+      "title": "Deterministic finite reconstruction",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Deterministic exact field reconstruction; segmented/residual decoder acceptance remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-027",
+      "title": "Device module updates and rollback",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Atomic immutable publication/version floor; resumable update and device A/B runtime absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-028",
+      "title": "Real audiovisual dataset and licensing",
+      "status": "BLOCKED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "No supplied 100-clip licensed representative corpus with family-disjoint annotated splits.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-029",
+      "title": "AV1 and learned-codec baselines",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/media.py",
+          "sha256": "2904c88b50507bb3b99f656559d5d4803dce29c98232d2fc354bf1ab220c01a1"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Actual AV1 encode/decode measured; qualified neural codec and matched full-cost benchmark absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-030",
+      "title": "Shared grammar video encoder prototype",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Actual shared-grammar Semantic Codex video encoder/decoder is not implemented.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-031",
+      "title": "Frame/semantic/exact fidelity evaluation",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/media.py",
+          "sha256": "2904c88b50507bb3b99f656559d5d4803dce29c98232d2fc354bf1ab220c01a1"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Exact normalized frame-byte comparison; independent audio/text/identity/timing and blinded scoring absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-032",
+      "title": "Model amortization and catalog economics",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/economics.py",
+          "sha256": "9ef0a218eef8cb0f7256938451f114ad0b300947ec8f8e5f8661a357b2e777e3"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Complete explicit cost-component scenario model; measured catalog/client break-even analysis absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-033",
+      "title": "Streaming segment delivery and seek",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Streaming segment dependencies, random access and adaptive playback absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-034",
+      "title": "Append-only conversation tree",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/gardener.py",
+          "sha256": "ef8053b26cb5fa0526a19086ec7e68fe7ed17f1c716ab40ee8905794c223096e"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Source-anchored append-only branches, forks/rejoins and replay; merged review pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-035",
+      "title": "Dialectical operations and reversible pruning",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/gardener.py",
+          "sha256": "ef8053b26cb5fa0526a19086ec7e68fe7ed17f1c716ab40ee8905794c223096e"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "All six dialectical event operations tested; broader research evaluation pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-036",
+      "title": "Evidence-state separation and Research Ledger link",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/gardener.py",
+          "sha256": "ef8053b26cb5fa0526a19086ec7e68fe7ed17f1c716ab40ee8905794c223096e"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing Research Ledger claims and event hashes; independent validation integration remains unavailable.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-037",
+      "title": "Gardener proposal loop and review UI",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Scheduled authorized proposals, review UI and independently measured utility absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-038",
+      "title": "Isolated agent experiment harness",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Isolated OS agent execution harness/model provider integration absent; do not substitute plain subprocess for sandbox.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-039",
+      "title": "Dedicated agent roles",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Six live versioned agent-role integrations and disagreement/escalation tests absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-040",
+      "title": "Adversarial evolution and held-out gates",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/tests/test_runtime.py",
+          "sha256": "a6f28ba8deb4d738ad92c0aa1ed863d7bf732d7c0f7e9871d754005d72d42cf4"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Adversarial integrity/role/fidelity tests; family-hidden agent holdouts and false-accept metrics absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-041",
+      "title": "Co-evolving encoder/decoder candidates",
+      "status": "BLOCKED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Requires working paired codec, live isolated agents, training budget and held-out licensed corpus.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-042",
+      "title": "Pareto promotion and resource scheduler",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/economics.py",
+          "sha256": "9ef0a218eef8cb0f7256938451f114ad0b300947ec8f8e5f8661a357b2e777e3"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Fidelity-filtered Pareto selection; experiment-value scheduler and signed independent promotion absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-043",
+      "title": "Tenant isolation and source authority",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Host-scoped storage tested; authenticated service principal/reviewer authorization is host integration still required.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-044",
+      "title": "Signed artifact and anti-replay pipeline",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Existing Ed25519 and replay code reused; full model/decoder/run attestation integration remains pending.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-045",
+      "title": "SDK and CLI parity",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "New activation SDK parity across Python and Java/TypeScript not implemented.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-046",
+      "title": "Offline mobile/TV feasibility pilot",
+      "status": "BLOCKED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Two physical mobile/TV-class devices and thermal/power instrumentation unavailable.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-047",
+      "title": "Independent acceptance ledger",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/audit.py",
+          "sha256": "98270770a0ad89c2aea1923d8e066f1eca2e7f845a17ec6cf4d262cb09486c5e"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Machine-readable 51-story evidence inventory; external verification/review still required.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-048",
+      "title": "Pre-registered controlled experiments",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Protocol structure documented; actual pre-registration and independent statistical evaluation absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-049",
+      "title": "Four worked real-world demonstrations",
+      "status": "PARTIAL",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [
+        {
+          "path": "tools/activation_runtime/demo.py",
+          "sha256": "3de1f6af060f606d7f721996eb134faf6b83eda1fd6d55314b3f748b3c4141c9"
+        }
+      ],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Four authored non-video demos plus real AV1 baseline; four independently reviewed required end-to-end domain cases absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-050",
+      "title": "Peer-review package and reproducible figures",
+      "status": "NOT_STARTED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Peer-review paper, claim traceability and reproducible published figures absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    },
+    {
+      "story_id": "US-051",
+      "title": "Release readiness and pilot stop conditions",
+      "status": "BLOCKED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "1051a9a98b26107a8214cbe204f63d17a88e1950",
+      "modules": [],
+      "test_suite": "tools/activation_runtime/tests",
+      "remaining": "Security/privacy review, supported devices, actual codec/pilot evidence and independent release approval absent.",
+      "independent_validation": "NOT_ESTABLISHED",
+      "merged_review_evidence": null
+    }
+  ],
+  "completion_rule": "No DONE from implementation or tests alone; merged review and independent acceptance evidence required."
+}
