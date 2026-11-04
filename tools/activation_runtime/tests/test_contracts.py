@@ -41,3 +41,10 @@ class ContractTests(unittest.TestCase):
                 validate("receipt", case["receipt"])
                 validate("verdict", case["receipt"])
                 validate("source", case["receipt"]["research_output"])
+
+
+class CatalogFixtureTests(unittest.TestCase):
+    def test_committed_example_for_every_schema(self):
+        root=Path(__file__).resolve().parents[1]/"fixtures"
+        for name in NAMES:
+            validate(name,json.loads((root/(name+".json")).read_text()))

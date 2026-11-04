@@ -1,0 +1,91 @@
+{
+  "assurance": "NO_AUTOMATIC_SEMANTIC_ENFORCEMENT",
+  "ir_sha256": "efea8897a4a6c28769069087ab0d5e5e8438c6bfc6dd862de953e41abed91d6d",
+  "nodes": [
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-symptom_quote",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-symptom_quote"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0001",
+        "location": "/requirements/0",
+        "quotation": "Independent custody evidence for symptom_quote is required.",
+        "quotation_sha256": "e15fe764d2c5fc4c76b2da4be454697bc85414945447827fcb67d695ce3fe863",
+        "source_sha256": "90902876ff4ad3690b8b4f909896b3b2b3502ddbac4865ad9efef785143307ec"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-context_quote",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-context_quote"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0002",
+        "location": "/requirements/1",
+        "quotation": "Independent custody evidence for context_quote is required.",
+        "quotation_sha256": "6c70007c31e867f09a93d8830661f5aa4a654944af55732afec41d838e76c66b",
+        "source_sha256": "90902876ff4ad3690b8b4f909896b3b2b3502ddbac4865ad9efef785143307ec"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-diagnosis",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-diagnosis"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0003",
+        "location": "/requirements/2",
+        "quotation": "Independent custody evidence for diagnosis is required.",
+        "quotation_sha256": "382db3b278d84d6a19d7c3bfbe9275eccdb35d044055d1e7c70c471f5c6bd7c7",
+        "source_sha256": "90902876ff4ad3690b8b4f909896b3b2b3502ddbac4865ad9efef785143307ec"
+      },
+      "status": "PROJECTION_ONLY"
+    }
+  ],
+  "schema": "qualityrag.constraint-ir/v1",
+  "scope": "INSPECTION_DERIVED_CANDIDATES_ONLY",
+  "source": {
+    "bytes": 257,
+    "filename": "policy-source.json",
+    "format": "json",
+    "pack_id": "profile-clinical-description",
+    "sha256": "90902876ff4ad3690b8b4f909896b3b2b3502ddbac4865ad9efef785143307ec",
+    "version": "1.0"
+  },
+  "summary": {
+    "deferred_semantic_constraints": 0,
+    "evidence_presence_projections": 3,
+    "semantic_constraints_executed": 0,
+    "total": 3
+  }
+}

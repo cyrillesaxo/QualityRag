@@ -507,7 +507,7 @@ Run python -m tools.activation_runtime.audit to check coverage and detect change
 implementation evidence. The checker rejects local DONE claims because local
 metadata cannot establish merged review or independent research acceptance.
 
-**Current acceptance count:** 36 PARTIAL, 10 NOT_STARTED, 5 BLOCKED, 0 DONE.
+**Foundation acceptance count (superseded by the recovery delivery below):** 36 PARTIAL, 10 NOT_STARTED, 5 BLOCKED, 0 DONE.
 This is an explicit incomplete delivery record, not a claim that all 51 stories
 are implemented. Remaining software includes the actual semantic video codec,
 sparse device runtime/streaming, agent sandbox/provider integrations, review UI,
@@ -531,15 +531,88 @@ original WBC/RCoC tests. Without that checkout those optional tests are explicit
 SKIP, never synthetic PASS. The CI workflow provisions the pinned source itself.
 
 
-## 13. Interrupted implementation run - recovery checkpoint
+## 13. Recovered executable implementation (2026-11-04)
 
-The next implementation increment was developed and locally tested, but the
-execution workspace became unavailable before its source could be pushed.
-The last observed full runtime run passed 65 tests; those results are not
-commit-bound CI and do not establish delivery of the uncommitted source.
+The interrupted working sources have been recovered and are included in this PR.
+This supersedes the delivery boundary in docs/ACTIVATION-WORKSPACE-RECOVERY.md;
+the original checkpoint remains preserved as implementation history.
+No independent acceptance or production/scientific admission is inferred.
 
-See [the recovery checkpoint](docs/ACTIVATION-WORKSPACE-RECOVERY.md) for the exact
-delivery boundary, local files to recover, verification observations and pending
-steps. The earlier committed acceptance counts remain authoritative until the
-source and its evidence are recovered, reviewed and pushed. No story is marked
-DONE by this interruption record.
+Delivered software now includes finite executable preservation and signed review,
+PDF/text/CSV adapters, a lossless palette/residual reference codec with playable
+RGB/audio/timestamp reconstruction, signed streaming and resumable device updates,
+six deterministic sandboxed research roles, an authenticated review workspace,
+Python/TypeScript HTTP clients, preregistration and experiment gates, and a
+reproducible report retaining the measured negative AV1 comparison.
+The codec is a predictive reference, not learned semantic understanding or FF-RCT.
+
+**Current acceptance inventory: 37 IN_REVIEW, 14 BLOCKED, 0 DONE.**
+IN_REVIEW means implementation submitted for review, with remaining acceptance
+listed below. It does not mean all software or research acceptance is satisfied.
+
+| Story | Status | Remaining acceptance |
+|---|---|---|
+| US-001 | IN_REVIEW | Merged review and a passing commit-bound remote CI receipt. |
+| US-002 | IN_REVIEW | Merged review; no schema shape check is independent semantic validation. |
+| US-003 | IN_REVIEW | Independent replay on the pinned reference environment. |
+| US-004 | IN_REVIEW | Independent novelty assessment; no priority or superiority claim is made. |
+| US-005 | IN_REVIEW | Domain-owner review of purpose and preservation obligations. |
+| US-006 | IN_REVIEW | Real authorized reviewer signature and qualified source/policy binding. |
+| US-007 | BLOCKED | Independent real-source ancestry/custody evidence; origin labels alone are insufficient. |
+| US-008 | IN_REVIEW | Real omission-review evidence before any optional distinction is discarded. |
+| US-009 | BLOCKED | Independent domain reviewers and scored adversarial clinical/legal/video cases. |
+| US-010 | IN_REVIEW | Merged review and remote CI. |
+| US-011 | IN_REVIEW | Merged review; finite SAT remains scoped and does not authorize semantic ADMIT. |
+| US-012 | IN_REVIEW | Independent review of the finite source-to-target mapping. |
+| US-013 | IN_REVIEW | Merged review and supported-host sandbox confirmation. |
+| US-014 | IN_REVIEW | Independent replay of compiler/cache invalidation and measured amortization beyond authored fixtures. |
+| US-015 | IN_REVIEW | Independent review of the declared finite query vocabulary and domain boundary. |
+| US-016 | BLOCKED | Canonical K/B/C/T source/API parity and independent semantic annotation review remain unavailable. |
+| US-017 | IN_REVIEW | Deployed persistent custody with trusted host authorization and source authority. |
+| US-018 | IN_REVIEW | Independent parser-boundary review on representative real documents. |
+| US-019 | IN_REVIEW | Actual authorized role-extraction reviewers; candidates remain quarantined. |
+| US-020 | IN_REVIEW | Merged review and configured production signing/version policy. |
+| US-021 | BLOCKED | Original canonical FF-RCT reconstruction interface and independent parity/cost evidence not established by available sources. |
+| US-022 | BLOCKED | PR #69 must be reviewed and merged after required CI. It is still open. |
+| US-023 | IN_REVIEW | Merged review; the interpreter is finite and deliberately cannot certify domain truth. |
+| US-024 | IN_REVIEW | Actual release-signing authority and supported-runtime approval. |
+| US-025 | BLOCKED | Physical-device GPU/energy and cold/sustained sparse-versus-full measurements. |
+| US-026 | IN_REVIEW | Independent review of the supported normalized RGB/PCM32/timestamp profile. |
+| US-027 | IN_REVIEW | Supported-device old/new-runtime A/B and interrupted update/rollback measurements. |
+| US-028 | BLOCKED | An authorized representative 100-clip annotated corpus with family-disjoint splits. |
+| US-029 | BLOCKED | Licensed hash-pinned neural checkpoint, dependencies and an actually qualified fidelity-matched run. |
+| US-030 | IN_REVIEW | Research review of the actual palette/residual reference; this is not learned semantic understanding or FF-RCT. |
+| US-031 | BLOCKED | Blinded independent text/identity/audio/timing assessments on a representative real corpus. |
+| US-032 | IN_REVIEW | Measured full lifecycle inputs and uncertainty by real catalog/viewer/device cohort. |
+| US-033 | IN_REVIEW | Network/device startup, buffering and seek measurements against conventional playback. |
+| US-034 | IN_REVIEW | Merged review and independent restart/custody replay. |
+| US-035 | IN_REVIEW | Merged review and independently observed research-continuity behavior. |
+| US-036 | IN_REVIEW | Real independently authorized scope-bounded validation/evidence; PostgreSQL validation extension remains a separate integration boundary. |
+| US-037 | IN_REVIEW | Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported. |
+| US-038 | IN_REVIEW | Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim. |
+| US-039 | IN_REVIEW | Merged review of six distinct role contracts and disagreement/escalation behavior. |
+| US-040 | IN_REVIEW | Independently adjudicated family-hidden real cases; authored finite false-accept counts do not generalize. |
+| US-041 | BLOCKED | Representative hidden corpus and qualified learned/conventional baselines including all search/training costs. |
+| US-042 | IN_REVIEW | Measured energy/total-cost frontier plus actual independent signed promotion authority. |
+| US-043 | IN_REVIEW | Configured real tenant principals, reviewer/custodian authority and deployment privacy review. |
+| US-044 | IN_REVIEW | Real release/reviewer trust maps, durable deployment and independent replay/revocation review. |
+| US-045 | IN_REVIEW | Merged review and remote package/SDK CI. Python/TypeScript actual HTTP parity and CLI are implemented. |
+| US-046 | BLOCKED | Two actual mobile/TV device classes with thermal, sustained-power and update-traffic instrumentation. |
+| US-047 | IN_REVIEW | Passing commit-bound CI, merged review and real signed per-story completion receipts. |
+| US-048 | BLOCKED | Actual final protocol registration bound to a real corpus/sample plan before opening its holdout. |
+| US-049 | BLOCKED | Real independently reviewed clinical/nursing/legal inputs; current examples are clearly authored fixtures plus actual encoded video. |
+| US-050 | IN_REVIEW | Independent peer review; no validated compression improvement is claimed. |
+| US-051 | BLOCKED | Independent security/privacy/licensing/fidelity review, supported devices and measured pilot economics. |
+
+### Verification of recovered sources
+
+The runtime, compiler, finite activation, ledger and SDK tests are rerun in this
+recovery session. CI now installs the codec/sandbox/browser dependencies, builds
+the SDK, enables the real Chromium workflow and pinned APX tests, and uploads
+finite and engineering experiment receipts. Remote CI and review remain separate
+observations. Three PostgreSQL integration tests require a real configured DSN;
+they are explicitly skipped locally, never counted as passing.
+
+Real corpus licensing/annotation, independent domain adjudication, physical
+mobile/TV power measurements, qualified neural weights and canonical FF-RCT
+parity remain external acceptance gates. No criteria have been removed.

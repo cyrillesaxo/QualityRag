@@ -1,2 +1,2 @@
-cryptography>=44,<47
+cryptography>=44,<51
 jsonschema==4.25.1

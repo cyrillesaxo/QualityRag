@@ -1,0 +1,14 @@
+{
+  "max_ast_nodes": 1,
+  "max_candidates": 10,
+  "operators": [
+    "EDGE"
+  ],
+  "predicate_types": {
+    "p": [
+      "actor",
+      "recipient"
+    ]
+  },
+  "schema": "rct.typed-operator-grammar/v1.4"
+}

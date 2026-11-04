@@ -26,8 +26,10 @@ def fingerprint(value):
     return sha256(canonical(value)).hexdigest()
 
 
-def strict_json(raw):
-    if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_BYTES:
+def strict_json(raw, *, max_bytes=MAX_BYTES):
+    if type(max_bytes) is not int or not 1 <= max_bytes <= 40_000_000:
+        raise ValueError("Invalid trusted JSON budget")
+    if not isinstance(raw, bytes) or not 0 < len(raw) <= max_bytes:
         raise ValueError("Invalid JSON byte budget")
     def pairs(items):
         out = {}

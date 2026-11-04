@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag Research Review</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body><header><a href="/" aria-label="QualityRag home">QualityRag</a><span>Research review</span></header><main>
+<h1>Keep the evidence in view.</h1><p>Review research branches, inspect proposed changes, and preserve their source history.</p>
+<form id="connect"><label for="token">Access token</label><input id="token" type="password" autocomplete="off" required placeholder="Paste a signed access token"><button type="submit">Open workspace</button></form>
+<p id="status" role="status">Connect to load your authorized workspace.</p>
+<section id="workspace" hidden>
+<details id="new-branch"><summary>Add a research branch</summary>
+<form id="propose"><label for="branch-name">Branch name</label><input id="branch-name" required maxlength="100" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" placeholder="research-hypothesis">
+<label for="statement">Hypothesis or observation</label><textarea id="statement" required maxlength="2000" rows="3"></textarea>
+<label for="source-file">Original source</label><input id="source-file" type="file" accept=".txt,.json,.csv,.pdf" required>
+<p>Attach the original text, PDF, CSV or JSON file, up to 250 KB. New claims begin unverified.</p>
+<button type="submit">Create source-linked branch</button></form></details><div class="toolbar"><h2>Research branches</h2><label>Search <input id="search" type="search" placeholder="Branch or evidence state"></label><button id="refresh" type="button">Refresh</button></div>
+<div class="table-wrap"><table><caption>Branches and their current evidence state</caption><thead><tr><th>Branch</th><th>Inquiry</th><th>Evidence</th><th>History</th><th>Action</th></tr></thead><tbody id="branches"></tbody></table></div>
+<h2>Suggestions awaiting review</h2><div id="proposals"></div><p>Suggestions do not validate claims. Changes retain the full history and can be reopened.</p>
+<details><summary>Inspect source-linked events</summary><pre id="history"></pre></details>
+</section>
+<dialog id="preview"><form method="dialog"><h2>Review proposed change</h2><p id="preview-text"></p><pre id="preview-data"></pre><div class="actions"><button value="cancel">Keep current state</button><button id="apply" value="apply">Apply reviewed change</button></div></form></dialog>
+</main><footer>Research mode. Independent validation and release approval remain separate.</footer></body></html>

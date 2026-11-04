@@ -115,7 +115,7 @@ def evidence(db,*,evidence_id:str,kind:str,uri:str,description:str,
 
 
 def assess(db,*,event_id:str,claim_id:str,assessment:str,reason:str,
-           actor:str,evidence_ids:list[str],at:str|None=None):
+           actor:str,evidence_ids:list[str],at:str|None=None,verify_validation=None):
     _id(event_id,"event");_id(claim_id,"claim");_id(actor,"actor")
     _summary(reason,"assessment reason")
     if assessment not in ASSESSMENTS:raise LedgerError("Invalid assessment")
@@ -140,7 +140,25 @@ def assess(db,*,event_id:str,claim_id:str,assessment:str,reason:str,
         ("CI_RUN","TEST_RESULT") for eid in evidence_ids):
         raise LedgerError("TESTED requires test evidence")
     if assessment=="VALIDATED":
-        raise LedgerError("Research validation is gated: independent verifier integration not implemented")
+        # Only host-owned code can install this verifier. Never derive it from
+        # source text, agent proposals or a caller-supplied boolean.
+        if not callable(verify_validation) or not evidence_ids:
+            raise LedgerError("VALIDATED requires independent host verification and evidence")
+        selected=[]
+        for eid in evidence_ids:
+            row=db.execute("SELECT evidence_id,kind,uri,description,content_sha256,observed_at,metadata_json,record_hash FROM research_evidence WHERE evidence_id=?",(eid,)).fetchone()
+            selected.append({"evidence_id":row[0],"kind":row[1],"uri":row[2],"description":row[3],
+                "content_sha256":row[4],"observed_at":row[5],"metadata":json.loads(row[6]),"record_hash":row[7]})
+        kinds={row["kind"] for row in selected}
+        if "REVIEW" not in kinds or not kinds.intersection({"MEASUREMENT","TEST_RESULT","OBSERVATION"}):
+            raise LedgerError("Validation requires review plus observed/test evidence")
+        claim_row=db.execute("SELECT claim_id,project,kind,statement,created_at,content_hash FROM research_claims WHERE claim_id=?",(claim_id,)).fetchone()
+        selected_claim=dict(zip(("claim_id","project","kind","statement","created_at","content_hash"),claim_row))
+        try:
+            verified=verify_validation(selected_claim,selected) is True
+        except Exception as exc:
+            raise LedgerError("Independent validation refused") from exc
+        if not verified:raise LedgerError("Independent validation refused")
     if assessment in ("REFUTED","SUPERSEDED") and not evidence_ids:
         raise LedgerError("Refutation/supersession requires evidence")
     row=db.execute(
@@ -187,7 +205,7 @@ def progress(db,project:str|None=None):
     return {"schema":SCHEMA,"claims":items,"counts":{"total":len(items),
             "by_status":{s:sum(x["status"]==s for x in items) for s in sorted(ASSESSMENTS)}},
             "source_authenticity":"UNVERIFIED_UNLESS_EXTERNALLY_ATTESTED",
-            "independent_validation":"NOT_IMPLEMENTED"}
+            "independent_validation":"HOST_VERIFIER_REQUIRED_PER_VALIDATED_EVENT"}
 
 
 def verify_integrity(db):
@@ -216,3 +234,4 @@ def verify_integrity(db):
             issues.append("link_hash:"+id_)
     return {"consistent":not issues,"issues":issues,
             "trust_boundary":"HASHES_AND_SQLITE_TRIGGERS_NOT_EXTERNAL_ATTESTATION"}
+

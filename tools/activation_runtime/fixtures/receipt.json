@@ -1,0 +1,78 @@
+{
+  "action": "REQUIRES_REVIEW",
+  "artifact_sha256": "36f1695ce28ac0e77aa13f6f7b9631c50a5d0308e6b8417c4beb6988477293d9",
+  "can_generate": false,
+  "compatibility": {
+    "manifest": {
+      "artifact_sha256": "36f1695ce28ac0e77aa13f6f7b9631c50a5d0308e6b8417c4beb6988477293d9",
+      "dependencies": [],
+      "policy_ir_sha256": "b1de735aaf7633adbff07efe6e00b3f9630af05f5b28ba34edc93921d4051d66",
+      "runtime": "flat-json-rename/v1",
+      "schema": "qualityrag.activation-manifest/v1",
+      "sequence": 1,
+      "source_sha256": "b88e9a127325924479dc7efeb0e4b688f32c8d010bef960dda6eb95a3a0defb6",
+      "tenant": "demo"
+    },
+    "manifest_sha256": "875017f59854914e541bae67003ea3c3b69f3853093be252848e895bfc784e9c",
+    "resolved_modules": [],
+    "semantic_admission": "INCONCLUSIVE"
+  },
+  "fallback": {
+    "released": false,
+    "source_sha256": "b88e9a127325924479dc7efeb0e4b688f32c8d010bef960dda6eb95a3a0defb6"
+  },
+  "finite_constraint_result": "SAT",
+  "gate": {
+    "attestation": "MISSING_OR_FAILED_HOST_ATTESTATION",
+    "can_generate": false,
+    "checks_verdict": "INCONCLUSIVE",
+    "coverage": {
+      "declared_nodes": 1,
+      "evidence_nodes": 1,
+      "semantic_nodes": 0
+    },
+    "evidence": {
+      "findings": [
+        {
+          "independent_sources": 0,
+          "reasons": [
+            "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+          ],
+          "requirement_id": "custody",
+          "verdict": "INCONCLUSIVE"
+        }
+      ],
+      "pack_id": "unified-dd9c6283e6afb529",
+      "pack_version": "1",
+      "schema": "qualityrag.result/v0.1",
+      "verdict": "INCONCLUSIVE"
+    },
+    "ir_sha256": "b1de735aaf7633adbff07efe6e00b3f9630af05f5b28ba34edc93921d4051d66",
+    "limitations": "Host attestation is application-supplied; no source completeness or document truth is proven",
+    "schema": "qualityrag.unified-decision/v1",
+    "semantics": {
+      "findings": [],
+      "reason": "NO_SEMANTIC_NODES",
+      "verdict": "NOT_APPLICABLE"
+    },
+    "source_sha256": "dd9c6283e6afb529f77f597684d54f8a43a68ebc7b436d7e8b3f8ff0606c33bc",
+    "verdict": "INCONCLUSIVE"
+  },
+  "limitations": "Finite exact field equivalence only; no signed compatibility, semantic admission or video decoding.",
+  "policy_ir_sha256": "b1de735aaf7633adbff07efe6e00b3f9630af05f5b28ba34edc93921d4051d66",
+  "qualityrag_admission": "INCONCLUSIVE",
+  "reason": null,
+  "research_output": {
+    "actor": "learner",
+    "amount": 1,
+    "instruction": "Select the action NOT permitted in the supplied example.",
+    "unit": "mg"
+  },
+  "schema": "qualityrag.finite-activation-receipt/v0.1",
+  "source_sha256": "b88e9a127325924479dc7efeb0e4b688f32c8d010bef960dda6eb95a3a0defb6",
+  "trace": [
+    "COMPATIBILITY_CHECKED",
+    "TRANSITION_EXECUTED",
+    "ALL_SOURCE_FIELDS_VERIFIED"
+  ]
+}

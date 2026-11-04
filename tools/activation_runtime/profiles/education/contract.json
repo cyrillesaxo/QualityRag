@@ -1,0 +1,52 @@
+{
+  "author": "fixture-author",
+  "authorization": "REQUIRES_SIGNED_REVIEW",
+  "default_unspecified": "PRESERVE_IN_RESIDUAL",
+  "ir_sha256": "74c6984dfb4d7ed44bcd09d393684548b069754de39f7376b8d7c0ac33544c32",
+  "obligations": [
+    {
+      "anchor": {
+        "key": "question",
+        "kind": "json-key",
+        "value_sha256": "07bf0ef261d4a05fc16b863e35c9aa27f30e423f4ec47d2597ad7cde35dee382"
+      },
+      "field": "question",
+      "ir_node_id": "field-question",
+      "mode": "EXACT",
+      "omission_permitted": false,
+      "tolerance": null
+    },
+    {
+      "anchor": {
+        "key": "exception",
+        "kind": "json-key",
+        "value_sha256": "955cca1ceba45052d85984d3a2565f4ce25b7488602c60a165598bf80b26e472"
+      },
+      "field": "exception",
+      "ir_node_id": "field-exception",
+      "mode": "EXACT",
+      "omission_permitted": false,
+      "tolerance": null
+    },
+    {
+      "anchor": {
+        "key": "learner_attempt",
+        "kind": "json-key",
+        "value_sha256": "0f15dc23249e5ae41849d7f070b24f8aea5d052fe3d20972b004e8b9e07349ba"
+      },
+      "field": "learner_attempt",
+      "ir_node_id": "field-learner_attempt",
+      "mode": "UNKNOWN",
+      "omission_permitted": false,
+      "tolerance": null
+    }
+  ],
+  "policy_source_sha256": "be02c8df657983f5ca9694c0c32c64ec518e15e70b963205197159cbad0f4577",
+  "reviewer": "independent-review-required",
+  "schema": "qualityrag.preservation-contract/v1",
+  "source_sha256": "77f53613ba77fb5866f174ac86877f0198ef2bb8d3a94d2194078c5255ef30d1",
+  "task": "education",
+  "tenant": "research",
+  "unspecified_fields": [],
+  "version": "1.0"
+}

@@ -1,0 +1,465 @@
+{
+  "ablation": {
+    "can_generate": false,
+    "heldout_sources": [
+      "86097b378edc964e58677aaceb1aed1c8671b49463074068caca87560894a729",
+      "fcb6b6d74f446b6033bb35c401c4ccd29c7289118d47265509779ee63ed2f06c"
+    ],
+    "independent_fidelity_review": "PENDING",
+    "measurements": [
+      {
+        "arm": "fixed",
+        "case": 0,
+        "decoder_only_boundary": null,
+        "encoding": {
+          "encode_ns": null,
+          "reused_fixed_encoder": true
+        },
+        "evaluation_ns": 3616161,
+        "exact_frame_match": true,
+        "model_bytes": 425,
+        "model_sha256": "3a89ac00883e98950c8ed6e230e3b75889860e12fc7a8ac8b7312b0b8ef1ee38",
+        "payload_bytes": 10723,
+        "search_ns": 0,
+        "source_sha256": "fcb6b6d74f446b6033bb35c401c4ccd29c7289118d47265509779ee63ed2f06c"
+      },
+      {
+        "arm": "decoder-only",
+        "case": 0,
+        "decoder_only_boundary": "Same deterministic reference decoder; no improvement assumed",
+        "encoding": {
+          "encode_ns": null,
+          "reused_fixed_encoder": true
+        },
+        "evaluation_ns": 3414827,
+        "exact_frame_match": true,
+        "model_bytes": 425,
+        "model_sha256": "3a89ac00883e98950c8ed6e230e3b75889860e12fc7a8ac8b7312b0b8ef1ee38",
+        "payload_bytes": 10723,
+        "search_ns": 0,
+        "source_sha256": "fcb6b6d74f446b6033bb35c401c4ccd29c7289118d47265509779ee63ed2f06c"
+      },
+      {
+        "arm": "paired",
+        "case": 0,
+        "decoder_only_boundary": null,
+        "encoding": {
+          "can_generate": false,
+          "encode_ns": 4820140,
+          "fallback_ratio": 0.0,
+          "model_bytes": 347,
+          "payload_bytes": 10723,
+          "qualityrag_admission": "INCONCLUSIVE"
+        },
+        "evaluation_ns": 145119683,
+        "exact_frame_match": true,
+        "model_bytes": 347,
+        "model_sha256": "8ffa5fd2711ce9f83a4345497fee862613332ca7e2aee3067e2b7c7edefec67a",
+        "payload_bytes": 10723,
+        "search_ns": 1488958981,
+        "source_sha256": "fcb6b6d74f446b6033bb35c401c4ccd29c7289118d47265509779ee63ed2f06c"
+      },
+      {
+        "arm": "av1",
+        "audio_timing_subtitles_identity": "NOT_INDEPENDENTLY_EVALUATED",
+        "can_generate": false,
+        "case": 0,
+        "comparison_scope": "NORMALIZED_VIDEO_FRAME_BYTES_ONLY",
+        "decode_ns": 52140325,
+        "decoded_frame_sha256": "6bee6bb363eacd1146a8d3e5a824245572f968b037fa7107cfa4b6ee098219a0",
+        "encode_ns": 92940264,
+        "encoded_bytes": 7057,
+        "encoded_sha256": "64af9ec08b9d3cf4dd306d217ace91fb064e6a9e4665497a77f74d80c5f9883b",
+        "energy_j": null,
+        "neural_codec": "NOT_INSTALLED",
+        "qualityrag_admission": "INCONCLUSIVE",
+        "rgb_frame_match": true,
+        "rights_ref": "host-dataset-rights-reference-required",
+        "rights_verification": "CALLER_DECLARED_NOT_INDEPENDENTLY_VERIFIED",
+        "schema": "qualityrag.av1-baseline/v1",
+        "semantic_codex_codec": "NOT_IMPLEMENTED",
+        "source_bytes": 8322,
+        "source_sha256": "fcb6b6d74f446b6033bb35c401c4ccd29c7289118d47265509779ee63ed2f06c",
+        "split_family": "host-family-manifest-required",
+        "tool_version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+        "total_cost_advantage": "NOT_ESTABLISHED",
+        "yuv420p_frame_bytes_equal": true
+      },
+      {
+        "arm": "fixed",
+        "case": 1,
+        "decoder_only_boundary": null,
+        "encoding": {
+          "encode_ns": null,
+          "reused_fixed_encoder": true
+        },
+        "evaluation_ns": 3501027,
+        "exact_frame_match": true,
+        "model_bytes": 425,
+        "model_sha256": "3a89ac00883e98950c8ed6e230e3b75889860e12fc7a8ac8b7312b0b8ef1ee38",
+        "payload_bytes": 10551,
+        "search_ns": 0,
+        "source_sha256": "86097b378edc964e58677aaceb1aed1c8671b49463074068caca87560894a729"
+      },
+      {
+        "arm": "decoder-only",
+        "case": 1,
+        "decoder_only_boundary": "Same deterministic reference decoder; no improvement assumed",
+        "encoding": {
+          "encode_ns": null,
+          "reused_fixed_encoder": true
+        },
+        "evaluation_ns": 3763684,
+        "exact_frame_match": true,
+        "model_bytes": 425,
+        "model_sha256": "3a89ac00883e98950c8ed6e230e3b75889860e12fc7a8ac8b7312b0b8ef1ee38",
+        "payload_bytes": 10551,
+        "search_ns": 0,
+        "source_sha256": "86097b378edc964e58677aaceb1aed1c8671b49463074068caca87560894a729"
+      },
+      {
+        "arm": "paired",
+        "case": 1,
+        "decoder_only_boundary": null,
+        "encoding": {
+          "can_generate": false,
+          "encode_ns": 4467377,
+          "fallback_ratio": 0.0,
+          "model_bytes": 347,
+          "payload_bytes": 10551,
+          "qualityrag_admission": "INCONCLUSIVE"
+        },
+        "evaluation_ns": 159329530,
+        "exact_frame_match": true,
+        "model_bytes": 347,
+        "model_sha256": "8ffa5fd2711ce9f83a4345497fee862613332ca7e2aee3067e2b7c7edefec67a",
+        "payload_bytes": 10551,
+        "search_ns": 1488958981,
+        "source_sha256": "86097b378edc964e58677aaceb1aed1c8671b49463074068caca87560894a729"
+      },
+      {
+        "arm": "av1",
+        "audio_timing_subtitles_identity": "NOT_INDEPENDENTLY_EVALUATED",
+        "can_generate": false,
+        "case": 1,
+        "comparison_scope": "NORMALIZED_VIDEO_FRAME_BYTES_ONLY",
+        "decode_ns": 52852000,
+        "decoded_frame_sha256": "433e787151dacf134f0faed1411abdc31f40b034b0707ccdad58435af9e067b2",
+        "encode_ns": 83426029,
+        "encoded_bytes": 7059,
+        "encoded_sha256": "852f3930f8e4ae6e3c173a545cb44c109eb69622b5217c4cc1b9a2af8731967d",
+        "energy_j": null,
+        "neural_codec": "NOT_INSTALLED",
+        "qualityrag_admission": "INCONCLUSIVE",
+        "rgb_frame_match": true,
+        "rights_ref": "host-dataset-rights-reference-required",
+        "rights_verification": "CALLER_DECLARED_NOT_INDEPENDENTLY_VERIFIED",
+        "schema": "qualityrag.av1-baseline/v1",
+        "semantic_codex_codec": "NOT_IMPLEMENTED",
+        "source_bytes": 8246,
+        "source_sha256": "86097b378edc964e58677aaceb1aed1c8671b49463074068caca87560894a729",
+        "split_family": "host-family-manifest-required",
+        "tool_version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+        "total_cost_advantage": "NOT_ESTABLISHED",
+        "yuv420p_frame_bytes_equal": true
+      }
+    ],
+    "neural_comparator": "UNAVAILABLE_UNTIL_PINNED_LICENSED_WEIGHTS_PROVIDED",
+    "no_grammar_comparator": "RAW_RGB_SOURCE_BYTES",
+    "schema": "qualityrag.codec-ablation/v1",
+    "total_cost_advantage": "NOT_ESTABLISHED",
+    "training_search_ns": 1488958981,
+    "training_sources": [
+      "9987c5623318f022e20803775522b515e94d59f1a5825388a95d509d1a285284",
+      "bec9afa0ddea5dc8c39ad6efc8562ce5a986f8119bf28f2d79fdf77fd59937f8"
+    ]
+  },
+  "adversaries": {
+    "can_promote": false,
+    "cases_sha256": "f505d74caf68c4940951ce4bcebe8edff7bb00ef488d9e35aaad22a83f4c7064",
+    "critical_regressions": 0,
+    "false_accept_rate": 0.0,
+    "missed_counterexample_rate": 0.0,
+    "promotion": "REQUIRES_INDEPENDENT_REVIEW",
+    "rows": [
+      {
+        "case": "actor-recipient",
+        "critical": true,
+        "expected": "UNSAT",
+        "observed": "UNSAT"
+      },
+      {
+        "case": "negation",
+        "critical": true,
+        "expected": "UNSAT",
+        "observed": "UNSAT"
+      },
+      {
+        "case": "temporal",
+        "critical": true,
+        "expected": "UNSAT",
+        "observed": "UNSAT"
+      },
+      {
+        "case": "units",
+        "critical": true,
+        "expected": "UNSAT",
+        "observed": "UNSAT"
+      },
+      {
+        "case": "quantity",
+        "critical": true,
+        "expected": "UNSAT",
+        "observed": "UNSAT"
+      },
+      {
+        "case": "captions",
+        "critical": true,
+        "expected": "UNSAT",
+        "observed": "UNSAT"
+      },
+      {
+        "case": "incompatible-model",
+        "critical": true,
+        "expected": "UNSAT",
+        "observed": "UNSAT"
+      },
+      {
+        "case": "control",
+        "critical": false,
+        "expected": "SAT",
+        "observed": "SAT"
+      }
+    ],
+    "schema": "qualityrag.adversarial-gate/v1",
+    "scope": "FINITE_AUTHORED_DISTINCTIONS_ONLY"
+  },
+  "agents": {
+    "can_generate": false,
+    "can_promote": false,
+    "decision": "BLOCK",
+    "disagreement": true,
+    "results": {
+      "activation-optimizer": {
+        "elapsed_ns": 23776539,
+        "input_bytes": 223,
+        "proposal": {
+          "artifact": {
+            "candidates": [],
+            "required_modules": []
+          },
+          "backend": "DETERMINISTIC_TYPED_SEARCH",
+          "can_generate": false,
+          "parent_grammar_sha256": "e2736b27d3339ae82eadb60a61cc91eb1a1b42c6a73ed55226ef80600aee46d1",
+          "rationale": "Bounded deterministic activation-optimizer proposal",
+          "role": "activation-optimizer",
+          "schema": "qualityrag.agent-proposal/v1",
+          "truth_status": "UNVERIFIED"
+        },
+        "provider_cost": "NOT_APPLICABLE_DETERMINISTIC",
+        "provider_tokens": null,
+        "sandbox": "SECCOMP_DEFAULT_DENY_AND_RLIMIT",
+        "status": "PROPOSAL"
+      },
+      "counterexample": {
+        "elapsed_ns": 29406852,
+        "input_bytes": 274,
+        "proposal": {
+          "artifact": {
+            "counterexamples": [
+              {
+                "candidate": "",
+                "case_id": "negation",
+                "source": "NOT"
+              }
+            ]
+          },
+          "backend": "DETERMINISTIC_TYPED_SEARCH",
+          "can_generate": false,
+          "parent_grammar_sha256": "e2736b27d3339ae82eadb60a61cc91eb1a1b42c6a73ed55226ef80600aee46d1",
+          "rationale": "Bounded deterministic counterexample proposal",
+          "role": "counterexample",
+          "schema": "qualityrag.agent-proposal/v1",
+          "truth_status": "UNVERIFIED"
+        },
+        "provider_cost": "NOT_APPLICABLE_DETERMINISTIC",
+        "provider_tokens": null,
+        "sandbox": "SECCOMP_DEFAULT_DENY_AND_RLIMIT",
+        "status": "PROPOSAL"
+      },
+      "decomposition": {
+        "elapsed_ns": 29433501,
+        "input_bytes": 262,
+        "proposal": {
+          "artifact": {
+            "components": [
+              {
+                "obligation": "source-custody",
+                "state": "UNVERIFIED"
+              },
+              {
+                "obligation": "NOT",
+                "state": "UNVERIFIED"
+              },
+              {
+                "obligation": "units",
+                "state": "UNVERIFIED"
+              }
+            ]
+          },
+          "backend": "DETERMINISTIC_TYPED_SEARCH",
+          "can_generate": false,
+          "parent_grammar_sha256": "e2736b27d3339ae82eadb60a61cc91eb1a1b42c6a73ed55226ef80600aee46d1",
+          "rationale": "Bounded deterministic decomposition proposal",
+          "role": "decomposition",
+          "schema": "qualityrag.agent-proposal/v1",
+          "truth_status": "UNVERIFIED"
+        },
+        "provider_cost": "NOT_APPLICABLE_DETERMINISTIC",
+        "provider_tokens": null,
+        "sandbox": "SECCOMP_DEFAULT_DENY_AND_RLIMIT",
+        "status": "PROPOSAL"
+      },
+      "ffrct-economist": {
+        "elapsed_ns": 20994175,
+        "input_bytes": 218,
+        "proposal": {
+          "artifact": {
+            "advantage": "NOT_ESTABLISHED",
+            "grammar_reuse": "MEASURE_BEFORE_CLAIMING",
+            "known_costs": {},
+            "unmeasured": []
+          },
+          "backend": "DETERMINISTIC_TYPED_SEARCH",
+          "can_generate": false,
+          "parent_grammar_sha256": "e2736b27d3339ae82eadb60a61cc91eb1a1b42c6a73ed55226ef80600aee46d1",
+          "rationale": "Bounded deterministic ffrct-economist proposal",
+          "role": "ffrct-economist",
+          "schema": "qualityrag.agent-proposal/v1",
+          "truth_status": "UNVERIFIED"
+        },
+        "provider_cost": "NOT_APPLICABLE_DETERMINISTIC",
+        "provider_tokens": null,
+        "sandbox": "SECCOMP_DEFAULT_DENY_AND_RLIMIT",
+        "status": "PROPOSAL"
+      },
+      "grammar-compiler": {
+        "elapsed_ns": 28480829,
+        "input_bytes": 219,
+        "proposal": {
+          "artifact": {
+            "patches": [
+              {
+                "op": "replace",
+                "path": "/max_ast_nodes",
+                "value": 1
+              },
+              {
+                "op": "replace",
+                "path": "/max_ast_nodes",
+                "value": 3
+              },
+              {
+                "op": "replace",
+                "path": "/max_ast_nodes",
+                "value": 5
+              },
+              {
+                "op": "replace",
+                "path": "/max_ast_nodes",
+                "value": 7
+              }
+            ]
+          },
+          "backend": "DETERMINISTIC_TYPED_SEARCH",
+          "can_generate": false,
+          "parent_grammar_sha256": "e2736b27d3339ae82eadb60a61cc91eb1a1b42c6a73ed55226ef80600aee46d1",
+          "rationale": "Bounded deterministic grammar-compiler proposal",
+          "role": "grammar-compiler",
+          "schema": "qualityrag.agent-proposal/v1",
+          "truth_status": "UNVERIFIED"
+        },
+        "provider_cost": "NOT_APPLICABLE_DETERMINISTIC",
+        "provider_tokens": null,
+        "sandbox": "SECCOMP_DEFAULT_DENY_AND_RLIMIT",
+        "status": "PROPOSAL"
+      },
+      "packspec-guardian": {
+        "elapsed_ns": 28814655,
+        "input_bytes": 282,
+        "proposal": {
+          "artifact": {
+            "can_generate": false,
+            "decision": "BLOCK",
+            "missing_fields": [
+              "NOT"
+            ]
+          },
+          "backend": "DETERMINISTIC_TYPED_SEARCH",
+          "can_generate": false,
+          "parent_grammar_sha256": "e2736b27d3339ae82eadb60a61cc91eb1a1b42c6a73ed55226ef80600aee46d1",
+          "rationale": "Bounded deterministic packspec-guardian proposal",
+          "role": "packspec-guardian",
+          "schema": "qualityrag.agent-proposal/v1",
+          "truth_status": "UNVERIFIED"
+        },
+        "provider_cost": "NOT_APPLICABLE_DETERMINISTIC",
+        "provider_tokens": null,
+        "sandbox": "SECCOMP_DEFAULT_DENY_AND_RLIMIT",
+        "status": "PROPOSAL"
+      }
+    },
+    "schema": "qualityrag.agent-round/v1"
+  },
+  "can_claim_semantic_compression_advantage": false,
+  "can_generate": false,
+  "finite_cases": 4,
+  "host_device": {
+    "action": "RESEARCH_PLAYBACK",
+    "activation_ns": 3556297,
+    "can_generate": false,
+    "cold_process_ns": 52783950,
+    "cpu_ns": 2004965,
+    "device_class": "host-cpu",
+    "energy_j": null,
+    "frame_hashes": [
+      "c01084343b5068e5c1bd2f4125703ee55c7c9e121b48b50e153377f5830aa823",
+      "7218a714944fbee418839420bad36154fb65ae209fbcb6b47565a18cd0c2178b",
+      "b15f01e48d187f557d6f4acc9cbb52e5e8b9957ce6047dfd7b9a6d18b5008171",
+      "c6282781c2b4855c7b66802c3cc0e6328266b2237efa4a72cb38b552e9dd9606"
+    ],
+    "frames": 4,
+    "hard_limits": "RLIMIT_AS_RLIMIT_CPU_SECCOMP_AND_PARENT_TIMEOUT",
+    "machine": "x86_64",
+    "maxrss_kib": 27712,
+    "platform": "Linux",
+    "python": "3.12.14",
+    "schema": "qualityrag.device-pilot/v1",
+    "status": "HOST_MEASURED",
+    "supported_mobile_tv_claim": false,
+    "thermal_throttling": "UNMEASURED"
+  },
+  "learned_baseline": "PINNED_LICENSED_WEIGHTS_REQUIRED",
+  "licensed_100_clip_corpus": "NOT_SUPPLIED",
+  "physical_mobile_tv_devices": "NOT_MEASURED",
+  "qualified_independent_review": "NOT_SUPPLIED",
+  "release": {
+    "blockers": [
+      "security_review",
+      "privacy_review",
+      "licensing_review",
+      "supported_devices",
+      "signed_artifacts",
+      "rollback_test",
+      "independent_fidelity_review",
+      "telemetry",
+      "UNKNOWN_TOTAL_COST"
+    ],
+    "can_release": false,
+    "decision": "BLOCK",
+    "economic_outcome": "UNKNOWN",
+    "evidence_sha256": "c86c368babb2e25f301830a3b642c6de1274a94dd6b2a369ee7d047408e1a165"
+  },
+  "schema": "qualityrag.engineering-research-receipts/v1",
+  "scope": "AUTHORED_SYNTHETIC_ENGINEERING_ONLY"
+}

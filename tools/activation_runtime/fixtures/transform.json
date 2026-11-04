@@ -1,0 +1,15 @@
+{
+  "mapping": {
+    "actor": "a",
+    "polarity": "p",
+    "recipient": "b"
+  },
+  "payload": {
+    "a": "supplier",
+    "b": "buyer",
+    "p": "NOT"
+  },
+  "runtime": "flat-json-rename/v1",
+  "schema": "qualityrag.finite-activation/v0.1",
+  "source_sha256": "ac56ed1ff0fbb53ba5f180d074b5cfd580795a2d517ba52260e1b114d19775e3"
+}

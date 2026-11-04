@@ -1,0 +1,91 @@
+{
+  "assurance": "NO_AUTOMATIC_SEMANTIC_ENFORCEMENT",
+  "ir_sha256": "74c6984dfb4d7ed44bcd09d393684548b069754de39f7376b8d7c0ac33544c32",
+  "nodes": [
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-question",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-question"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0001",
+        "location": "/requirements/0",
+        "quotation": "Independent custody evidence for question is required.",
+        "quotation_sha256": "35d1d1189c6d74c73232d0d3aef976ecd23189a697507a4aae3849b5e36b63a3",
+        "source_sha256": "be02c8df657983f5ca9694c0c32c64ec518e15e70b963205197159cbad0f4577"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-exception",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-exception"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0002",
+        "location": "/requirements/1",
+        "quotation": "Independent custody evidence for exception is required.",
+        "quotation_sha256": "0ec8b0df8b1c94f8b1ef0965ebaddf46c1728a8ed16554f5b194d984eb0b407b",
+        "source_sha256": "be02c8df657983f5ca9694c0c32c64ec518e15e70b963205197159cbad0f4577"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-learner_attempt",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-learner_attempt"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0003",
+        "location": "/requirements/2",
+        "quotation": "Independent custody evidence for learner_attempt is required.",
+        "quotation_sha256": "8636bfe393360be827244f6ac6967ea9e8c78a5d66b32626fd8ff78bd68a4d83",
+        "source_sha256": "be02c8df657983f5ca9694c0c32c64ec518e15e70b963205197159cbad0f4577"
+      },
+      "status": "PROJECTION_ONLY"
+    }
+  ],
+  "schema": "qualityrag.constraint-ir/v1",
+  "scope": "INSPECTION_DERIVED_CANDIDATES_ONLY",
+  "source": {
+    "bytes": 243,
+    "filename": "policy-source.json",
+    "format": "json",
+    "pack_id": "profile-education",
+    "sha256": "be02c8df657983f5ca9694c0c32c64ec518e15e70b963205197159cbad0f4577",
+    "version": "1.0"
+  },
+  "summary": {
+    "deferred_semantic_constraints": 0,
+    "evidence_presence_projections": 3,
+    "semantic_constraints_executed": 0,
+    "total": 3
+  }
+}

@@ -1,84 +1,127 @@
-# Bounded activation research runtime
+# QualityRag activation research runtime
 
-This package connects existing QualityRag mechanisms into an executable research
-slice. It does not provide a Semantic Codex video codec or production admission.
+This is an executable research reference. It includes a lossless palette
+scene-state codec, typed preservation/activation, signed streaming, a review
+workspace and bounded deterministic research agents. It does not establish
+learned semantic compression, canonical FF-RCT parity, clinical/legal correctness
+or an independently validated production release.
 
-## Run
+## Install and verify
 
-From the repository root with Python 3.12:
+From the repository root, use Python 3.12 and Node 24. FFmpeg/ffprobe and
+libseccomp are required for video and isolated-agent integration tests.
 
 ~~~bash
-python -m pip install -r tools/packspec_compiler/requirements.txt -r tools/activation_runtime/requirements.txt
-python -m unittest discover -s tools/packspec_compiler -p 'test_finite_activation.py' -v
+python -m pip install -r tools/activation_runtime/research/requirements.lock.txt
 python -m unittest discover -s tools/activation_runtime/tests -p 'test_*.py' -v
-python -m tools.activation_runtime.demo --out /tmp/activation-demo
+python -m unittest discover -s tools/packspec_compiler -p 'test_finite_activation.py' -v
+python -m tools.activation_runtime.audit
+python -m tools.activation_runtime.run_research --out /tmp/qualityrag-research-run
 ~~~
 
-Use a fresh output directory. The demo produces four explicitly authored
-synthetic examples, a real compiled ConstraintIR, exact source custody objects,
-actual reconstructed field values, compatibility and gate receipts. Running
-it twice yields the same structural receipt bytes. Ephemeral demo keys are
-discarded and have no real reviewer authority.
+The authored fixture clips are not a representative 100-clip corpus.
+The measured reference codec is larger than AV1 in the committed experiment.
+No byte, quality, cost or energy advantage is inferred from that run.
 
-## Implemented paths
+For pinned original APX WBC/RCoC checks, set QUALITYRAG_APX_ROOT to an APX checkout
+at 9a4f8a3e4a3fe77d576369217525e54d0162b8b0 with packages/apx-wbc/src and
+packages/apx-rcoc/src present. A missing source is an explicit error; optional
+tests SKIP when the checkout is not configured. There is no Python substitute.
 
-- contracts: eight local JSON Schemas for source, payload, grammar, operator
-  AST, transform, ConstraintIR shape, verdict and receipt. Runtime checks remain
-  responsible for semantic type compatibility, duplicate IDs, fingerprints,
-  full bijections and authorization. No remote schema resolver is used.
-- artifacts: host-scoped tenant store, immutable content addresses, atomic
-  publication, Ed25519-signed manifest, pinned runtime/policy/source/artifact,
-  transitive data-module resolution, expiry, revocation and version floor.
-- pipeline: actual canonical RCT induction, held-out validation, versioned
-  input/policy cache invalidation, compiled artifact bytes and measured lookup/
-  compile time; actual existing PackSpec gate; strict CSV ingestion with row
-  and physical line anchors.
-- gardener: append-only PROPOSE/CHALLENGE/TEST/SYNTHESIZE/PRUNE/REOPEN,
-  bounded parent DAG, deterministic replay, corruption checks, and claims in
-  the existing Research Ledger. Syntheses always begin UNVERIFIED.
-- economics: explicit full lifecycle components with OBSERVED/ASSUMED/UNKNOWN
-  distinctions and a fidelity-filtered Pareto frontier. No inferred savings.
-- media: real lossless AV1 encoding and normalized frame-byte comparison.
-  Requires FFmpeg/ffprobe, a local clip, rights reference and split family.
-  Audio, semantic identity, timing, energy and independent rights verification
-  are explicitly outside this measurement.
-- native_apx: executes original, SHA-pinned APX WBC and RCoC TypeScript using
-  Node 24; no Python reimplementation. Configure QUALITYRAG_APX_ROOT for tests
-  against APX commit 9a4f8a3e4a3fe77d576369217525e54d0162b8b0.
-  Required files are packages/apx-wbc/src/index.ts,
-  packages/apx-rcoc/src/index.ts, and
-  packages/apx-rcoc/src/canonical-taxonomy.ts.
+For the real browser test:
 
-WBC requests carry a complete finite decision table for at most eight witnesses.
-RCoC requests must explicitly supply known applicability for all twelve canonical
-G coordinates. The adapter will not convert unknown applicability to false.
-Missing original APX sources fail; optional tests SKIP without a configured
-checkout. CI explicitly checks out that pinned APX source.
+~~~bash
+python -m pip install playwright==1.56.0
+python -m playwright install chromium
+QUALITYRAG_BROWSER_TESTS=1 python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py' -v
+~~~
 
-## Trust boundary
+## Open the local review workspace
 
-The application must authenticate its principal and derive tenant identity on
-the host. A tenant string supplied by an end user is not authorization. Protect
-the store root from untrusted filesystem writers and preserve it on durable
-storage. Content digests are integrity checks, not custody or truth attestations.
+~~~bash
+python -m tools.activation_runtime.bootstrap --root /tmp/qualityrag-local
+python -m tools.activation_runtime.cli serve --root /tmp/qualityrag-local/state --keys /tmp/qualityrag-local/public-keys.json --port 8769
+~~~
 
-Trusted manifest keys and the minimum sequence are host configuration. Removing
-a key revokes it. An authorized rollback must remain above the sequence floor
-and must have a valid signature, supported runtime and matching content/policy.
-Registry objects are inert data; no plugin, model import or downloaded code is
-executed by the decoder.
+Open http://127.0.0.1:8769 and paste the token from the generated browser-token.txt.
+Bootstrap creates local research keys with private file permissions and a
+24-hour access token. It does not create independent scientific review.
+The workspace supports branch search, source history, change previews, reversible
+pruning/reopening and review feedback. The configured host source allowlist runs
+a bounded proposal scan every 60 seconds. No agent can validate or promote a claim.
 
-A release signature authenticates bytes and scope. It does not authenticate
-PackSpec completeness, reviewer independence or clinical/legal correctness.
-Research output is labeled as such; can_generate stays false. Fallback never
-releases failed output. Production signing keys, approved review authority,
-persistent service authorization and independently validated domain evidence
-are still required for production admission.
+Bind directly only to loopback. Use a separately configured authenticated TLS
+gateway for remote deployment. Trust maps, tenant assignment and version floors
+are host configuration, not request parameters.
 
-## Remaining research and engineering
+## Run the actual scene-state reference codec
 
-See capabilities.json and FR.MD. The corpus, actual shared-grammar video
-encoder/decoder, neural codec baseline, agent execution sandbox/model providers,
-streaming/device runtime, Gardener review UI, SDK parity, and independent
-controlled evaluation are not implemented by these modules. Passing these
-tests cannot satisfy those stories.
+~~~bash
+python -m tools.activation_runtime.cli train-scene --source training.mkv --out model.json
+python -m tools.activation_runtime.cli encode-scene --source heldout.mkv --model model.json --out payload.json
+python -m tools.activation_runtime.cli decode-scene --payload payload.json --model model.json --out reconstructed.mkv
+~~~
+
+The supported bounded profile is zero-origin CFR RGB24 plus normalized PCM32
+audio, at most 512x512, 30fps, 120 frames and 10 seconds. Unsupported tracks
+refuse rather than silently disappear. A shared backdrop palette plus exact
+residuals reconstructs all normalized frame pixels. Full playback decoding
+rechecks frames, source presentation timestamps and audio samples after writing
+the playable file. Corrupt/missing/reordered residuals or incompatible models
+refuse. Original source bytes remain in custody.
+
+This is a predictive reference codec, not a semantic scene understanding model
+or canonical FF-RCT implementation. Original container bytes are not recreated.
+
+## Module map
+
+| Module | Runnable behavior |
+|---|---|
+| contracts, fixtures, schemas | Eight versioned local JSON Schemas with valid examples and negative validation |
+| preservation | Exact/approximate/unknown obligations, source anchors, omission inventory and independent signed IR binding |
+| interpreter | Bounded PRESERVE/TRANSITION/ACTIVATE/VERIFY/FALLBACK with actual output checks and one checked fallback |
+| adapters | Text, CSV row/line anchors and PDF page anchors; canonical extraction candidates remain quarantined |
+| artifacts, authority | Immutable tenant-scoped custody, Ed25519 manifests, access principals, independent review binding and durable nonces |
+| search, pipeline | Actual existing typed RCT compiler in a hard resource/syscall sandbox; identity baseline, held-out checks and policy-keyed cache |
+| scene_codec, streaming | Actual encoded payload/playable output, signed decoder/model/index, independent segments, seek/pause/resume/representation switch and fallback |
+| device, pilot | Sparse module planning/compilation, resumable atomic updates, version floor, CPU/RAM/wall limits and explicit unavailable power/device evidence |
+| gardener, proposals | Append-only forks/synthesis/pruning/reopening, deterministic replay, ledger claims, bounded periodic suggestions and reviewer-reported outcome metrics |
+| agents, roles | Six schema-constrained deterministic agents in separate default-deny seccomp/RLIMIT processes; disagreement blocks promotion |
+| experiments | Immutable preregistration, family-leakage checks, proposer holdout denial, paired statistics and actual fixed/decoder-only/paired codec runs |
+| neural_baseline | Offline hash-pinned CompressAI intraframe adapter; absent dependencies/weights refuse, lossy output cannot qualify as exact |
+| economics | Full declared lifecycle components, cold/frequent/TV/mobile scenarios, no-crossover outcomes and full-dimension Pareto gates |
+| service, cli, SDKs | Signed-principal HTTP API, local review UI, external PackSpec CLI, Python and TypeScript wire clients |
+| release, audit | Independent signed pilot gate, critical-loss stop conditions, complete story inventory and evidence fingerprints |
+
+Python SDK lives in sdk/python/qualityrag_activation; TypeScript SDK is
+sdk/typescript/src/activation.ts. Both call the same canonical API. Golden
+tests exercise actual HTTP parity for validation/evaluation/trace/fallback.
+Unsupported options refuse; request bodies cannot select tenant or backdate time.
+
+## Reproduce the paper and figures
+
+~~~bash
+python -m tools.activation_runtime.research.build_report --receipt tools/activation_runtime/research/receipts/engineering-v1.json --out /tmp/qualityrag-paper
+~~~
+
+The committed report, SVG figure and receipts are under research/paper and
+research/receipts. The report states the negative codec result and missing
+independent evidence. See research/prior-art.md for primary comparators and
+research/protocol.json for the unregistered protocol template.
+
+## Trust and acceptance boundaries
+
+Hashes prove byte identity, not truth. A release signature authenticates a
+configured signer and exact scope, not a reviewer's correctness. A detached
+self-reported VERIFIED receipt never authorizes activation or module switching:
+the signed source envelope is verified again at the point of use.
+
+The agent backend is deterministic typed search, not an LLM or an autonomous
+mathematical discovery claim. Its sandbox prevents file opening, sockets and
+child process creation. Unsupported sandbox hosts fail closed.
+
+The supplied evidence does not contain a representative independently reviewed
+100-clip corpus, licensed neural weights, physical mobile/TV power/thermal runs,
+independent clinical/legal adjudication or canonical FF-RCT reconstruction.
+Those remain explicit acceptance gates. No parent story becomes DONE merely
+because its software is committed or its authored tests pass.

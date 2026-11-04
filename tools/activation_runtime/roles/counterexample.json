@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/agents/counterexample/v1.0",
+  "title": "counterexample bounded research task",
+  "type": "object",
+  "properties": {
+    "cases": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "candidate"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {},
+          "candidate": {}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

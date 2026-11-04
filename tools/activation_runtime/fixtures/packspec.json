@@ -1,0 +1,45 @@
+{
+  "assurance": "NO_AUTOMATIC_SEMANTIC_ENFORCEMENT",
+  "ir_sha256": "b1de735aaf7633adbff07efe6e00b3f9630af05f5b28ba34edc93921d4051d66",
+  "nodes": [
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "custody",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "custody"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Authored research fixture only; independent admission is unavailable",
+        "reviewed_by": "DEMO_LABEL_NOT_AUTHENTICATED"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0001",
+        "location": "/requirement",
+        "quotation": "Original source custody evidence is required.",
+        "quotation_sha256": "1708772b3b93c680f293c5e0aec08b54a6a2e2723338cbc1534813b40d771831",
+        "source_sha256": "dd9c6283e6afb529f77f597684d54f8a43a68ebc7b436d7e8b3f8ff0606c33bc"
+      },
+      "status": "PROJECTION_ONLY"
+    }
+  ],
+  "schema": "qualityrag.constraint-ir/v1",
+  "scope": "INSPECTION_DERIVED_CANDIDATES_ONLY",
+  "source": {
+    "bytes": 63,
+    "filename": "policy-source.json",
+    "format": "json",
+    "pack_id": "policy-source",
+    "sha256": "dd9c6283e6afb529f77f597684d54f8a43a68ebc7b436d7e8b3f8ff0606c33bc",
+    "version": "unknown"
+  },
+  "summary": {
+    "deferred_semantic_constraints": 0,
+    "evidence_presence_projections": 1,
+    "semantic_constraints_executed": 0,
+    "total": 1
+  }
+}

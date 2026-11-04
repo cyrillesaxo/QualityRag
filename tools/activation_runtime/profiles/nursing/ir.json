@@ -1,0 +1,114 @@
+{
+  "assurance": "NO_AUTOMATIC_SEMANTIC_ENFORCEMENT",
+  "ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+  "nodes": [
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-instruction",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-instruction"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0001",
+        "location": "/requirements/0",
+        "quotation": "Independent custody evidence for instruction is required.",
+        "quotation_sha256": "e1abb430628da41784effdfe42fc65857aee8d942f864ab650c17144d0716fa1",
+        "source_sha256": "16f5e8cfdfbaacebf63109a26db407c6293d0896396cc0549b0607ecb9b95fa8"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-quantity",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-quantity"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0002",
+        "location": "/requirements/1",
+        "quotation": "Independent custody evidence for quantity is required.",
+        "quotation_sha256": "8f5adb490ea39db2a88cdaa20dd44ae1c588f53c0ba09e66c2f81f323a9620fd",
+        "source_sha256": "16f5e8cfdfbaacebf63109a26db407c6293d0896396cc0549b0607ecb9b95fa8"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-unit",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-unit"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0003",
+        "location": "/requirements/2",
+        "quotation": "Independent custody evidence for unit is required.",
+        "quotation_sha256": "c7f9ba9efce5a2aad7094c74acb3cad1c2d63012591e93bf5c35052e979d86c3",
+        "source_sha256": "16f5e8cfdfbaacebf63109a26db407c6293d0896396cc0549b0607ecb9b95fa8"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-actor",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-actor"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0004",
+        "location": "/requirements/3",
+        "quotation": "Independent custody evidence for actor is required.",
+        "quotation_sha256": "158374e3fc4f51fcaf98947b0316fac9be3f0c1f63cb1c743e41b3ad71a80ddb",
+        "source_sha256": "16f5e8cfdfbaacebf63109a26db407c6293d0896396cc0549b0607ecb9b95fa8"
+      },
+      "status": "PROJECTION_ONLY"
+    }
+  ],
+  "schema": "qualityrag.constraint-ir/v1",
+  "scope": "INSPECTION_DERIVED_CANDIDATES_ONLY",
+  "source": {
+    "bytes": 286,
+    "filename": "policy-source.json",
+    "format": "json",
+    "pack_id": "profile-nursing",
+    "sha256": "16f5e8cfdfbaacebf63109a26db407c6293d0896396cc0549b0607ecb9b95fa8",
+    "version": "1.0"
+  },
+  "summary": {
+    "deferred_semantic_constraints": 0,
+    "evidence_presence_projections": 4,
+    "semantic_constraints_executed": 0,
+    "total": 4
+  }
+}
