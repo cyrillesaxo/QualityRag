@@ -115,6 +115,30 @@ class ControllerTests(unittest.TestCase):
             run_controller(
                 TRAIN, TRAIN_EXAMPLES[:2], BEFORE, AFTER, self.workload)
 
+    def test_controller_cli_records_unverified_experiment(self):
+        import json
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            result = subprocess.run(
+                [sys.executable,
+                 str(Path(__file__).resolve().parents[1] /
+                     "rct_garden_controller_demo.py"),
+                 "--db", str(root / "research.sqlite"),
+                 "--receipt", str(root / "experiment.json"),
+                 "--uri", "https://example.org/fixture/receipt"],
+                check=True, capture_output=True, text=True, timeout=30)
+            output = json.loads(result.stdout)
+            self.assertEqual(output["controller_status"], "EVALUATED_UNVERIFIED")
+            self.assertEqual(output["candidate_count"], 6)
+            self.assertGreaterEqual(output["probe_count"], 1)
+            self.assertEqual(output["qualityrag_admission"], "INCONCLUSIVE")
+            self.assertTrue(output["fixture_only"])
+            self.assertFalse(output["promotion_authorized"])
+            self.assertTrue((root / "research.sqlite").is_file())
+            self.assertTrue((root / "experiment.json").is_file())
+
     def test_invalid_probe_budget_rejected(self):
         with self.assertRaisesRegex(ValueError, "Invalid probe budget"):
             run_controller(
