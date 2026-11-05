@@ -6,9 +6,9 @@ from pathlib import Path
 from .audit import audit
 
 
-def report(root=None,*,reviewer_keys=None,as_of=None):
+def report(root=None,*,trust=None,as_of=None):
     root=Path(__file__).resolve().parents[2] if root is None else Path(root)
-    checked=audit(root,reviewer_keys=reviewer_keys,as_of=as_of)
+    checked=audit(root,trust=trust,as_of=as_of)
     path=root/"tools/activation_runtime/capabilities.json";inventory=json.loads(path.read_text())
     stories=[]
     for item in inventory["stories"]:
@@ -41,18 +41,13 @@ def markdown(value):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument("--out",required=True)
-    parser.add_argument("--completion-keys");parser.add_argument("--as-of");args=parser.parse_args()
-    if bool(args.completion_keys)!=bool(args.as_of):parser.error("Completion keys and host time are required together")
-    keys=None
-    if args.completion_keys:
-        import base64
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-        from .common import strict_json
-        with Path(args.completion_keys).open("rb") as stream:raw=stream.read(524289)
-        config=strict_json(raw)
-        if not isinstance(config,dict):raise ValueError("Completion public-key map required")
-        keys={key:Ed25519PublicKey.from_public_bytes(base64.b64decode(value,validate=True)) for key,value in config.items()}
-    value=report(reviewer_keys=keys,as_of=args.as_of);out=Path(args.out);out.mkdir(parents=True,exist_ok=False)
+    parser.add_argument("--trust",help="reviewer trust store (default: the repository's reviewer-trust.json)")
+    parser.add_argument("--as-of");args=parser.parse_args()
+    trust=None
+    if args.trust:
+        from .audit import load_trust
+        trust=load_trust(args.trust)
+    value=report(trust=trust,as_of=args.as_of);out=Path(args.out);out.mkdir(parents=True,exist_ok=False)
     (out/"stories.json").write_text(json.dumps(value,sort_keys=True,indent=2)+"\n")
     (out/"stories.md").write_text(markdown(value))
     print(json.dumps({"stories":len(value["stories"]),"criteria":value["criterion_count"],"report":str(out/"stories.md"),"counts":value["counts"]}))

@@ -7,17 +7,20 @@ repository could produce such an envelope; this module does, but only with a
 private key the reviewer supplies. It never generates or stores reviewer keys
 and never signs on anyone's behalf.
 
-    python -m tools.activation_runtime.story_completion pubkey  --key reviewer.pem --key-id alice-2026
+    python -m tools.activation_runtime.story_completion pubkey  --key reviewer.pem --key-id alice-2026 \\
+        --github-login alice --valid-from 2026-11-05T00:00:00Z
     python -m tools.activation_runtime.story_completion draft   --story US-034 --implementation-commit SHA \\
         --merge-commit SHA --ci-url https://github.com/... --ci-receipt-sha256 HEX [--attest-all-criteria-met] > receipt.json
     python -m tools.activation_runtime.story_completion sign    --receipt receipt.json --key reviewer.pem \\
         --key-id alice-2026 --issued-at 2026-11-05T12:00:00Z --expires-at 2026-12-05T12:00:00Z > envelope.json
     python -m tools.activation_runtime.story_completion verify  --story US-034 --implementation-commit SHA \\
         --envelope envelope.json [--trust tools/activation_runtime/reviewer-trust.json] [--as-of ...]
+    python -m tools.activation_runtime.story_completion attach  --story US-034 --implementation-commit SHA --envelope envelope.json
 
-``verify`` checks an envelope exactly as audit.py would, without editing
-capabilities.json. Attaching a verified envelope and marking the story DONE is
-a separate, reviewed change (see docs/STORY-CLOSURE-PACKETS.md).
+``verify`` checks an envelope exactly as audit.py would (including live GitHub
+evidence) without editing anything; ``attach`` verifies, then records the
+envelope and sets the story DONE. CI re-verifies every DONE story on each run
+against the repository's reviewer-trust.json.
 """
 from __future__ import annotations
 
@@ -30,7 +33,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, load_pem_private_key
 
 from .authority import ATTEST_SCHEMA, sign
@@ -90,11 +93,14 @@ def _load_private_key(path: Path) -> Ed25519PrivateKey:
     return key
 
 
-def public_key_entry(key: Ed25519PrivateKey, key_id: str, subject: str | None = None) -> dict:
+def public_key_entry(key: Ed25519PrivateKey, key_id: str, github_login: str, valid_from: str,
+                     subject: str | None = None) -> dict:
+    """Trust-store entry for a reviewer; add it to reviewer-trust.json in a reviewed PR."""
     if not _KEY_ID.fullmatch(key_id):
         raise ValueError("Invalid key ID")
     raw = key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
-    entry = {"key_id": key_id, "public_key": base64.b64encode(raw).decode()}
+    entry = {"key_id": key_id, "public_key": base64.b64encode(raw).decode(), "github_login": github_login,
+             "status": "active", "valid_from": valid_from}
     if subject:
         entry["subject"] = subject
     return entry
@@ -115,37 +121,49 @@ def sign_receipt(receipt: dict, key: Ed25519PrivateKey, *, key_id: str, issued_a
     return sign(body, key, key_id=key_id, schema=ATTEST_SCHEMA)
 
 
-def load_trust(path: Path = TRUST) -> dict[str, Ed25519PublicKey]:
-    data = json.loads(Path(path).read_text())
-    if data.get("schema") != TRUST_SCHEMA or not isinstance(data.get("reviewers"), list):
-        raise ValueError("Invalid reviewer trust store")
-    keys = {}
-    for entry in data["reviewers"]:
-        kid = entry.get("key_id")
-        if not isinstance(kid, str) or not _KEY_ID.fullmatch(kid) or kid in keys:
-            raise ValueError("Invalid or duplicate reviewer key ID")
-        keys[kid] = Ed25519PublicKey.from_public_bytes(base64.b64decode(entry["public_key"], validate=True))
-    return keys
+def load_trust(path: Path = TRUST) -> dict:
+    from .audit import load_trust as _load
+    return _load(path)
 
 
-def verify(story_id: str, envelope: dict, *, implementation_commit: str, trusted_keys: dict,
-           as_of: str | None = None, capabilities: Path = CAPABILITIES) -> dict:
-    """Run audit.py's own completion check on a copy of the story; never edits the inventory."""
+def verify(story_id: str, envelope: dict, *, implementation_commit: str, trust: dict,
+           as_of: str | None = None, capabilities: Path = CAPABILITIES, _fetch=None) -> dict:
+    """Run audit.py's own completion check on a copy of the story; never edits the inventory.
+
+    Uses live GitHub evidence (CI run, merge containment, commit author) unless ``_fetch`` is given.
+    """
     from .audit import _completion
+    if _fetch is None:
+        from .inventory_completion import github as _fetch
 
     item = copy.deepcopy(_story(story_id, capabilities))
     item["implementation_commit"] = implementation_commit
     item["completion_envelope"] = envelope
     as_of = as_of or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    _completion(item, trusted_keys, as_of)
-    return {"story_id": story_id, "envelope": "VALID_FOR_AUDIT", "as_of": as_of,
-            "key_id": envelope["key_id"], "note": "Attach and mark DONE in a separate reviewed change."}
+    result = _completion(item, trust, as_of, _fetch)
+    return {**result, "envelope": "VALID_FOR_AUDIT", "as_of": as_of,
+            "note": "Attach with `attach`, which sets DONE; CI re-verifies it on every run."}
+
+
+def attach(story_id: str, envelope: dict, *, implementation_commit: str, trust: dict,
+           capabilities: Path = CAPABILITIES, _fetch=None) -> dict:
+    """Verify, then record the envelope and set the story DONE in capabilities.json."""
+    result = verify(story_id, envelope, implementation_commit=implementation_commit, trust=trust,
+                    capabilities=capabilities, _fetch=_fetch)
+    path = Path(capabilities)
+    inventory = json.loads(path.read_text())
+    item = next(s for s in inventory["stories"] if s["story_id"] == story_id)
+    item.update(status="DONE", implementation_commit=implementation_commit, completion_envelope=envelope)
+    path.write_text(json.dumps(inventory, indent=2) + "\n")
+    return {**result, "attached": True}
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Signed story-completion receipts (reviewer-held keys only)")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    p = sub.add_parser("pubkey"); p.add_argument("--key", required=True); p.add_argument("--key-id", required=True)
+    p = sub.add_parser("pubkey")
+    for flag in ("--key", "--key-id", "--github-login", "--valid-from"):
+        p.add_argument(flag, required=True)
     p.add_argument("--subject")
     p = sub.add_parser("draft")
     for flag in ("--story", "--implementation-commit", "--merge-commit", "--ci-url", "--ci-receipt-sha256"):
@@ -155,13 +173,16 @@ def main(argv=None):
     p = sub.add_parser("sign")
     for flag in ("--receipt", "--key", "--key-id", "--issued-at", "--expires-at"):
         p.add_argument(flag, required=True)
-    p = sub.add_parser("verify")
-    for flag in ("--story", "--implementation-commit", "--envelope"):
-        p.add_argument(flag, required=True)
-    p.add_argument("--trust", default=str(TRUST)); p.add_argument("--as-of")
+    for name in ("verify", "attach"):
+        p = sub.add_parser(name)
+        for flag in ("--story", "--implementation-commit", "--envelope"):
+            p.add_argument(flag, required=True)
+        p.add_argument("--trust", default=str(TRUST))
+        if name == "verify":
+            p.add_argument("--as-of")
     args = ap.parse_args(argv)
     if args.cmd == "pubkey":
-        out = public_key_entry(_load_private_key(args.key), args.key_id, args.subject)
+        out = public_key_entry(_load_private_key(args.key), args.key_id, args.github_login, args.valid_from, args.subject)
     elif args.cmd == "draft":
         out = draft(args.story, implementation_commit=args.implementation_commit, merge_commit=args.merge_commit,
                     ci_url=args.ci_url, ci_receipt_sha256=args.ci_receipt_sha256,
@@ -169,10 +190,13 @@ def main(argv=None):
     elif args.cmd == "sign":
         out = sign_receipt(json.loads(Path(args.receipt).read_text()), _load_private_key(args.key),
                            key_id=args.key_id, issued_at=args.issued_at, expires_at=args.expires_at)
-    else:
+    elif args.cmd == "verify":
         out = verify(args.story, json.loads(Path(args.envelope).read_text()),
-                     implementation_commit=args.implementation_commit, trusted_keys=load_trust(Path(args.trust)),
+                     implementation_commit=args.implementation_commit, trust=load_trust(Path(args.trust)),
                      as_of=args.as_of)
+    else:
+        out = attach(args.story, json.loads(Path(args.envelope).read_text()),
+                     implementation_commit=args.implementation_commit, trust=load_trust(Path(args.trust)))
     json.dump(out, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")
 

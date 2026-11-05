@@ -4,10 +4,11 @@
 
 What each open FR.MD story needs to reach DONE, and who can provide it. This page changes no status. DONE still requires a completion receipt signed by an independent reviewer and verified by `audit.py`.
 
-Inventory: 14 BLOCKED, 2 DONE, 35 IN_REVIEW. Open: 49.
+Inventory: 14 BLOCKED, 1 DONE, 36 IN_REVIEW. Open: 50.
 
 | Category | Stories |
 |---|---|
+| Objective evidence renewal in progress (1) | US-001 |
 | Merge after review (5) | US-010, US-011, US-022, US-023, US-039 |
 | Merge plus one recorded check (6) | US-013, US-020, US-034, US-035, US-045, US-047 |
 | Independent qualified review (15) | US-003, US-004, US-005, US-006, US-008, US-012, US-014, US-015, US-018, US-019, US-026, US-030, US-038, US-040, US-050 |
@@ -20,24 +21,47 @@ A reviewer holds their own Ed25519 key (for example `openssl genpkey -algorithm 
 
 ```bash
 # 1. Publish the public key: add the output to tools/activation_runtime/reviewer-trust.json in a reviewed PR
-python -m tools.activation_runtime.story_completion pubkey --key reviewer.pem --key-id <id> --subject "<name>"
+python -m tools.activation_runtime.story_completion pubkey --key reviewer.pem --key-id <id> \
+    --github-login <login> --valid-from <YYYY-MM-DDTHH:MM:SSZ> --subject "<name>"
 # 2. Draft the exact receipt audit.py expects, read it, and attest only if every criterion is met
 python -m tools.activation_runtime.story_completion draft --story US-0XX --implementation-commit <sha> \
-    --merge-commit <sha> --ci-url <https://github.com/...> --ci-receipt-sha256 <hex> --attest-all-criteria-met > receipt.json
-# 3. Sign (validity is at most 30 days, enforced by signed_bundles)
+    --merge-commit <sha> --ci-url https://github.com/cyrillesaxo/QualityRag/actions/runs/<id> \
+    --ci-receipt-sha256 <hex> --attest-all-criteria-met > receipt.json
+# 3. Sign, with issued-at = now (UTC, after the CI run finished)
 python -m tools.activation_runtime.story_completion sign --receipt receipt.json --key reviewer.pem \
-    --key-id <id> --issued-at <iso> --expires-at <iso> > envelope.json
-# 4. Check it exactly as audit.py would
+    --key-id <id> --issued-at <now> --expires-at <now + up to 30 days> > envelope.json
+# 4. Check it exactly as CI will, then record it (sets DONE)
 python -m tools.activation_runtime.story_completion verify --story US-0XX --implementation-commit <sha> --envelope envelope.json
+python -m tools.activation_runtime.story_completion attach --story US-0XX --implementation-commit <sha> --envelope envelope.json
 ```
 
-A receipt is bound to the story's acceptance text and module hashes. Any later change to those modules invalidates it, and the draft must be redone.
+## How CI verifies a completion
 
-## Wiring gap (must be closed before any receipt counts)
+`python -m tools.activation_runtime.audit` (an existing CI step) loads `reviewer-trust.json` and re-verifies every signed DONE story on each run. A receipt is a **historical record**: it does not lapse when its signature window ends. Because its issue time is self-declared, CI bounds it with evidence the reviewer cannot set:
 
-1. The CI step `python -m tools.activation_runtime.audit` calls `audit()` without reviewer keys, so any story beyond US-001/US-002 marked DONE fails CI even with a valid receipt. `audit.py`'s entry point needs to load `reviewer-trust.json` and pass `as_of` = now.
-2. `audit.py` and the activation workflow are pinned modules of the DONE stories US-001 and US-002. Changing either requires renewing their completion evidence (new implementation commit, passing CI run, updated `completion_evidence`), as was done when US-002 landed.
-3. Decide receipt lifetime. Signed envelopes are capped at 30 days and the audit checks them against the current time, so a DONE story would fail CI a month later unless re-signed. Either accept monthly re-signing, or verify receipts at their issue time and rely on removing keys from the trust store for revocation.
+- the referenced CI run (`actions/runs/<id>` in this repository) must have passed on the implementation commit, and the receipt cannot be issued before that run finished, nor in the future;
+- the implementation commit must be contained in the merge commit, and the merge commit must be on `main`;
+- the reviewer's GitHub login must differ from the implementation commit's author;
+- the key must be in the trust store and its window must cover the issue time: `active`, or `retired` with `retired_at` after the issue time (routine rotation keeps earlier receipts valid); a `compromised` key invalidates every receipt it signed;
+- the receipt is bound to the story's acceptance text and module hashes, so any later change to those modules invalidates it and the story must be re-reviewed.
+
+Residual risk: someone holding a *retired* key could still sign a receipt dated between a run's completion and the retirement time. If a retired key may be in other hands, mark it `compromised`.
+
+## Objective evidence renewal in progress
+
+Steps:
+
+1. This commit changes a module the story pins, so its live-GitHub CI evidence must point at a newer commit.
+2. The next commit restores DONE with `completion_evidence` bound to this commit's passing push run.
+
+Who signs: No reviewer: objective source/CI acceptance verified by `inventory_completion.py`.
+
+### US-001 · Source and capability inventory (IN_REVIEW)
+
+- **Blocking:** No remaining US-001 software criterion. Independent domain validation is not established or claimed.
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_inventory_completion.py'`
+- **Modules bound into the receipt:** 3 file(s)
+- **Notes:** Renewing because `audit.py` now loads the reviewer trust store and verifies receipts historically.
 
 ## Merge after review
 
@@ -133,7 +157,7 @@ Who signs: A code reviewer who did not author the story; the extra check may nee
 - **Blocking:** Passing commit-bound CI, merged review and real signed per-story completion receipts.
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
 - **Modules bound into the receipt:** 2 file(s)
-- **Notes:** Extra check: the CI audit must load `reviewer-trust.json` before any signed receipt can count (see *Wiring gap*). This story is the natural place to do that.
+- **Notes:** The CI audit now loads `reviewer-trust.json` and re-verifies signed receipts against GitHub evidence. Extra check: at least one real signed per-story receipt passes CI.
 
 ## Independent qualified review
 

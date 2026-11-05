@@ -4,7 +4,7 @@
     {
       "story_id": "US-001",
       "title": "Source and capability inventory",
-      "status": "DONE",
+      "status": "IN_REVIEW",
       "engineering_status": "COMPLETE_VERIFIED_SOFTWARE_CRITERIA",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
@@ -35,7 +35,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/audit.py",
-          "sha256": "7b8559f217ff162af8445d755ff5b3689659675d434d8150b29490d538918a81"
+          "sha256": "7aba9b9c9d79dd2776d46a5a448c93945f30bf1b13c94d3d4cf213b56a6e11cb"
         },
         {
           "path": "tools/activation_runtime/inventory_completion.py",
@@ -2391,11 +2391,11 @@
       "modules": [
         {
           "path": "tools/activation_runtime/audit.py",
-          "sha256": "7b8559f217ff162af8445d755ff5b3689659675d434d8150b29490d538918a81"
+          "sha256": "7aba9b9c9d79dd2776d46a5a448c93945f30bf1b13c94d3d4cf213b56a6e11cb"
         },
         {
           "path": "tools/activation_runtime/delivery.py",
-          "sha256": "6cadb233623498dd32bbb7263e9ce3b088ab6d7d9e93a9057f3205821ecb28ab"
+          "sha256": "e4be6d5e9459522da10e33480ea991c85e8116cc2d08eeeda62dee4a2c55e700"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
