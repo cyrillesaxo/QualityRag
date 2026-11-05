@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag</title><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script><script src="/governance.js" defer></script><script src="/shell.js" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag</title><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script><script src="/governance.js" defer></script><script src="/engine.js" defer></script><script src="/shell.js" defer></script></head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <div class="ambient" aria-hidden="true"></div>
@@ -28,6 +28,7 @@
 <a href="#/alternatives" data-nav="alternatives" data-tip="Alternatives"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v5.5M10 8.5 5 13v4M10 8.5l5 4.5v4"/></svg><span class="nav-label">Alternatives</span></a>
 <p class="nav-group">Research</p>
 <a href="#/tree" data-nav="tree" data-tip="Research tree"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17.5V9M10 9 5.5 3.5M10 9l4.5-5.5M10 12.5 6.5 8.5M10 12.5l3.5-4"/></svg><span class="nav-label">Research tree</span></a>
+<a href="#/evolution" data-nav="evolution" data-tip="Evolution"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 14.5c2.5 0 3-9 6-9s3.5 9 6 9"/><path d="M3.5 17h13"/></svg><span class="nav-label">Evolution</span><span id="badge-evolution" class="badge" hidden></span></a>
 <a href="#/review" data-nav="review" data-tip="Branches &amp; review"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5.5h12M4 10h12M4 14.5h7"/></svg><span class="nav-label">Branches &amp; review</span><span id="badge-review" class="badge" hidden></span></a>
 <p class="nav-group">Build</p>
 <a href="#/connect" data-nav="connect" data-tip="Connect"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 3v3.5M12.5 3v3.5M5.5 6.5h9v3a4.5 4.5 0 0 1-9 0zM10 14v3"/></svg><span class="nav-label">Connect</span></a>
@@ -67,6 +68,9 @@
 <li data-step="changes"><a href="#/changes">Try a stricter policy and compare the results</a></li>
 <li data-step="connect"><a href="#/connect">Connect an agent or your own code</a></li>
 </ol></div></div></div>
+<div class="panel glass">
+<div class="sect"><div class="sect-aside"><h2>Engine</h2><p>Every part of the machinery this workspace runs on, read live from the server.</p></div>
+<div class="sect-body"><ul id="engine" class="engine" aria-live="polite"><li class="hint">Loading…</li></ul></div></div></div>
 </section>
 
 <section data-view="ask" id="gov-test" class="view gov" aria-labelledby="ask-title" hidden>
@@ -141,6 +145,21 @@
 </section>
 </section>
 
+<section data-view="evolution" class="view" aria-labelledby="evo-title" hidden>
+<div class="page-head"><div><h1 id="evo-title">Evolution</h1><p class="sub">Bounded RCT cycles that grow grammar and activation research in this workspace's Gardener. Recorded research state; nothing is released automatically.</p></div>
+<div class="head-actions"><button type="button" class="btn-ghost" id="evo-refresh">Refresh</button></div></div>
+<div id="evo-summary" class="gov-stats evo-stats"></div>
+<div class="panel glass">
+<div class="sect"><div class="sect-aside"><h2>Champions</h2><p>The best program found so far for each purpose contract. Each one is a branch in the research tree with its evidence.</p></div>
+<div class="sect-body"><div id="evo-champions"><p class="hint">No champions yet.</p></div></div></div>
+<div class="sect"><div class="sect-aside"><h2>Cycles</h2><p>The 20 most recent cycles and the stage each reached. Completed cycles are immutable.</p></div>
+<div class="sect-body"><div id="evo-cycles"><p class="hint">No cycles recorded.</p></div></div></div>
+<div class="sect"><div class="sect-aside"><h2>Run a cycle</h2><p>Cycles run on the host that owns the model and the sources; a browser cannot start one. Use this workspace's Gardener file.</p></div>
+<div class="sect-body"><div class="code-wrap"><pre id="evo-command" class="gov-code"></pre><button type="button" class="btn-ghost small code-copy" data-copy="evo-command">Copy</button></div>
+<p class="hint">The configuration is a <span class="mono">qualityrag.evolution-config/v1</span> file: a byte-exact purpose contract and 3–64 sources split into TRAIN, DEV and fresh EVALUATION families.</p></div></div>
+</div>
+</section>
+
 <section data-view="review" class="view" aria-labelledby="review-title" hidden>
 <div class="page-head"><div><h1 id="review-title">Branches &amp; review</h1><p class="sub">Every research branch with its evidence state, and the suggestions waiting for a person.</p></div></div>
 <details id="new-branch" class="panel glass advanced-panel"><summary>Add a research branch</summary>
@@ -190,6 +209,19 @@
 <div id="observation-result" hidden><h2>Structurally checked observations</h2><p id="observation-summary"></p>
 <div class="table-wrap"><table class="observation-table"><caption>Source-anchored annotations; domain validity remains unknown</caption><thead><tr><th>ID</th><th>Kind</th><th>Annotation</th><th>Quoted source</th></tr></thead><tbody id="observation-nodes"></tbody></table></div>
 <details><summary>Inspect graph and transition</summary><pre id="observation-receipt"></pre></details></div></details>
+<details id="validate-panel" class="panel glass advanced-panel"><summary>Validate a contract document</summary>
+<p>Check a JSON document against one of the engine's published schemas. A valid document is structurally correct; its meaning is not admitted.</p>
+<form id="validate-form" class="workflow-form">
+<label for="validate-schema">Schema</label><select id="validate-schema"><option>packspec</option><option>grammar</option><option>observation-graph</option><option>operator-ast</option><option>payload</option><option>receipt</option><option>reviewed-activation</option><option>source</option><option>transform</option><option>verdict</option></select>
+<label for="validate-file">Document (JSON file)</label><input id="validate-file" type="file" accept=".json" required>
+<button type="submit">Validate document</button></form>
+<p id="validate-result" class="validate-result" role="status"></p></details>
+<details id="fallback-panel" class="panel glass advanced-panel"><summary>Download an original source</summary>
+<p>Every stored source is kept byte for byte. Fetch it by its SHA-256, for example from a branch's history.</p>
+<form id="fallback-form" class="workflow-form">
+<label for="fallback-hash">Source SHA-256</label><input id="fallback-hash" type="text" pattern="[0-9a-f]{64}" maxlength="64" autocomplete="off" required>
+<button type="submit">Download original bytes</button></form>
+<p id="fallback-result" class="hint" role="status"></p></details>
 </section>
 </section>
 <dialog id="preview"><form method="dialog"><h2>Review proposed change</h2><p id="preview-text"></p><pre id="preview-data"></pre><div class="actions"><button value="cancel" class="btn-ghost">Keep current state</button><button id="apply" value="apply">Apply reviewed change</button></div></form></dialog>

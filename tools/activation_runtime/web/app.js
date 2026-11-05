@@ -84,9 +84,9 @@ async function refresh(){
   }catch(error){if(epoch===sessionEpoch)message(error.message);}finally{byId('refresh').disabled=false;}
 }
 byId('connect').addEventListener('submit',event=>{
-  event.preventDefault();sessionEpoch++;state=null;pending=null;permissions=[];clearResults();gardenReset();if(typeof governanceReset==='function')governanceReset();
+  event.preventDefault();sessionEpoch++;state=null;pending=null;permissions=[];clearResults();gardenReset();if(typeof governanceReset==='function')governanceReset();if(typeof engineReset==='function')engineReset();
   if(byId('preview').open)byId('preview').close('cancel');
-  for(const id of ['propose','transform-form','observation-form'])byId(id).reset();
+  for(const id of ['propose','transform-form','observation-form','validate-form','fallback-form'])byId(id).reset();
   byId('search').value='';byId('workspace').hidden=true;byId('branches').replaceChildren();byId('proposals').replaceChildren();byId('history').textContent='';
   auth='Bearer '+byId('token').value.trim();byId('token').value='';refresh();
 });

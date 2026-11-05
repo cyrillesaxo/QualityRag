@@ -379,3 +379,85 @@ class GovernanceBrowserTests(unittest.TestCase):
                     self.assertEqual(errors,[])
                     browser.close()
             finally:http.shutdown();http.server_close()
+
+
+@unittest.skipUnless(os.environ.get("QUALITYRAG_BROWSER_TESTS")=="1" and importlib.util.find_spec("playwright"),
+                     "Real browser suite requires opt-in and installed Chromium")
+class EngineBrowserTests(unittest.TestCase):
+    def test_engine_panel_evolution_validate_and_fallback_use_live_routes(self):
+        import json,sqlite3
+        from hashlib import sha256
+        from playwright.sync_api import sync_playwright
+        with tempfile.TemporaryDirectory() as temp:
+            key=Ed25519PrivateKey.generate()
+            token=issue_access(subject="researcher",tenant="demo",scopes=["read","write","review"],
+                key=key,key_id="issuer",issued_at="2026-11-04T00:00:00Z",expires_at="2026-11-05T00:00:00Z")
+            encoded=base64.urlsafe_b64encode(canonical(token)).decode().rstrip("=")
+            app=Application(temp,access_keys={"issuer":key.public_key()},release_keys={},clock=lambda:"2026-11-04T12:00:00Z")
+            auth="Bearer "+encoded
+            raw=b"Original research bytes"
+            source=app.dispatch("source",{"base64":base64.b64encode(raw).decode()},auth)["source_sha256"]
+            self.assertEqual(source,sha256(raw).hexdigest())
+            for i,(b,s,p) in enumerate([("codec-root","Byte-exact codec research",[]),("evo-champion","Residual grammar beats the baseline on DEV",["codec-root"])]):
+                app.dispatch("gardener/event",{"event_id":f"e{i}","operation":"PROPOSE","branch":b,"source_sha256":source,
+                    "source_ref":"n","statement":s,"parents":p},auth)
+            # The evolution engine records its state in the same workspace Gardener database.
+            db=sqlite3.connect(Path(temp)/"gardens"/"demo"/"events.sqlite")
+            db.executescript("""CREATE TABLE evolution_budget(id INTEGER PRIMARY KEY,limit_units INTEGER,spent INTEGER);
+                CREATE TABLE evolution_cycles(id INTEGER PRIMARY KEY,contract_sha TEXT,stage TEXT,body TEXT);
+                CREATE TABLE evolution_champions(contract_sha TEXT PRIMARY KEY,branch TEXT,program TEXT);""")
+            db.execute("INSERT INTO evolution_budget VALUES(1,200,7)")
+            db.executemany("INSERT INTO evolution_cycles VALUES(?,?,?,?)",[(1,"c"*64,"DONE","{}"),(2,"c"*64,"PLANNED","{}")])
+            db.execute("INSERT INTO evolution_champions VALUES(?,?,?)",("c"*64,"evo-champion",json.dumps({"rules":[]})))
+            db.commit();db.close()
+            http=server(app);thread=Thread(target=http.serve_forever,daemon=True);thread.start()
+            try:
+                with sync_playwright() as runtime:
+                    executable=os.environ.get("QUALITYRAG_BROWSER_EXECUTABLE")
+                    browser=runtime.chromium.launch(headless=True,args=["--no-sandbox"],**({"executable_path":executable} if executable else {}))
+                    context=browser.new_context(viewport={"width":1280,"height":1000},accept_downloads=True)
+                    page=context.new_page()
+                    errors=[];page.on("pageerror",lambda error:errors.append(str(error)))
+                    page.goto("http://127.0.0.1:"+str(http.server_port))
+                    page.get_by_label("Access token").fill(encoded)
+                    page.get_by_role("button",name="Open workspace").click()
+                    # Home: one live row per piece of machinery.
+                    page.locator(".engine-row").filter(has_text="Evolution").filter(has_text="Recorded").wait_for()
+                    names=page.locator(".engine-name").all_inner_texts()
+                    self.assertEqual(names,["Evidence gate","Research tree","Research ledger","Review queue","Reviewer trust","Evolution","Reviewed activation","Your access"])
+                    page.locator(".engine-row").filter(has_text="Evidence gate").filter(has_text="Ready").wait_for()
+                    self.assertIn("2 branches",page.locator(".engine-row").filter(has_text="Research tree").inner_text())
+                    self.assertIn("7 of 200 work units used",page.locator(".engine-row").filter(has_text="Evolution").inner_text())
+                    self.assertIn("Not configured",page.locator(".engine-row").filter(has_text="Reviewed activation").inner_text())
+                    self.assertEqual(page.locator("#badge-evolution").inner_text(),"1")  # one cycle in progress
+                    # Evolution screen from gardener/evolution.
+                    view(page,"evolution")
+                    page.locator("#evo-cycles li").filter(has_text="Cycle 2").filter(has_text="planned").wait_for()
+                    self.assertIn("gardens/demo/events.sqlite",page.locator("#evo-command").inner_text())
+                    page.locator("#evo-champions a").filter(has_text="evo-champion").click()
+                    page.locator("#garden-inspector").filter(has_text="Residual grammar beats the baseline on DEV").wait_for()
+                    self.assertEqual(page.evaluate("location.hash"),"#/tree/evo-champion")
+                    # Advanced: schema validation and original bytes, through the API.
+                    view(page,"advanced")
+                    page.get_by_text("Validate a contract document",exact=True).click()
+                    page.get_by_label("Schema").select_option("source")
+                    page.get_by_label("Document (JSON file)").set_input_files({"name":"ok.json","mimeType":"application/json","buffer":b'{"title":"Q3 runbook"}'})
+                    page.get_by_role("button",name="Validate document").click()
+                    page.locator("#validate-result").filter(has_text="Valid source document").wait_for()
+                    page.get_by_label("Document (JSON file)").set_input_files({"name":"bad.json","mimeType":"application/json","buffer":b'{}'})
+                    page.get_by_role("button",name="Validate document").click()
+                    page.locator("#validate-result").filter(has_text="Not a valid source document").wait_for()
+                    page.get_by_text("Download an original source",exact=True).click()
+                    page.get_by_label("Source SHA-256",exact=True).fill(source)
+                    with page.expect_download() as download:page.get_by_role("button",name="Download original bytes").click()
+                    self.assertEqual(Path(download.value.path()).read_bytes(),raw)
+                    page.locator("#fallback-result").filter(has_text="SHA-256 verified in this browser").wait_for()
+                    page.get_by_label("Source SHA-256",exact=True).fill("0"*64)
+                    page.get_by_role("button",name="Download original bytes").click()
+                    page.locator("#fallback-result").filter(has_text="No source with that SHA-256").wait_for()
+                    page.set_viewport_size({"width":390,"height":844})
+                    view(page,"evolution")
+                    self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"),390)
+                    self.assertEqual(errors,[])
+                    browser.close()
+            finally:http.shutdown();http.server_close()

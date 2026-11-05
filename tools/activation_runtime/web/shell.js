@@ -40,6 +40,7 @@
     if(view==='connect'){snippet(shell.snippet||'curl');step('connect');}
     if(view==='health')step('health');
     if(typeof govEnter==='function'&&!$('workspace').hidden)govEnter(view);
+    if(typeof engineEnter==='function'&&!$('workspace').hidden)engineEnter(view,location.hash);
     return view;
   }
   window.addEventListener('hashchange',()=>{route();$('main').focus({preventScroll:true});});

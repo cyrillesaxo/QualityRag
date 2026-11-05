@@ -212,7 +212,7 @@ def handler(application):
             self.send_header("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'")
             self.end_headers();self.wfile.write(raw)
         def do_GET(self):
-            assets={"/":"index.html","/app.js":"app.js","/garden.js":"garden.js","/governance.js":"governance.js","/shell.js":"shell.js","/theme.js":"theme.js","/style.css":"style.css"}
+            assets={"/":"index.html","/app.js":"app.js","/garden.js":"garden.js","/governance.js":"governance.js","/shell.js":"shell.js","/engine.js":"engine.js","/theme.js":"theme.js","/style.css":"style.css"}
             if self.path not in assets:self.reply(404,b'{"error":"NOT_FOUND"}');return
             path=WEB/assets[self.path]
             mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8"}

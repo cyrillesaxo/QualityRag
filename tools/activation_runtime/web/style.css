@@ -365,3 +365,21 @@ details.gov-finding:not(.sev-ERROR):not(.sev-WARN):not(.sev-INFO){border:1px sol
 .signed-in .statusline:not(.show){opacity:0;visibility:hidden;transform:translateY(6px)}
 .signed-in .statusline{transition:opacity .25s,transform .25s,visibility .25s}
 @media (prefers-reduced-motion:reduce){.signed-in .statusline{transition:none}}
+
+/* Engine panel, Evolution, Advanced forms */
+.engine{list-style:none;margin:0;padding:0;display:grid}
+.engine-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:4px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.engine-row:first-child{border-top:0;padding-top:2px}
+.engine-dot{width:8px;height:8px;border-radius:999px;background:var(--muted)}
+.engine-dot.ok{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}.engine-dot.warn{background:var(--warn);box-shadow:0 0 0 3px var(--warn-soft)}.engine-dot.bad{background:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
+.engine-main{display:flex;flex-direction:column;min-width:0}.engine-name{font-size:13.5px;font-weight:550}.engine-detail{font-size:12.5px;color:var(--muted)}
+.engine-chip{font:11px/1 var(--mono);padding:4px 7px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted);white-space:nowrap}
+.engine-chip.ok{color:var(--ok);border-color:var(--accent-line)}.engine-chip.warn{color:var(--warn);border-color:var(--warn-line)}.engine-chip.bad{color:var(--bad);border-color:var(--bad-line)}
+.engine-open{font-size:12.5px}
+.evo-stats{margin-bottom:16px}
+.evo-cycles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px}
+.evo-cycles li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font-size:13px}
+.validate-result{margin:8px 0 0;font-size:13px;color:var(--muted)}.validate-result.ok{color:var(--ok)}.validate-result.bad{color:var(--bad)}
+@media(max-width:640px){.engine-row{grid-template-columns:auto minmax(0,1fr) auto}.engine-open{grid-column:2/-1}}
+.sect-body>*,.code-wrap{min-width:0}
+.code-wrap pre{max-width:100%}

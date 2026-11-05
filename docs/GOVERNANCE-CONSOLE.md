@@ -125,6 +125,34 @@ const advice = await qr.policyAdvise({ pack, test });
 
 The MCP server (`tools/activation_runtime/mcp_server.py`) exposes them as the read-only tools `policy_test`, `policy_advise`, `policy_replay` and `functional_siblings`, beside the Gardener tools. An agent can test a pack, read the findings and replay a stricter branch before it proposes the change in the Gardener.
 
+## Connected machinery
+
+Every console screen calls the same authenticated API as the SDKs, CLI and MCP server. Nothing in the console computes a result on its own.
+
+| Screen | Routes it calls | Engine behind it |
+|---|---|---|
+| Home · Engine panel | `status`, `gardener/state`, `gardener/proposals`, `policy/example`, `policy/advise`, `gardener/evolution` | One live row per component, with its state and a link |
+| Check an answer | `policy/example`, `policy/test` | v0.1 gate (`qualityrag.compiler.evaluate_compiled`) |
+| Health | `policy/advise` | Reviewer trust store, pack checks, qualifiers, calibration, Gardener challenges |
+| Policy changes | `policy/replay` | Gate replay over recorded cases |
+| Alternatives | `policy/siblings` | Gate feasibility per contract |
+| Research tree, Branches & review | `gardener/state`, `gardener/query`, `gardener/event`, `gardener/proposals`, `gardener/outcome`, `source` | Append-only Gardener and research ledger |
+| Evolution | `gardener/evolution` | Recorded RCT evolution cycles, champions and work budget in this workspace's Gardener database |
+| Advanced tools | `reviewed-run` (which runs `activate-plan`), `observations`, `validate`, `fallback` | Reviewed activation, semantic IR, schema catalog, original bytes |
+
+**Evolution** cycles run on the host that owns the model and the sources (`python -m tools.activation_runtime.evolution --garden <service-root>/gardens/<tenant>/events.sqlite …`). A browser cannot start one. The screen shows:
+
+- the recorded state, and the 20 most recent cycles with their stages;
+- each champion, linked to its branch in the research tree;
+- the work budget used;
+- the exact command to run for this workspace.
+
+It refreshes every 10 seconds while open. Branch links use `#/tree/<branch>`.
+
+**Downloads** of original sources are checked in the browser against the requested SHA-256 with Web Crypto.
+
+**`evaluate`** (signed activation without review) has no screen. The reviewed transformation in Advanced tools covers the signed path, and `evaluate` stays available to the SDKs and CLI.
+
 ## Limits
 
 - **Labeling.** The tester uses the status already recorded on each chunk. Re-labeling with the lexical or LLM labeler, and replaying a labeler threshold, happen in the SQuAD benchmark on PR #71, not in the console.

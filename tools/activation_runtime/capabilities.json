@@ -1879,19 +1879,19 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "885ebb8a9bb624451fb9576aba89deb5a8c89a43906daa9274fde9487866f1ae"
+          "sha256": "7a27990a5c3d532d56beab5924616ffdd3dfd4aac2d842aaa43223d709501b47"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "4f81ad3af50c514d8f8b28ff2a76b538a0e6bb2ed843a43a01f70a422b563e97"
+          "sha256": "0c3d25a9aed83a6dce127ad8bd26a0a0c51a764dc51743bb0af5de4f390b2aa0"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "e2f94f0f8ee51e3d99c9213b85d194b3c84ce5b237e6f7e30bf7a4e87e304f9b"
+          "sha256": "e854b2744d2812a0f3d1dd197d6f480cc9a7b6f9ff5c7b9a603a85bef09559a7"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "8760696325cac674e2b9656a82e67c02bb8465ac5b47b0ba6ecb3af8194c52eb"
+          "sha256": "522dd9f2a178d32b91863e8d95e9ee95e9b5433421137b5ebde9d3c51964ddde"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2283,19 +2283,19 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "885ebb8a9bb624451fb9576aba89deb5a8c89a43906daa9274fde9487866f1ae"
+          "sha256": "7a27990a5c3d532d56beab5924616ffdd3dfd4aac2d842aaa43223d709501b47"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "4f81ad3af50c514d8f8b28ff2a76b538a0e6bb2ed843a43a01f70a422b563e97"
+          "sha256": "0c3d25a9aed83a6dce127ad8bd26a0a0c51a764dc51743bb0af5de4f390b2aa0"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "e2f94f0f8ee51e3d99c9213b85d194b3c84ce5b237e6f7e30bf7a4e87e304f9b"
+          "sha256": "e854b2744d2812a0f3d1dd197d6f480cc9a7b6f9ff5c7b9a603a85bef09559a7"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "8760696325cac674e2b9656a82e67c02bb8465ac5b47b0ba6ecb3af8194c52eb"
+          "sha256": "522dd9f2a178d32b91863e8d95e9ee95e9b5433421137b5ebde9d3c51964ddde"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2395,7 +2395,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "544d8e1a0899badb2593547f607f87dd88d15ca01e387500793b753fdffa2878"
+          "sha256": "e428247707810d238b5bc975e8b68907e12894b1be6b0df54db7dd3c6e4d6c93"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
@@ -2435,19 +2435,19 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "885ebb8a9bb624451fb9576aba89deb5a8c89a43906daa9274fde9487866f1ae"
+          "sha256": "7a27990a5c3d532d56beab5924616ffdd3dfd4aac2d842aaa43223d709501b47"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "4f81ad3af50c514d8f8b28ff2a76b538a0e6bb2ed843a43a01f70a422b563e97"
+          "sha256": "0c3d25a9aed83a6dce127ad8bd26a0a0c51a764dc51743bb0af5de4f390b2aa0"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "e2f94f0f8ee51e3d99c9213b85d194b3c84ce5b237e6f7e30bf7a4e87e304f9b"
+          "sha256": "e854b2744d2812a0f3d1dd197d6f480cc9a7b6f9ff5c7b9a603a85bef09559a7"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "8760696325cac674e2b9656a82e67c02bb8465ac5b47b0ba6ecb3af8194c52eb"
+          "sha256": "522dd9f2a178d32b91863e8d95e9ee95e9b5433421137b5ebde9d3c51964ddde"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
