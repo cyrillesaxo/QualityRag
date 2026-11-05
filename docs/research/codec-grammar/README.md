@@ -70,3 +70,14 @@ The original video codec and the current repository's [Semantic Codex IR](../../
 Say: *“In internal synthetic-video experiments, an expanded codec grammar produced reported scoped wins; we are publishing the protocol and seeking reproducibility.”*
 
 Do **not** say: *“QualityRag beats AV1”*, *“PH02 was independently replicated”*, or *“the current Semantic Store implements the PH02 codec”* unless evidence for those specific claims is subsequently deposited and reviewed.
+
+## Recovered primary research documents (October 21, 2026)
+
+- [PH02 causal audit](PH02_Causal_Audit.md): original retrospective nine-case mechanism audit, with source/decoder reconstruction and byte-level replay **reported by its authors**; the archived binary payloads and audit runtime are **not included here**.
+- [Fresh correction test](Fresh_Constraint_Test.md): original 12-case frozen-policy report (six strict improvements and six ties); dense-only alternatives also improve the same six, so the causal interpretation is bounded.
+- [Reported tables](reported-tables.json): verbatim numerical values transcribed from those two research reports into typed JSON for review; not original packet outputs.
+- [Arithmetic checker](verify_reported_tables.py): run `python3 docs/research/codec-grammar/verify_reported_tables.py` to recompute counts and table consistency with Python standard library. This does **not** execute PH02, validate original hashes, or rerun native encoders.
+
+**Distinct studies:** the fresh twelve-case test here (6/12 strict improvements, 6 ties) is **not** the separately reported eight-clip 7/1 transfer comparison. Do not combine their denominators or treat 7/1 as PH02-only evidence without the original SC06/PH02 selection record.
+
+**Original audit package still required for packet replay:** `audit.py`, `protocol.json`, `audit_results.json`, `RCTV_Residual_Closure/`, `RCTV_PH02_Validation/`, archived source arrays and candidate payloads, and FFmpeg/native baseline configuration. The similarly named standalone `audit.py` in other research assets is not necessarily the PH02 script. Preserve the bundle exactly as originally archived; do not substitute a different codec audit.
