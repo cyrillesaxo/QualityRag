@@ -106,8 +106,10 @@
       {
         "n": 1,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_contract_rejects_tampered_compiler_ir"
+        ],
         "note": "preservation.py uses unified_gate._checked_ir."
       },
       {
@@ -298,8 +300,10 @@
       {
         "n": 3,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_incomplete_execution_returns_unknown_without_output"
+        ],
         "note": "interpreter.execute_plan returns UNKNOWN when no check is UNSAT and verification is incomplete."
       },
       {
@@ -358,8 +362,10 @@
       {
         "n": 2,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": []
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_fixed_inputs_choose_identical_search_candidate"
+        ]
       },
       {
         "n": 3,
@@ -440,8 +446,10 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_graph_sat_remains_scoped_to_declared_vocabulary"
+        ],
         "note": "Result carries scope DECLARED_FINITE_GRAPH_ONLY."
       }
     ],
@@ -537,8 +545,10 @@
       {
         "n": 3,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_blank_pdf_reports_unknown_structure"
+        ],
         "note": "PDF projection lists unsupported content and reports coverage UNKNOWN."
       },
       {
@@ -703,8 +713,10 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": []
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_replay_trace_is_identical_and_inputs_unchanged"
+        ]
       }
     ],
     "US-024": [
@@ -1183,8 +1195,10 @@
       {
         "n": 2,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale"
+        ],
         "note": "Proposals carry parent_grammar_sha256 and the task."
       },
       {
@@ -1222,8 +1236,10 @@
       {
         "n": 3,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_guardian_blocks_loss_and_never_certifies_preservation"
+        ],
         "note": "Guardian decision REQUIRES_INDEPENDENT_REVIEW blocks; it never produces verification evidence."
       },
       {
@@ -1263,8 +1279,10 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_unknown_is_missed_counterexample_but_not_false_accept"
+        ],
         "note": "adversaries.challenge reports false-accept and missed-counterexample rates."
       }
     ],

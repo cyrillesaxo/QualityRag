@@ -22,7 +22,7 @@ Criteria by kind and status:
 | EXTERNAL_INPUT | 0 | 0 | 18 | 3 | 0 |
 | HUMAN_REVIEW | 0 | 0 | 5 | 0 | 0 |
 | MERGE | 0 | 0 | 1 | 0 | 0 |
-| SOFTWARE | 0 | 23 | 0 | 0 | 138 |
+| SOFTWARE | 0 | 14 | 0 | 0 | 147 |
 
 ## Signing
 
@@ -316,7 +316,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 | Use existing `tools/packspec_compiler` and `unified_gate.py`; do not create a second self-certifying admission engine. | SOFTWARE | IMPLEMENTED | preservation.py uses unified_gate._checked_ir. |
+| 1 | Use existing `tools/packspec_compiler` and `unified_gate.py`; do not create a second self-certifying admission engine. | SOFTWARE | TESTED | `test_criterion_behaviors.test_contract_rejects_tampered_compiler_ir`; preservation.py uses unified_gate._checked_ir. |
 | 2 | Each mapped obligation references reviewed IR node IDs, source hash, omission permission and independent-review signature. | SOFTWARE | TESTED | `test_preservation.test_review_signature_binds_exact_source_policy_and_obligations`, `test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once` |
 | 3 | Deferred/unsupported semantics remain UNKNOWN. | SOFTWARE | TESTED | `test_omission_authority.test_unknown_missing_fields_remain_unknown_and_require_residual` |
 | 4 | Any mismatch REFUSEs use. | SOFTWARE | TESTED | `test_omission_authority.test_ir_content_cannot_change_while_retaining_claimed_hash`, `test_reviewed_workflow.test_source_artifact_and_policy_tampering_preserve_review_for_valid_request` |
@@ -357,7 +357,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 |---|---|---|---|---|
 | 1 | SAT only if every modeled obligation is satisfied. | SOFTWARE | TESTED | `test_preservation.test_exhaustive_counterexample_all_pairs` |
 | 2 | UNSAT includes minimal available counterexample and violated clause. | SOFTWARE | TESTED | `test_preservation.test_exhaustive_counterexample_all_pairs` |
-| 3 | Missing data or exhausted search returns UNKNOWN. | SOFTWARE | IMPLEMENTED | interpreter.execute_plan returns UNKNOWN when no check is UNSAT and verification is incomplete. |
+| 3 | Missing data or exhausted search returns UNKNOWN. | SOFTWARE | TESTED | `test_criterion_behaviors.test_incomplete_execution_returns_unknown_without_output`; interpreter.execute_plan returns UNKNOWN when no check is UNSAT and verification is incomplete. |
 | 4 | Finite SAT never emits QualityRag ADMIT or can_generate=true by itself. | SOFTWARE | TESTED | `test_runtime.test_signed_activation_uses_real_gate_and_remains_unadmitted` |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_preservation.py'`
@@ -382,7 +382,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
 | 1 | Explicit candidate count, depth, wall-clock/CPU and memory limits. | SOFTWARE | TESTED | `test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards`; Candidate-count and depth limits come from the reused typed grammar and are reported with CPU/memory/wall budgets. |
-| 2 | Deterministic selection for fixed search inputs. | SOFTWARE | IMPLEMENTED | — |
+| 2 | Deterministic selection for fixed search inputs. | SOFTWARE | TESTED | `test_criterion_behaviors.test_fixed_inputs_choose_identical_search_candidate` |
 | 3 | Inconclusive search reports budget and discarded candidates. | SOFTWARE | TESTED | `test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards` |
 | 4 | Baseline “stay in present regime” is always considered. | SOFTWARE | TESTED | `test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline` |
 
@@ -410,7 +410,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 1 | Compare relevant query results across source and transformed graph for all finite test pairs. | SOFTWARE | TESTED | `test_preservation.test_exhaustive_counterexample_all_pairs` |
 | 2 | Include negative witnesses and role/order reversals. | SOFTWARE | TESTED | `test_preservation.test_executable_dsl_and_role_inversion` |
 | 3 | Failure emits reproducible counterexample. | SOFTWARE | TESTED | `test_preservation.test_exhaustive_counterexample_all_pairs` |
-| 4 | Result is scoped to finite graph and never generalized as universal meaning conservation. | SOFTWARE | IMPLEMENTED | Result carries scope DECLARED_FINITE_GRAPH_ONLY. |
+| 4 | Result is scoped to finite graph and never generalized as universal meaning conservation. | SOFTWARE | TESTED | `test_criterion_behaviors.test_graph_sat_remains_scoped_to_declared_vocabulary`; Result carries scope DECLARED_FINITE_GRAPH_ONLY. |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_preservation.py'`
 - **Inventory blocking text:** Independent review of the declared finite query vocabulary and domain boundary.
@@ -448,7 +448,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 |---|---|---|---|---|
 | 1 | Two complete initial adapters (e.g., PDF and CSV), plus text fixture. | SOFTWARE | TESTED | `test_preservation.test_pdf_and_text_adapters_repeated_headings`, `test_runtime.test_csv_multiline_and_exact_strings` |
 | 2 | Text/tabular spans map back to original pages/rows. | SOFTWARE | TESTED | `test_preservation.test_pdf_and_text_adapters_repeated_headings`, `test_runtime.test_csv_multiline_and_exact_strings` |
-| 3 | Unsupported structure is marked UNKNOWN, not silently dropped. | SOFTWARE | IMPLEMENTED | PDF projection lists unsupported content and reports coverage UNKNOWN. |
+| 3 | Unsupported structure is marked UNKNOWN, not silently dropped. | SOFTWARE | TESTED | `test_criterion_behaviors.test_blank_pdf_reports_unknown_structure`; PDF projection lists unsupported content and reports coverage UNKNOWN. |
 | 4 | Unit/regression tests include duplicated headings and malformed input. | SOFTWARE | TESTED | `test_preservation.test_pdf_and_text_adapters_repeated_headings`, `test_runtime.test_bad_csv` |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_preservation.py'`
@@ -488,7 +488,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 1 | Typed interpreter implements bounded, sandboxed operators with no `eval`/dynamic imports. | SOFTWARE | IMPLEMENTED | No eval/exec/dynamic import in interpreter.py. |
 | 2 | Uses actual transformed output, not merely stated `preserves` lists. | SOFTWARE | TESTED | `test_preservation.test_actual_failed_candidate_uses_checked_fallback_once` |
 | 3 | VERIFY compares actual output to all anchored obligations; fallback must independently satisfy authorization, compatibility, preservation and resource limits. At most one fallback attempt; failure terminates in REFUSE without releasing output. | SOFTWARE | TESTED | `test_reviewed_workflow.test_signed_original_fallback_is_reverified_and_only_attempted_once`, `test_reviewed_workflow.test_negative_candidate_refuses_without_releasing_output` |
-| 4 | Replay emits deterministic execution trace. | SOFTWARE | IMPLEMENTED | — |
+| 4 | Replay emits deterministic execution trace. | SOFTWARE | TESTED | `test_criterion_behaviors.test_replay_trace_is_identical_and_inputs_unchanged` |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_preservation.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_reviewed_workflow.py'`
 - **Inventory blocking text:** Merged review; the interpreter is finite and deliberately cannot certify domain truth.
@@ -617,7 +617,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
 | 1 | Candidate agents run with scoped CPU/token/time and tool permissions. | SOFTWARE | TESTED | `test_agents.test_input_budgets_and_unknown_operators` |
-| 2 | Every proposal includes parent grammar hash, patches and rationale. | SOFTWARE | IMPLEMENTED | Proposals carry parent_grammar_sha256 and the task. |
+| 2 | Every proposal includes parent grammar hash, patches and rationale. | SOFTWARE | TESTED | `test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale`; Proposals carry parent_grammar_sha256 and the task. |
 | 3 | Restricted execution sandbox prevents arbitrary host changes. | SOFTWARE | TESTED | `test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork` |
 | 4 | Evaluation always runs on pinned code/datasets. | SOFTWARE | IMPLEMENTED | — |
 
@@ -631,7 +631,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 |---|---|---|---|---|
 | 1 | Each has a distinct versioned contract/schema. | SOFTWARE | TESTED | `test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote` |
 | 2 | Roles produce inspectable artifacts, not opaque prose. | SOFTWARE | TESTED | `test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote` |
-| 3 | Guardian can block but cannot invent verification evidence. | SOFTWARE | IMPLEMENTED | Guardian decision REQUIRES_INDEPENDENT_REVIEW blocks; it never produces verification evidence. |
+| 3 | Guardian can block but cannot invent verification evidence. | SOFTWARE | TESTED | `test_criterion_behaviors.test_guardian_blocks_loss_and_never_certifies_preservation`; Guardian decision REQUIRES_INDEPENDENT_REVIEW blocks; it never produces verification evidence. |
 | 4 | Integration tests show disagreement and escalation, not forced consensus. | SOFTWARE | TESTED | `test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote` |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_agents.py'`
@@ -645,7 +645,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 1 | Family-disjoint holdouts are hidden from proposing agents. | SOFTWARE | TESTED | `test_experiments.test_preregistration_precedes_holdout_and_proposers_denied` |
 | 2 | Test actor/recipient reversal, negation, time, units, captions, residual tamper and incompatible model. | SOFTWARE | TESTED | `test_adversaries.test_all_distinctions_and_optimistic_evaluator_block` |
 | 3 | Any critical regression blocks promotion. | SOFTWARE | TESTED | `test_adversaries.test_all_distinctions_and_optimistic_evaluator_block` |
-| 4 | False-accept rate and missed-counterexample rate tracked. | SOFTWARE | IMPLEMENTED | adversaries.challenge reports false-accept and missed-counterexample rates. |
+| 4 | False-accept rate and missed-counterexample rate tracked. | SOFTWARE | TESTED | `test_criterion_behaviors.test_unknown_is_missed_counterexample_but_not_false_accept`; adversaries.challenge reports false-accept and missed-counterexample rates. |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_holdout_authority.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_experiments.py'`
 - **Inventory blocking text:** Independently adjudicated family-hidden real cases; authored finite false-accept counts do not generalize.
