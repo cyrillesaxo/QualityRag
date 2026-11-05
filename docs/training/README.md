@@ -49,13 +49,12 @@ The videos are built from code, so anyone can rebuild them from this folder.
   4. It encodes one file per scene, joins them, and mixes in the audio.
   5. It writes `.vtt`, `.srt` and a version with burnt-in captions.
 
-To rebuild an episode, you need Python 3.11+, Playwright with Chromium, ffmpeg with libass, and [Piper](https://github.com/rhasspy/piper):
+To rebuild an episode, you need Python 3.11+, Playwright with Chromium, ffmpeg with libass, and the [Kokoro](https://github.com/thewh1teagle/kokoro-onnx) voice model:
 
 ```sh
-pip install piper-tts playwright
-mkdir -p voice && curl -L -o voice/v.tar.gz \
-  https://github.com/rhasspy/piper/releases/download/v0.0.2/voice-en-us-libritts-high.tar.gz \
-  && tar -xzf voice/v.tar.gz -C voice
+pip install kokoro-onnx playwright
+mkdir -p voice && for f in kokoro-v1.0.onnx voices-v1.0.bin; do
+  curl -L -o voice/$f https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/$f; done
 python docs/training/render/render.py docs/training/episode-01-getting-started --voice-dir voice --out out/ep1
 # preview individual frames before a full render:
 python docs/training/render/render.py docs/training/episode-01-getting-started --voice-dir voice --out out/ep1 --stills gate:16
@@ -65,6 +64,6 @@ To add an episode, copy the episode 1 folder, rewrite `script.json`, and add any
 
 ## Credits
 
-- **Narration voice:** Piper `en-us-libritts-high`, speaker 6. It was trained on [LibriTTS](https://www.openslr.org/60/) (CC BY 4.0), which is derived from public-domain LibriVox recordings. Synthesised with [Piper](https://github.com/rhasspy/piper) (MIT).
+- **Narration voice:** [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0), voice `af_bella`. Run locally with [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx) (MIT). To change the narrator, set `voice` in `script.json`.
 - **Typeface:** [Inter](https://rsms.me/inter/) (SIL Open Font License).
 - **Sample data, console and engine:** this repository.

@@ -28,7 +28,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 FPS = 30
 W, H = 1920, 1080
-SR = 22050
+SR = 24000  # Kokoro's native rate
 X264 = ["-c:v", "libx264", "-crf", "18", "-preset", "veryfast", "-pix_fmt", "yuv420p", "-r", str(FPS), "-video_track_timescale", "15360"]
 
 
@@ -37,14 +37,21 @@ def run(cmd, **kw):
 
 
 # ---------- narration ----------
-def tts(text, voice, cache, model):
+_KOKORO = {}
+
+
+def tts(text, voice, cache, voice_dir):
+    """One sentence with Kokoro-82M (Apache-2.0), cached by text and voice settings."""
     key = hashlib.sha256(json.dumps([text, voice], sort_keys=True).encode()).hexdigest()[:20]
     out = cache / f"{key}.wav"
     if not out.exists():
+        if "k" not in _KOKORO:
+            from kokoro_onnx import Kokoro
+            _KOKORO["k"] = Kokoro(str(Path(voice_dir) / "kokoro-v1.0.onnx"), str(Path(voice_dir) / "voices-v1.0.bin"))
+        audio, sr = _KOKORO["k"].create(text, voice=voice["voice"], speed=voice["speed"], lang=voice["lang"])
+        assert sr == SR
         tmp = out.with_suffix(".part.wav")
-        run([sys.executable, "-m", "piper", "-m", str(model), "-s", str(voice["speaker"]),
-             "--length-scale", str(voice["length_scale"]), "-f", str(tmp)], input=text.encode(), capture_output=True)
-        tmp.rename(out)
+        write_wav(tmp, audio); tmp.rename(out)
     with wave.open(str(out)) as w:
         assert w.getframerate() == SR and w.getnchannels() == 1
         return np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768
@@ -53,12 +60,11 @@ def tts(text, voice, cache, model):
 def timeline(script, voice_dir, cache):
     """Per scene: sentence audio, marks (sentence starts), exact frame-aligned duration."""
     voice = script["voice"]
-    model = Path(voice_dir) / "libritts-high" / "en-us-libritts-high.onnx"
     gap = voice["sentence_gap"]
     out = []
     for scene in script["scenes"]:
         lines = scene["say"] if scene["kind"] == "animation" else [s["say"] for s in scene["steps"]]
-        clips = [tts(line, voice, cache, model) for line in lines]
+        clips = [tts(line, voice, cache, voice_dir) for line in lines]
         t, marks, cues = scene["pad"][0], [], []
         for line, clip in zip(lines, clips):
             marks.append(t)

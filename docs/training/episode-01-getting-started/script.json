@@ -2,7 +2,7 @@
   "schema": "qualityrag.training-episode/v1",
   "id": "episode-01-getting-started",
   "title": "QualityRag 101 · Episode 1 · Getting started",
-  "voice": {"model": "en-us-libritts-high", "speaker": 6, "length_scale": 1.12, "sentence_gap": 0.35},
+  "voice": {"engine": "kokoro-v1.0", "voice": "af_bella", "lang": "en-us", "speed": 0.95, "sentence_gap": 0.4},
   "scenes": [
     {"id": "title", "kind": "animation", "pad": [0.6, 1.0], "say": [
       "Welcome to QualityRag 101.",
