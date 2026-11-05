@@ -18,6 +18,8 @@ US-001's evidence is renewed for the changed auditor. No domain/scientific
 acceptance or another story's review/merge prerequisite is inferred. Earlier
 section counts describe their historical delivery points.
 
+What each open story still needs, who can sign it, and how: [Story closure packets](docs/STORY-CLOSURE-PACKETS.md).
+
 ## 0. The product and the falsifiable thesis
 
 Create a **constraint-directed semantic representation system** in which a source is interpreted under a *purpose-specific PackSpec*, RCT evaluates candidate representation regimes, a versioned Semantic Codex grammar compiles reusable structure, and a local activation engine reconstructs only what the task requires. A Semantic Gardener and experimental agent population may propose grammar improvements; **no agent can self-certify semantic correctness or promote a decoder to production**.

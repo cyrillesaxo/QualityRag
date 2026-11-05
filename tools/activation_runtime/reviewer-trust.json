@@ -1,0 +1,5 @@
+{
+  "schema": "qualityrag.reviewer-trust/v1",
+  "note": "Public keys of independent reviewers allowed to sign story-completion receipts. Adding a key is itself a reviewed change; a reviewer must not sign stories they authored. Remove a key to revoke it.",
+  "reviewers": []
+}
