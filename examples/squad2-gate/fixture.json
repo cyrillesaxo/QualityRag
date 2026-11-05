@@ -1,0 +1,25 @@
+{
+  "version": "v2.0-fixture",
+  "note": "Hand-written SQuAD-2.0-format fixture for CI. Not SQuAD data.",
+  "data": [
+    {
+      "title": "Harbor_Bridge",
+      "paragraphs": [
+        {
+          "context": "The Harbor Bridge opened in 1932. It was designed by the engineer Lena Varga and carries eight traffic lanes.",
+          "qas": [
+            {"id": "q1", "question": "Who designed the Harbor Bridge?", "answers": [{"text": "Lena Varga", "answer_start": 58}], "is_impossible": false},
+            {"id": "q2", "question": "Who demolished the Harbor Bridge?", "answers": [], "is_impossible": true}
+          ]
+        },
+        {
+          "context": "Tolls on the Harbor Bridge were abolished in 1988 after a public campaign. Cyclists use a separate deck.",
+          "qas": [
+            {"id": "q3", "question": "When were tolls on the Harbor Bridge abolished?", "answers": [{"text": "1988", "answer_start": 45}], "is_impossible": false},
+            {"id": "q4", "question": "When were tolls on the Harbor Bridge first introduced?", "answers": [], "is_impossible": true}
+          ]
+        }
+      ]
+    }
+  ]
+}
