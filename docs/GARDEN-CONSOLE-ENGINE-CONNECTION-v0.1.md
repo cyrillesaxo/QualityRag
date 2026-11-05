@@ -9,20 +9,20 @@ directory workbench (5056). It does not replace either existing service.
 
 Connection uses the operator-supplied **Garden bearer token** (not the registry
 or semantic-workbench token). The browser connects through the existing Vite
-development server's same-origin \`/garden\` proxy. The backend checks the
+development server's same-origin `/garden` proxy. The backend checks the
 bearer token, allows only localhost Vite origins, and binds only to loopback.
 
-- \`GET /garden/status\`: authenticated engine identity and live ledger-integrity
+- `GET /garden/status`: authenticated engine identity and live ledger-integrity
   check; disconnected/unhealthy states do **not** show as connected.
-- \`GET /garden/projection\`: real branch/event/lineage view from the existing
+- `GET /garden/projection`: real branch/event/lineage view from the existing
   append-only QualityRag ledger, not fabricated fixture cards.
-- \`POST /garden/investigate\`: invokes \`run_controller\` on supplied,
+- `POST /garden/investigate`: invokes `run_controller` on supplied,
   bounded typed-graph training/evaluation inputs. It genuinely evaluates
   six grammar/activation combinations when examples uniquely identify
-  an operator. Ambiguous investigations remain \`NEEDS_ORACLE\`.
-- When \`QUALITYRAG_GARDEN_RECEIPT_DIR\` is configured, a successful bounded
+  an operator. Ambiguous investigations remain `NEEDS_ORACLE`.
+- When `QUALITYRAG_GARDEN_RECEIPT_DIR` is configured, a successful bounded
   experiment writes a server-generated JSON receipt and adds an
-  \`INCONCLUSIVE\` experiment claim to the existing research ledger.
+  `INCONCLUSIVE` experiment claim to the existing research ledger.
   Receipt paths and ledger metadata are server-generated, never submitted
   by the browser.
 
@@ -33,7 +33,7 @@ fake API, inherit registry authorizations, or offer production admission.
 
 From the repository root:
 
-\`\`\`bash
+```bash
 mkdir -p .research/receipts
 python tools/research_ledger/cli.py --db .research/progress.sqlite init
 
@@ -43,55 +43,55 @@ export QUALITYRAG_RESEARCH_DB='.research/progress.sqlite'
 export QUALITYRAG_GARDEN_RECEIPT_DIR='.research/receipts'
 
 python tools/semantic_store/rct_garden_http.py
-\`\`\`
+```
 
 In a separate terminal:
 
-\`\`\`bash
+```bash
 cd apps/studio
 npm install
 npm run dev
-\`\`\`
+```
 
 Visit the local Vite URL, locate **6. Semantic Garden · Engine console**, enter
 the **separate Garden token**, and click **Connect / refresh engine**.
 
 The console must show a confirmed engine schema and valid ledger state before
 it enables experiments. To investigate, paste JSON with precisely these
-properties: \`training\`, \`examples\`, \`source\`, \`revised_source\`,
-\`workload\`, \`trials\`, \`max_probes\`. Training/held-out source objects use
-\`rct.structured-ast/v1\`; trials are 2–3; max probes 0–3.
+properties: `training`, `examples`, `source`, `revised_source`,
+`workload`, `trials`, `max_probes`. Training/held-out source objects use
+`rct.structured-ast/v1`; trials are 2–3; max probes 0–3.
 This route cannot fetch authenticated external witnesses on its own.
 
 ## API smoke check
 
-\`\`\`bash
+```bash
 curl -fsS -H "Authorization: Bearer $QUALITYRAG_GARDEN_TOKEN" \
   http://127.0.0.1:5057/garden/status
 
 curl -fsS -H "Authorization: Bearer $QUALITYRAG_GARDEN_TOKEN" \
   http://127.0.0.1:5057/garden/projection
-\`\`\`
+```
 
-Expected \`status.schema\`: \`rct.garden-engine-status/v0.1\`.
-Expected \`connected: true\` and \`ledger_integrity: CONSISTENT\`.
+Expected `status.schema`: `rct.garden-engine-status/v0.1`.
+Expected `connected: true` and `ledger_integrity: CONSISTENT`.
 
-A successful experiment returns \`EVALUATED_UNVERIFIED\`,
-\`ledger_persisted: true\`, a \`ledger_claim_id\`, and
-\`qualityrag_admission: INCONCLUSIVE\`. If a receipt directory is not configured,
-the controller may evaluate but reports \`ledger_persisted: false\`; it never
+A successful experiment returns `EVALUATED_UNVERIFIED`,
+`ledger_persisted: true`, a `ledger_claim_id`, and
+`qualityrag_admission: INCONCLUSIVE`. If a receipt directory is not configured,
+the controller may evaluate but reports `ledger_persisted: false`; it never
 pretends that an unpersisted run is recorded.
 
 ## Automated regression checks
 
-\`\`\`bash
+```bash
 python -m unittest discover -s tools/semantic_store/tests \
   -p 'test_rct_garden_http.py' -v
 python -m unittest discover -s tools/semantic_store/tests \
   -p 'test_rct_garden_projection.py' -v
 
 cd apps/studio && npm run build
-\`\`\`
+```
 
 Tests exercise a **real HTTP server in-process**, bearer rejection, origin
 restriction, actual bounded engine execution, content-addressed local
@@ -106,8 +106,8 @@ deployment or browser acceptance test** in this work.
   production-grade server hardening is implemented.
 - Source references and external oracle labels are not authenticated. The
   Garden engine has no remote evidence oracle: ambiguous proposals cannot
-  move past \`NEEDS_ORACLE\`.
-- Receipts are local \`file://\` artifacts and serve as reproducible run
+  move past `NEEDS_ORACLE`.
+- Receipts are local `file://` artifacts and serve as reproducible run
   records; they do **not** prove real-world source truth or independent
   scientific validation.
 - The existing ledger API commits individual records separately; cross-row
@@ -120,4 +120,25 @@ deployment or browser acceptance test** in this work.
 - This work does not replace canonical APX RCOC, HCR/FFI, WBC, TERM or D15
   engines, and does not claim native FF-RCT compression or new model ability.
 - No model-generated claim can auto-promote a policy; admission remains
-  \`INCONCLUSIVE\` under QualityRag governance.
+  `INCONCLUSIVE` under QualityRag governance.
+
+
+## One-click engine execution acceptance
+
+After connecting, select **Run engine self-test**. A passing response must
+contain `rct.garden-engine-self-test/v0.1`, `status: PASS`,
+`paired_candidates: 6`, `synthetic_test_only: true`, and
+`qualityrag_admission: INCONCLUSIVE`. The console calls the actual
+Python research controller through the same Vite proxy and bearer-token
+boundary as real investigations. A failure disconnects the console.
+
+```bash
+curl -fsS -H "Authorization: Bearer $QUALITYRAG_GARDEN_TOKEN" \
+  -H "Content-Type: application/json" -d '{}' \
+  http://127.0.0.1:5057/garden/self-test
+```
+
+The self-test runs an actual bounded synthetic experiment but intentionally
+does **not** write a scientific research claim into the ledger. It proves
+a narrow localhost execution path, not production deployment, browser
+acceptance, source authenticity, or agent capability expansion.
