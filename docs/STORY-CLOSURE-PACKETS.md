@@ -309,7 +309,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_witness_graph.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_native_apx.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_native_witness.py'`
 - **Inventory blocking text:** Canonical grouping and custody-root adapter implemented; commit-bound CI verification pending. Source authenticity and real-world independence are not established.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
-- **Notes:** Witness derivation graph with root collapse added in this branch; canonical APX WitnessGraph golden fixtures are still not available here.
+- **Notes:** Original APX WitnessGraph source and a pinned golden fixture are now integrated. The custody-root adapter refuses canonical grouping discrepancies; declared independence is not authenticated source independence. See docs/CANONICAL-WITNESS-GRAPH.md.
 
 ### US-008 · Omission and residual audit (IN_REVIEW)
 

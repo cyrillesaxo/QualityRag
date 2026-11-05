@@ -1,71 +1,90 @@
-# Software story verification
+# Software and documentation verification
 
-**All 32 software candidates pass the written software criteria within their stated research-reference scope.** With US-001 and US-002 previously accepted, **34 stories have accepted or verified software evidence; 17 retain specific input, document or human-review requirements.**
+**37 stories have accepted or verified software/documentation evidence: two previously accepted, 33 software-verification passes and two documentation-verification passes. Fourteen stories retain additional work or evidence requirements.**
 
-This is source review and executable software evidence, not independent scientific/domain validation, a merge or production authorization. Formal ledger statuses are unchanged and must not be presented as 49 unimplemented stories.
+This is source review and executable software/documentation evidence, not independent scientific/domain validation, a merge or production authorization. Formal ledger statuses remain separate: 2 DONE, 36 IN_REVIEW, 13 BLOCKED. They must not be presented as 49 unimplemented stories.
 
 | State | Stories |
 |---|---:|
 | Previously formally accepted | 2 |
-| Software verification passed | 32 |
-| Software candidates with unmet criteria | 0 |
-| External input or merge required | 11 |
-| Explicit human review required | 4 |
-| Document checks remaining | 2 |
+| Software verification passed | 33 |
+| Documentation verification passed | 2 |
+| Remaining requirements | 14 |
 | Total | 51 |
 
 ## Evidence
 
-Tested immutable commit: [`3484f2575deda90b9d9a591b480332cee67456d9`](https://github.com/cyrillesaxo/QualityRag/commit/3484f2575deda90b9d9a591b480332cee67456d9). **All 23 CI runs passed.** [Activation push run, attempt 2](https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159671) passed **411 tests without skips**: 322 runtime (including Chromium/PostgreSQL), 24 TypeScript, 10 finite activation, 40 compiler and 15 ledger. The first push attempt timed out downloading Ubuntu media packages before testing; the identical commit passed on retry. The pull-request activation run also passed.
+Tested immutable commit: [`4fde137d8e19bd2e25944b437a4e559bc3db264c`](https://github.com/cyrillesaxo/QualityRag/commit/4fde137d8e19bd2e25944b437a4e559bc3db264c). All 23 CI runs passed. [Activation push run 42035039771](https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039771) passed **419 tests without skips**: 330 runtime (including Chromium/PostgreSQL), 24 TypeScript, 10 finite activation, 40 compiler and 15 ledger.
 
-The [machine-readable report](SOFTWARE-VERIFICATION.json) contains all 128 criteria, exact test references, source module hashes, tested commit, inventory/map hashes and all 23 CI run identities.
+[Machine-readable report](SOFTWARE-VERIFICATION.json) records all 140 verified criteria, test references, source hashes, source commit and CI runs, plus the explicit unverified criteria of each remaining story.
 
-## Gaps closed since the prior verification
+## New verification
 
-The prior verification at `d78d9fb0f5e9c30077928cdddff08cd00fa4a1e7` passed 30 candidates and left US-033/US-038 incomplete. Six new checks now exercise their missing software behavior:
+- **US-004:** checked the six prior-art/comparator rows, dated/versioned references, no-priority boundary and negative-result register. This is a document check, not a positive independent novelty finding.
+- **US-007:** integrated unmodified original APX WitnessGraph at the already pinned APX commit. Its Git blob matches upstream exactly. Actual canonical grouping is compared with declared custody-root components; missing/changed source or discrepancies refuse assessment and gate projection. [Scope and source identity](CANONICAL-WITNESS-GRAPH.md).
+- **US-050:** added versioned proposal descriptions; made measured byte/frame claims depend on the input receipt; bound the traceability matrix to its SHA-256; regenerated Markdown, figures and PDF. Three regression checks prove byte-identical reproduction and that changed measurements cannot retain false fixed conclusions. The rendered four-page paper was inspected. Independent peer review is not claimed.
 
-- **US-033:** actual signed-segment and AV1 decoders feed the same bounded frame queue at the same cadence. Startup, queue-empty wait time, rebuffer events and seeks are measured. A deliberately late producer proves real stalls are recorded. Frame hashes qualify the video comparison. This is local bounded playback; WAN/physical-device performance remains unmeasured.
-- **US-038:** all six roles return explicit patches, rationale and parent grammar hash. Workers recompute evaluator-code, schema, runtime and exact task-dataset pins before sandbox execution. Changed task input or any stale code pin is rejected; the parent verifies the returned binding. This is deterministic task evaluation, not external-corpus or semantic-truth validation.
+The earlier US-033/US-038 gap closures remain covered: [playback measurements and agent evaluation pins](SOFTWARE-GAP-CLOSURE.md).
 
-Implementation, API usage and boundaries: [Software gap closure](SOFTWARE-GAP-CLOSURE.md).
+## Verified stories
 
-## Passed software verification
+| Story | Feature | Verification |
+|---|---|---|
+| US-003 | Independently replayable research harness | software |
+| US-004 | Risk, prior art and novelty register | documentation |
+| US-005 | Purpose-scoped information obligations | software |
+| US-006 | ConstraintIR-to-activation binding | software |
+| US-007 | WitnessGraph and evidence independence | software |
+| US-008 | Omission and residual audit | software |
+| US-010 | RCT typed grammar integration | software |
+| US-011 | SAT/UNSAT/UNKNOWN semantics | software |
+| US-012 | Purpose-preserving regime transition | software |
+| US-013 | RCT candidate search with early stopping | software |
+| US-014 | Constraint compilation and reusable decisions | software |
+| US-015 | Finite equivalence proof and counterexamples | software |
+| US-016 | Typed semantic intermediate representation | software |
+| US-017 | Exact information and reversible source custody | software |
+| US-018 | Source adapters (text, PDF, HTML, CSV/SQL) | software |
+| US-019 | Review-gated relation and role extraction | software |
+| US-020 | Reusable grammar registry and dependency DAG | software |
+| US-023 | Executable finite ACTIVATE/VERIFY/FALLBACK | software |
+| US-024 | Model and grammar compatibility manifest | software |
+| US-026 | Deterministic finite reconstruction | software |
+| US-030 | Shared grammar video encoder prototype | software |
+| US-032 | Model amortization and catalog economics | software |
+| US-033 | Streaming segment delivery and seek | software |
+| US-034 | Append-only conversation tree | software |
+| US-035 | Dialectical operations and reversible pruning | software |
+| US-036 | Evidence-state separation and Research Ledger link | software |
+| US-037 | Gardener proposal loop and review UI | software |
+| US-038 | Isolated agent experiment harness | software |
+| US-039 | Dedicated agent roles | software |
+| US-040 | Adversarial evolution and held-out gates | software |
+| US-042 | Pareto promotion and resource scheduler | software |
+| US-043 | Tenant isolation and source authority | software |
+| US-044 | Signed artifact and anti-replay pipeline | software |
+| US-045 | SDK and CLI parity | software |
+| US-050 | Peer-review package and reproducible figures | documentation |
 
-| Story | Feature |
-|---|---|
-| US-003 | Independently replayable research harness |
-| US-005 | Purpose-scoped information obligations |
-| US-006 | ConstraintIR-to-activation binding |
-| US-008 | Omission and residual audit |
-| US-010 | RCT typed grammar integration |
-| US-011 | SAT/UNSAT/UNKNOWN semantics |
-| US-012 | Purpose-preserving regime transition |
-| US-013 | RCT candidate search with early stopping |
-| US-014 | Constraint compilation and reusable decisions |
-| US-015 | Finite equivalence proof and counterexamples |
-| US-016 | Typed semantic intermediate representation |
-| US-017 | Exact information and reversible source custody |
-| US-018 | Source adapters (text, PDF, HTML, CSV/SQL) |
-| US-019 | Review-gated relation and role extraction |
-| US-020 | Reusable grammar registry and dependency DAG |
-| US-023 | Executable finite ACTIVATE/VERIFY/FALLBACK |
-| US-024 | Model and grammar compatibility manifest |
-| US-026 | Deterministic finite reconstruction |
-| US-030 | Shared grammar video encoder prototype |
-| US-032 | Model amortization and catalog economics |
-| US-033 | Streaming segment delivery and seek |
-| US-034 | Append-only conversation tree |
-| US-035 | Dialectical operations and reversible pruning |
-| US-036 | Evidence-state separation and Research Ledger link |
-| US-037 | Gardener proposal loop and review UI |
-| US-038 | Isolated agent experiment harness |
-| US-039 | Dedicated agent roles |
-| US-040 | Adversarial evolution and held-out gates |
-| US-042 | Pareto promotion and resource scheduler |
-| US-043 | Tenant isolation and source authority |
-| US-044 | Signed artifact and anti-replay pipeline |
-| US-045 | SDK and CLI parity |
+## Remaining stories
 
-## Remaining requirements
+These stories have an external/merge or human-review requirement, and some also retain software criteria that are only IMPLEMENTED rather than independently exercised. Their category does not imply that all remaining work is outside the repository. No unverified criterion is silently accepted.
 
-The other 17 stories are 11 external-input/merge stories, four with explicit human-review criteria, and two documentation-check stories. The 32 software results support criterion-scoped software acceptance; they do not fabricate an independent signature or waive another story's explicit requirements. Formal ledger closure remains a separate recorded operation.
+| Story | Feature | Unverified criteria |
+|---|---|---|
+| US-009 | Domain preservation profiles | 3 (human_review, needs_input) |
+| US-021 | FF-RCT native-regime integration | 1 (external_input, needs_input), 2 (external_input, needs_input), 3 (software, implemented), 4 (external_input, needs_input) |
+| US-022 | Activation grammar v0.1 baseline | 1 (merge, needs_input) |
+| US-025 | Sparse activation and resource controls | 2 (external_input, needs_input) |
+| US-027 | Device module updates and rollback | 4 (external_input, partial) |
+| US-028 | Real audiovisual dataset and licensing | 1 (external_input, needs_input), 2 (external_input, needs_input), 3 (external_input, needs_input), 4 (external_input, needs_input) |
+| US-029 | AV1 and learned-codec baselines | 1 (external_input, partial), 2 (external_input, needs_input), 3 (external_input, needs_input), 4 (external_input, needs_input) |
+| US-031 | Frame/semantic/exact fidelity evaluation | 1 (human_review, needs_input), 2 (human_review, needs_input), 4 (software, implemented) |
+| US-041 | Co-evolving encoder/decoder candidates | 1 (software, implemented), 2 (software, implemented), 4 (external_input, needs_input) |
+| US-046 | Offline mobile/TV feasibility pilot | 1 (external_input, needs_input), 2 (external_input, needs_input), 4 (human_review, needs_input) |
+| US-047 | Independent acceptance ledger | 1 (external_input, partial) |
+| US-048 | Pre-registered controlled experiments | 1 (software, implemented), 2 (external_input, needs_input) |
+| US-049 | Four worked real-world demonstrations | 4 (external_input, needs_input) |
+| US-051 | Release readiness and pilot stop conditions | 1 (human_review, needs_input), 3 (external_input, needs_input) |
+
+The evidence supports criterion-scoped software/documentation acceptance. Formal ledger closure is a separate recorded operation; no independent signature, licensing permission or physical measurement has been fabricated.

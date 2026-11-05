@@ -1,219 +1,219 @@
 {
   "schema": "qualityrag.software-verification-report/v1",
-  "scope": "SOFTWARE_ACCEPTANCE_EVIDENCE_ONLY",
-  "tested_commit": "3484f2575deda90b9d9a591b480332cee67456d9",
+  "scope": "SOFTWARE_AND_DOCUMENT_ACCEPTANCE_EVIDENCE_ONLY",
+  "tested_commit": "4fde137d8e19bd2e25944b437a4e559bc3db264c",
   "ci": {
-    "commit": "3484f2575deda90b9d9a591b480332cee67456d9",
-    "activation_run_id": 42030159671,
-    "attempt": 2,
-    "job_id": 127256549730,
+    "commit": "4fde137d8e19bd2e25944b437a4e559bc3db264c",
+    "activation_run_id": 42035039771,
+    "job_id": 127270857723,
     "runs": [
       {
-        "id": 42030167354,
+        "id": 42035048264,
+        "name": "Additional SDKs",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048264"
+      },
+      {
+        "id": 42035048341,
+        "name": "Source PackSpec compiler",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048341"
+      },
+      {
+        "id": 42035048224,
+        "name": "Spring Boot integration",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048224"
+      },
+      {
+        "id": 42035048349,
+        "name": "Kotlin PHP Ruby Swift",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048349"
+      },
+      {
+        "id": 42035048389,
+        "name": "Studio and Registry",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048389"
+      },
+      {
+        "id": 42035048325,
         "name": "APX PackSpec-derived examples",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167354"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048325"
       },
       {
-        "id": 42030167604,
+        "id": 42035048209,
         "name": "Enterprise RAG training example",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167604"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048209"
       },
       {
-        "id": 42030167600,
+        "id": 42035048350,
         "name": "Real document ingestion lab",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167600"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048350"
       },
       {
-        "id": 42030167577,
+        "id": 42035048250,
+        "name": "SDK CI",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048250"
+      },
+      {
+        "id": 42035048183,
+        "name": "PackSpec source selection",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048183"
+      },
+      {
+        "id": 42035048164,
         "name": "APX Semantic Store Prototype",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167577"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048164"
       },
       {
-        "id": 42030167356,
-        "name": "Spring Boot integration",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167356"
-      },
-      {
-        "id": 42030167439,
-        "name": "SDK CI",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167439"
-      },
-      {
-        "id": 42030167389,
-        "name": "Source PackSpec compiler",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167389"
-      },
-      {
-        "id": 42030167507,
-        "name": "PackSpec source selection",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167507"
-      },
-      {
-        "id": 42030167602,
-        "name": "Additional SDKs",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167602"
-      },
-      {
-        "id": 42030167699,
-        "name": "Studio and Registry",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167699"
-      },
-      {
-        "id": 42030167347,
+        "id": 42035048248,
         "name": "Activation runtime research",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167347"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048248"
       },
       {
-        "id": 42030167607,
-        "name": "Kotlin PHP Ruby Swift",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167607"
-      },
-      {
-        "id": 42030160038,
+        "id": 42035039901,
         "name": "Studio and Registry",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030160038"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039901"
       },
       {
-        "id": 42030159830,
+        "id": 42035039794,
+        "name": "Kotlin PHP Ruby Swift",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039794"
+      },
+      {
+        "id": 42035039922,
+        "name": "Additional SDKs",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039922"
+      },
+      {
+        "id": 42035039935,
         "name": "Enterprise RAG training example",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159830"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039935"
       },
       {
-        "id": 42030159776,
-        "name": "Source PackSpec compiler",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159776"
-      },
-      {
-        "id": 42030159914,
-        "name": "Spring Boot integration",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159914"
-      },
-      {
-        "id": 42030159768,
-        "name": "APX PackSpec-derived examples",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159768"
-      },
-      {
-        "id": 42030159669,
-        "name": "SDK CI",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159669"
-      },
-      {
-        "id": 42030159602,
+        "id": 42035039953,
         "name": "Real document ingestion lab",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159602"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039953"
       },
       {
-        "id": 42030159580,
+        "id": 42035039785,
+        "name": "Source PackSpec compiler",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039785"
+      },
+      {
+        "id": 42035039810,
+        "name": "APX PackSpec-derived examples",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039810"
+      },
+      {
+        "id": 42035040031,
         "name": "PackSpec source selection",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159580"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035040031"
       },
       {
-        "id": 42030159634,
-        "name": "Additional SDKs",
+        "id": 42035039889,
+        "name": "SDK CI",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159634"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039889"
       },
       {
-        "id": 42030159861,
-        "name": "Kotlin PHP Ruby Swift",
+        "id": 42035039891,
+        "name": "Spring Boot integration",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159861"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039891"
       },
       {
-        "id": 42030159671,
+        "id": 42035039771,
         "name": "Activation runtime research",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159671"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039771"
       }
     ],
     "tests": {
-      "runtime": 322,
+      "runtime": 330,
       "typescript": 24,
       "finite_activation": 10,
       "compiler": 40,
       "ledger": 15,
-      "total": 411,
+      "total": 419,
       "skipped": 0
-    },
-    "retry_reason": "First push attempt timed out downloading Ubuntu media packages before test execution; identical commit passed on retry."
+    }
   },
   "input_sha256": {
-    "criteria_map.json": "65e1a4dcb7e285108501a48c0f1eed4a65071285f019e714c0b108a0db171c05",
-    "capabilities.json": "829a92265b27897cf4f846b476a6d7c98ae475ce9d3c8bf081773173e2ecf8e0"
+    "criteria_map.json": "3062955a4bc8766d470994a697729daee28f7e02cda65838924da6ceb203682b",
+    "capabilities.json": "14eebb80cb1ab3cc627613deaca7604d813710fae3d9a7ef52d81fbb9f01e584"
   },
   "summary": {
-    "candidates": 32,
-    "verified_software_stories": 32,
+    "candidates": 35,
+    "verified_software_stories": 33,
+    "verified_document_stories": 2,
     "incomplete_candidates": 0,
     "previously_formally_accepted": 2,
-    "not_yet_verified_or_awaiting_other_requirements": 17
+    "accepted_or_verified_total": 37,
+    "stories_with_remaining_requirements": 14
   },
   "limitations": [
     "Not independent domain/scientific validation.",
@@ -222,17 +222,14 @@
     "TESTED cites exercised behavior; no inference from a test name alone."
   ],
   "previous_verification": {
-    "tested_commit": "d78d9fb0f5e9c30077928cdddff08cd00fa4a1e7",
-    "passed": 30,
-    "incomplete": [
-      "US-033",
-      "US-038"
-    ]
+    "tested_commit": "3484f2575deda90b9d9a591b480332cee67456d9",
+    "passed": 32
   },
   "stories": [
     {
       "story_id": "US-003",
       "title": "Independently replayable research harness",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -285,8 +282,63 @@
       ]
     },
     {
+      "story_id": "US-004",
+      "title": "Risk, prior art and novelty register",
+      "verification_kind": "DOCUMENTATION",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Each claimed novelty links to a falsifiable comparator.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        },
+        {
+          "number": 2,
+          "text": "Prior-art citations have dates/versions.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        },
+        {
+          "number": 3,
+          "text": "No generic \u201cfirst\u201d or \u201cbetter compression\u201d claim without experiment.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        },
+        {
+          "number": 4,
+          "text": "Negative results are retained.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/research/prior-art.md",
+          "sha256": "c6d60674d068e731dbe53b254f76b58e9862b7526b629a23fa422e0255c04fca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
+        }
+      ]
+    },
+    {
       "story_id": "US-005",
       "title": "Purpose-scoped information obligations",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -336,6 +388,7 @@
     {
       "story_id": "US-006",
       "title": "ConstraintIR-to-activation binding",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -405,8 +458,95 @@
       ]
     },
     {
+      "story_id": "US-007",
+      "title": "WitnessGraph and evidence independence",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Witness derivation graph records source roots and custody.",
+          "result": "PASS",
+          "evidence": [
+            "test_witness_graph.test_roots_and_custody_are_recorded_through_derivation"
+          ],
+          "note": "witness_graph.py records source roots and custodians through derivations."
+        },
+        {
+          "number": 2,
+          "text": "Shared roots collapse under independence calculation.",
+          "result": "PASS",
+          "evidence": [
+            "test_witness_graph.test_shared_roots_collapse",
+            "test_witness_graph.test_merged_derivation_joins_groups_transitively",
+            "test_witness_graph.test_gate_counts_a_mirror_once"
+          ],
+          "note": "No root-collapsing independence calculation."
+        },
+        {
+          "number": 3,
+          "text": "Contradictory, stale or missing witnesses cannot satisfy exact-information preservation.",
+          "result": "PASS",
+          "evidence": [
+            "test_witness_graph.test_contradicting_stale_unknown_or_missing_cannot_satisfy"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed.",
+          "result": "PASS",
+          "evidence": [
+            "test_native_witness.test_original_apx_matches_pinned_golden_groups",
+            "test_native_witness.test_discrepancy_blocks_root_assessment_and_gate_projection",
+            "test_native_witness.test_missing_or_changed_canonical_source_never_falls_back"
+          ],
+          "note": "Original APX evidence module found at the already pinned commit, vendored unmodified, executed through Node, and checked against declared custody-root components. Discrepancy or missing/modified source refuses use. Declared-key grouping is not source authentication."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/native_apx.py",
+          "sha256": "90e2d1d1df9a5b1529027d06b853594372775829264f04ea0888e3a5121a0e15"
+        },
+        {
+          "path": "tools/activation_runtime/witness_graph.py",
+          "sha256": "40bb27022b9c90edbc208736a0a16315ec59615c2075865a6b7f9e7fab884f28"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness.py",
+          "sha256": "c61a6fd19c417b9be2be4a0b96c21c0bf0959549e3e8e50542241f78f06a1fa9"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness_runner.mjs",
+          "sha256": "f7c5f12b6cebefc042825c2991852d16d848e258302f334b5035c3e00a62d945"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/packages/apx-evidence/src/index.ts",
+          "sha256": "49c690848c4dcb1022f815d5deb258ddd074317eb0cc3cebde40a99d069199ee"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/PROVENANCE.json",
+          "sha256": "07ac56e008ae8e1c71043f048452810fe3919d6057e5c1bdecd86a6a7a9764d3"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/canonical-witness-graph.json",
+          "sha256": "7814b546ef2791f01ab8f9eaad4d332470c801dd3a2df761ef5345313aa9b1a6"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_native_witness.py",
+          "sha256": "6d68d5b454c81ea6a58f1ed7ec771e20f5399c86cf9dbc754d097431b83ff781"
+        },
+        {
+          "path": "docs/CANONICAL-WITNESS-GRAPH.md",
+          "sha256": "74a489d1312aa201fb147cac95851fd0cf40bed9b755b926d8e3cf77ddd6ae8e"
+        }
+      ]
+    },
+    {
       "story_id": "US-008",
       "title": "Omission and residual audit",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -476,6 +616,7 @@
     {
       "story_id": "US-010",
       "title": "RCT typed grammar integration",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -525,6 +666,7 @@
     {
       "story_id": "US-011",
       "title": "SAT/UNSAT/UNKNOWN semantics",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -574,6 +716,7 @@
     {
       "story_id": "US-012",
       "title": "Purpose-preserving regime transition",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -639,6 +782,7 @@
     {
       "story_id": "US-013",
       "title": "RCT candidate search with early stopping",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -688,6 +832,7 @@
     {
       "story_id": "US-014",
       "title": "Constraint compilation and reusable decisions",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -737,6 +882,7 @@
     {
       "story_id": "US-015",
       "title": "Finite equivalence proof and counterexamples",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -786,6 +932,7 @@
     {
       "story_id": "US-016",
       "title": "Typed semantic intermediate representation",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -852,6 +999,7 @@
     {
       "story_id": "US-017",
       "title": "Exact information and reversible source custody",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -901,6 +1049,7 @@
     {
       "story_id": "US-018",
       "title": "Source adapters (text, PDF, HTML, CSV/SQL)",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -953,6 +1102,7 @@
     {
       "story_id": "US-019",
       "title": "Review-gated relation and role extraction",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1002,6 +1152,7 @@
     {
       "story_id": "US-020",
       "title": "Reusable grammar registry and dependency DAG",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1052,6 +1203,7 @@
     {
       "story_id": "US-023",
       "title": "Executable finite ACTIVATE/VERIFY/FALLBACK",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1114,6 +1266,7 @@
     {
       "story_id": "US-024",
       "title": "Model and grammar compatibility manifest",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1164,6 +1317,7 @@
     {
       "story_id": "US-026",
       "title": "Deterministic finite reconstruction",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1213,6 +1367,7 @@
     {
       "story_id": "US-030",
       "title": "Shared grammar video encoder prototype",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1262,6 +1417,7 @@
     {
       "story_id": "US-032",
       "title": "Model amortization and catalog economics",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1323,6 +1479,7 @@
     {
       "story_id": "US-033",
       "title": "Streaming segment delivery and seek",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1393,6 +1550,7 @@
     {
       "story_id": "US-034",
       "title": "Append-only conversation tree",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1442,6 +1600,7 @@
     {
       "story_id": "US-035",
       "title": "Dialectical operations and reversible pruning",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1491,6 +1650,7 @@
     {
       "story_id": "US-036",
       "title": "Evidence-state separation and Research Ledger link",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1572,6 +1732,7 @@
     {
       "story_id": "US-037",
       "title": "Gardener proposal loop and review UI",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1645,6 +1806,7 @@
     {
       "story_id": "US-038",
       "title": "Isolated agent experiment harness",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1739,6 +1901,7 @@
     {
       "story_id": "US-039",
       "title": "Dedicated agent roles",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1788,6 +1951,7 @@
     {
       "story_id": "US-040",
       "title": "Adversarial evolution and held-out gates",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1849,6 +2013,7 @@
     {
       "story_id": "US-042",
       "title": "Pareto promotion and resource scheduler",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1923,6 +2088,7 @@
     {
       "story_id": "US-043",
       "title": "Tenant isolation and source authority",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -1993,6 +2159,7 @@
     {
       "story_id": "US-044",
       "title": "Signed artifact and anti-replay pipeline",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -2055,6 +2222,7 @@
     {
       "story_id": "US-045",
       "title": "SDK and CLI parity",
+      "verification_kind": "SOFTWARE",
       "result": "PASS",
       "criteria": [
         {
@@ -2158,6 +2326,384 @@
         {
           "path": "tools/activation_runtime/mcp_server.py",
           "sha256": "59169af1d5755265f5fe5c0ce7c535ed0996b7f7a165db5ac78a99e66f57a477"
+        }
+      ]
+    },
+    {
+      "story_id": "US-050",
+      "title": "Peer-review package and reproducible figures",
+      "verification_kind": "DOCUMENTATION",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Paper includes exact existing grammar syntax, genuine PackSpec excerpts, versioned experimental proposals, and limitations.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        },
+        {
+          "number": 2,
+          "text": "All figures regenerated by committed scripts from receipts.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt",
+            "test_research_package.test_changed_receipts_change_figure_and_do_not_keep_false_claims"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        },
+        {
+          "number": 3,
+          "text": "Repository and PDFs contain a traceability matrix from each research claim to an experiment.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        },
+        {
+          "number": 4,
+          "text": "No \u201cvalidated compression improvement\u201d in abstract until independently established.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/research/build_report.py",
+          "sha256": "9153759327ea63f88a27ccd0dd3ccd777a17834c2b3cd09459137b0af6be0598"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
+        },
+        {
+          "path": "tools/activation_runtime/research/receipts/engineering-v1.json",
+          "sha256": "5e4ecb3f17ae0783aa3fc4a86cf230e36d2a8c3b2839020afb7c8b4e6805c278"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.png",
+          "sha256": "d84d9c5ae15edfc294b0b0e5a1dee7e4960d981bcc050aae2c37dff9448be4fd"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.svg",
+          "sha256": "26043af338e040fad94dd288cc9a12e800930cb34cb36a1f1f7255bfb245e8cb"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.md",
+          "sha256": "6320f566e4c05cdbacb180c30fc558dd7d0259cee9f30e6431b75bd8267d474c"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.pdf",
+          "sha256": "defa8ee5fb80bd1eb1fcc3da14a2adc8e5cfd1c2006e86e3592b6d65ed457a9c"
+        }
+      ]
+    }
+  ],
+  "remaining_stories": [
+    {
+      "story_id": "US-009",
+      "title": "Domain preservation profiles",
+      "requirements": [
+        {
+          "number": 3,
+          "text": "Independent reviewers score adversarial examples.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Criterion requires independent reviewers to score adversarial examples."
+        }
+      ]
+    },
+    {
+      "story_id": "US-021",
+      "title": "FF-RCT native-regime integration",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Original APX native interfaces integrated through authorized adapters.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Needs the private canonical FF-RCT interfaces."
+        },
+        {
+          "number": 2,
+          "text": "Cross-repo golden cases and negative cases pass.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Reference prototype remains explicitly labeled until parity proven.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": "Inventory boundary canonical_ff_rct_decoder=UNAVAILABLE, enforced by US-001's check."
+        },
+        {
+          "number": 4,
+          "text": "Compression and reconstruction cost evidence attached independently.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-022",
+      "title": "Activation grammar v0.1 baseline",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "PR #69 merged after required CI and review. IN_REVIEW or a blocking failure never satisfies completion.",
+          "kind": "MERGE",
+          "status": "NEEDS_INPUT",
+          "note": "PR #69 merge."
+        }
+      ]
+    },
+    {
+      "story_id": "US-025",
+      "title": "Sparse activation and resource controls",
+      "requirements": [
+        {
+          "number": 2,
+          "text": "CPU/GPU, RAM, latency and energy/cold-start measured.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "CPU/RAM/latency measured on host; GPU and energy need a physical device."
+        }
+      ]
+    },
+    {
+      "story_id": "US-027",
+      "title": "Device module updates and rollback",
+      "requirements": [
+        {
+          "number": 4,
+          "text": "Bandwidth, cache residency and update cost recorded.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "PARTIAL",
+          "note": "Local transfer bytes are reported; network bandwidth and on-device cache cost need a device."
+        }
+      ]
+    },
+    {
+      "story_id": "US-028",
+      "title": "Real audiovisual dataset and licensing",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "At least 100 licensed/owned short clips representing repeated and diverse settings.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "100 licensed clips."
+        },
+        {
+          "number": 2,
+          "text": "Separate training/development/held-out families with provenance and no leakage.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Leakage checks exist; the corpus does not."
+        },
+        {
+          "number": 3,
+          "text": "Audio, on-screen text, timing and scene dynamics annotated.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Dataset manifest reproducible and redistributability respected.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-029",
+      "title": "AV1 and learned-codec baselines",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Encode/decode scripts for AV1 and one reproducible neural codec where licensing permits.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "PARTIAL",
+          "note": "AV1 scripts run; the neural codec needs licensed pinned weights."
+        },
+        {
+          "number": 2,
+          "text": "Same resolution, frame rate and fidelity obligations.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Include full model/download/storage/energy/compute costs.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Report bitrates, artifacts and statistical intervals; no cherry-picked clips.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-031",
+      "title": "Frame/semantic/exact fidelity evaluation",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Frame quality scored by reproducible metrics plus blinded human assessment.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Requires blinded human assessment."
+        },
+        {
+          "number": 2,
+          "text": "Subtitle text, signs, sequences and specified identities checked independently.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Requires independent checking."
+        },
+        {
+          "number": 4,
+          "text": "PackSpec failures block claims of quality equivalence.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-041",
+      "title": "Co-evolving encoder/decoder candidates",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Run three arms: fixed pair, decoder-only evolution, paired evolution.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": "experiments.run_codec_arms runs fixed, decoder-only and paired arms."
+        },
+        {
+          "number": 2,
+          "text": "Exactly the same held-out content and PackSpec fidelity contract.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "No \u201ccompression advantage\u201d claimed if paired arm does not outperform a qualified baseline within uncertainty.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "A qualified learned/conventional baseline needs licensed weights and a corpus."
+        }
+      ]
+    },
+    {
+      "story_id": "US-046",
+      "title": "Offline mobile/TV feasibility pilot",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Two different device classes benchmarked with pinned versions.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Startup, memory, sustained throughput, thermal throttling, update traffic and power measured.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "No production release until security, licensing and fidelity review.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Security, licensing and fidelity review before any release."
+        }
+      ]
+    },
+    {
+      "story_id": "US-047",
+      "title": "Independent acceptance ledger",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Evidence links to commits, CI runs, original source fingerprints, dataset splits and signed reviewers.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "PARTIAL",
+          "note": "The signed-reviewer path exists and CI verifies it; no real reviewer has signed yet."
+        }
+      ]
+    },
+    {
+      "story_id": "US-048",
+      "title": "Pre-registered controlled experiments",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "H1 storage bytes, H2 total cost, H3 activation speed, H4 preserved distinctions, H5 Gardener research continuity and H6 agent evolution benefit each have stated independent/dependent variables.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": "research/protocol.json defines H1-H6 with variables; experiments.py enforces the set."
+        },
+        {
+          "number": 2,
+          "text": "Compare AV1, learned codec, no-grammar ablation, fixed grammar, evolving grammar.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Learned-codec arm needs licensed weights; all arms need the corpus."
+        }
+      ]
+    },
+    {
+      "story_id": "US-049",
+      "title": "Four worked real-world demonstrations",
+      "requirements": [
+        {
+          "number": 4,
+          "text": "Actual short video: subtitle, frame/timing and residual tests; synthetic-only examples clearly labeled until real input works.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Runs on generated test video; an actual short video is still needed."
+        }
+      ]
+    },
+    {
+      "story_id": "US-051",
+      "title": "Release readiness and pilot stop conditions",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Complete security/privacy review, supported-device contracts, signed artifacts and error telemetry.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Security/privacy review, device contracts and telemetry."
+        },
+        {
+          "number": 3,
+          "text": "Pilot compared to conventional codec for realistic network and client costs.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
         }
       ]
     }

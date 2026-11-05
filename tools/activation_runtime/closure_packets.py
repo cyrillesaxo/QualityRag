@@ -53,7 +53,7 @@ CATEGORIES = {
 }
 
 NOTES = {
-    "US-007": "Witness derivation graph with root collapse added in this branch; canonical APX WitnessGraph golden fixtures are still not available here.",
+    "US-007": "Original APX WitnessGraph source and a pinned golden fixture are now integrated. The custody-root adapter refuses canonical grouping discrepancies; declared independence is not authenticated source independence. See docs/CANONICAL-WITNESS-GRAPH.md.",
     "US-009": "Legal: CUAD (510 contracts, CC BY 4.0) supplies real role-binding clauses for adversarial scoring.",
     "US-021": "Needs the original canonical FF-RCT reconstruction interface from the private APX tree; only the author can supply it.",
     "US-022": "Blocked only on PR #69 (reviewed; fixes in c1408f7). PR #69 + PR #70 merge cleanly onto main. Run on the PR #69 branch: `python -m unittest discover -s tools/semantic_store/tests -p 'test_activation_constraints.py' -v`.",
