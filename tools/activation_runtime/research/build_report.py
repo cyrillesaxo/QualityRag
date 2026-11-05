@@ -5,10 +5,12 @@ import html
 import json
 from pathlib import Path
 from statistics import mean
+from hashlib import sha256
 
 
 def build(receipt,output):
     data=json.loads(Path(receipt).read_text())
+    receipt_ref=Path(receipt).name+" (SHA-256 "+sha256(Path(receipt).read_bytes()).hexdigest()+")"
     root=Path(output);root.mkdir(parents=True,exist_ok=True)
     groups=defaultdict(list)
     for row in data["ablation"]["measurements"]:
@@ -144,7 +146,7 @@ The template is not represented as a registered final experiment.
 | Original native APX behavior | tests/test_native_apx.py | Pinned WBC/RCoC source only |
 | SDK parity and access isolation | tests/test_service_sdk.py | Same canonical authenticated API |
 | Review workflow | tests/test_browser.py | Actual Chromium, opt-in |
-| Negative codec comparison | research/receipts/engineering-v1.json | Authored synthetic engineering run |
+| Measured codec byte comparison | """+receipt_ref+""" | Authored synthetic engineering run |
 | Independent semantic or compression advantage | No evidence supplied | NOT ESTABLISHED |
 
 ### Limitations and release decision

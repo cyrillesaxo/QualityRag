@@ -108,7 +108,7 @@ The template is not represented as a registered final experiment.
 | Original native APX behavior | tests/test_native_apx.py | Pinned WBC/RCoC source only |
 | SDK parity and access isolation | tests/test_service_sdk.py | Same canonical authenticated API |
 | Review workflow | tests/test_browser.py | Actual Chromium, opt-in |
-| Negative codec comparison | research/receipts/engineering-v1.json | Authored synthetic engineering run |
+| Measured codec byte comparison | engineering-v1.json (SHA-256 5e4ecb3f17ae0783aa3fc4a86cf230e36d2a8c3b2839020afb7c8b4e6805c278) | Authored synthetic engineering run |
 | Independent semantic or compression advantage | No evidence supplied | NOT ESTABLISHED |
 
 ### Limitations and release decision

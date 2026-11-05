@@ -306,7 +306,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_research_package.py",
-          "sha256": "24c0095d59f183b4259b8b79f64b7bd72bd15df03a9233fcc85fb1db1bf698fc"
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_research_package.py",
@@ -2605,11 +2605,11 @@
       "modules": [
         {
           "path": "tools/activation_runtime/research/build_report.py",
-          "sha256": "08294d097c20e95b692e353869fe6ce1a50e78ff768cfb0ec923095b39d27dd2"
+          "sha256": "9153759327ea63f88a27ccd0dd3ccd777a17834c2b3cd09459137b0af6be0598"
         },
         {
           "path": "tools/activation_runtime/tests/test_research_package.py",
-          "sha256": "24c0095d59f183b4259b8b79f64b7bd72bd15df03a9233fcc85fb1db1bf698fc"
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
         },
         {
           "path": "tools/activation_runtime/research/receipts/engineering-v1.json",
@@ -2625,11 +2625,11 @@
         },
         {
           "path": "tools/activation_runtime/research/paper/report.md",
-          "sha256": "cdf01e9e52bfb5aa8d162d4dad9b5bc689cb6fed5fad4248cea4462e0d22a8e7"
+          "sha256": "6320f566e4c05cdbacb180c30fc558dd7d0259cee9f30e6431b75bd8267d474c"
         },
         {
           "path": "tools/activation_runtime/research/paper/report.pdf",
-          "sha256": "e0230e5b9085f791dfce36ce5de10ab24e9d728b92ac9b92bf00084d244bee53"
+          "sha256": "defa8ee5fb80bd1eb1fcc3da14a2adc8e5cfd1c2006e86e3592b6d65ed457a9c"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_research_package.py",

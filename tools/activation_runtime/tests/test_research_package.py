@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from hashlib import sha256
 from pypdf import PdfReader
 from tools.activation_runtime.research.build_report import build
 
@@ -33,6 +34,7 @@ class ResearchPackageTests(unittest.TestCase):
             for name in ("report.md","codec-bytes.svg","codec-bytes.png","report.pdf"):
                 self.assertEqual((a/name).read_bytes(),(b/name).read_bytes(),name)
             paper=(a/"report.md").read_text()
+            self.assertIn(sha256(receipt.read_bytes()).hexdigest(),paper)
             pdf=" ".join(" ".join(page.extract_text() for page in PdfReader(a/"report.pdf").pages).split())
             protocol=json.loads((ROOT/"research/protocol.json").read_text())
             for text in (paper,pdf):
@@ -62,3 +64,5 @@ class ResearchPackageTests(unittest.TestCase):
             self.assertIn("preservation is incomplete or failed",paper)
             self.assertNotIn("All evaluated reference-arm normalized frames match",paper)
             self.assertIn("not independently validated compression improvement",paper)
+            self.assertIn(sha256(source.read_bytes()).hexdigest(),paper)
+            self.assertNotIn("Negative codec comparison",paper)
