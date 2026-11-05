@@ -3,7 +3,7 @@
   "id": "qualityrag-homepage-45s",
   "title": "QualityRag · Evidence-governed answers",
   "brand": "QualityRag",
-  "voice": {"engine": "kokoro-v1.0", "voice": "af_bella", "lang": "en-us", "speed": 1.06, "sentence_gap": 0.35},
+  "voice": {"engine": "kokoro-v1.0", "voice": "af_bella", "lang": "en-us", "speed": 0.95, "sentence_gap": 0.5},
   "scenes": [
     {"id": "hook", "kind": "animation", "pad": [0.3, 0.6], "say": [
       "Your RAG found the right document.",

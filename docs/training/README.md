@@ -13,7 +13,7 @@ This is a short animated course, made for people who are new to QualityRag. No p
 
 The episodes are meant to be watched in order, and each one builds on the one before.
 
-## Homepage cut (48 seconds)
+## Homepage cut (51 seconds)
 
 [![QualityRag homepage cut](homepage-45s/poster.jpg)](homepage-45s/qualityrag-homepage-45s.mp4)
 

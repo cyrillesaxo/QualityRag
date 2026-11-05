@@ -80,6 +80,14 @@ def timeline(script, voice_dir, cache):
     return out
 
 
+def level(audio, target_db=-18.0, peak_db=-1.5):
+    """One constant gain for the whole narration: no compression, so the voice keeps its natural dynamics."""
+    voiced = audio[np.abs(audio) > 1e-3]
+    rms = float(np.sqrt(np.mean(voiced ** 2))) if voiced.size else 1.0
+    gain = min(10 ** (target_db / 20) / rms, 10 ** (peak_db / 20) / max(float(np.abs(audio).max()), 1e-9))
+    return audio * gain
+
+
 def write_wav(path, audio):
     pcm = (np.clip(audio, -1, 1) * 32767).astype(np.int16)
     with wave.open(str(path), "wb") as w:
@@ -367,9 +375,9 @@ def main(argv=None):
         for it in items:
             f.write(f"file 'scene-{it['scene']['id']}.mp4'\n")
     run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(out / "scenes.txt"), "-c", "copy", str(out / "video.mp4")])
-    write_wav(out / "narration.wav", np.concatenate([i["audio"] for i in items]))
+    write_wav(out / "narration.wav", level(np.concatenate([i["audio"] for i in items])))
     run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(out / "video.mp4"), "-i", str(out / "narration.wav"), "-map", "0:v", "-map", "1:a",
-         "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", str(out / f"{stem}-nocaptions.mp4")])
+         "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", str(out / f"{stem}-nocaptions.mp4")])
     captions(items, out, stem)
     tmp = out / f"{stem}.part.mp4"
     run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(out / f"{stem}-nocaptions.mp4"), "-vf", f"subtitles={out / (stem + '.ass')}",
