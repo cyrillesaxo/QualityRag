@@ -217,3 +217,26 @@ class ClosurePacketTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CriteriaMapTests(unittest.TestCase):
+    def test_every_cited_test_exists(self):
+        import ast
+        from tools.activation_runtime import closure_packets as cp
+        cmap = cp.load_criteria()
+        tests_dir = ROOT / "tools/activation_runtime/tests"
+        names = {}
+        for path in tests_dir.glob("test_*.py"):
+            names[path.stem] = {n.name for n in ast.walk(ast.parse(path.read_text()))
+                                if isinstance(n, ast.FunctionDef) and n.name.startswith("test")}
+        for sid, rows in cmap.items():
+            for row in rows:
+                for ref in row.get("evidence", []):
+                    with self.subTest(story=sid, ref=ref):
+                        if ref.startswith("semantic_store/"):
+                            self.assertTrue((ROOT / "tools/semantic_store/tests" / (ref.split("/", 1)[1] + ".py")).exists())
+                        else:
+                            module, _, test = ref.partition(".")
+                            self.assertIn(test, names.get(module, set()))
+                if row["status"] == "TESTED" and row["kind"] in ("SOFTWARE", "DOCUMENT") and sid != "US-022":
+                    self.assertTrue(row.get("evidence"), f"{sid}.{row['n']} is TESTED without a cited test")

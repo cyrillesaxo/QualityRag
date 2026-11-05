@@ -1,9 +1,10 @@
-"""Render docs/STORY-CLOSURE-PACKETS.md from capabilities.json.
+"""Render docs/STORY-CLOSURE-PACKETS.md from capabilities.json and criteria_map.json.
 
-Each open story gets: what blocks it, the command that exercises its software,
-the evidence a closer must attach, who may sign, and story-specific notes.
-The packet never changes a status; DONE still requires a signed receipt that
-audit.py verifies.
+Each open story is placed by its *written acceptance criteria* (criteria_map.json),
+not by a hand-picked label: unfinished software first, then criteria that
+explicitly require human review, then those needing external input, then
+stories whose software criteria are all met. The packet never changes a
+status; DONE still requires acceptance that audit.py verifies.
 
     python -m tools.activation_runtime.closure_packets          # rewrite the doc
     python -m tools.activation_runtime.closure_packets --check  # fail if the doc is stale
@@ -17,113 +18,73 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CAPABILITIES = ROOT / "tools/activation_runtime/capabilities.json"
+CRITERIA = ROOT / "tools/activation_runtime/criteria_map.json"
 DOC = ROOT / "docs/STORY-CLOSURE-PACKETS.md"
 
+KINDS = {"SOFTWARE", "DOCUMENT", "HUMAN_REVIEW", "EXTERNAL_INPUT", "MERGE"}
+STATUSES = {"TESTED", "IMPLEMENTED", "PARTIAL", "GAP", "NEEDS_INPUT"}
+MET = {"TESTED", "IMPLEMENTED"}
+
 CATEGORIES = {
-    "MERGE": {
-        "title": "Merge after review",
-        "stories": ["US-010", "US-011", "US-022", "US-023", "US-039"],
-        "steps": ["Reviewer reads the linked tests and module, runs the command below, and approves the PR.",
-                  "Owner merges after required CI passes on the merge commit.",
-                  "Reviewer drafts and signs the completion receipt (see *Signing*)."],
-        "signer": "Any qualified code reviewer who did not author the story.",
+    "SOFTWARE_WORK": {
+        "title": "Software work remaining",
+        "steps": ["Implement the PARTIAL/GAP criteria in the table; these need no outside input.",
+                  "Add a test per criterion and record it in criteria_map.json."],
     },
-    "MERGE_PLUS": {
-        "title": "Merge plus one recorded check",
-        "stories": ["US-013", "US-020", "US-034", "US-035", "US-045", "US-047"],
-        "steps": ["Do everything in *Merge after review*.",
-                  "Perform the extra check in the notes and record it as evidence (a CI run, measurement or review record) before signing."],
-        "signer": "A code reviewer who did not author the story; the extra check may need an operator (sandbox host, signing policy, package registry).",
+    "HUMAN_REVIEW": {
+        "title": "A written criterion requires human review",
+        "steps": ["Only the HUMAN_REVIEW criteria need a person; the rest is listed with its evidence.",
+                  "The reviewer records findings, including failures, and signs the completion receipt (see *Signing*)."],
     },
-    "REVIEWER": {
-        "title": "Independent qualified review",
-        "stories": ["US-003", "US-004", "US-005", "US-006", "US-008", "US-012", "US-014", "US-015",
-                    "US-018", "US-019", "US-026", "US-030", "US-038", "US-040", "US-050"],
-        "steps": ["Reviewer reproduces the command below on a clean checkout of the implementation commit.",
-                  "Reviewer checks every acceptance criterion against observed behaviour, not the docs, and writes findings (including failures) to a review record.",
-                  "Only if every criterion is met: draft, attest and sign the receipt."],
-        "signer": "A domain-qualified reviewer independent of the author (named in the notes where the domain matters).",
+    "EXTERNAL_INPUT": {
+        "title": "Needs external input",
+        "steps": ["Supply the input named in the table (licensed data, device, private source or merge).",
+                  "Run the existing harness on it; keep raw outputs and negative results."],
     },
-    "AUTHORITY": {
-        "title": "Real deployment or signing authority",
-        "stories": ["US-017", "US-024", "US-036", "US-042", "US-043", "US-044"],
-        "steps": ["Owner configures the real authority (keys, principals, trust maps, deployment) outside the repository.",
-                  "Operator runs the command below against that configuration and records the result.",
-                  "Security/privacy reviewer signs only after observing the configured system."],
-        "signer": "Security or platform reviewer with access to the configured deployment.",
+    "DOCUMENT": {
+        "title": "Document check only",
+        "steps": ["A reader confirms the DOCUMENT criteria against the named file; no special qualification is implied by the criteria."],
     },
-    "REAL_WORLD": {
-        "title": "Real data, devices or measurements",
-        "stories": ["US-007", "US-009", "US-016", "US-021", "US-025", "US-027", "US-028", "US-029", "US-031",
-                    "US-032", "US-033", "US-037", "US-041", "US-046", "US-048", "US-049", "US-051"],
-        "steps": ["Acquire the input named in the notes (licensed corpus, device, canonical source, real users).",
-                  "Run the existing harness on it and keep the raw outputs, including failures and negative results.",
-                  "Domain reviewer signs only against the real-input evidence; synthetic fixtures never satisfy these."],
-        "signer": "Domain reviewer for the data or device class (see notes).",
+    "READY": {
+        "title": "Written software criteria met",
+        "steps": ["Every written criterion is TESTED or IMPLEMENTED on this branch.",
+                  "Remaining: merge, then record acceptance. Where the inventory's *blocking* text asks for more than the written criteria, that is flagged."],
     },
 }
 
 NOTES = {
-    "US-010": "Remaining item is merge + remote CI only.",
-    "US-011": "Check that finite SAT never yields `qualityrag_admission=ADMIT` or `can_generate=true` anywhere in the trace.",
-    "US-022": "Blocked only on PR #69. Reviewed 2026-11-05: declarations-only checker; fixed silently-accepted misspelled operator keys and PRESERVE/VERIFY fields outside the contract (commit c1408f7). PR #69 + PR #70 merge cleanly onto main and all suites pass on the merged tree. Merge PR #69 first. Run on the PR #69 branch: `python -m unittest discover -s tools/semantic_store/tests -p 'test_activation_constraints.py' -v`.",
-    "US-023": "Confirm VERIFY compares actual transformed output and that a failed fallback REFUSEs without releasing output.",
-    "US-039": "Check the integration test shows disagreement escalating, not forced consensus.",
-    "US-013": "Extra check: run the sandboxed search on a supported Linux host (seccomp/RLIMIT available) and record the host and result.",
-    "US-020": "Extra check: a configured production signing key and minimum-version policy, then a tested authorized rollback.",
-    "US-034": "Extra check: independent restart replay — kill the service mid-run, restart, and confirm `gardener/state` replays identically.",
-    "US-035": "Extra check: a reviewer exercises PROPOSE/CHALLENGE/TEST/SYNTHESIZE/PRUNE/REOPEN through the UI or API (TEST via `evidence_ids` since commit 51f3e0e) and records continuity.",
-    "US-045": "Extra check: package/release acceptance of the Python and TypeScript clients (published or tagged artefacts).",
-    "US-047": "The CI audit now loads `reviewer-trust.json` and re-verifies signed receipts against GitHub evidence. Extra check: at least one real signed per-story receipt passes CI.",
-    "US-003": "Reviewer: someone outside the project replays `run_research.py` on the pinned environment lock.",
-    "US-004": "Reviewer: a codec/knowledge-compilation researcher assessing `research/prior-art.md`; no priority claim is made.",
-    "US-005": "Reviewer: domain owner per profile (clinical, legal, education, video).",
-    "US-006": "Reviewer must hold a real signing key bound to a qualified source/policy; the test keys in fixtures do not count.",
-    "US-008": "Reviewer records an omission review for at least one real optional distinction before it is discarded.",
-    "US-012": "Reviewer checks the finite source-to-target mapping and the no-invented-labels round trip.",
-    "US-014": "Needs measured amortization beyond authored fixtures; an independent replay of cache invalidation.",
-    "US-015": "Reviewer confirms the declared finite query vocabulary and that results are not generalized.",
-    "US-018": "Reviewer runs the adapters on representative real PDFs/CSVs (duplicated headings, malformed input) and checks span anchors.",
-    "US-019": "Reviewer: authorized role-extraction reviewer; candidates stay quarantined until then.",
-    "US-026": "Reviewer checks the normalized RGB/PCM32/timestamp profile byte-for-byte on the provided fixtures and one real clip.",
-    "US-030": "Reviewer confirms the payload is the palette/residual reference, not learned semantics or FF-RCT, and that decode plays.",
-    "US-038": "Reviewer: security review of the sandbox on a supported host.",
-    "US-040": "Needs independently adjudicated family-hidden real cases; authored false-accept counts do not generalize.",
-    "US-050": "Reviewer: external peer review of `research/paper/report.md`; no validated compression improvement is claimed.",
-    "US-017": "Needs deployed persistent custody with trusted host authorization.",
-    "US-024": "Needs a real release-signing authority and supported-runtime approval.",
-    "US-036": "Needs real, scope-bounded validation evidence through the ledger's host verifier (SQLite and PostgreSQL paths exist).",
-    "US-042": "Needs a measured energy/total-cost frontier and a real signed promotion authority.",
-    "US-043": "Needs configured real tenant principals and a deployment privacy review.",
-    "US-044": "Needs real release/reviewer trust maps, durable deployment and an independent replay/revocation review.",
-    "US-007": "Needs real source ancestry/custody evidence; origin labels alone are insufficient.",
-    "US-009": "Clinical and video profiles need scored adversarial cases from independent domain reviewers. Legal: CUAD (510 contracts, CC BY 4.0) supplies real role-binding clauses.",
-    "US-016": "Needs canonical K/B/C/T source/API parity, which only the private APX source can supply, plus independent annotation review.",
+    "US-007": "Witness derivation graph with root collapse added in this branch; canonical APX WitnessGraph golden fixtures are still not available here.",
+    "US-009": "Legal: CUAD (510 contracts, CC BY 4.0) supplies real role-binding clauses for adversarial scoring.",
     "US-021": "Needs the original canonical FF-RCT reconstruction interface from the private APX tree; only the author can supply it.",
-    "US-025": "Needs a physical device with GPU/energy instrumentation for cold and sustained sparse-versus-full runs.",
-    "US-027": "Needs a supported device for old/new-runtime A/B and interrupted update/rollback measurements.",
-    "US-028": "Candidate corpus: Blender Studio open films (CC BY, check each asset's licence text; Tears of Steel is CC BY 3.0 with a credit-scroll requirement, its soundtrack CC BY-ND) and the public-domain sequences in Xiph's derf collection (FourPeople, Johnny, KristenAndSara, vidyo1/3/4). Netflix Chimera/El Fuente clips there are marked Copyright. 100 annotated clips with family-disjoint splits are still required.",
-    "US-029": "AV1: SVT-AV1 or libaom. Learned codec: CompressAI (code BSD-3-Clause-Clear); the pretrained weights' licence must be confirmed separately before use.",
-    "US-031": "Depends on US-028; blinded human assessment cannot be done by the author or an agent.",
-    "US-032": "Needs measured lifecycle inputs per real catalog/viewer/device cohort.",
-    "US-033": "Needs network/device startup, buffering and seek measurements against conventional playback.",
-    "US-037": "Needs real user feedback; duplicate detection is exact-statement only, so paraphrase detection would need a semantic labeler first.",
-    "US-041": "Depends on US-028 and US-029, with all search/training compute counted.",
-    "US-046": "Needs two physical device classes (mobile and TV) with thermal, sustained-power and update-traffic instrumentation.",
-    "US-048": "Register the final protocol only after US-028's corpus and sample plan exist, before opening the holdout.",
-    "US-049": "Contract demo: CUAD clauses (CC BY 4.0). Nursing demo: OpenStax Clinical Nursing Skills is CC BY-NC-SA 4.0 — fine for research, not for a commercial product. Child-to-clinician: no open source identified; inputs must be authored and clinician-reviewed.",
-    "US-051": "Last in order: requires the security/privacy/licensing/fidelity reviews and measured pilot economics above.",
+    "US-022": "Blocked only on PR #69 (reviewed; fixes in c1408f7). PR #69 + PR #70 merge cleanly onto main. Run on the PR #69 branch: `python -m unittest discover -s tools/semantic_store/tests -p 'test_activation_constraints.py' -v`.",
+    "US-028": "Candidate corpus: Blender Studio open films (CC BY; check each asset's licence text; Tears of Steel is CC BY 3.0 with a credit-scroll requirement, its soundtrack CC BY-ND) and the public-domain sequences in Xiph's derf collection (FourPeople, Johnny, KristenAndSara, vidyo1/3/4). Netflix Chimera/El Fuente clips there are marked Copyright.",
+    "US-029": "AV1: SVT-AV1 or libaom. Learned codec: CompressAI (code BSD-3-Clause-Clear); confirm the pretrained weights' licence separately.",
+    "US-037": "Duplicate detection is exact-statement only; paraphrase detection would need a semantic labeler.",
+    "US-049": "Contract demo: CUAD (CC BY 4.0). Nursing: OpenStax Clinical Nursing Skills is CC BY-NC-SA 4.0 (research only). Child-to-clinician: no open source identified.",
 }
 
 
-def _story_category() -> dict[str, str]:
-    out = {}
-    for key, cat in CATEGORIES.items():
-        for sid in cat["stories"]:
-            if sid in out:
-                raise ValueError("Story in two categories: " + sid)
-            out[sid] = key
-    return out
+def load_criteria(path: Path = CRITERIA) -> dict:
+    data = json.loads(Path(path).read_text())
+    if data.get("schema") != "qualityrag.criteria-map/v1":
+        raise ValueError("Invalid criteria map")
+    for sid, rows in data["stories"].items():
+        for row in rows:
+            if row.get("kind") not in KINDS or row.get("status") not in STATUSES:
+                raise ValueError(f"Invalid kind/status in {sid} criterion {row.get('n')}")
+    return data["stories"]
+
+
+def classify(rows: list[dict]) -> str:
+    if any(r["kind"] in ("SOFTWARE", "DOCUMENT") and r["status"] in ("PARTIAL", "GAP") for r in rows):
+        return "SOFTWARE_WORK"
+    if any(r["kind"] == "HUMAN_REVIEW" for r in rows):
+        return "HUMAN_REVIEW"
+    if any(r["kind"] in ("EXTERNAL_INPUT", "MERGE") and r["status"] not in MET for r in rows):
+        return "EXTERNAL_INPUT"
+    if any(r["kind"] == "DOCUMENT" and r["status"] not in MET for r in rows):
+        return "DOCUMENT"
+    return "READY"
 
 
 def _command(entry: str) -> str:
@@ -144,33 +105,46 @@ def _command(entry: str) -> str:
     return "; ".join(commands)
 
 
-def render(capabilities: Path = CAPABILITIES) -> str:
+def render(capabilities: Path = CAPABILITIES, criteria: Path = CRITERIA) -> str:
     inventory = json.loads(Path(capabilities).read_text())
     stories = {s["story_id"]: s for s in inventory["stories"]}
-    category = _story_category()
+    cmap = load_criteria(criteria)
     open_ids = sorted(sid for sid, s in stories.items() if s["status"] != "DONE")
-    missing = sorted(set(open_ids) - set(category))
-    stale = sorted(sid for sid in category if stories.get(sid, {}).get("status") == "DONE")
-    if missing or stale:
-        raise ValueError(f"Category map out of date: uncategorized={missing} done={stale}")
+    if sorted(cmap) != open_ids:
+        raise ValueError("criteria_map.json must cover exactly the open stories")
+    for sid in open_ids:
+        if [r["n"] for r in cmap[sid]] != [c["number"] for c in stories[sid]["criteria"]]:
+            raise ValueError("criteria_map.json criterion numbers differ for " + sid)
+    groups = {key: [] for key in CATEGORIES}
+    for sid in open_ids:
+        groups[classify(cmap[sid])].append(sid)
     counts = {}
     for s in stories.values():
         counts[s["status"]] = counts.get(s["status"], 0) + 1
+    tally = {}
+    for rows in cmap.values():
+        for r in rows:
+            tally[(r["kind"], r["status"])] = tally.get((r["kind"], r["status"]), 0) + 1
     lines = [
         "# Story closure packets",
         "",
         "<!-- Generated by `python -m tools.activation_runtime.closure_packets`; do not edit by hand. -->",
         "",
-        "What each open FR.MD story needs to reach DONE, and who can provide it. This page changes no status. "
-        "DONE still requires a completion receipt signed by an independent reviewer and verified by `audit.py`.",
+        "What each open FR.MD story still needs, judged criterion by criterion against its *written* acceptance "
+        "criteria (`tools/activation_runtime/criteria_map.json`). This page changes no status.",
         "",
-        "Inventory: " + ", ".join(f"{counts[k]} {k}" for k in sorted(counts)) + f". Open: {len(open_ids)}.",
+        "Inventory: " + ", ".join(f"{counts[k]} {k}" for k in sorted(counts)) + f". Open: {len(open_ids)}, "
+        f"with {sum(len(r) for r in cmap.values())} criteria.",
         "",
         "| Category | Stories |",
         "|---|---|",
     ]
     for key, cat in CATEGORIES.items():
-        lines.append(f"| {cat['title']} ({len(cat['stories'])}) | {', '.join(cat['stories'])} |")
+        lines.append(f"| {cat['title']} ({len(groups[key])}) | {', '.join(groups[key]) or '—'} |")
+    lines += ["", "Criteria by kind and status:", "", "| Kind | " + " | ".join(sorted(STATUSES)) + " |",
+              "|---|" + "---|" * len(STATUSES)]
+    for kind in sorted(KINDS):
+        lines.append(f"| {kind} | " + " | ".join(str(tally.get((kind, st), 0)) for st in sorted(STATUSES)) + " |")
     lines += [
         "",
         "## Signing",
@@ -215,18 +189,25 @@ def render(capabilities: Path = CAPABILITIES) -> str:
         "",
     ]
     for key, cat in CATEGORIES.items():
-        lines += [f"## {cat['title']}", "", "Steps:", ""]
+        if not groups[key]:
+            continue
+        lines += [f"## {cat['title']}", ""]
         lines += [f"{i}. {step}" for i, step in enumerate(cat["steps"], 1)]
-        lines += ["", f"Who signs: {cat['signer']}", ""]
-        for sid in cat["stories"]:
+        lines.append("")
+        for sid in groups[key]:
             s = stories[sid]
-            lines += [
-                f"### {sid} · {s['title']} ({s['status']})",
-                "",
-                f"- **Blocking:** {s['remaining']}",
-                f"- **Exercise the software:** {_command(s['test_or_receipt'])}",
-                f"- **Modules bound into the receipt:** {len(s['modules'])} file(s)",
-            ]
+            texts = {c["number"]: c["text"] for c in s["criteria"]}
+            lines += [f"### {sid} · {s['title']} ({s['status']})", ""]
+            lines += ["| # | Criterion | Kind | Status | Evidence / note |", "|---|---|---|---|---|"]
+            for r in cmap[sid]:
+                ev = ", ".join("`" + e + "`" for e in r.get("evidence", []))
+                note = r.get("note", "")
+                cell = "; ".join(x for x in (ev, note) if x) or "—"
+                lines.append(f"| {r['n']} | {texts[r['n']].replace('|', '/')} | {r['kind']} | {r['status']} | {cell.replace('|', '/')} |")
+            lines += ["", f"- **Exercise the software:** {_command(s['test_or_receipt'])}",
+                      f"- **Inventory blocking text:** {s['remaining']}"]
+            if key == "READY":
+                lines.append("- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.")
             if sid in NOTES:
                 lines.append(f"- **Notes:** {NOTES[sid]}")
             lines.append("")
