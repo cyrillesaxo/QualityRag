@@ -9,7 +9,7 @@ HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "research_ledger"))
 from ledger import initialize, progress, verify_integrity
-from rct_garden_lifecycle import register_cycle, inspect_revisions, reopen_on_revision
+from rct_garden_lifecycle import register_cycle, inspect_revisions, reopen_on_revision, replay_after_revision
 from rct_garden_coevolution import run_research_cycle
 from test_rct_garden_coevolution import TRAIN, BEFORE, AFTER, WORKLOAD
 
@@ -106,6 +106,46 @@ class GardenLifecycleTests(unittest.TestCase):
             register_cycle(self.db, self.receipt, sources=self.sources,
                            evidence_uri=URI, actor=ACTOR)
         self.assertTrue(verify_integrity(self.db)["consistent"])
+
+    def test_real_replay_creates_new_versioned_experiment_and_link(self):
+        from test_rct_garden_investigation import TRAIN_EXAMPLES
+        later = copy.deepcopy(AFTER)
+        later["facts"].append({
+            "id": "live-replay-added", "subject": "live-n0",
+            "predicate": "governs", "object": "live-next-revision",
+            "source_ref": "new-revision"})
+        outcome = replay_after_revision(
+            self.db, self.opened["claim_id"], training=TRAIN,
+            examples=TRAIN_EXAMPLES, source=BEFORE, revised_source=later,
+            workload={"subjects": WORKLOAD["subjects"]},
+            actor=ACTOR, observation_uri=URI, receipt_uri=URI, trials=2,
+            max_proposals=24)
+        self.assertEqual(outcome["status"], "REPLAYED_AS_UNVERIFIED_RESEARCH")
+        self.assertTrue(outcome["replayed"])
+        self.assertNotEqual(outcome["new_claim_id"], self.opened["claim_id"])
+        self.assertFalse(outcome["promotion_authorized"])
+        entries = progress(self.db)["claims"]
+        self.assertEqual(len(entries), 2)
+        followup = next(x for x in entries
+                        if x["claim_id"] == outcome["new_claim_id"])
+        self.assertEqual(followup["status"], "INCONCLUSIVE")
+        self.assertEqual(followup["links"][0],
+                         {"to": self.opened["claim_id"], "relation": "QUALIFIES"})
+        initial = next(x for x in entries
+                       if x["claim_id"] == self.opened["claim_id"])
+        self.assertEqual(len(initial["events"]), 2)
+        self.assertTrue(verify_integrity(self.db)["consistent"])
+
+    def test_replay_is_noop_without_source_revision(self):
+        from test_rct_garden_investigation import TRAIN_EXAMPLES
+        result = replay_after_revision(
+            self.db, self.opened["claim_id"], training=TRAIN,
+            examples=TRAIN_EXAMPLES, source=BEFORE, revised_source=AFTER,
+            workload={"subjects": WORKLOAD["subjects"]},
+            actor=ACTOR, observation_uri=URI, receipt_uri=URI, trials=2)
+        self.assertEqual(result["status"], "NO_CHANGED_DEPENDENCIES")
+        self.assertFalse(result["replayed"])
+        self.assertEqual(progress(self.db)["counts"]["total"], 1)
 
     def test_broken_ledger_integrity_rejected(self):
         # Direct edits are blocked by the existing immutable triggers.
