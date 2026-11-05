@@ -337,6 +337,43 @@ def run_research_cycle(training, source, revised_source, workload, *,
 
 
 
+def _discriminating_probes(graph, candidates, examples, *, limit=8):
+    """Find unlabeled training queries whose candidate predictions disagree.
+
+    This proposes experiments, never fabricates an answer. If no training
+    example distinguishes the surviving operators, new-regime evidence is
+    required instead of arbitrary tie-breaking.
+    """
+    seen = {(item["subject"], item["destination"]) for item in examples}
+    nodes = sorted(set(f["subject"] for f in graph) | set(f["object"] for f in graph))
+    adjacency = _outgoing(graph)
+    probes = []
+    for subject in nodes:
+        reachable = [
+            set(_execute_path(adjacency, candidate["predicate_path"], subject))
+            for candidate in candidates]
+        if not reachable:
+            continue
+        targets = sorted(set().union(*reachable))
+        for target in targets:
+            if (subject, target) in seen:
+                continue
+            votes = [target in xs for xs in reachable]
+            if len(set(votes)) < 2:
+                continue
+            probes.append({
+                "subject": subject, "destination": target,
+                "hypothesis_predictions": [
+                    {"predicate_path": candidate["predicate_path"], "predicts": vote}
+                    for candidate, vote in zip(candidates, votes)],
+                "reference_answer": "UNOBSERVED",
+                "status": "DISCRIMINATING_PROBE_PROPOSED",
+            })
+            if len(probes) >= limit:
+                return probes
+    return probes
+
+
 def induce_from_examples(training: dict, examples: list[dict], *,
                          max_proposals=24) -> dict:
     """Select a grammar path using labelled *training* examples only.
@@ -385,12 +422,20 @@ def induce_from_examples(training: dict, examples: list[dict], *,
     winners = [row for row in evaluations if row["error_count"] == 0]
     outcome = ("UNIQUE_TRAINING_HYPOTHESIS" if len(winners) == 1
                else "AMBIGUOUS" if winners else "UNRESOLVED")
+    competing = [c for c in candidates if c["fingerprint"] in
+                 {row["operator_fingerprint"] for row in winners}]
+    probes = (_discriminating_probes(facts, competing, examples)
+              if outcome == "AMBIGUOUS" else [])
     return {
         "schema": "rct.garden-hypothesis/v0.1", "status": outcome,
         "training_sha256": digest(training),
         "examples_sha256": digest(examples),
         "selected_predicate_path": winners[0]["predicate_path"] if len(winners) == 1 else None,
         "matched_candidate_count": len(winners),
+        "discriminating_probes": probes,
+        "probe_limitation": (
+            "INSUFFICIENT_CURRENT_REGIME_DIVERGENCE"
+            if outcome == "AMBIGUOUS" and not probes else None),
         "evaluations": evaluations,
         "qualityrag_admission": "INCONCLUSIVE", "promotion_authorized": False,
         "next_step": "HELDOUT_EVALUATION" if len(winners) == 1
