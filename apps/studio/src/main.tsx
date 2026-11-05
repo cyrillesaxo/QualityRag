@@ -55,6 +55,23 @@ function Studio(){
    setGardenConnected(false);setGardenStatus(String(e));
   }finally{setGardenBusy(false)}
  }
+ async function selfTestGarden(){
+  if(!gardenConnected)return;
+  setGardenBusy(true);
+  try{
+   const result=await gardenRequest('/garden/self-test',{});
+   if(result.schema!=='rct.garden-engine-self-test/v0.1'||
+      result.status!=='PASS'||result.synthetic_test_only!==true||
+      result.qualityrag_admission!=='INCONCLUSIVE'||
+      result.promotion_authorized!==false||result.paired_candidates!==6){
+    throw new Error('Engine self-test did not satisfy the research contract');
+   }
+   setGardenStatus('Engine self-test PASS: six synthetic configurations executed. Not research evidence.');
+  }catch(e){
+   setGardenConnected(false);
+   setGardenStatus('Engine self-test FAILED: '+String(e));
+  }finally{setGardenBusy(false)}
+ }
  async function investigateGarden(){
   if(!gardenConnected)return;
   setGardenBusy(true);setGardenReceipt(null);
@@ -272,6 +289,9 @@ function Studio(){
         placeholder="Separate Garden engine token"/></label>
       <button onClick={connectGarden} disabled={gardenBusy||!gardenToken.trim()}>
         {gardenBusy?'Connecting…':'Connect / refresh engine'}
+      </button>
+      <button onClick={selfTestGarden} disabled={gardenBusy||!gardenConnected}>
+        Run engine self-test
       </button>
     </div>
     <p className="status" role="status">{gardenStatus}</p>
