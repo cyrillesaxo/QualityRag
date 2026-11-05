@@ -182,3 +182,19 @@ strategies. Results are research candidates, not a new system capability claim.
 If training examples are ambiguous, the operator is **not** selected; the
 investigation yields a request for discriminating probes. The current
 implementation does not yet automatically generate or execute those probes.
+
+### Ambiguity and adversarial probing
+
+When multiple induced grammar paths fit the positive **and negative**
+training observations, the research kernel now abstains. It searches the
+bounded training graph for an unobserved subject/target query on which the
+candidate operators disagree and records that as a
+`DISCRIMINATING_PROBE_PROPOSED`.
+
+The proposed query has `reference_answer: UNOBSERVED`; its answer is never
+fabricated from the competing hypotheses. If no in-regime probe separates
+the remaining candidates, the result marks
+`INSUFFICIENT_CURRENT_REGIME_DIVERGENCE` and requires a different
+evidence regime. No candidate becomes a champion merely by winning a
+training comparison. This is a bounded active-test mechanism, **not**
+implementation of the canonical 15-cell D15/FFI investigator.
