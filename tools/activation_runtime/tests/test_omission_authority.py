@@ -47,7 +47,10 @@ class OmissionAuthorityTests(unittest.TestCase):
     def test_exact_output_review_authorizes_only_declared_omission_once(self):
         signed=self.signed();row=self.audit(signed=signed)
         self.assertEqual(row["finite_constraint_result"],"SAT")
-        self.assertEqual(row["omitted"],[{"field":"amount","ir_node_id":"custody"}])
+        self.assertEqual([(o["field"],o["ir_node_id"]) for o in row["omitted"]],[("amount","custody")])
+        omitted=row["omitted"][0]
+        self.assertEqual(omitted["location"],next(o["anchor"] for o in self.contract["obligations"] if o["field"]=="amount"))
+        self.assertEqual(omitted["refetch"],{"method":"REFETCH_FROM_CUSTODY","source_sha256":self.contract["source_sha256"]})
         self.assertEqual(row["omission_review"]["reviewer"],"reviewer")
         self.assertEqual(row["qualityrag_admission"],"INCONCLUSIVE");self.assertFalse(row["can_generate"])
         with self.assertRaises(PermissionError):self.audit(signed=signed)

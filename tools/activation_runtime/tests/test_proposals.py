@@ -22,9 +22,14 @@ class ProposalTests(unittest.TestCase):
             result=suggest(path)
             self.assertEqual(len(result["proposals"]),1)
             self.assertIsNone(result["proposals"][0]["confidence"])
+            self.assertEqual(result["proposals"][0]["suggested_cost"],
+                             {"events_to_append":1,"branches_affected":2,"review_time_ms":None,"basis":"UNMEASURED"})
             record_outcome(path,proposal_id=result["proposals"][0]["id"],actor="reviewer",
                            verdict="INCORRECT",useful=False,elapsed_ms=50,false_merge=True)
-            metrics=suggest(path)["metrics"]
+            after=suggest(path)
+            self.assertEqual(after["proposals"][0]["suggested_cost"]["review_time_ms"],50)
+            self.assertEqual(after["proposals"][0]["suggested_cost"]["basis"],"MEDIAN_REVIEWER_REPORTED")
+            metrics=after["metrics"]
             self.assertEqual(metrics["false_merge_rate"],1)
             self.assertEqual(metrics["reported_useful_rate"],0)
 

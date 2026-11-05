@@ -256,14 +256,14 @@
       "modules": [
         {
           "path": "tools/activation_runtime/run_research.py",
-          "sha256": "ef516a400343f8de7719cb92a67ff49180f0a2b01088c71c274f6e73592ac6c0"
+          "sha256": "d7811f29040cc661daa3d924ca317a8d95716d6903f9e5fd36dfbd58b146166b"
         },
         {
           "path": "tools/activation_runtime/worked_workflows.py",
           "sha256": "65d17c58b2781612008cdc70917f3397168b730401856826f9a6687ab00c85ef"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_demo_media.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_run_research.py; tools/activation_runtime/tests/test_demo_media.py",
       "remaining": "Independent replay on the pinned reference environment.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -344,7 +344,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
@@ -386,7 +386,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
         },
         {
           "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
@@ -394,7 +394,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_omission_authority.py",
-          "sha256": "9e364cbf0549176c49b10adc9f1db0415e265c4a90c6bbcf8c0ba26381bbc8f4"
+          "sha256": "bc8367c40d0c762fc0351c215b0b6352113fe33de064673043ba71f412da7638"
         },
         {
           "path": "tools/activation_runtime/reviewed_activation.py",
@@ -449,9 +449,13 @@
         {
           "path": "tools/activation_runtime/native_apx.py",
           "sha256": "90e2d1d1df9a5b1529027d06b853594372775829264f04ea0888e3a5121a0e15"
+        },
+        {
+          "path": "tools/activation_runtime/witness_graph.py",
+          "sha256": "97e060bfc2992d950fc196f6d76735431f2740caf89a76bde43d54abca95bd02"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_native_apx.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_witness_graph.py; tools/activation_runtime/tests/test_native_apx.py",
       "remaining": "Independent real-source ancestry/custody evidence; origin labels alone are insufficient.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -490,7 +494,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
         },
         {
           "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
@@ -498,7 +502,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_omission_authority.py",
-          "sha256": "9e364cbf0549176c49b10adc9f1db0415e265c4a90c6bbcf8c0ba26381bbc8f4"
+          "sha256": "bc8367c40d0c762fc0351c215b0b6352113fe33de064673043ba71f412da7638"
         },
         {
           "path": "tools/activation_runtime/reviewed_activation.py",
@@ -594,7 +598,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/pipeline.py",
-          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+          "sha256": "53c0a786fbfa5cad789cb74c390b0d115cf37e2c357c172b43ff6a7c8e595423"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -736,7 +740,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/search.py",
-          "sha256": "8c43f0cb2d8b01c76d28b31524c919bfd3bbc980e5a5f03e7fffdc3464d55368"
+          "sha256": "209e260190f2d1c2259ea6a97e43a9ace22dff97ee585b23074208fbb7a8ca06"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py",
@@ -778,7 +782,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/pipeline.py",
-          "sha256": "006d085af03dba2083dfde819ee3fec605bc9b7061c2dc79a9942df42724b7af"
+          "sha256": "53c0a786fbfa5cad789cb74c390b0d115cf37e2c357c172b43ff6a7c8e595423"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -862,7 +866,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
         },
         {
           "path": "tools/activation_runtime/semantic_ir.py",
@@ -1221,7 +1225,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/streaming.py",
-          "sha256": "4b8ff19646621589a16d24ac03bcec7406c3ae41f397da13b95682f305b30b25"
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py",
@@ -1397,7 +1401,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/experiments.py",
-          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_experiments.py",
@@ -1619,7 +1623,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/streaming.py",
-          "sha256": "4b8ff19646621589a16d24ac03bcec7406c3ae41f397da13b95682f305b30b25"
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
         },
         {
           "path": "docs/STREAMING-INDEX-BOUNDARIES.md",
@@ -1627,7 +1631,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_streaming_boundaries.py",
-          "sha256": "86be9f9031e63b37816810092695087b08cdf0d83f11cbf23da1726aa85b6510"
+          "sha256": "bd6ad59579dba6f150d387ada2c79ef5fe75c87e1e9c82ed15a19e0604629cc3"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py; tools/activation_runtime/tests/test_streaming_boundaries.py",
@@ -1669,7 +1673,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "ac712e4e33e906e561e24cebb1f095d376fa822bf0f2e8019248851955bb7bd1"
+          "sha256": "c05ad943fa478ea5137e92f47f342539dc1880e59d2bc3d25f72f15cfecfcb89"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -1711,7 +1715,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "ac712e4e33e906e561e24cebb1f095d376fa822bf0f2e8019248851955bb7bd1"
+          "sha256": "c05ad943fa478ea5137e92f47f342539dc1880e59d2bc3d25f72f15cfecfcb89"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -1827,7 +1831,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/proposals.py",
-          "sha256": "cc15e8c2a1c3b62a54b33d9266aa506262fd2d9116d7d46bb34714f311fd6b7a"
+          "sha256": "c268d5eb0d9b6e761e9d9f10224a1291c2164cec0ac89154662b648c69905535"
         },
         {
           "path": "tools/activation_runtime/web/index.html",
@@ -1977,7 +1981,7 @@
         },
         {
           "path": "tools/activation_runtime/experiments.py",
-          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
         },
         {
           "path": "tools/activation_runtime/tests/test_holdout_authority.py",
@@ -1985,7 +1989,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_experiments.py",
-          "sha256": "8333f416a0025862f18371540af6bca29469816ade331d1903786c4e2d1e97db"
+          "sha256": "adfcf7fc297572017214970dbc77e376d4497ea23e20882d66b60e8c41014fec"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_holdout_authority.py; tools/activation_runtime/tests/test_experiments.py",
@@ -2027,7 +2031,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/experiments.py",
-          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/research/receipts/engineering-v1.json",
@@ -2197,7 +2201,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/streaming.py",
-          "sha256": "4b8ff19646621589a16d24ac03bcec7406c3ae41f397da13b95682f305b30b25"
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
         },
         {
           "path": "tools/activation_runtime/release.py",
@@ -2275,7 +2279,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
-          "sha256": "f7f12809afd20d78995e9b21989490caae1eff1218712dc966868816126c008e"
+          "sha256": "5082a9ab49fcaeab43e7045ea6b7682582acfd714d70dc7abb4de58cc9aa5074"
         },
         {
           "path": "tools/activation_runtime/reviewed_activation.py",
@@ -2437,7 +2441,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/experiments.py",
-          "sha256": "09eda23d345c0b33ab7f7c84f9cc7a8ac60737262391815c7c4aadc638c57e2c"
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
         },
         {
           "path": "tools/activation_runtime/tests/test_holdout_authority.py",
@@ -2445,7 +2449,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_experiments.py",
-          "sha256": "8333f416a0025862f18371540af6bca29469816ade331d1903786c4e2d1e97db"
+          "sha256": "adfcf7fc297572017214970dbc77e376d4497ea23e20882d66b60e8c41014fec"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_holdout_authority.py; tools/activation_runtime/tests/test_experiments.py",
@@ -2487,7 +2491,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/run_research.py",
-          "sha256": "ef516a400343f8de7719cb92a67ff49180f0a2b01088c71c274f6e73592ac6c0"
+          "sha256": "d7811f29040cc661daa3d924ca317a8d95716d6903f9e5fd36dfbd58b146166b"
         },
         {
           "path": "tools/activation_runtime/worked_workflows.py",

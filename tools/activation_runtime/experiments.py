@@ -203,7 +203,7 @@ def run_codec_arms(training,heldout,output):
     held_ids={sha256(Path(p).read_bytes()).hexdigest() for p in heldout}
     if not train_ids or not held_ids or train_ids&held_ids:raise ValueError("Disjoint actual train/heldout sources required")
     out=Path(output);out.mkdir(parents=True,exist_ok=False)
-    start=perf_counter_ns();base=train_model(training)
+    start=perf_counter_ns();base=train_model(training);training_ns=perf_counter_ns()-start
     from .agents import propose
     model_proposal=propose("grammar-compiler",parent_grammar=base,task={"candidate_model_sizes":[1,4,8,16]})
     decoder_proposal=propose("activation-optimizer",parent_grammar=base,task={"decoder_variants":["scalar","strided"]})
@@ -211,12 +211,13 @@ def run_codec_arms(training,heldout,output):
         raise ValueError("Isolated candidate generation unavailable")
     sizes=[p["value"] for p in model_proposal["proposal"]["artifact"]["model_patches"]]
     variants=decoder_proposal["proposal"]["artifact"]["decoder_candidates"]
-    candidates=[];decoder_times={variant:0 for variant in variants}
+    candidates=[];decoder_times={variant:0 for variant in variants};model_search_ns=0
     for size in sizes:
         model={**deepcopy(base),"palette":base["palette"][:size]}
         score=0
         for source in training:
-            payload,_=encode(source,model);score+=len(canon(payload))
+            begin=perf_counter_ns();payload,_=encode(source,model);model_search_ns+=perf_counter_ns()-begin
+            score+=len(canon(payload))
             for variant in variants:
                 begin=perf_counter_ns();decode_frames(payload,model,implementation=variant)
                 decoder_times[variant]+=perf_counter_ns()-begin
@@ -224,6 +225,12 @@ def run_codec_arms(training,heldout,output):
     optimized=min(candidates,key=lambda x:(x[0],x[1]))[2]
     decoder=min(decoder_times,key=lambda key:(decoder_times[key],key))
     search_ns=perf_counter_ns()-start
+    decoder_search_ns=sum(decoder_times.values())
+    # Additional compute each arm needs beyond the shared base model: the decoder-only arm pays for
+    # decoder selection, the paired arm for model and decoder search. The fixed pair pays nothing extra.
+    extra={"fixed":0,"decoder-only":decoder_search_ns,"paired":model_search_ns+decoder_search_ns}
+    compute_by_arm={arm:{"shared_training_ns":training_ns,"additional_search_ns":ns,"total_ns":training_ns+ns}
+                    for arm,ns in extra.items()}
     results=[]
     for index,source in enumerate(heldout):
         original=frames(source)["frames"]
@@ -239,14 +246,14 @@ def run_codec_arms(training,heldout,output):
                  "model_sha256":__import__("tools.activation_runtime.scene_codec",fromlist=["digest"]).digest(model),
                  "payload_bytes":len(canon(payload)),"model_bytes":len(canon(model)),
                  "evaluation_ns":elapsed,"encoding":encoding,"exact_frame_match":reconstructed==original,
-                 "search_ns":search_ns if arm in {"paired","decoder-only"} else 0,
+                 "search_ns":extra[arm],
                  "decoder_variant":variant,"decoder_only_boundary":"Fixed encoder/model; decoder selected using training data only" if arm=="decoder-only" else None}
             results.append(row)
         baseline=benchmark_av1(source,out/("av1-"+str(index)+".mkv"),rights_ref="host-dataset-rights-reference-required",split_family="host-family-manifest-required")
         baseline["rgb_frame_match"]=frames(out/("av1-"+str(index)+".mkv"))["frames"]==original
         results.append({"case":index,"arm":"av1",**baseline})
     receipt={"schema":"qualityrag.codec-ablation/v1","measurements":results,
-             "training_search_ns":search_ns,"training_decoder_times_ns":decoder_times,"candidate_proposals":{"model":model_proposal,"decoder":decoder_proposal},"training_sources":sorted(train_ids),"heldout_sources":sorted(held_ids),
+             "training_search_ns":search_ns,"training_decoder_times_ns":decoder_times,"compute_by_arm":compute_by_arm,"candidate_proposals":{"model":model_proposal,"decoder":decoder_proposal},"training_sources":sorted(train_ids),"heldout_sources":sorted(held_ids),
              "neural_comparator":"UNAVAILABLE_UNTIL_PINNED_LICENSED_WEIGHTS_PROVIDED",
              "no_grammar_comparator":"RAW_RGB_SOURCE_BYTES","total_cost_advantage":"NOT_ESTABLISHED",
              "independent_fidelity_review":"PENDING","can_generate":False}

@@ -62,10 +62,18 @@ class Gardener:
                                     "events": []}
             elif branch not in branches:
                 raise ValueError("Missing branch")
+            if operation == "CHALLENGE":
+                branches[branch].setdefault("challenges", []).append(event_id)
             if operation == "PRUNE":
                 branches[branch]["active"] = False
+                branches[branch]["pruned_by"] = event_id
             elif operation == "REOPEN":
                 branches[branch]["active"] = True
+                # Reopening restores the reference context: what pruned it and every prior counterexample.
+                branches[branch]["reopened_context"] = {
+                    "reopen_event": event_id, "pruned_by": branches[branch].get("pruned_by"),
+                    "prior_challenges": list(branches[branch].get("challenges", [])),
+                    "parents": list(branches[branch]["parents"])}
             branches[branch]["events"].append(event_id)
             events[event_id] = body
             previous = event_hash

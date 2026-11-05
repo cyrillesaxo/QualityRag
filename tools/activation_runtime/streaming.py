@@ -71,6 +71,12 @@ def package(payload,model,store):
     return store.put(canon(index)),index
 
 
+# The codec grammar is pinned separately from the shared model: it names the payload schema,
+# codec and reconstruction algorithm a decoder must implement.
+SCENE_GRAMMAR={"schema":"qualityrag.scene-grammar/v1","payload_schema":PAYLOAD_SCHEMA,
+               "codec":"scene-palette-rgb/v1","algorithm":"flat-backdrop-rgb-xor/v1"}
+
+
 def release(index_sha,index,*,tenant,policy_ir_sha256,run_id,sequence):
     identity(tenant);identity(run_id)
     _index(index)
@@ -78,10 +84,12 @@ def release(index_sha,index,*,tenant,policy_ir_sha256,run_id,sequence):
     if type(sequence) is not int or not 1<=sequence<=1_000_000_000:raise ValueError("Release sequence")
     if any(not isinstance(h,str) or not HEX.fullmatch(h) for h in (index_sha,policy_ir_sha256,index["model_object"],index["header"]["source_sha256"])):
         raise ValueError("Pinned release hashes required")
+    decoder=sha256(__import__("pathlib").Path(__file__).with_name("scene_codec.py").read_bytes()).hexdigest()
     return {"schema":"qualityrag.scene-release/v1","codec":"scene-palette-rgb/v1",
-            "runtime_abi":"python-scene-reference/v1","decoder_sha256":sha256(__import__("pathlib").Path(__file__).with_name("scene_codec.py").read_bytes()).hexdigest(),"tenant":tenant,
+            "runtime_abi":"python-scene-reference/v1","decoder_sha256":decoder,"tenant":tenant,
             "index_sha256":index_sha,"source_sha256":index["header"]["source_sha256"],
-            "model_sha256":index["model_object"],"grammar_sha256":index["model_object"],
+            "model_sha256":index["model_object"],"grammar_sha256":digest(SCENE_GRAMMAR),
+            "required_modules":{"decoder":decoder,"grammar":digest(SCENE_GRAMMAR),"model":index["model_object"]},
             "policy_ir_sha256":policy_ir_sha256,"run_id":run_id,"sequence":sequence}
 
 

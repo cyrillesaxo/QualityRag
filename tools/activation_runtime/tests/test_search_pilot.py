@@ -15,6 +15,28 @@ class SearchPilotTests(unittest.TestCase):
         self.assertEqual(result["baseline"]["transformation"],"IDENTITY")
         self.assertEqual(bounded_search(source,labels,grammar,memory_bytes=1)["finite_constraint_result"],"UNKNOWN")
 
+    def test_search_reports_candidate_and_depth_limits_and_discards(self):
+        source={"schema":"rct.structured-ast/v1","facts":[{"id":"f1","subject":"a","predicate":"p","object":"b","source_ref":"s#1"},
+                {"id":"f2","subject":"b","predicate":"q","object":"c","source_ref":"s#2"}]}
+        labels=[{"subject":"a","object":"b","positive":True,"source_ref":"l#1"},
+                {"subject":"b","object":"c","positive":False,"source_ref":"l#2"}]
+        grammar={"schema":"rct.typed-operator-grammar/v1.4","predicate_types":{"p":["t","t"],"q":["t","t"]},
+                 "operators":["EDGE","AND"],"max_ast_nodes":3,"max_candidates":50}
+        result=bounded_search(source,labels,grammar)
+        self.assertEqual((result["budgets"]["max_candidates"],result["budgets"]["max_ast_nodes"]),(50,3))
+        found=result["discarded_candidates"]
+        self.assertGreater(found["enumerated"],1)
+        self.assertEqual(found["discarded"],found["enumerated"]-found["selected"])
+        tight=dict(grammar,max_candidates=1)  # count limit exceeded: inconclusive, with the count reported
+        over=bounded_search(source,labels,tight)
+        self.assertEqual(over["finite_constraint_result"],"UNKNOWN")
+        self.assertEqual(over["reason"],"CANDIDATE_BUDGET_EXCEEDED")
+        self.assertEqual(over["discarded_candidates"]["selected"],0)
+        self.assertGreater(over["discarded_candidates"]["enumerated"],1)
+        starved=bounded_search(source,labels,grammar,memory_bytes=1)  # sandbox refusal: nothing is invented
+        self.assertEqual(starved["discarded_candidates"]["enumerated"],"UNKNOWN")
+        self.assertEqual(starved["budgets"]["memory_bytes"],1)
+
     def test_device_classes_never_fabricated(self):
         result=measure({}, {},device_class="mobile",max_memory_bytes=100,max_latency_ns=100)
         self.assertEqual(result["status"],"UNKNOWN")

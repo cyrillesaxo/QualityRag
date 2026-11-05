@@ -38,6 +38,13 @@ def suggest(path,*,limit=20):
                     "confidence":None,"calibration":"UNMEASURED","suggested_operation":"TEST",
                     "review_required":True,"reversible":True})
         _outcome_schema(garden.db)
+        times=sorted(r[0] for r in garden.db.execute("SELECT elapsed_ms FROM gardener_proposal_outcomes"))
+        typical=times[len(times)//2] if times else None
+        for proposal in output:
+            # Cost of acting: events to append and branches touched are exact; review time comes
+            # only from reviewer-reported history and stays None until some exists.
+            proposal["suggested_cost"]={"events_to_append":1,"branches_affected":len(proposal["branches"]),
+                "review_time_ms":typical,"basis":"MEDIAN_REVIEWER_REPORTED" if times else "UNMEASURED"}
         with garden.db:
             for proposal in output:
                 garden.db.execute("INSERT OR IGNORE INTO gardener_proposal_candidates VALUES(?,?)",

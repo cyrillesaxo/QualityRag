@@ -8,21 +8,21 @@ Inventory: 14 BLOCKED, 2 DONE, 35 IN_REVIEW. Open: 49, with 196 criteria.
 
 | Category | Stories |
 |---|---|
-| Software work remaining (10) | US-003, US-007, US-013, US-014, US-017, US-024, US-035, US-037, US-041, US-050 |
+| Software work remaining (0) | — |
 | A written criterion requires human review (4) | US-009, US-031, US-046, US-051 |
-| Needs external input (9) | US-021, US-022, US-025, US-027, US-028, US-029, US-047, US-048, US-049 |
-| Document check only (1) | US-004 |
-| Written software criteria met (25) | US-005, US-006, US-008, US-010, US-011, US-012, US-015, US-016, US-018, US-019, US-020, US-023, US-026, US-030, US-032, US-033, US-034, US-036, US-038, US-039, US-040, US-042, US-043, US-044, US-045 |
+| Needs external input (11) | US-007, US-021, US-022, US-025, US-027, US-028, US-029, US-041, US-047, US-048, US-049 |
+| Document check only (2) | US-004, US-050 |
+| Written software criteria met (32) | US-003, US-005, US-006, US-008, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-023, US-024, US-026, US-030, US-032, US-033, US-034, US-035, US-036, US-037, US-038, US-039, US-040, US-042, US-043, US-044, US-045 |
 
 Criteria by kind and status:
 
 | Kind | GAP | IMPLEMENTED | NEEDS_INPUT | PARTIAL | TESTED |
 |---|---|---|---|---|---|
-| DOCUMENT | 1 | 1 | 6 | 0 | 0 |
-| EXTERNAL_INPUT | 0 | 0 | 17 | 3 | 0 |
+| DOCUMENT | 0 | 2 | 6 | 0 | 0 |
+| EXTERNAL_INPUT | 0 | 0 | 18 | 3 | 0 |
 | HUMAN_REVIEW | 0 | 0 | 5 | 0 | 0 |
 | MERGE | 0 | 0 | 1 | 0 | 0 |
-| SOFTWARE | 5 | 24 | 0 | 11 | 122 |
+| SOFTWARE | 0 | 23 | 0 | 0 | 138 |
 
 ## Signing
 
@@ -55,133 +55,6 @@ python -m tools.activation_runtime.story_completion attach --story US-0XX --impl
 - the receipt is bound to the story's acceptance text and module hashes, so any later change to those modules invalidates it and the story must be re-reviewed.
 
 Residual risk: someone holding a *retired* key could still sign a receipt dated between a run's completion and the retirement time. If a retired key may be in other hands, mark it `compromised`.
-
-## Software work remaining
-
-1. Implement the PARTIAL/GAP criteria in the table; these need no outside input.
-2. Add a test per criterion and record it in criteria_map.json.
-
-### US-003 · Independently replayable research harness (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Pinned tool/runtime versions and fixed fixtures. | SOFTWARE | PARTIAL | research/environment.lock.json records versions, but the run never compares the live runtime to it. |
-| 2 | Command emits source/policy/grammar digests, exact arguments, stdout and machine-readable result. | SOFTWARE | PARTIAL | Receipt lacks the exact arguments, tool versions and input digests. |
-| 3 | Repeat yields identical structural verdicts. | SOFTWARE | TESTED | `test_demo_media.test_two_independent_runs_have_identical_structural_receipts` |
-| 4 | Any unavailable dependency causes explicit SKIP/UNKNOWN, not synthetic PASS. | SOFTWARE | GAP | A missing ffmpeg raises instead of reporting SKIP/UNKNOWN. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_demo_media.py'`
-- **Inventory blocking text:** Independent replay on the pinned reference environment.
-
-### US-007 · WitnessGraph and evidence independence (BLOCKED)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Witness derivation graph records source roots and custody. | SOFTWARE | GAP | No witness derivation graph with source roots and custody exists in the activation runtime. |
-| 2 | Shared roots collapse under independence calculation. | SOFTWARE | GAP | No root-collapsing independence calculation. |
-| 3 | Contradictory, stale or missing witnesses cannot satisfy exact-information preservation. | SOFTWARE | GAP | — |
-| 4 | Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed. | SOFTWARE | PARTIAL | `test_native_apx.test_canonical_wbc_reduction_and_negative_input`; Canonical APX WBC/RCOC are exercised; WitnessGraph golden fixtures are not. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_native_apx.py'`
-- **Inventory blocking text:** Independent real-source ancestry/custody evidence; origin labels alone are insufficient.
-- **Notes:** Witness derivation graph with root collapse added in this branch; canonical APX WitnessGraph golden fixtures are still not available here.
-
-### US-013 · RCT candidate search with early stopping (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Explicit candidate count, depth, wall-clock/CPU and memory limits. | SOFTWARE | PARTIAL | `test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline`; CPU, memory and wall-clock limits exist; no explicit candidate-count or depth limit. |
-| 2 | Deterministic selection for fixed search inputs. | SOFTWARE | IMPLEMENTED | — |
-| 3 | Inconclusive search reports budget and discarded candidates. | SOFTWARE | PARTIAL | Budget is reported; discarded candidates are a marker string, not a list. |
-| 4 | Baseline “stay in present regime” is always considered. | SOFTWARE | TESTED | `test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline` |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_search_pilot.py'`
-- **Inventory blocking text:** Merged review and supported-host sandbox confirmation.
-
-### US-014 · Constraint compilation and reusable decisions (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Compilation records input obligation fingerprints and compiler version. | SOFTWARE | PARTIAL | Compiler version and inputs feed the cache key but are not recorded in the receipt. |
-| 2 | Repeated equivalent queries reuse artifacts without changing verdicts. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation` |
-| 3 | Invalidated input/policy triggers recompile. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation` |
-| 4 | Actual compiled artifact bytes, construction time, cache hits and runtime costs measured. | SOFTWARE | IMPLEMENTED | Receipt records compiled bytes, lookup/compile time and cache hits. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
-- **Inventory blocking text:** Independent replay of compiler/cache invalidation and measured amortization beyond authored fixtures.
-
-### US-017 · Exact information and reversible source custody (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Raw-source immutable reference or lossless original bytes retained. | SOFTWARE | TESTED | `test_runtime.test_corruption_and_duplicate_put` |
-| 2 | Every omission has a location and residual/refetch plan. | SOFTWARE | PARTIAL | Omissions record field and IR node, but no source location or residual/refetch plan. |
-| 3 | Content hash verification catches corruption. | SOFTWARE | TESTED | `test_runtime.test_corruption_and_duplicate_put` |
-| 4 | Unavailable original causes an explicit fidelity limitation/REFUSE. | SOFTWARE | TESTED | `test_reviewed_workflow.test_missing_original_or_artifact_custody_cannot_fallback` |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
-- **Inventory blocking text:** Deployed persistent custody with trusted host authorization and source authority.
-
-### US-024 · Model and grammar compatibility manifest (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Manifest pins payload codec, grammar hash, model hash, runtime ABI and required modules. | SOFTWARE | PARTIAL | Scene release pins codec, runtime ABI, decoder and model; grammar_sha256 is an alias of the model hash. |
-| 2 | Missing, incompatible or unsigned module refuses/fallbacks. | SOFTWARE | TESTED | `test_streaming_boundaries.test_host_open_selects_fallback_for_missing_index_or_model`, `test_streaming_boundaries.test_host_open_selects_fallback_for_revocation_expiry_or_floor` |
-| 3 | Old payloads are decoded only by verified-compatible decoders. | SOFTWARE | TESTED | `test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse` |
-| 4 | Incompatible upgrade cannot silently alter old content. | SOFTWARE | PARTIAL | `test_streaming_boundaries.test_variant_and_model_contracts_refuse_before_frame_loads` |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming.py'`
-- **Inventory blocking text:** Actual release-signing authority and supported-runtime approval.
-
-### US-035 · Dialectical operations and reversible pruning (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | All transitions are append-only events. | SOFTWARE | TESTED | `test_runtime.test_append_only_and_tamper_detection` |
-| 2 | PRUNE deactivates rather than deletes. | SOFTWARE | TESTED | `test_runtime.test_fork_synthesis_prune_reopen_and_restart` |
-| 3 | SYNTHESIZE records dependencies but never inherits VALIDATED from parent. | SOFTWARE | TESTED | `test_runtime.test_evidence_status_reflects_ledger_and_never_inherits` |
-| 4 | REOPEN restores reference context and prior counterexamples. | SOFTWARE | PARTIAL | REOPEN reactivates the branch; nothing exposes or tests that prior counterexamples come back with it. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
-- **Inventory blocking text:** Merged review and independently observed research-continuity behavior.
-
-### US-037 · Gardener proposal loop and review UI (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Bounded scheduled job operates only on authorized sources. | SOFTWARE | IMPLEMENTED | service.start_proposal_loop is bounded and tenant-scoped. |
-| 2 | Produces candidate events with source anchors, confidence/calibration and suggested cost. | SOFTWARE | GAP | Suggestions carry source anchors and confidence/calibration, but no suggested cost. |
-| 3 | Structural edits are previewable and reversible, promotion requires review. | SOFTWARE | TESTED | `test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout` |
-| 4 | Reports false merges, branch churn, cost and utility; no autonomous truth claim. | SOFTWARE | TESTED | `test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty` |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_proposals.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py'`
-- **Inventory blocking text:** Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.
-- **Notes:** Duplicate detection is exact-statement only; paraphrase detection would need a semantic labeler.
-
-### US-041 · Co-evolving encoder/decoder candidates (BLOCKED)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Run three arms: fixed pair, decoder-only evolution, paired evolution. | SOFTWARE | IMPLEMENTED | experiments.run_codec_arms runs fixed, decoder-only and paired arms. |
-| 2 | Exactly the same held-out content and PackSpec fidelity contract. | SOFTWARE | IMPLEMENTED | — |
-| 3 | Count all additional training/search compute. | SOFTWARE | PARTIAL | Search/training compute is not totalled per arm. |
-| 4 | No “compression advantage” claimed if paired arm does not outperform a qualified baseline within uncertainty. | EXTERNAL_INPUT | NEEDS_INPUT | `test_experiments.test_paired_intervals_reproduce_and_negative_results_retained`; A qualified learned/conventional baseline needs licensed weights and a corpus. |
-
-- **Exercise the software:** see tools/activation_runtime/research/receipts/engineering-v1.json
-- **Inventory blocking text:** Representative hidden corpus and qualified learned/conventional baselines including all search/training costs.
-
-### US-050 · Peer-review package and reproducible figures (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Paper includes exact existing grammar syntax, genuine PackSpec excerpts, versioned experimental proposals, and limitations. | DOCUMENT | NEEDS_INPUT | Reviewer checks research/paper/report.md. |
-| 2 | All figures regenerated by committed scripts from receipts. | SOFTWARE | IMPLEMENTED | research/build_report.py regenerates figures from committed receipts. |
-| 3 | Repository and PDFs contain a traceability matrix from each research claim to an experiment. | DOCUMENT | GAP | No claim-to-experiment traceability matrix in the paper or repository. |
-| 4 | No “validated compression improvement” in abstract until independently established. | DOCUMENT | NEEDS_INPUT | — |
-
-- **Exercise the software:** see tools/activation_runtime/research/paper/report.pdf
-- **Inventory blocking text:** Independent peer review; no validated compression improvement is claimed.
 
 ## A written criterion requires human review
 
@@ -241,6 +114,19 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 1. Supply the input named in the table (licensed data, device, private source or merge).
 2. Run the existing harness on it; keep raw outputs and negative results.
+
+### US-007 · WitnessGraph and evidence independence (BLOCKED)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Witness derivation graph records source roots and custody. | SOFTWARE | TESTED | `test_witness_graph.test_roots_and_custody_are_recorded_through_derivation`; witness_graph.py records source roots and custodians through derivations. |
+| 2 | Shared roots collapse under independence calculation. | SOFTWARE | TESTED | `test_witness_graph.test_shared_roots_collapse`, `test_witness_graph.test_merged_derivation_joins_groups_transitively`, `test_witness_graph.test_gate_counts_a_mirror_once`; No root-collapsing independence calculation. |
+| 3 | Contradictory, stale or missing witnesses cannot satisfy exact-information preservation. | SOFTWARE | TESTED | `test_witness_graph.test_contradicting_stale_unknown_or_missing_cannot_satisfy` |
+| 4 | Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed. | EXTERNAL_INPUT | NEEDS_INPUT | `test_native_apx.test_canonical_wbc_reduction_and_negative_input`; The vendored APX source has WBC/RCOC but no WitnessGraph package; canonical golden fixtures need the private source. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_witness_graph.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_native_apx.py'`
+- **Inventory blocking text:** Independent real-source ancestry/custody evidence; origin labels alone are insufficient.
+- **Notes:** Witness derivation graph with root collapse added in this branch; canonical APX WitnessGraph golden fixtures are still not available here.
 
 ### US-021 · FF-RCT native-regime integration (BLOCKED)
 
@@ -318,6 +204,18 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Inventory blocking text:** Licensed hash-pinned neural checkpoint, dependencies and an actually qualified fidelity-matched run.
 - **Notes:** AV1: SVT-AV1 or libaom. Learned codec: CompressAI (code BSD-3-Clause-Clear); confirm the pretrained weights' licence separately.
 
+### US-041 · Co-evolving encoder/decoder candidates (BLOCKED)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Run three arms: fixed pair, decoder-only evolution, paired evolution. | SOFTWARE | IMPLEMENTED | experiments.run_codec_arms runs fixed, decoder-only and paired arms. |
+| 2 | Exactly the same held-out content and PackSpec fidelity contract. | SOFTWARE | IMPLEMENTED | — |
+| 3 | Count all additional training/search compute. | SOFTWARE | TESTED | `test_experiments.test_codec_arms_count_additional_search_compute_per_arm`; compute_by_arm totals shared training plus each arm's additional search. |
+| 4 | No “compression advantage” claimed if paired arm does not outperform a qualified baseline within uncertainty. | EXTERNAL_INPUT | NEEDS_INPUT | `test_experiments.test_paired_intervals_reproduce_and_negative_results_retained`; A qualified learned/conventional baseline needs licensed weights and a corpus. |
+
+- **Exercise the software:** see tools/activation_runtime/research/receipts/engineering-v1.json
+- **Inventory blocking text:** Representative hidden corpus and qualified learned/conventional baselines including all search/training costs.
+
 ### US-047 · Independent acceptance ledger (IN_REVIEW)
 
 | # | Criterion | Kind | Status | Evidence / note |
@@ -371,10 +269,35 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Exercise the software:** see tools/activation_runtime/research/paper/report.md
 - **Inventory blocking text:** Independent novelty assessment; no priority or superiority claim is made.
 
+### US-050 · Peer-review package and reproducible figures (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Paper includes exact existing grammar syntax, genuine PackSpec excerpts, versioned experimental proposals, and limitations. | DOCUMENT | NEEDS_INPUT | Reviewer checks research/paper/report.md. |
+| 2 | All figures regenerated by committed scripts from receipts. | SOFTWARE | IMPLEMENTED | research/build_report.py regenerates figures from committed receipts. |
+| 3 | Repository and PDFs contain a traceability matrix from each research claim to an experiment. | DOCUMENT | IMPLEMENTED | research/build_report.py writes a claim-to-evidence matrix into report.md and the PDF. |
+| 4 | No “validated compression improvement” in abstract until independently established. | DOCUMENT | NEEDS_INPUT | — |
+
+- **Exercise the software:** see tools/activation_runtime/research/paper/report.pdf
+- **Inventory blocking text:** Independent peer review; no validated compression improvement is claimed.
+
 ## Written software criteria met
 
 1. Every written criterion is TESTED or IMPLEMENTED on this branch.
 2. Remaining: merge, then record acceptance. Where the inventory's *blocking* text asks for more than the written criteria, that is flagged.
+
+### US-003 · Independently replayable research harness (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Pinned tool/runtime versions and fixed fixtures. | SOFTWARE | TESTED | `test_run_research.test_environment_mismatch_is_reported`; Live runtime compared with research/environment.lock.json; mismatches reported in the receipt. |
+| 2 | Command emits source/policy/grammar digests, exact arguments, stdout and machine-readable result. | SOFTWARE | TESTED | `test_run_research.test_receipt_records_invocation_inputs_and_environment`, `test_run_research.test_full_run_writes_identical_stdout_and_repeats_structurally`; Receipt records argv, input digests and environment; stdout kept as stdout.json. |
+| 3 | Repeat yields identical structural verdicts. | SOFTWARE | TESTED | `test_demo_media.test_two_independent_runs_have_identical_structural_receipts` |
+| 4 | Any unavailable dependency causes explicit SKIP/UNKNOWN, not synthetic PASS. | SOFTWARE | TESTED | `test_run_research.test_missing_dependency_is_skip_not_pass`; Missing ffmpeg marks dependent components SKIP and the run INCOMPLETE. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_run_research.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_demo_media.py'`
+- **Inventory blocking text:** Independent replay on the pinned reference environment.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
 ### US-005 · Purpose-scoped information obligations (IN_REVIEW)
 
@@ -454,6 +377,32 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Inventory blocking text:** Independent review of the finite source-to-target mapping.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
+### US-013 · RCT candidate search with early stopping (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Explicit candidate count, depth, wall-clock/CPU and memory limits. | SOFTWARE | TESTED | `test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards`; Candidate-count and depth limits come from the reused typed grammar and are reported with CPU/memory/wall budgets. |
+| 2 | Deterministic selection for fixed search inputs. | SOFTWARE | IMPLEMENTED | — |
+| 3 | Inconclusive search reports budget and discarded candidates. | SOFTWARE | TESTED | `test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards` |
+| 4 | Baseline “stay in present regime” is always considered. | SOFTWARE | TESTED | `test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline` |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_search_pilot.py'`
+- **Inventory blocking text:** Merged review and supported-host sandbox confirmation.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
+### US-014 · Constraint compilation and reusable decisions (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Compilation records input obligation fingerprints and compiler version. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation`; Receipt records compiler_version and input fingerprints. |
+| 2 | Repeated equivalent queries reuse artifacts without changing verdicts. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation` |
+| 3 | Invalidated input/policy triggers recompile. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation` |
+| 4 | Actual compiled artifact bytes, construction time, cache hits and runtime costs measured. | SOFTWARE | IMPLEMENTED | Receipt records compiled bytes, lookup/compile time and cache hits. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
+- **Inventory blocking text:** Independent replay of compiler/cache invalidation and measured amortization beyond authored fixtures.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
 ### US-015 · Finite equivalence proof and counterexamples (IN_REVIEW)
 
 | # | Criterion | Kind | Status | Evidence / note |
@@ -478,6 +427,19 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_preservation.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_semantic_ir.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_observation_service.py'`
 - **Inventory blocking text:** Canonical K/B/C/T source/API parity and independent semantic annotation review remain unavailable.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
+### US-017 · Exact information and reversible source custody (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Raw-source immutable reference or lossless original bytes retained. | SOFTWARE | TESTED | `test_runtime.test_corruption_and_duplicate_put` |
+| 2 | Every omission has a location and residual/refetch plan. | SOFTWARE | TESTED | `test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once`; Each authorized omission carries its source anchor and a REFETCH_FROM_CUSTODY plan. |
+| 3 | Content hash verification catches corruption. | SOFTWARE | TESTED | `test_runtime.test_corruption_and_duplicate_put` |
+| 4 | Unavailable original causes an explicit fidelity limitation/REFUSE. | SOFTWARE | TESTED | `test_reviewed_workflow.test_missing_original_or_artifact_custody_cannot_fallback` |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
+- **Inventory blocking text:** Deployed persistent custody with trusted host authorization and source authority.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
 ### US-018 · Source adapters (text, PDF, HTML, CSV/SQL) (IN_REVIEW)
@@ -530,6 +492,19 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_preservation.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_reviewed_workflow.py'`
 - **Inventory blocking text:** Merged review; the interpreter is finite and deliberately cannot certify domain truth.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
+### US-024 · Model and grammar compatibility manifest (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Manifest pins payload codec, grammar hash, model hash, runtime ABI and required modules. | SOFTWARE | TESTED | `test_streaming_boundaries.test_manifest_pins_codec_grammar_model_abi_and_modules_separately`; Grammar is now pinned separately from the model, with an explicit required-module map. |
+| 2 | Missing, incompatible or unsigned module refuses/fallbacks. | SOFTWARE | TESTED | `test_streaming_boundaries.test_host_open_selects_fallback_for_missing_index_or_model`, `test_streaming_boundaries.test_host_open_selects_fallback_for_revocation_expiry_or_floor` |
+| 3 | Old payloads are decoded only by verified-compatible decoders. | SOFTWARE | TESTED | `test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse` |
+| 4 | Incompatible upgrade cannot silently alter old content. | SOFTWARE | TESTED | `test_streaming_boundaries.test_release_from_another_decoder_or_grammar_cannot_play_old_content` |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming.py'`
+- **Inventory blocking text:** Actual release-signing authority and supported-runtime approval.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
 ### US-026 · Deterministic finite reconstruction (IN_REVIEW)
@@ -597,6 +572,19 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Inventory blocking text:** Merged review and independent restart/custody replay.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
+### US-035 · Dialectical operations and reversible pruning (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | All transitions are append-only events. | SOFTWARE | TESTED | `test_runtime.test_append_only_and_tamper_detection` |
+| 2 | PRUNE deactivates rather than deletes. | SOFTWARE | TESTED | `test_runtime.test_fork_synthesis_prune_reopen_and_restart` |
+| 3 | SYNTHESIZE records dependencies but never inherits VALIDATED from parent. | SOFTWARE | TESTED | `test_runtime.test_evidence_status_reflects_ledger_and_never_inherits` |
+| 4 | REOPEN restores reference context and prior counterexamples. | SOFTWARE | TESTED | `test_runtime.test_reopen_restores_prior_counterexamples`; REOPEN exposes reopened_context: what pruned the branch and every prior challenge. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
+- **Inventory blocking text:** Merged review and independently observed research-continuity behavior.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
 ### US-036 · Evidence-state separation and Research Ledger link (IN_REVIEW)
 
 | # | Criterion | Kind | Status | Evidence / note |
@@ -609,6 +597,20 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_ledger_validation.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_sqlite_validation_atomic.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_postgres_validation.py' && python -m unittest discover -s tools/research_ledger/tests -p 'test_dependencies.py'`
 - **Inventory blocking text:** Real independently authorized scope-bounded validation/evidence and deployment review; SQLite and PostgreSQL signed validation are implemented.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
+### US-037 · Gardener proposal loop and review UI (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Bounded scheduled job operates only on authorized sources. | SOFTWARE | IMPLEMENTED | service.start_proposal_loop is bounded and tenant-scoped. |
+| 2 | Produces candidate events with source anchors, confidence/calibration and suggested cost. | SOFTWARE | TESTED | `test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty`; suggested_cost: events, branches affected, and median reviewer-reported time (None until history exists). |
+| 3 | Structural edits are previewable and reversible, promotion requires review. | SOFTWARE | TESTED | `test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout` |
+| 4 | Reports false merges, branch churn, cost and utility; no autonomous truth claim. | SOFTWARE | TESTED | `test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty` |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_proposals.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py'`
+- **Inventory blocking text:** Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+- **Notes:** Duplicate detection is exact-statement only; paraphrase detection would need a semantic labeler.
 
 ### US-038 · Isolated agent experiment harness (IN_REVIEW)
 
@@ -669,7 +671,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 1 | Authenticated principal and tenant-scoped authorization per source and artifact. | SOFTWARE | TESTED | `test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced` |
 | 2 | Cross-tenant reads, guessed IDs and leaked residuals denied in tests. | SOFTWARE | TESTED | `test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced`, `test_observation_service.test_cross_tenant_guessed_source_and_unsupported_options_refuse` |
 | 3 | Reviewer and custodian identities cryptographically bound. | SOFTWARE | TESTED | `test_service_sdk.test_signed_review_independence_replay_and_binding` |
-| 4 | Logs do not disclose source content outside authorized scope. | SOFTWARE | IMPLEMENTED | HTTP request logging is disabled; no test asserts it. |
+| 4 | Logs do not disclose source content outside authorized scope. | SOFTWARE | TESTED | `test_service_sdk.test_requests_and_failures_write_nothing_to_logs` |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_service_sdk.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py'`
 - **Inventory blocking text:** Configured real tenant principals, reviewer/custodian authority and deployment privacy review.

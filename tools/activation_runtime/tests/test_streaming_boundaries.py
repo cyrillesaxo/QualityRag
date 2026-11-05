@@ -32,6 +32,26 @@ class StreamingBoundaryTests(unittest.TestCase):
         return StreamSession(self.store,signed_release=signed,keys={"release":self.key.public_key()},
                              expected_policy_sha256="a"*64,minimum_sequence=floor,as_of="2026-11-04T12:00:00Z",fallback_ref="authorized-baseline")
 
+    def test_manifest_pins_codec_grammar_model_abi_and_modules_separately(self):
+        from tools.activation_runtime.streaming import SCENE_GRAMMAR
+        m=self.manifest
+        self.assertEqual(m["grammar_sha256"],digest(SCENE_GRAMMAR))
+        self.assertNotEqual(m["grammar_sha256"],m["model_sha256"])
+        self.assertEqual(m["required_modules"],{"decoder":m["decoder_sha256"],"grammar":m["grammar_sha256"],"model":m["model_sha256"]})
+        self.assertEqual((m["codec"],m["runtime_abi"]),("scene-palette-rgb/v1","python-scene-reference/v1"))
+
+    def test_release_from_another_decoder_or_grammar_cannot_play_old_content(self):
+        # A release signed under a different decoder or grammar is refused outright,
+        # so an incompatible upgrade can never silently re-render pinned content.
+        for field in ("decoder_sha256","grammar_sha256"):
+            manifest=deepcopy(self.manifest);manifest[field]="e"*64
+            manifest["required_modules"]={**manifest["required_modules"],field.split("_")[0]:"e"*64}
+            signed=sign_release(manifest,self.key,key_id="release",issued_at="2026-11-04T00:00:00Z",expires_at="2026-11-05T00:00:00Z")
+            with self.assertRaises(ValueError):
+                StreamSession(self.store,signed_release=signed,keys={"release":self.key.public_key()},expected_policy_sha256="a"*64,
+                              minimum_sequence=1,as_of="2026-11-04T12:00:00Z",fallback_ref="authorized-baseline")
+        self.assertEqual(self.session().seek(0,3)["frames"],self.frames)
+
     def test_cold_start_fetches_only_index_model_and_requested_frame(self):
         session=self.session();self.assertEqual(len(session.loads),2)
         row=session.seek(1,2);self.assertEqual(row["frames"],self.frames[1:2])

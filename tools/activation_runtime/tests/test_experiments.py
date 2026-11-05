@@ -41,3 +41,28 @@ class ExperimentTests(unittest.TestCase):
         self.assertFalse(gate["can_release"])
         evidence={k:{"receipt_sha256":"a"*64,"status":"INDEPENDENTLY_VERIFIED"} for k in REQUIRED}
         self.assertIn("CRITICAL_FIELD_LOSS",readiness(evidence,critical_field_failures=1,total_cost_comparison="MEASURED_NO_CROSSOVER")["blockers"])
+
+    def test_codec_arms_count_additional_search_compute_per_arm(self):
+        import shutil, subprocess, tempfile
+        from tools.activation_runtime.experiments import run_codec_arms
+        if not shutil.which("ffmpeg"):
+            self.skipTest("ffmpeg unavailable")
+        with tempfile.TemporaryDirectory() as root:
+            clips=[]
+            for i in range(4):
+                path=Path(root)/f"clip{i}.mkv"
+                subprocess.run(["ffmpeg","-nostdin","-v","error","-f","lavfi","-i","testsrc2=size=32x32:rate=4",
+                                "-vf",f"hue=h={i*73}","-t","1","-c:v","ffv1","-fflags","+bitexact","-flags:v","+bitexact",
+                                "-map_metadata","-1",str(path)],check=True,capture_output=True,timeout=30)
+                clips.append(path)
+            receipt=run_codec_arms(clips[:2],clips[2:],Path(root)/"out")
+        arms=receipt["compute_by_arm"]
+        self.assertEqual(arms["fixed"]["additional_search_ns"],0)
+        self.assertGreater(arms["decoder-only"]["additional_search_ns"],0)
+        self.assertGreater(arms["paired"]["additional_search_ns"],arms["decoder-only"]["additional_search_ns"])
+        for arm in arms.values():
+            self.assertEqual(arm["total_ns"],arm["shared_training_ns"]+arm["additional_search_ns"])
+        for row in receipt["measurements"]:
+            if row["arm"] in arms:
+                self.assertEqual(row["search_ns"],arms[row["arm"]]["additional_search_ns"])
+

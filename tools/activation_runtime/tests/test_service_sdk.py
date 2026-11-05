@@ -83,6 +83,17 @@ class ServiceSDKTests(unittest.TestCase):
         self.assertEqual(state["events"]["e2"]["evidence_ids"],["run1"])
         self.assertEqual(state["events"]["e2"]["actor"],"alice")
 
+    def test_requests_and_failures_write_nothing_to_logs(self):
+        import contextlib,io,urllib.request
+        err=io.StringIO()
+        with contextlib.redirect_stderr(err):
+            source=self.client.upload(b"SECRET-SOURCE-CONTENT")["source_sha256"]
+            with self.assertRaises(HTTPError):  # failed authentication must not log either
+                urllib.request.urlopen(urllib.request.Request(self.endpoint+"/api/source",data=b'{"base64":"U0VDUkVU"}',
+                    headers={"Authorization":"Bearer forged","Content-Type":"application/json"},method="POST"),timeout=5)
+        self.assertTrue(source)
+        self.assertEqual(err.getvalue(),"")
+
     def test_cross_tenant_guessed_id_denied_and_scope_enforced(self):
         request=self.request()
         foreign=Client(self.endpoint,self.make_token("bob","b"))

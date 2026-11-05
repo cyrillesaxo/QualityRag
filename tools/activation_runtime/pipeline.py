@@ -74,6 +74,9 @@ def activate_signed(raw, artifact, *, signed_manifest, trusted_keys, store,
     return receipt
 
 
+COMPILER_VERSION = "rct-typed-v1.4"
+
+
 class RCTCache:
     """Host-local compiled decision cache; changing any input invalidates reuse."""
     def __init__(self):
@@ -82,8 +85,10 @@ class RCTCache:
 
     def evaluate(self, training, labels, heldout, heldout_labels, grammar, ir, *,
                  purpose, witnesses, as_of):
+        inputs = {"training": fingerprint(training), "labels": fingerprint(labels),
+                  "grammar": fingerprint(grammar), "ir": fingerprint(ir)}
         key = fingerprint({"training": training, "labels": labels, "grammar": grammar,
-                           "ir": ir, "compiler": "rct-typed-v1.4"})
+                           "ir": ir, "compiler": COMPILER_VERSION})
         start = perf_counter_ns()
         hit = key in self.entries
         if hit:
@@ -96,7 +101,8 @@ class RCTCache:
             self.entries[key] = copy.deepcopy(rule)
         compile_ns = perf_counter_ns() - start
         receipt = {"schema": "qualityrag.activation-rct/v1", "rule": rule,
-                   "cache_key": key, "cache_hit": hit,
+                   "cache_key": key, "cache_hit": hit, "cache_hits_total": self.hits,
+                   "compiler_version": COMPILER_VERSION, "input_fingerprints": inputs,
                    "compiled_bytes": len(canonical(rule)), "lookup_or_compile_ns": compile_ns,
                    "qualityrag_admission": "INCONCLUSIVE", "can_generate": False}
         if rule["status"] != "CANDIDATE":

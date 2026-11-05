@@ -3,298 +3,1634 @@
   "note": "Per-criterion classification of every open FR.MD story, checked against code and tests on 2026-11-05. kind: SOFTWARE | DOCUMENT | HUMAN_REVIEW (the criterion text itself requires independent human judgement) | EXTERNAL_INPUT (real data, devices, private sources or deployment) | MERGE. status: TESTED (named tests) | IMPLEMENTED (code verified, no dedicated test) | PARTIAL | GAP | NEEDS_INPUT. This map grants no acceptance.",
   "stories": {
     "US-003": [
-      {"n": 1, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "research/environment.lock.json records versions, but the run never compares the live runtime to it."},
-      {"n": 2, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "Receipt lacks the exact arguments, tool versions and input digests."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_demo_media.test_two_independent_runs_have_identical_structural_receipts"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "GAP", "evidence": [], "note": "A missing ffmpeg raises instead of reporting SKIP/UNKNOWN."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_run_research.test_environment_mismatch_is_reported"
+        ],
+        "note": "Live runtime compared with research/environment.lock.json; mismatches reported in the receipt."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_run_research.test_receipt_records_invocation_inputs_and_environment",
+          "test_run_research.test_full_run_writes_identical_stdout_and_repeats_structurally"
+        ],
+        "note": "Receipt records argv, input digests and environment; stdout kept as stdout.json."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_demo_media.test_two_independent_runs_have_identical_structural_receipts"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_run_research.test_missing_dependency_is_skip_not_pass"
+        ],
+        "note": "Missing ffmpeg marks dependent components SKIP and the run INCOMPLETE."
+      }
     ],
     "US-004": [
-      {"n": 1, "kind": "DOCUMENT", "status": "NEEDS_INPUT", "evidence": [], "note": "Reviewer checks research/prior-art.md."},
-      {"n": 2, "kind": "DOCUMENT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 3, "kind": "DOCUMENT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 4, "kind": "DOCUMENT", "status": "NEEDS_INPUT", "evidence": []}
+      {
+        "n": 1,
+        "kind": "DOCUMENT",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Reviewer checks research/prior-art.md."
+      },
+      {
+        "n": 2,
+        "kind": "DOCUMENT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 3,
+        "kind": "DOCUMENT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 4,
+        "kind": "DOCUMENT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      }
     ],
     "US-005": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_executable_dsl_and_role_inversion"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_exact_unicode_character_and_byte_anchors"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_unknown_field_not_disposable_and_policy_invalidation"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_profiles.test_distinct_profiles_protect_their_own_load_bearing_fields"], "note": "Contracts carry task, author, reviewer, version and authorization."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_executable_dsl_and_role_inversion"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_exact_unicode_character_and_byte_anchors"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_unknown_field_not_disposable_and_policy_invalidation"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_profiles.test_distinct_profiles_protect_their_own_load_bearing_fields"
+        ],
+        "note": "Contracts carry task, author, reviewer, version and authorization."
+      }
     ],
     "US-006": [
-      {"n": 1, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "preservation.py uses unified_gate._checked_ir."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_review_signature_binds_exact_source_policy_and_obligations", "test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_omission_authority.test_unknown_missing_fields_remain_unknown_and_require_residual"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_omission_authority.test_ir_content_cannot_change_while_retaining_claimed_hash", "test_reviewed_workflow.test_source_artifact_and_policy_tampering_preserve_review_for_valid_request"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "preservation.py uses unified_gate._checked_ir."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_review_signature_binds_exact_source_policy_and_obligations",
+          "test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_omission_authority.test_unknown_missing_fields_remain_unknown_and_require_residual"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_omission_authority.test_ir_content_cannot_change_while_retaining_claimed_hash",
+          "test_reviewed_workflow.test_source_artifact_and_policy_tampering_preserve_review_for_valid_request"
+        ]
+      }
     ],
     "US-007": [
-      {"n": 1, "kind": "SOFTWARE", "status": "GAP", "evidence": [], "note": "No witness derivation graph with source roots and custody exists in the activation runtime."},
-      {"n": 2, "kind": "SOFTWARE", "status": "GAP", "evidence": [], "note": "No root-collapsing independence calculation."},
-      {"n": 3, "kind": "SOFTWARE", "status": "GAP", "evidence": []},
-      {"n": 4, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": ["test_native_apx.test_canonical_wbc_reduction_and_negative_input"], "note": "Canonical APX WBC/RCOC are exercised; WitnessGraph golden fixtures are not."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_witness_graph.test_roots_and_custody_are_recorded_through_derivation"
+        ],
+        "note": "witness_graph.py records source roots and custodians through derivations."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_witness_graph.test_shared_roots_collapse",
+          "test_witness_graph.test_merged_derivation_joins_groups_transitively",
+          "test_witness_graph.test_gate_counts_a_mirror_once"
+        ],
+        "note": "No root-collapsing independence calculation."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_witness_graph.test_contradicting_stale_unknown_or_missing_cannot_satisfy"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [
+          "test_native_apx.test_canonical_wbc_reduction_and_negative_input"
+        ],
+        "note": "The vendored APX source has WBC/RCOC but no WitnessGraph package; canonical golden fixtures need the private source."
+      }
     ],
     "US-008": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_omission_authority.test_unknown_missing_fields_remain_unknown_and_require_residual"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_omission_authority.test_unsigned_omission_is_unsat_and_boolean_approval_refuses"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_unknown_field_not_disposable_and_policy_invalidation"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_omission_authority.test_unknown_missing_fields_remain_unknown_and_require_residual"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_omission_authority.test_unsigned_omission_is_unsat_and_boolean_approval_refuses"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_unknown_field_not_disposable_and_policy_invalidation"
+        ]
+      }
     ],
     "US-009": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_profiles.test_distinct_profiles_protect_their_own_load_bearing_fields"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_profiles.test_distinct_profiles_protect_their_own_load_bearing_fields"]},
-      {"n": 3, "kind": "HUMAN_REVIEW", "status": "NEEDS_INPUT", "evidence": [], "note": "Criterion requires independent reviewers to score adversarial examples."},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_profiles.test_distinct_profiles_protect_their_own_load_bearing_fields"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_profiles.test_distinct_profiles_protect_their_own_load_bearing_fields"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "HUMAN_REVIEW",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Criterion requires independent reviewers to score adversarial examples."
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"
+        ]
+      }
     ],
     "US-010": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["semantic_store/test_rct_typed_grammar"], "note": "Checked by the reused module's own suite."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["semantic_store/test_rct_typed_grammar"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["semantic_store/test_rct_typed_grammar"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "semantic_store/test_rct_typed_grammar"
+        ],
+        "note": "Checked by the reused module's own suite."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "semantic_store/test_rct_typed_grammar"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "semantic_store/test_rct_typed_grammar"
+        ]
+      }
     ],
     "US-011": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_exhaustive_counterexample_all_pairs"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_exhaustive_counterexample_all_pairs"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "interpreter.execute_plan returns UNKNOWN when no check is UNSAT and verification is incomplete."},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_signed_activation_uses_real_gate_and_remains_unadmitted"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_exhaustive_counterexample_all_pairs"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_exhaustive_counterexample_all_pairs"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "interpreter.execute_plan returns UNKNOWN when no check is UNSAT and verification is incomplete."
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_signed_activation_uses_real_gate_and_remains_unadmitted"
+        ]
+      }
     ],
     "US-012": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_reversible_rename_updates_all_roles_orders_and_hashes"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_canonical_roundtrip_and_input_order_are_deterministic"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_missing_nonentity_and_unknown_role_endpoints_refuse"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_mapping_must_be_total_bijective_and_bounded"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_reversible_rename_updates_all_roles_orders_and_hashes"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_canonical_roundtrip_and_input_order_are_deterministic"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_missing_nonentity_and_unknown_role_endpoints_refuse"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_mapping_must_be_total_bijective_and_bounded"
+        ]
+      }
     ],
     "US-013": [
-      {"n": 1, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": ["test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline"], "note": "CPU, memory and wall-clock limits exist; no explicit candidate-count or depth limit."},
-      {"n": 2, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": []},
-      {"n": 3, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "Budget is reported; discarded candidates are a marker string, not a list."},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards"
+        ],
+        "note": "Candidate-count and depth limits come from the reused typed grammar and are reported with CPU/memory/wall budgets."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": []
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline"
+        ]
+      }
     ],
     "US-014": [
-      {"n": 1, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "Compiler version and inputs feed the cache key but are not recorded in the receipt."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "Receipt records compiled bytes, lookup/compile time and cache hits."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+        ],
+        "note": "Receipt records compiler_version and input fingerprints."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "Receipt records compiled bytes, lookup/compile time and cache hits."
+      }
     ],
     "US-015": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_exhaustive_counterexample_all_pairs"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_executable_dsl_and_role_inversion"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_exhaustive_counterexample_all_pairs"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "Result carries scope DECLARED_FINITE_GRAPH_ONLY."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_exhaustive_counterexample_all_pairs"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_executable_dsl_and_role_inversion"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_exhaustive_counterexample_all_pairs"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "Result carries scope DECLARED_FINITE_GRAPH_ONLY."
+      }
     ],
     "US-016": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_complete_typed_inventory_anchors_quantities_and_unknowns"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_relation_requires_exact_binary_entity_endpoints", "test_semantic_ir.test_entity_and_unknown_nodes_cannot_assert_relation_joins"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_unicode_quote_offsets_use_utf8_bytes_without_normalizing_source"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_semantic_ir.test_canonical_roundtrip_and_input_order_are_deterministic"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_complete_typed_inventory_anchors_quantities_and_unknowns"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_relation_requires_exact_binary_entity_endpoints",
+          "test_semantic_ir.test_entity_and_unknown_nodes_cannot_assert_relation_joins"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_unicode_quote_offsets_use_utf8_bytes_without_normalizing_source"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_semantic_ir.test_canonical_roundtrip_and_input_order_are_deterministic"
+        ]
+      }
     ],
     "US-017": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_corruption_and_duplicate_put"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "Omissions record field and IR node, but no source location or residual/refetch plan."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_corruption_and_duplicate_put"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_reviewed_workflow.test_missing_original_or_artifact_custody_cannot_fallback"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_corruption_and_duplicate_put"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"
+        ],
+        "note": "Each authorized omission carries its source anchor and a REFETCH_FROM_CUSTODY plan."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_corruption_and_duplicate_put"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_reviewed_workflow.test_missing_original_or_artifact_custody_cannot_fallback"
+        ]
+      }
     ],
     "US-018": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_pdf_and_text_adapters_repeated_headings", "test_runtime.test_csv_multiline_and_exact_strings"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_pdf_and_text_adapters_repeated_headings", "test_runtime.test_csv_multiline_and_exact_strings"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "PDF projection lists unsupported content and reports coverage UNKNOWN."},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_pdf_and_text_adapters_repeated_headings", "test_runtime.test_bad_csv"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_pdf_and_text_adapters_repeated_headings",
+          "test_runtime.test_csv_multiline_and_exact_strings"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_pdf_and_text_adapters_repeated_headings",
+          "test_runtime.test_csv_multiline_and_exact_strings"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "PDF projection lists unsupported content and reports coverage UNKNOWN."
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_pdf_and_text_adapters_repeated_headings",
+          "test_runtime.test_bad_csv"
+        ]
+      }
     ],
     "US-019": [
-      {"n": 1, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "adapters.py calls the existing v1.2 and v1.3 extractors."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["semantic_store/test_linguistic_relation_extraction"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["semantic_store/test_explicit_relation_extraction"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_executable_dsl_and_role_inversion"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "adapters.py calls the existing v1.2 and v1.3 extractors."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "semantic_store/test_linguistic_relation_extraction"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "semantic_store/test_explicit_relation_extraction"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_executable_dsl_and_role_inversion"
+        ]
+      }
     ],
     "US-020": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_transitive_resolution"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_missing_dependency_and_wrong_module_type"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_transitive_resolution", "test_runtime.test_signature_and_revocation"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_device_authority.test_resume_atomic_activation_and_authorized_rollback_floor"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_transitive_resolution"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_missing_dependency_and_wrong_module_type"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_transitive_resolution",
+          "test_runtime.test_signature_and_revocation"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_device_authority.test_resume_atomic_activation_and_authorized_rollback_floor"
+        ]
+      }
     ],
     "US-021": [
-      {"n": 1, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": [], "note": "Needs the private canonical FF-RCT interfaces."},
-      {"n": 2, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 3, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "Inventory boundary canonical_ff_rct_decoder=UNAVAILABLE, enforced by US-001's check."},
-      {"n": 4, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []}
+      {
+        "n": 1,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Needs the private canonical FF-RCT interfaces."
+      },
+      {
+        "n": 2,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "Inventory boundary canonical_ff_rct_decoder=UNAVAILABLE, enforced by US-001's check."
+      },
+      {
+        "n": 4,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      }
     ],
     "US-022": [
-      {"n": 1, "kind": "MERGE", "status": "NEEDS_INPUT", "evidence": [], "note": "PR #69 merge."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": [], "note": "On the PR #69 branch: tools/semantic_store/tests/test_activation_constraints.py."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": []},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": []}
+      {
+        "n": 1,
+        "kind": "MERGE",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "PR #69 merge."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [],
+        "note": "On the PR #69 branch: tools/semantic_store/tests/test_activation_constraints.py."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": []
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": []
+      }
     ],
     "US-023": [
-      {"n": 1, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "No eval/exec/dynamic import in interpreter.py."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_preservation.test_actual_failed_candidate_uses_checked_fallback_once"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_reviewed_workflow.test_signed_original_fallback_is_reverified_and_only_attempted_once", "test_reviewed_workflow.test_negative_candidate_refuses_without_releasing_output"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": []}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "No eval/exec/dynamic import in interpreter.py."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_preservation.test_actual_failed_candidate_uses_checked_fallback_once"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_reviewed_workflow.test_signed_original_fallback_is_reverified_and_only_attempted_once",
+          "test_reviewed_workflow.test_negative_candidate_refuses_without_releasing_output"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": []
+      }
     ],
     "US-024": [
-      {"n": 1, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "Scene release pins codec, runtime ABI, decoder and model; grammar_sha256 is an alias of the model hash."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_streaming_boundaries.test_host_open_selects_fallback_for_missing_index_or_model", "test_streaming_boundaries.test_host_open_selects_fallback_for_revocation_expiry_or_floor"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": ["test_streaming_boundaries.test_variant_and_model_contracts_refuse_before_frame_loads"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_streaming_boundaries.test_manifest_pins_codec_grammar_model_abi_and_modules_separately"
+        ],
+        "note": "Grammar is now pinned separately from the model, with an explicit required-module map."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_streaming_boundaries.test_host_open_selects_fallback_for_missing_index_or_model",
+          "test_streaming_boundaries.test_host_open_selects_fallback_for_revocation_expiry_or_floor"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_streaming_boundaries.test_release_from_another_decoder_or_grammar_cannot_play_old_content"
+        ]
+      }
     ],
     "US-025": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_device_authority.test_sparse_closure_and_hard_budget"]},
-      {"n": 2, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": [], "note": "CPU/RAM/latency measured on host; GPU and energy need a physical device."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_device_authority.test_sparse_closure_and_hard_budget"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_device_authority.test_unused_palette_module_is_compiled_out_without_frame_changes"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_device_authority.test_sparse_closure_and_hard_budget"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "CPU/RAM/latency measured on host; GPU and energy need a physical device."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_device_authority.test_sparse_closure_and_hard_budget"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_device_authority.test_unused_palette_module_is_compiled_out_without_frame_changes"
+        ]
+      }
     ],
     "US-026": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_scalar_and_strided_decoders_are_byte_identical"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_deterministic_payload"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_scalar_and_strided_decoders_are_byte_identical"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_deterministic_payload"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+        ]
+      }
     ],
     "US-027": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_device_recovery.test_actual_signed_old_new_and_authorized_rollback_after_restart"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_device_recovery.test_restart_reports_exact_persisted_offset_and_total", "test_device_recovery.test_corrupt_completion_cleans_transfer_and_allows_clean_restart"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_device_recovery.test_actual_signed_old_new_and_authorized_rollback_after_restart"]},
-      {"n": 4, "kind": "EXTERNAL_INPUT", "status": "PARTIAL", "evidence": [], "note": "Local transfer bytes are reported; network bandwidth and on-device cache cost need a device."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_device_recovery.test_actual_signed_old_new_and_authorized_rollback_after_restart"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_device_recovery.test_restart_reports_exact_persisted_offset_and_total",
+          "test_device_recovery.test_corrupt_completion_cleans_transfer_and_allows_clean_restart"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_device_recovery.test_actual_signed_old_new_and_authorized_rollback_after_restart"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "EXTERNAL_INPUT",
+        "status": "PARTIAL",
+        "evidence": [],
+        "note": "Local transfer bytes are reported; network bandwidth and on-device cache cost need a device."
+      }
     ],
     "US-028": [
-      {"n": 1, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": [], "note": "100 licensed clips."},
-      {"n": 2, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": ["test_experiments.test_preregistration_precedes_holdout_and_proposers_denied"], "note": "Leakage checks exist; the corpus does not."},
-      {"n": 3, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 4, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []}
+      {
+        "n": 1,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "100 licensed clips."
+      },
+      {
+        "n": 2,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [
+          "test_experiments.test_preregistration_precedes_holdout_and_proposers_denied"
+        ],
+        "note": "Leakage checks exist; the corpus does not."
+      },
+      {
+        "n": 3,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 4,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      }
     ],
     "US-029": [
-      {"n": 1, "kind": "EXTERNAL_INPUT", "status": "PARTIAL", "evidence": ["test_demo_media.test_actual_lossless_av1_round_trip", "test_adversaries.test_no_fake_neural_baseline_without_licensed_weights"], "note": "AV1 scripts run; the neural codec needs licensed pinned weights."},
-      {"n": 2, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 3, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 4, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []}
+      {
+        "n": 1,
+        "kind": "EXTERNAL_INPUT",
+        "status": "PARTIAL",
+        "evidence": [
+          "test_demo_media.test_actual_lossless_av1_round_trip",
+          "test_adversaries.test_no_fake_neural_baseline_without_licensed_weights"
+        ],
+        "note": "AV1 scripts run; the neural codec needs licensed pinned weights."
+      },
+      {
+        "n": 2,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 3,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 4,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      }
     ],
     "US-030": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_actual_playable_decode_and_seek"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_actual_playable_decode_and_seek"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "encode() reports encode_ns, payload_bytes, model_bytes and fallback_ratio."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_actual_playable_decode_and_seek"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_actual_playable_decode_and_seek"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "encode() reports encode_ns, payload_bytes, model_bytes and fallback_ratio."
+      }
     ],
     "US-031": [
-      {"n": 1, "kind": "HUMAN_REVIEW", "status": "NEEDS_INPUT", "evidence": [], "note": "Requires blinded human assessment."},
-      {"n": 2, "kind": "HUMAN_REVIEW", "status": "NEEDS_INPUT", "evidence": [], "note": "Requires independent checking."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_scene_codec.test_actual_audio_caption_pixels_and_timing_survive_playable_decode"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": []}
+      {
+        "n": 1,
+        "kind": "HUMAN_REVIEW",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Requires blinded human assessment."
+      },
+      {
+        "n": 2,
+        "kind": "HUMAN_REVIEW",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Requires independent checking."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_scene_codec.test_actual_audio_caption_pixels_and_timing_survive_playable_decode"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": []
+      }
     ],
     "US-032": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_economic_uncertainty.test_all_workload_scopes_contribute_to_setup_and_total"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_economic_uncertainty.test_cli_runs_the_same_scenario_and_rejects_unsupported_options"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_economic_uncertainty.test_possible_and_guaranteed_thresholds_differ_under_ranges"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_economic_uncertainty.test_no_crossover_is_retained_when_even_best_marginal_is_nonpositive"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_economic_uncertainty.test_all_workload_scopes_contribute_to_setup_and_total"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_economic_uncertainty.test_cli_runs_the_same_scenario_and_rejects_unsupported_options"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_economic_uncertainty.test_possible_and_guaranteed_thresholds_differ_under_ranges"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_economic_uncertainty.test_no_crossover_is_retained_when_even_best_marginal_is_nonpositive"
+        ]
+      }
     ],
     "US-033": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_streaming.test_signed_seek_pause_resume_variants_and_missing_segment_fallback"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_streaming_boundaries.test_missing_duplicate_reordered_and_bad_dependency_indices_refuse"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_streaming_boundaries.test_missing_and_malformed_frame_records_fallback_without_position_advance"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "streaming.benchmark_seek compares cold-session seek with a fresh AV1 process on the host; network buffering is not measured."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_streaming.test_signed_seek_pause_resume_variants_and_missing_segment_fallback"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_streaming_boundaries.test_missing_duplicate_reordered_and_bad_dependency_indices_refuse"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_streaming_boundaries.test_missing_and_malformed_frame_records_fallback_without_position_advance"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "streaming.benchmark_seek compares cold-session seek with a fresh AV1 process on the host; network buffering is not measured."
+      }
     ],
     "US-034": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_fork_synthesis_prune_reopen_and_restart"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_rejects_missing_parent_and_invalid_test"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_fork_synthesis_prune_reopen_and_restart"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_evidence_status_reflects_ledger_and_never_inherits"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_fork_synthesis_prune_reopen_and_restart"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_rejects_missing_parent_and_invalid_test"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_fork_synthesis_prune_reopen_and_restart"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_evidence_status_reflects_ledger_and_never_inherits"
+        ]
+      }
     ],
     "US-035": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_append_only_and_tamper_detection"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_fork_synthesis_prune_reopen_and_restart"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_evidence_status_reflects_ledger_and_never_inherits"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "REOPEN reactivates the branch; nothing exposes or tests that prior counterexamples come back with it."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_append_only_and_tamper_detection"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_fork_synthesis_prune_reopen_and_restart"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_evidence_status_reflects_ledger_and_never_inherits"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_reopen_restores_prior_counterexamples"
+        ],
+        "note": "REOPEN exposes reopened_context: what pruned the branch and every prior challenge."
+      }
     ],
     "US-036": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_claim_is_linked_to_existing_ledger"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_ledger_validation.test_validated_requires_real_signature_bound_to_claim_and_evidence"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_postgres_validation.test_dependency_refutation_changes_effective_status_without_rewriting_history"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_append_only_and_tamper_detection"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_claim_is_linked_to_existing_ledger"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_ledger_validation.test_validated_requires_real_signature_bound_to_claim_and_evidence"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_postgres_validation.test_dependency_refutation_changes_effective_status_without_rewriting_history"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_append_only_and_tamper_detection"
+        ]
+      }
     ],
     "US-037": [
-      {"n": 1, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "service.start_proposal_loop is bounded and tenant-scoped."},
-      {"n": 2, "kind": "SOFTWARE", "status": "GAP", "evidence": [], "note": "Suggestions carry source anchors and confidence/calibration, but no suggested cost."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "service.start_proposal_loop is bounded and tenant-scoped."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty"
+        ],
+        "note": "suggested_cost: events, branches affected, and median reviewer-reported time (None until history exists)."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty"
+        ]
+      }
     ],
     "US-038": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_agents.test_input_budgets_and_unknown_operators"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "Proposals carry parent_grammar_sha256 and the task."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": []}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_agents.test_input_budgets_and_unknown_operators"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "Proposals carry parent_grammar_sha256 and the task."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": []
+      }
     ],
     "US-039": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "Guardian decision REQUIRES_INDEPENDENT_REVIEW blocks; it never produces verification evidence."},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "Guardian decision REQUIRES_INDEPENDENT_REVIEW blocks; it never produces verification evidence."
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"
+        ]
+      }
     ],
     "US-040": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_experiments.test_preregistration_precedes_holdout_and_proposers_denied"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "adversaries.challenge reports false-accept and missed-counterexample rates."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_experiments.test_preregistration_precedes_holdout_and_proposers_denied"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "adversaries.challenge reports false-accept and missed-counterexample rates."
+      }
     ],
     "US-041": [
-      {"n": 1, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "experiments.run_codec_arms runs fixed, decoder-only and paired arms."},
-      {"n": 2, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": []},
-      {"n": 3, "kind": "SOFTWARE", "status": "PARTIAL", "evidence": [], "note": "Search/training compute is not totalled per arm."},
-      {"n": 4, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": ["test_experiments.test_paired_intervals_reproduce_and_negative_results_retained"], "note": "A qualified learned/conventional baseline needs licensed weights and a corpus."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "experiments.run_codec_arms runs fixed, decoder-only and paired arms."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": []
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_experiments.test_codec_arms_count_additional_search_compute_per_arm"
+        ],
+        "note": "compute_by_arm totals shared training plus each arm's additional search."
+      },
+      {
+        "n": 4,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [
+          "test_experiments.test_paired_intervals_reproduce_and_negative_results_retained"
+        ],
+        "note": "A qualified learned/conventional baseline needs licensed weights and a corpus."
+      }
     ],
     "US-042": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_agents.test_expected_work_scheduler_stops_at_budget", "test_economic_uncertainty.test_exact_rank_does_not_turn_huge_ratios_into_an_infinite_tie"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_economic_uncertainty.test_frontier_includes_total_cost_and_excludes_fidelity_or_unknown_energy"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_agents.test_expected_work_scheduler_stops_at_budget"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_release_authority.test_valid_signed_approval_is_bound_research_pilot_not_production_or_truth"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_agents.test_expected_work_scheduler_stops_at_budget",
+          "test_economic_uncertainty.test_exact_rank_does_not_turn_huge_ratios_into_an_infinite_tie"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_economic_uncertainty.test_frontier_includes_total_cost_and_excludes_fidelity_or_unknown_energy"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_agents.test_expected_work_scheduler_stops_at_budget"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_release_authority.test_valid_signed_approval_is_bound_research_pilot_not_production_or_truth"
+        ]
+      }
     ],
     "US-043": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced", "test_observation_service.test_cross_tenant_guessed_source_and_unsupported_options_refuse"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_service_sdk.test_signed_review_independence_replay_and_binding"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "HTTP request logging is disabled; no test asserts it."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced",
+          "test_observation_service.test_cross_tenant_guessed_source_and_unsupported_options_refuse"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_service_sdk.test_signed_review_independence_replay_and_binding"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_service_sdk.test_requests_and_failures_write_nothing_to_logs"
+        ]
+      }
     ],
     "US-044": [
-      {"n": 1, "kind": "DOCUMENT", "status": "IMPLEMENTED", "evidence": [], "note": "Key rotation is described in tools/packspec_compiler/SIGNED-BUNDLES.md."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_release_authority.test_each_source_runtime_target_and_version_change_invalidates_review"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_release_authority.test_invalid_hashes_counts_and_downgrade_refuse_before_nonce_use", "test_release_authority.test_replay_refuses_after_success"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "authority.py reuses tools/packspec_compiler/signed_bundles.py."}
+      {
+        "n": 1,
+        "kind": "DOCUMENT",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "Key rotation is described in tools/packspec_compiler/SIGNED-BUNDLES.md."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_release_authority.test_each_source_runtime_target_and_version_change_invalidates_review"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_release_authority.test_invalid_hashes_counts_and_downgrade_refuse_before_nonce_use",
+          "test_release_authority.test_replay_refuses_after_success"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "authority.py reuses tools/packspec_compiler/signed_bundles.py."
+      }
     ],
     "US-045": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_service_sdk.test_all_sdk_and_cli_verbs_match_for_success_and_wording_loss_refusal"]},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_service_sdk.test_python_typescript_actual_http_finite_verdict_parity"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_service_sdk.test_unsupported_options_and_cross_tenant_fallback_refuse_in_both_sdks_and_cli"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_reviewed_workflow.test_python_typescript_and_cli_match_on_all_three_outcomes"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_service_sdk.test_all_sdk_and_cli_verbs_match_for_success_and_wording_loss_refusal"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_service_sdk.test_python_typescript_actual_http_finite_verdict_parity"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_service_sdk.test_unsupported_options_and_cross_tenant_fallback_refuse_in_both_sdks_and_cli"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_reviewed_workflow.test_python_typescript_and_cli_match_on_all_three_outcomes"
+        ]
+      }
     ],
     "US-046": [
-      {"n": 1, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": ["test_search_pilot.test_device_classes_never_fabricated"]},
-      {"n": 2, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_streaming_boundaries.test_host_open_selects_fallback_for_missing_index_or_model"]},
-      {"n": 4, "kind": "HUMAN_REVIEW", "status": "NEEDS_INPUT", "evidence": [], "note": "Security, licensing and fidelity review before any release."}
+      {
+        "n": 1,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [
+          "test_search_pilot.test_device_classes_never_fabricated"
+        ]
+      },
+      {
+        "n": 2,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_streaming_boundaries.test_host_open_selects_fallback_for_missing_index_or_model"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "HUMAN_REVIEW",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Security, licensing and fidelity review before any release."
+      }
     ],
     "US-047": [
-      {"n": 1, "kind": "EXTERNAL_INPUT", "status": "PARTIAL", "evidence": ["test_story_completion.test_cli_sign_verify_and_attach_then_audit"], "note": "The signed-reviewer path exists and CI verifies it; no real reviewer has signed yet."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_runtime.test_completion_claim_is_not_accepted_from_local_metadata"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_schema_catalog.test_catalog_acceptance_remains_software_only"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_experiments.test_paired_intervals_reproduce_and_negative_results_retained"]}
+      {
+        "n": 1,
+        "kind": "EXTERNAL_INPUT",
+        "status": "PARTIAL",
+        "evidence": [
+          "test_story_completion.test_cli_sign_verify_and_attach_then_audit"
+        ],
+        "note": "The signed-reviewer path exists and CI verifies it; no real reviewer has signed yet."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_runtime.test_completion_claim_is_not_accepted_from_local_metadata"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_schema_catalog.test_catalog_acceptance_remains_software_only"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_experiments.test_paired_intervals_reproduce_and_negative_results_retained"
+        ]
+      }
     ],
     "US-048": [
-      {"n": 1, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "research/protocol.json defines H1-H6 with variables; experiments.py enforces the set."},
-      {"n": 2, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": [], "note": "Learned-codec arm needs licensed weights; all arms need the corpus."},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_holdout_authority.test_invalid_seeds_and_resampling_counts_fail_before_work"]},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_experiments.test_paired_intervals_reproduce_and_negative_results_retained"]}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "research/protocol.json defines H1-H6 with variables; experiments.py enforces the set."
+      },
+      {
+        "n": 2,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Learned-codec arm needs licensed weights; all arms need the corpus."
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_holdout_authority.test_invalid_seeds_and_resampling_counts_fail_before_work"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_experiments.test_paired_intervals_reproduce_and_negative_results_retained"
+        ]
+      }
     ],
     "US-049": [
-      {"n": 1, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_reviewed_workflow.test_clinical_nursing_legal_and_education_complete_paths"], "note": "Authored inputs, labeled as such."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_reviewed_workflow.test_clinical_nursing_legal_and_education_complete_paths"]},
-      {"n": 3, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_reviewed_workflow.test_clinical_nursing_legal_and_education_complete_paths"]},
-      {"n": 4, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": ["test_scene_codec.test_actual_audio_caption_pixels_and_timing_survive_playable_decode"], "note": "Runs on generated test video; an actual short video is still needed."}
+      {
+        "n": 1,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_reviewed_workflow.test_clinical_nursing_legal_and_education_complete_paths"
+        ],
+        "note": "Authored inputs, labeled as such."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_reviewed_workflow.test_clinical_nursing_legal_and_education_complete_paths"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_reviewed_workflow.test_clinical_nursing_legal_and_education_complete_paths"
+        ]
+      },
+      {
+        "n": 4,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": [
+          "test_scene_codec.test_actual_audio_caption_pixels_and_timing_survive_playable_decode"
+        ],
+        "note": "Runs on generated test video; an actual short video is still needed."
+      }
     ],
     "US-050": [
-      {"n": 1, "kind": "DOCUMENT", "status": "NEEDS_INPUT", "evidence": [], "note": "Reviewer checks research/paper/report.md."},
-      {"n": 2, "kind": "SOFTWARE", "status": "IMPLEMENTED", "evidence": [], "note": "research/build_report.py regenerates figures from committed receipts."},
-      {"n": 3, "kind": "DOCUMENT", "status": "GAP", "evidence": [], "note": "No claim-to-experiment traceability matrix in the paper or repository."},
-      {"n": 4, "kind": "DOCUMENT", "status": "NEEDS_INPUT", "evidence": []}
+      {
+        "n": 1,
+        "kind": "DOCUMENT",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Reviewer checks research/paper/report.md."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "research/build_report.py regenerates figures from committed receipts."
+      },
+      {
+        "n": 3,
+        "kind": "DOCUMENT",
+        "status": "IMPLEMENTED",
+        "evidence": [],
+        "note": "research/build_report.py writes a claim-to-evidence matrix into report.md and the PDF."
+      },
+      {
+        "n": 4,
+        "kind": "DOCUMENT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      }
     ],
     "US-051": [
-      {"n": 1, "kind": "HUMAN_REVIEW", "status": "NEEDS_INPUT", "evidence": [], "note": "Security/privacy review, device contracts and telemetry."},
-      {"n": 2, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_release_authority.test_critical_loss_or_unknown_economics_block_without_consuming_nonce"]},
-      {"n": 3, "kind": "EXTERNAL_INPUT", "status": "NEEDS_INPUT", "evidence": []},
-      {"n": 4, "kind": "SOFTWARE", "status": "TESTED", "evidence": ["test_economic_uncertainty.test_no_crossover_is_retained_when_even_best_marginal_is_nonpositive"]}
+      {
+        "n": 1,
+        "kind": "HUMAN_REVIEW",
+        "status": "NEEDS_INPUT",
+        "evidence": [],
+        "note": "Security/privacy review, device contracts and telemetry."
+      },
+      {
+        "n": 2,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_release_authority.test_critical_loss_or_unknown_economics_block_without_consuming_nonce"
+        ]
+      },
+      {
+        "n": 3,
+        "kind": "EXTERNAL_INPUT",
+        "status": "NEEDS_INPUT",
+        "evidence": []
+      },
+      {
+        "n": 4,
+        "kind": "SOFTWARE",
+        "status": "TESTED",
+        "evidence": [
+          "test_economic_uncertainty.test_no_crossover_is_retained_when_even_best_marginal_is_nonpositive"
+        ]
+      }
     ]
   }
 }

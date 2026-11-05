@@ -136,7 +136,10 @@ def audit_output(raw, output, contract, *, current_ir, omission_reviewed=False,
                       author_public_key=author_public_key,as_of=as_of)
         approval=verify_review(signed_omission_review,reviewer_keys,context=context,author_public_key=author_public_key,
             as_of=as_of,nonce_store=nonce_store,tenant=contract["tenant"],reviewer_subjects=reviewer_subjects)
-        inventory["omitted"]=[{"field":row["field"],"ir_node_id":row["ir_node_id"]} for row in pending]
+        # Location and refetch plan: the exact original stays in custody under source_sha256.
+        inventory["omitted"]=[{"field":row["field"],"ir_node_id":row["ir_node_id"],"location":row["anchor"],
+                               "refetch":{"method":"REFETCH_FROM_CUSTODY","source_sha256":contract["source_sha256"]}}
+                              for row in pending]
     else:
         for row in pending:
             inventory["residual_required"].append(row["field"])

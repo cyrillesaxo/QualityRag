@@ -206,6 +206,18 @@ class GardenerTests(unittest.TestCase):
         self.assertEqual(dependency_evidence(state)["joined"], "UNVERIFIED")
         self.assertEqual(state["branches"]["joined"]["evidence_status"], "UNVERIFIED")
 
+    def test_reopen_restores_prior_counterexamples(self):
+        self.append("e1", "PROPOSE", "root")
+        self.append("e2", "CHALLENGE", "root")
+        self.append("e3", "CHALLENGE", "root")
+        state = self.append("e4", "PRUNE", "root")
+        self.assertNotIn("reopened_context", state["branches"]["root"])
+        state = self.append("e5", "REOPEN", "root")
+        context = state["branches"]["root"]["reopened_context"]
+        self.assertEqual(context, {"reopen_event": "e5", "pruned_by": "e4",
+                                   "prior_challenges": ["e2", "e3"], "parents": []})
+        self.assertTrue(state["branches"]["root"]["active"])
+
     def test_rejects_missing_parent_and_invalid_test(self):
         with self.assertRaises(ValueError):
             self.append("event1", "PROPOSE", "branch", parents=["missing"])
@@ -269,6 +281,11 @@ class RCTTests(unittest.TestCase):
         first, second = run(policy()), run(policy())
         self.assertFalse(first["cache_hit"])
         self.assertTrue(second["cache_hit"])
+        self.assertEqual(first["compiler_version"], "rct-typed-v1.4")
+        self.assertEqual(first["input_fingerprints"], second["input_fingerprints"])
+        self.assertEqual(set(first["input_fingerprints"]), {"training", "labels", "grammar", "ir"})
+        self.assertEqual(second["cache_hits_total"], 1)
+        self.assertGreater(first["compiled_bytes"], 0)
         self.assertEqual(first["finite_constraint_result"], "SAT")
         self.assertEqual(first["assessment"], second["assessment"])
         ir = policy()
