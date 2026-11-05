@@ -8,11 +8,11 @@ Inventory: 14 BLOCKED, 2 DONE, 35 IN_REVIEW. Open: 49, with 196 criteria.
 
 | Category | Stories |
 |---|---|
-| Software work remaining (2) | US-033, US-038 |
+| Software work remaining (0) | — |
 | A written criterion requires human review (4) | US-009, US-031, US-046, US-051 |
 | Needs external input (11) | US-007, US-021, US-022, US-025, US-027, US-028, US-029, US-041, US-047, US-048, US-049 |
 | Document check only (2) | US-004, US-050 |
-| Written software criteria met (30) | US-003, US-005, US-006, US-008, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-023, US-024, US-026, US-030, US-032, US-034, US-035, US-036, US-037, US-039, US-040, US-042, US-043, US-044, US-045 |
+| Written software criteria met (32) | US-003, US-005, US-006, US-008, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-023, US-024, US-026, US-030, US-032, US-033, US-034, US-035, US-036, US-037, US-038, US-039, US-040, US-042, US-043, US-044, US-045 |
 
 Criteria by kind and status:
 
@@ -22,7 +22,7 @@ Criteria by kind and status:
 | EXTERNAL_INPUT | 0 | 0 | 18 | 3 | 0 |
 | HUMAN_REVIEW | 0 | 0 | 5 | 0 | 0 |
 | MERGE | 0 | 0 | 1 | 0 | 0 |
-| SOFTWARE | 1 | 6 | 0 | 2 | 152 |
+| SOFTWARE | 0 | 6 | 0 | 0 | 155 |
 
 ## Signing
 
@@ -55,35 +55,6 @@ python -m tools.activation_runtime.story_completion attach --story US-0XX --impl
 - the receipt is bound to the story's acceptance text and module hashes, so any later change to those modules invalidates it and the story must be re-reviewed.
 
 Residual risk: someone holding a *retired* key could still sign a receipt dated between a run's completion and the retirement time. If a retired key may be in other hands, mark it `compromised`.
-
-## Software work remaining
-
-1. Implement the PARTIAL/GAP criteria in the table; these need no outside input.
-2. Add a test per criterion and record it in criteria_map.json.
-
-### US-033 · Streaming segment delivery and seek (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Segment index supports seek, pause/resume and bitrate changes. | SOFTWARE | TESTED | `test_streaming.test_signed_seek_pause_resume_variants_and_missing_segment_fallback` |
-| 2 | Scene state dependencies are explicit. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_duplicate_reordered_and_bad_dependency_indices_refuse` |
-| 3 | Missing module/segment falls back without silent frame corruption. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_and_malformed_frame_records_fallback_without_position_advance` |
-| 4 | Measure startup latency, buffering and seek times against AV1 baseline. | SOFTWARE | PARTIAL | Verification found startup/seek timings only. benchmark_seek explicitly returns network_buffering=UNMEASURED; full criterion is not met. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming_boundaries.py'`
-- **Inventory blocking text:** Network/device startup, buffering and seek measurements against conventional playback.
-
-### US-038 · Isolated agent experiment harness (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Candidate agents run with scoped CPU/token/time and tool permissions. | SOFTWARE | TESTED | `test_agents.test_input_budgets_and_unknown_operators` |
-| 2 | Every proposal includes parent grammar hash, patches and rationale. | SOFTWARE | PARTIAL | `test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale`; The cited check proves parent hash, patches and rationale for grammar-compiler only. Other role proposals do not uniformly carry patches; every-proposal criterion is not yet established. |
-| 3 | Restricted execution sandbox prevents arbitrary host changes. | SOFTWARE | TESTED | `test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork` |
-| 4 | Evaluation always runs on pinned code/datasets. | SOFTWARE | GAP | Worker requests bind parent grammar and task, but neither worker nor evaluation currently enforces a pinned evaluator-code identity and dataset manifest. Passing CI is not that runtime binding. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_agents.py'`
-- **Inventory blocking text:** Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim.
 
 ## A written criterion requires human review
 
@@ -575,6 +546,19 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Inventory blocking text:** Measured full lifecycle inputs and uncertainty by real catalog/viewer/device cohort.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
+### US-033 · Streaming segment delivery and seek (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Segment index supports seek, pause/resume and bitrate changes. | SOFTWARE | TESTED | `test_streaming.test_signed_seek_pause_resume_variants_and_missing_segment_fallback` |
+| 2 | Scene state dependencies are explicit. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_duplicate_reordered_and_bad_dependency_indices_refuse` |
+| 3 | Missing module/segment falls back without silent frame corruption. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_and_malformed_frame_records_fallback_without_position_advance` |
+| 4 | Measure startup latency, buffering and seek times against AV1 baseline. | SOFTWARE | TESTED | `test_playback_benchmark.test_actual_av1_and_signed_stream_startup_buffer_and_seek_measurements`, `test_playback_benchmark.test_observed_late_frame_produces_real_rebuffer_wait`; Actual local bounded playback measures startup, queue-empty stalls and seeks for both signed reference segments and AV1. WAN and physical-device performance remain unmeasured. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming_boundaries.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_playback_benchmark.py'`
+- **Inventory blocking text:** Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
 ### US-034 · Append-only conversation tree (IN_REVIEW)
 
 | # | Criterion | Kind | Status | Evidence / note |
@@ -627,6 +611,19 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Inventory blocking text:** Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 - **Notes:** Duplicate detection is exact-statement only; paraphrase detection would need a semantic labeler.
+
+### US-038 · Isolated agent experiment harness (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Candidate agents run with scoped CPU/token/time and tool permissions. | SOFTWARE | TESTED | `test_agents.test_input_budgets_and_unknown_operators` |
+| 2 | Every proposal includes parent grammar hash, patches and rationale. | SOFTWARE | TESTED | `test_agent_pins.test_every_role_has_patches_rationale_and_exact_evaluation_pin`; All six roles return an explicit patch list, parent grammar hash and rationale; non-editing proposals use an empty list. |
+| 3 | Restricted execution sandbox prevents arbitrary host changes. | SOFTWARE | TESTED | `test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork` |
+| 4 | Evaluation always runs on pinned code/datasets. | SOFTWARE | TESTED | `test_agent_pins.test_worker_rejects_changed_dataset_and_each_stale_code_pin`, `test_agent_pins.test_pin_records_actual_source_bytes_and_exact_task_dataset`; Worker recomputes code/schema/runtime and exact finite task-dataset pins before sandbox execution; parent verifies returned pin. This is not external corpus validation. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_agents.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_agent_pins.py'`
+- **Inventory blocking text:** Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
 ### US-039 · Dedicated agent roles (IN_REVIEW)
 

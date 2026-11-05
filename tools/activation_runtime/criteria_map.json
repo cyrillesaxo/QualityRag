@@ -1050,9 +1050,12 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "PARTIAL",
-        "evidence": [],
-        "note": "Verification found startup/seek timings only. benchmark_seek explicitly returns network_buffering=UNMEASURED; full criterion is not met."
+        "status": "TESTED",
+        "evidence": [
+          "test_playback_benchmark.test_actual_av1_and_signed_stream_startup_buffer_and_seek_measurements",
+          "test_playback_benchmark.test_observed_late_frame_produces_real_rebuffer_wait"
+        ],
+        "note": "Actual local bounded playback measures startup, queue-empty stalls and seeks for both signed reference segments and AV1. WAN and physical-device performance remain unmeasured."
       }
     ],
     "US-034": [
@@ -1206,11 +1209,11 @@
       {
         "n": 2,
         "kind": "SOFTWARE",
-        "status": "PARTIAL",
+        "status": "TESTED",
         "evidence": [
-          "test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale"
+          "test_agent_pins.test_every_role_has_patches_rationale_and_exact_evaluation_pin"
         ],
-        "note": "The cited check proves parent hash, patches and rationale for grammar-compiler only. Other role proposals do not uniformly carry patches; every-proposal criterion is not yet established."
+        "note": "All six roles return an explicit patch list, parent grammar hash and rationale; non-editing proposals use an empty list."
       },
       {
         "n": 3,
@@ -1223,9 +1226,12 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "GAP",
-        "evidence": [],
-        "note": "Worker requests bind parent grammar and task, but neither worker nor evaluation currently enforces a pinned evaluator-code identity and dataset manifest. Passing CI is not that runtime binding."
+        "status": "TESTED",
+        "evidence": [
+          "test_agent_pins.test_worker_rejects_changed_dataset_and_each_stale_code_pin",
+          "test_agent_pins.test_pin_records_actual_source_bytes_and_exact_task_dataset"
+        ],
+        "note": "Worker recomputes code/schema/runtime and exact finite task-dataset pins before sandbox execution; parent verifies returned pin. This is not external corpus validation."
       }
     ],
     "US-039": [

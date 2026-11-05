@@ -7,9 +7,21 @@ import subprocess
 import sys
 from time import perf_counter_ns
 from .common import canonical, fingerprint
+from hashlib import sha256
 
 ROLES=("decomposition","grammar-compiler","activation-optimizer","packspec-guardian",
        "counterexample","ffrct-economist")
+
+
+def evaluation_pin(role, task):
+    """Exact evaluator sources and finite input dataset; no holdout disclosure."""
+    if role not in ROLES:raise ValueError("Unsupported role")
+    root = Path(__file__).parent
+    files = ["agents.py", "agent_worker.py", "process_sandbox.py", "common.py", "roles/"+role+".json"]
+    return {"schema":"qualityrag.agent-evaluation-pin/v1",
+            "python_version":sys.version,
+            "code_sha256":{name:sha256((root/name).read_bytes()).hexdigest() for name in files},
+            "dataset_sha256":fingerprint(task)}
 
 
 def propose(role,*,parent_grammar,task,cpu_seconds=2,memory_bytes=128_000_000,wall_seconds=5,input_token_limit=32768):
@@ -24,6 +36,7 @@ def propose(role,*,parent_grammar,task,cpu_seconds=2,memory_bytes=128_000_000,wa
         raise ValueError("Task differs from versioned role contract") from exc
     request={"schema":"qualityrag.agent-request/v1","role":role,
              "parent_grammar_sha256":fingerprint(parent_grammar),"task":task,
+             "evaluation_pin":evaluation_pin(role, task),
              "budget":{"cpu_seconds":cpu_seconds,"memory_bytes":memory_bytes}}
     raw=canonical(request)
     if type(input_token_limit) is not int or input_token_limit<1 or len(raw)>input_token_limit*4:
@@ -38,7 +51,9 @@ def propose(role,*,parent_grammar,task,cpu_seconds=2,memory_bytes=128_000_000,wa
     if child.returncode or len(child.stdout)>262144:
         return {"status":"UNKNOWN","reason":"SANDBOX_OR_INPUT_REFUSED","role":role}
     proposal=json.loads(child.stdout)
-    if proposal.get("parent_grammar_sha256")!=request["parent_grammar_sha256"] or proposal.get("role")!=role:
+    if (proposal.get("parent_grammar_sha256")!=request["parent_grammar_sha256"] or proposal.get("role")!=role
+            or proposal.get("evaluation_pin")!=request["evaluation_pin"]
+            or not isinstance(proposal.get("patches"),list) or not isinstance(proposal.get("rationale"),str)):
         raise ValueError("Agent proposal binding mismatch")
     return {"status":"PROPOSAL","proposal":proposal,"elapsed_ns":perf_counter_ns()-start,
             "input_bytes":len(raw),"provider_tokens":None,"provider_cost":"NOT_APPLICABLE_DETERMINISTIC",

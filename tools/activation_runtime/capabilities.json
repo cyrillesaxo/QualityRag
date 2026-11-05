@@ -1573,7 +1573,7 @@
         },
         {
           "path": "tools/activation_runtime/agents.py",
-          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
         },
         {
           "path": "tools/activation_runtime/cli.py",
@@ -1632,10 +1632,22 @@
         {
           "path": "tools/activation_runtime/tests/test_streaming_boundaries.py",
           "sha256": "bd6ad59579dba6f150d387ada2c79ef5fe75c87e1e9c82ed15a19e0604629cc3"
+        },
+        {
+          "path": "tools/activation_runtime/playback_benchmark.py",
+          "sha256": "c3486594a52412b680d397644deb0f1bcec2b5be291ccfe41e2ee719354b50ae"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_playback_benchmark.py",
+          "sha256": "efe57e54c27471df48d0bc9812b9432f51e598302aeb737744531d180eeb07de"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py; tools/activation_runtime/tests/test_streaming_boundaries.py",
-      "remaining": "Network/device startup, buffering and seek measurements against conventional playback.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py; tools/activation_runtime/tests/test_streaming_boundaries.py; tools/activation_runtime/tests/test_playback_benchmark.py",
+      "remaining": "Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },
@@ -1897,11 +1909,55 @@
       "modules": [
         {
           "path": "tools/activation_runtime/agents.py",
-          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/agent_worker.py",
+          "sha256": "2ff684923759b205d9e6d57ed4ba377f1809e3344dc965312c8b655e59eb3b46"
+        },
+        {
+          "path": "tools/activation_runtime/process_sandbox.py",
+          "sha256": "a8f33009665288ed0615a4fe44b43d32c93b52db8037bf0cfe445adf4c0cebc4"
+        },
+        {
+          "path": "tools/activation_runtime/common.py",
+          "sha256": "a7e3a17d891a66d570647bee6f3b52784aebb5087e2b8d4f394cb8c560de758c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_agent_pins.py",
+          "sha256": "c911635e768492efa0a3e6409e540c691a22353ebde10ffc97112897f2f17fe4"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
+        },
+        {
+          "path": "tools/activation_runtime/roles/activation-optimizer.json",
+          "sha256": "05c74cd86643c2a671dee57be4c23c4984a6192f75bce4d530d270c8cef64323"
+        },
+        {
+          "path": "tools/activation_runtime/roles/counterexample.json",
+          "sha256": "fb6b751329e1beee2da7d152b8ed9abb59dffde22f5bb6d5b7cab1ad1847a3f8"
+        },
+        {
+          "path": "tools/activation_runtime/roles/decomposition.json",
+          "sha256": "d5caecd43278a0e1547de53bcac73e1468a816b4dccbe3e76784c320c7840a2a"
+        },
+        {
+          "path": "tools/activation_runtime/roles/ffrct-economist.json",
+          "sha256": "80c125145158d7b7f4ef5d6ed5002dbe0c8960ad95fd16eab1500c5f1373fdad"
+        },
+        {
+          "path": "tools/activation_runtime/roles/grammar-compiler.json",
+          "sha256": "36398089ed9b0ab025235f88bb21a8374acf97061cd046b707cf69dfbcfef43d"
+        },
+        {
+          "path": "tools/activation_runtime/roles/packspec-guardian.json",
+          "sha256": "ffbeb2bf2fe40d83684e8db10b623c2997c608607140bc9be903b02efbeb6d49"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_agents.py",
-      "remaining": "Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_agents.py; tools/activation_runtime/tests/test_agent_pins.py",
+      "remaining": "Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },
@@ -2093,7 +2149,7 @@
         },
         {
           "path": "tools/activation_runtime/agents.py",
-          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
         },
         {
           "path": "tools/activation_runtime/cli.py",

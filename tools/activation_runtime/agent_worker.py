@@ -9,6 +9,8 @@ import json
 import os
 import resource
 import sys
+from pathlib import Path
+from hashlib import sha256
 
 ROLES=("decomposition","grammar-compiler","activation-optimizer","packspec-guardian",
        "counterexample","ffrct-economist")
@@ -17,8 +19,21 @@ ROLES=("decomposition","grammar-compiler","activation-optimizer","packspec-guard
 from process_sandbox import sandbox
 
 
+def check_pin(request):
+    role=request.get("role")
+    if role not in ROLES:raise ValueError("Unsupported role")
+    root=Path(__file__).parent
+    files=["agents.py","agent_worker.py","process_sandbox.py","common.py","roles/"+role+".json"]
+    task_bytes=json.dumps(request.get("task"),sort_keys=True,separators=(",",":"),ensure_ascii=False,allow_nan=False).encode()
+    expected={"schema":"qualityrag.agent-evaluation-pin/v1",
+              "python_version":sys.version,
+              "code_sha256":{name:sha256((root/name).read_bytes()).hexdigest() for name in files},
+              "dataset_sha256":sha256(task_bytes).hexdigest()}
+    if request.get("evaluation_pin")!=expected:raise ValueError("Stale evaluator or dataset pin")
+
+
 def run(request):
-    if not isinstance(request,dict) or set(request)!={"schema","role","parent_grammar_sha256","task","budget"}:
+    if not isinstance(request,dict) or set(request)!={"schema","role","parent_grammar_sha256","task","budget","evaluation_pin"}:
         raise ValueError("Invalid agent request")
     if request["schema"]!="qualityrag.agent-request/v1" or request["role"] not in ROLES:
         raise ValueError("Unsupported research role")
@@ -54,6 +69,8 @@ def run(request):
         artifact={"known_costs":costs,"unmeasured":[k for k,v in costs.items() if v is None],
                   "advantage":"NOT_ESTABLISHED","grammar_reuse":"MEASURE_BEFORE_CLAIMING"}
     return {"schema":"qualityrag.agent-proposal/v1","role":role,"parent_grammar_sha256":parent,
+            "evaluation_pin":request["evaluation_pin"],
+            "patches":artifact.get("patches",[])+artifact.get("model_patches",[]),
             "artifact":artifact,"rationale":"Bounded deterministic "+role+" proposal",
             "backend":"DETERMINISTIC_TYPED_SEARCH","truth_status":"UNVERIFIED","can_generate":False}
 
@@ -66,6 +83,7 @@ try:
     cpu=budget.get("cpu_seconds");memory=budget.get("memory_bytes")
     if type(cpu) is not int or not 1<=cpu<=10 or type(memory) is not int or not 64_000_000<=memory<=512_000_000:
         raise ValueError("Invalid hard resource budget")
+    if "--probe" not in sys.argv:check_pin(request)
     sandbox(cpu,memory)
     if "--probe" in sys.argv:
         denied={}
