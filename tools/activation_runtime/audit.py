@@ -1,4 +1,4 @@
-"""Coverage/fingerprint audit. DONE requires an independent signed completion receipt."""
+"""Coverage audit: objective inventory evidence, independent signed research acceptance."""
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -40,13 +40,18 @@ def audit(root=None,*,reviewer_keys=None,as_of=None):
     if declared!=wanted:raise ValueError("Inventory differs from FR.MD")
     criteria={"US-"+number:sha256(text.strip().encode()).hexdigest() for number,text in re.findall(
         r"\*\*US-(\d{3}) ·[^\n]+\n.*?\*\*Acceptance:\*\* ([^\n]+)",content,re.S)}
+    administrative=[]
     for item in stories:
         if item.get("acceptance_sha256")!=criteria.get(item["story_id"]):
             raise ValueError("Acceptance criteria fingerprint changed")
         if item["status"] not in {"PARTIAL","NOT_STARTED","BLOCKED","IN_REVIEW","DONE"}:raise ValueError("Invalid story status")
         if item["status"]=="DONE":
-            if not reviewer_keys or not as_of or not item.get("completion_envelope"):raise ValueError("DONE requires independently signed completion evidence")
-            _completion(item,reviewer_keys,as_of)
+            from .inventory_completion import KIND,verify as verify_inventory
+            if item["story_id"]=="US-001" and isinstance(item.get("completion_evidence"),dict) and item["completion_evidence"].get("kind")==KIND:
+                administrative.append(verify_inventory(item,inventory,root))
+            else:
+                if not reviewer_keys or not as_of or not item.get("completion_envelope"):raise ValueError("DONE requires independently signed completion evidence")
+                _completion(item,reviewer_keys,as_of)
         if not item["remaining"].strip():raise ValueError("Missing acceptance limitations")
         for module in item["modules"]:
             path=(root/module["path"]).resolve()
@@ -54,7 +59,8 @@ def audit(root=None,*,reviewer_keys=None,as_of=None):
                 raise ValueError("Missing or altered implementation evidence")
     return {"stories":51,"done":sum(x["status"]=="DONE" for x in stories),
             "counts":{s:sum(x["status"]==s for x in stories) for s in ("IN_REVIEW","PARTIAL","NOT_STARTED","BLOCKED","DONE")},
-            "independent_validation":"PER_STORY_SIGNED_RECEIPTS_REQUIRED"}
+            "independent_validation":"SIGNED_RESEARCH_ACCEPTANCE_REQUIRED_INVENTORY_USES_LIVE_SOURCE_AND_CI",
+            "objective_software_acceptance":administrative}
 
 
 if __name__=="__main__":

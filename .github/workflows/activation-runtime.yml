@@ -1,5 +1,9 @@
 name: Activation runtime research
 on: [push, pull_request]
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
 jobs:
   bounded-activation:
     runs-on: ubuntu-24.04
@@ -19,6 +23,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
+      GITHUB_TOKEN: ${{ github.token }}
       QUALITYRAG_TEST_DATABASE_URL: postgresql://qr_test:qr_test_local_only@127.0.0.1:5432/qualityrag_test
     steps:
       - uses: actions/checkout@v4

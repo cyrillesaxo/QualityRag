@@ -873,3 +873,23 @@ safety, read-only source inspection, refused-request state and held old-tenant
 responses. See `docs/REVIEW-WORKSPACE-WORKFLOWS.md`. Independent user calibration,
 production configuration, domain acceptance and physical-device measurements
 remain external acceptance requirements; browser tests do not satisfy those gates.
+
+
+## 26. Criterion-scoped acceptance for the source inventory
+
+US-001's administrative acceptance is now evaluated against its stated four
+criteria instead of an additional universal independent-signature/merge rule.
+Only this story may close using live GitHub source-and-CI evidence: a successful
+pinned push workflow, required unskipped test/audit steps, matching immutable
+inventory implementation/workflow bytes, complete inventory metadata, accurate
+PR #69 handling and explicit decoder/admission limitations. A local DONE label
+or fabricated receipt link cannot satisfy this check.
+
+This correction does not alter any acceptance-criterion text or fingerprint.
+It does not merge PR #69/#70, waive US-022's merge prerequisite, accept another
+research story, or grant domain/production admission. All other DONE stories
+retain the existing independent signed completion requirements. The verifier
+uses read-only GitHub access and refuses unavailable external evidence. See
+`docs/INVENTORY-ACCEPTANCE.md`. US-001 remains IN_REVIEW while the implementation
+is first tested; a later inventory commit may bind an actually observed passing
+run and record its objective software acceptance.

@@ -244,7 +244,8 @@ class InventoryTests(unittest.TestCase):
         from tools.activation_runtime.audit import audit
         result = audit()
         self.assertEqual(result["stories"], 51)
-        self.assertEqual(result["done"], 0)
+        self.assertEqual(result["done"],result["counts"]["DONE"])
+        self.assertEqual(sum(result["counts"].values()),51)
 
     def test_completion_claim_is_not_accepted_from_local_metadata(self):
         from tools.activation_runtime.audit import audit

@@ -35,10 +35,18 @@
       "modules": [
         {
           "path": "tools/activation_runtime/audit.py",
-          "sha256": "0d5d25cbe5c6bb93cd4265dd788542539fb06800d4e261fb48aff6ca13690a86"
+          "sha256": "a0ec78ac40eeba7184f5d702c8a1b875fcbc75a346799ebd7382805b97b09e76"
+        },
+        {
+          "path": "tools/activation_runtime/inventory_completion.py",
+          "sha256": "8cd1389185e4562c1ef2006dd00bb5c13f7ce9e05792d39a20ecbe361cd0f4fe"
+        },
+        {
+          "path": "docs/INVENTORY-ACCEPTANCE.md",
+          "sha256": "db1f5a51d6b71653eb3939ad4cc06b2b92d8044763e432af7baa17dec5a861d6"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py",
       "remaining": "Merged review and a passing commit-bound remote CI receipt.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -2270,11 +2278,11 @@
       "modules": [
         {
           "path": "tools/activation_runtime/audit.py",
-          "sha256": "0d5d25cbe5c6bb93cd4265dd788542539fb06800d4e261fb48aff6ca13690a86"
+          "sha256": "a0ec78ac40eeba7184f5d702c8a1b875fcbc75a346799ebd7382805b97b09e76"
         },
         {
           "path": "tools/activation_runtime/delivery.py",
-          "sha256": "56b2c54e22ddd6c43431c7c9ae0c30f285cfa3c73f88e0044c04bc3cdd8eb328"
+          "sha256": "7966f1572defe35e5f99e33edfe856b519ac4e8d69ae11a47319398e2d3830a1"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -2471,5 +2479,10 @@
       "independent_validation": "NOT_ESTABLISHED"
     }
   ],
-  "completion_rule": "DONE requires a trusted independent signed completion receipt bound to exact criteria, module hashes, merged commit and passing CI."
+  "completion_rule": "DONE requires a trusted independent signed completion receipt bound to exact criteria, module hashes, merged commit and passing CI.",
+  "implementation_boundaries": {
+    "canonical_ff_rct_decoder": "UNAVAILABLE",
+    "independent_domain_admission": "NOT_ESTABLISHED",
+    "reference_scene_decoder": "AVAILABLE_RESEARCH_REFERENCE"
+  }
 }

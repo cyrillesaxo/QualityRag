@@ -168,3 +168,12 @@ graphs with optional ID transitions. Existing source hashes support read-only
 inspection. Token switching clears results and discards delayed old responses.
 See [workspace workflows](../../docs/REVIEW-WORKSPACE-WORKFLOWS.md) for configuration,
 limits and the staged `run_reviewed` / `runReviewed` API.
+
+
+## Inventory story acceptance
+
+US-001 alone can close against its objective software criteria using live,
+commit-bound GitHub source/CI evidence. This does not accept research claims or
+waive another story's signed review or merge prerequisite. Private-repository
+replay uses a host `GITHUB_TOKEN` with read-only access. See
+[inventory acceptance](../../docs/INVENTORY-ACCEPTANCE.md).

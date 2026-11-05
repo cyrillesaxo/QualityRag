@@ -60,7 +60,7 @@ evidence; independent review, real measurements and external sources are not inf
 
 ## US-001 — Source and capability inventory
 
-Runnable evidence: tools/activation_runtime/tests/test_runtime.py
+Runnable evidence: tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py
 
 1. Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. PR #69 remains IN_REVIEW until merged. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
