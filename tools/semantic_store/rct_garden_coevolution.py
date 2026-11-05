@@ -315,3 +315,93 @@ def run_research_cycle(training, source, revised_source, workload, *,
     }
     output["fingerprint"] = digest(output)
     return output
+
+
+
+def induce_from_examples(training: dict, examples: list[dict], *,
+                         max_proposals=24) -> dict:
+    """Select a grammar path using labelled *training* examples only.
+
+    When multiple different operators explain all observations, the
+    hypothesis is ambiguous and needs a discriminating probe. A successful
+    label fit is not a semantic proof or permission to promote an operator.
+    """
+    facts = _facts(training)
+    if not isinstance(examples, list) or not 2 <= len(examples) <= 100:
+        raise ValueError("Bounded labelled examples required")
+    known_nodes = {f["subject"] for f in facts} | {f["object"] for f in facts}
+    positive = 0
+    negative = 0
+    for item in examples:
+        if (not isinstance(item, dict) or
+            not isinstance(item.get("subject"), str) or
+            not isinstance(item.get("destination"), str) or
+            type(item.get("expected")) is not bool or
+            item["subject"] not in known_nodes or
+            item["destination"] not in known_nodes):
+            raise ValueError("Examples must refer only to training nodes")
+        positive += int(item["expected"])
+        negative += int(not item["expected"])
+    if not positive or not negative:
+        raise ValueError("Both positive and adversarial negative examples required")
+    candidates = synthesize_operators(training, max_path_length=MAX_PATH_LENGTH,
+                                       max_proposals=max_proposals)
+    graph = _outgoing(facts)
+    evaluations = []
+    for operator in candidates:
+        predictions = [
+            item["destination"] in _execute_path(graph, operator["predicate_path"],
+                                                  item["subject"])
+            for item in examples]
+        errors = [
+            {"example_index": i, "expected": example["expected"],
+             "actual": predictions[i]}
+            for i, example in enumerate(examples)
+            if predictions[i] != example["expected"]]
+        evaluations.append({
+            "operator_fingerprint": operator["fingerprint"],
+            "predicate_path": operator["predicate_path"],
+            "error_count": len(errors), "counterexamples": errors,
+        })
+    winners = [row for row in evaluations if row["error_count"] == 0]
+    outcome = ("UNIQUE_TRAINING_HYPOTHESIS" if len(winners) == 1
+               else "AMBIGUOUS" if winners else "UNRESOLVED")
+    return {
+        "schema": "rct.garden-hypothesis/v0.1", "status": outcome,
+        "training_sha256": digest(training),
+        "examples_sha256": digest(examples),
+        "selected_predicate_path": winners[0]["predicate_path"] if len(winners) == 1 else None,
+        "matched_candidate_count": len(winners),
+        "evaluations": evaluations,
+        "qualityrag_admission": "INCONCLUSIVE", "promotion_authorized": False,
+        "next_step": "HELDOUT_EVALUATION" if len(winners) == 1
+                     else "GENERATE_DISCRIMINATING_PROBE",
+    }
+
+
+def run_investigation(training, examples, source, revised_source, workload, *,
+                      trials=2, max_proposals=24):
+    """Train-only hypothesis discovery followed by frozen held-out evaluation."""
+    hypothesis = induce_from_examples(training, examples,
+                                      max_proposals=max_proposals)
+    if hypothesis["status"] != "UNIQUE_TRAINING_HYPOTHESIS":
+        return {
+            "schema": "rct.garden-investigation/v0.1",
+            "status": hypothesis["status"], "hypothesis": hypothesis,
+            "experiment": None, "qualityrag_admission": "INCONCLUSIVE",
+            "can_generate": False, "promotion_authorized": False,
+        }
+    if not isinstance(workload, dict) or "predicate_path" in workload:
+        raise ValueError("Investigation workload must not disclose the selected operator")
+    derived_workload = dict(workload)
+    derived_workload["predicate_path"] = hypothesis["selected_predicate_path"]
+    experiment = run_research_cycle(
+        training, source, revised_source, derived_workload,
+        trials=trials, max_proposals=max_proposals)
+    return {
+        "schema": "rct.garden-investigation/v0.1",
+        "status": experiment["status"], "hypothesis": hypothesis,
+        "experiment": experiment,
+        "qualityrag_admission": "INCONCLUSIVE",
+        "can_generate": False, "promotion_authorized": False,
+    }
