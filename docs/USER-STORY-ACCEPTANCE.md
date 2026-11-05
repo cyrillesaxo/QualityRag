@@ -456,7 +456,7 @@ Remaining: Real independently authorized scope-bounded validation/evidence and d
 
 ## US-037 — Gardener proposal loop and review UI
 
-Runnable evidence: tools/activation_runtime/tests/test_proposals.py
+Runnable evidence: tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py
 
 1. Bounded scheduled job operates only on authorized sources. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Produces candidate events with source anchors, confidence/calibration and suggested cost. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
@@ -522,7 +522,7 @@ Remaining: Measured energy/total-cost frontier plus actual independent signed pr
 
 ## US-043 — Tenant isolation and source authority
 
-Runnable evidence: tools/activation_runtime/tests/test_service_sdk.py
+Runnable evidence: tools/activation_runtime/tests/test_service_sdk.py; tools/activation_runtime/tests/test_browser.py
 
 1. Authenticated principal and tenant-scoped authorization per source and artifact. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Cross-tenant reads, guessed IDs and leaked residuals denied in tests. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
@@ -544,7 +544,7 @@ Remaining: Real release/reviewer trust maps, durable deployment and independent 
 
 ## US-045 — SDK and CLI parity
 
-Runnable evidence: tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py
+Runnable evidence: tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py
 
 1. JSON/typed interfaces support validation, evaluate, trace and fallback. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Golden fixtures produce identical finite verdicts across languages. — PENDING_INDEPENDENT_COMPLETION_RECEIPT

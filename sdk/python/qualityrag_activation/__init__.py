@@ -100,7 +100,7 @@ class Client:
         self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
-        if route not in {"validate","evaluate","activate-plan","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome"}:
+        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
@@ -110,6 +110,7 @@ class Client:
     def validate(self,schema:str,value:object)->ValidationResult:return self.request("validate",{"schema":schema,"value":value})
     def evaluate(self,**payload)->FiniteReceipt:return self.request("evaluate",payload)
     def activate_plan(self,**payload)->ReviewedActivationResult:return self.request("activate-plan",payload)
+    def run_reviewed(self,raw:bytes,request:dict[str,object])->ReviewedActivationResult:return self.request("reviewed-run",{"base64":base64.b64encode(raw).decode(),"request":request})
     def observations(self,**payload)->ObservationGraphResult:return self.request("observations",payload)
     def trace(self,**payload)->list[str]:return self.evaluate(**payload)["trace"]
     def fallback(self,source_sha256:str)->FallbackResult:return self.request("fallback",{"source_sha256":source_sha256})

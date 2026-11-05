@@ -5,3 +5,10 @@
 input[type=checkbox]{width:20px;min-height:20px;vertical-align:middle}.proposal label{display:block;margin:12px 0}
 
 #propose{max-width:720px;display:grid;gap:12px;margin:20px 0 28px}textarea{font:inherit;border:1px solid var(--line);border-radius:8px;padding:12px;width:100%;background:var(--bg);color:var(--ink)}summary{cursor:pointer;min-height:44px;padding:10px 0}#new-branch[hidden]{display:none}
+
+.workflow-form{display:grid;gap:12px;max-width:720px;margin:16px 0 28px}.workflow-form p{margin:0}.workflow-form label{font-weight:600}#transformation-panel,#observation-panel{border-top:1px solid var(--line);margin-top:24px;padding-top:12px}.observation-table td{overflow-wrap:anywhere;max-width:340px}
+@media(max-width:640px){#branches td:nth-child(1)::before{content:'Branch'}#branches td:nth-child(2)::before{content:'Inquiry'}#branches td:nth-child(3)::before{content:'Evidence'}#branches td:nth-child(4)::before{content:'History'}.observation-table td::before{content:attr(data-label)}.workflow-form button{white-space:normal}}
+.workflow-form[hidden]{display:none}
+
+.observation-table td:nth-child(3){white-space:pre-line}
+@media(max-width:640px){.observation-table td:nth-child(3){grid-column:1/-1;max-width:none}#branches td[colspan]::before{content:none}}

@@ -281,11 +281,11 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
-          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
         },
         {
           "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
-          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
@@ -385,11 +385,11 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
-          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
         },
         {
           "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
-          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
@@ -573,7 +573,7 @@
         },
         {
           "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
-          "sha256": "370fad97fa65757a4a50d9183cb8f51bc41ca89ab03a3fddeaf361e68c7a348d"
+          "sha256": "f6552c5739ccd1be134274e59f273fe59e0185f1d28cc5495c964572735b93b9"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py",
@@ -757,7 +757,7 @@
         },
         {
           "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
-          "sha256": "370fad97fa65757a4a50d9183cb8f51bc41ca89ab03a3fddeaf361e68c7a348d"
+          "sha256": "f6552c5739ccd1be134274e59f273fe59e0185f1d28cc5495c964572735b93b9"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py",
@@ -1054,11 +1054,11 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
-          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
         },
         {
           "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
-          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
@@ -1452,7 +1452,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "071acc3b8ddb220c234de6abf6a817aa54d28b2bea90786b347bbfb1d55661d9"
+          "sha256": "66aaafc9b1e2544b9ab7e43ab3a83c788471d6cf9dc5eab7911e715e1f005313"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1707,9 +1707,29 @@
         {
           "path": "tools/activation_runtime/proposals.py",
           "sha256": "b8b7827f7a2155565e71a52e16b7e7acc0b73c482f7283fd20b252fa128d4872"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "34a69f9cdfff70630b3767e0da4f10522d3a5f891ff3f4c441a9e90ca116a0be"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "35ea8062b8c1ac98980d6ca96e6109606d848fa927da60edd1b3bfaf5179ee66"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "a3c3dff1a7e68ad8c5ca083e85ac0a4f618bf37e82948fa0dce3e5ddff7c29cf"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "2fd48f54f8b53649ffab263d3822300dc362094673435dda7b2dc111741d5191"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_proposals.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py",
       "remaining": "Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1948,7 +1968,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "071acc3b8ddb220c234de6abf6a817aa54d28b2bea90786b347bbfb1d55661d9"
+          "sha256": "66aaafc9b1e2544b9ab7e43ab3a83c788471d6cf9dc5eab7911e715e1f005313"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1995,9 +2015,29 @@
         {
           "path": "tools/activation_runtime/authority.py",
           "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "34a69f9cdfff70630b3767e0da4f10522d3a5f891ff3f4c441a9e90ca116a0be"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "35ea8062b8c1ac98980d6ca96e6109606d848fa927da60edd1b3bfaf5179ee66"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "a3c3dff1a7e68ad8c5ca083e85ac0a4f618bf37e82948fa0dce3e5ddff7c29cf"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "2fd48f54f8b53649ffab263d3822300dc362094673435dda7b2dc111741d5191"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; tools/activation_runtime/tests/test_browser.py",
       "remaining": "Configured real tenant principals, reviewer/custodian authority and deployment privacy review.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -2090,15 +2130,15 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "d6eb57c0f0ad83265bf67d57b44461f9e71c307492dbc4cd6bf144882ff80f6c"
+          "sha256": "7e8092ff6c4afb0c6c6b44946ee708f26a6bda7e3600deaad2e664246c795f66"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
-          "sha256": "f20375c15ee07c4be3611dfcfc0eadf666d4981072400ce224ff2c67aafe5ad0"
+          "sha256": "0cd440ebaec6d99887889b25b363b85807a6b91f0412c0e86f8d824a11ac8abc"
         },
         {
           "path": "sdk/typescript/src/activation.ts",
-          "sha256": "b58a9f0e50c463bfc166318d42432e70cb97ca2f1cfaf4dc7d6d6f55d0fedeb5"
+          "sha256": "f99b68e1dca0451c1ad6f379b49687af8a9432409cdf33b8cf028fbaf5c0b9fd"
         },
         {
           "path": "sdk/typescript/src/index.ts",
@@ -2110,7 +2150,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "071acc3b8ddb220c234de6abf6a817aa54d28b2bea90786b347bbfb1d55661d9"
+          "sha256": "66aaafc9b1e2544b9ab7e43ab3a83c788471d6cf9dc5eab7911e715e1f005313"
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
@@ -2122,14 +2162,34 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
-          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
         },
         {
           "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
-          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "34a69f9cdfff70630b3767e0da4f10522d3a5f891ff3f4c441a9e90ca116a0be"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "35ea8062b8c1ac98980d6ca96e6109606d848fa927da60edd1b3bfaf5179ee66"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "a3c3dff1a7e68ad8c5ca083e85ac0a4f618bf37e82948fa0dce3e5ddff7c29cf"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "2fd48f54f8b53649ffab263d3822300dc362094673435dda7b2dc111741d5191"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py",
       "remaining": "Merged review and release/package acceptance; Python/TypeScript/CLI golden parity covers all four operations and refusal behavior.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"

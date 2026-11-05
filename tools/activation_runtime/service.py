@@ -54,7 +54,7 @@ class Application:
 
     def dispatch(self,route,body,authorization):
         if not isinstance(body,dict):raise ValueError("JSON object required")
-        scope="write" if route in {"source","gardener/event"} else "read"
+        scope="write" if route in {"source","gardener/event","reviewed-run"} else "read"
         if route=="gardener/event" and body.get("operation") in {"PRUNE","REOPEN","SYNTHESIZE"}:scope="review"
         if route=="gardener/outcome":scope="review"
         principal=self.principal(authorization,scope)
@@ -63,6 +63,20 @@ class Application:
             if set(body)!={"base64"}:raise ValueError("Unsupported source options")
             data=base64.b64decode(body["base64"],validate=True)
             return {"source_sha256":store.put(data),"bytes":len(data)}
+        if route=="reviewed-run":
+            if set(body)!={"base64","request"} or not isinstance(body["request"],dict):
+                raise ValueError("Original source and signed request required")
+            # Require both scopes before staging any bytes. Staging never grants approval.
+            self.principal(authorization,"read")
+            request=body["request"]
+            if set(request)!={"source_sha256","artifact","signed_manifest","policy_ir","contract","signed_review","allow_fallback"}:
+                raise ValueError("Unsupported reviewed activation options")
+            data=base64.b64decode(body["base64"],validate=True)
+            if not 0<len(data)<=65536 or __import__("hashlib").sha256(data).hexdigest()!=request["source_sha256"]:
+                raise ValueError("Original source differs from signed request")
+            validate("transform",request["artifact"])
+            store.put(data);store.put(canonical(request["artifact"]))
+            return self.dispatch("activate-plan",request,authorization)
         if route=="fallback":
             if set(body)!={"source_sha256"}:raise ValueError("Unsupported fallback options")
             data=store.get(body["source_sha256"])
@@ -123,7 +137,7 @@ class Application:
         if route=="status":
             if body:raise ValueError("Unsupported status options")
             return {"tenant":principal.tenant,"principal":principal.subject,"scopes":sorted(principal.scopes),
-                    "mode":"RESEARCH","can_generate":False}
+                    "mode":"RESEARCH","reviewed_activation_configured":bool(self.preservation_authorities.get(principal.tenant)),"can_generate":False}
         raise ValueError("Unknown API route")
 
     def start_proposal_loop(self,principals,*,interval_seconds=60):

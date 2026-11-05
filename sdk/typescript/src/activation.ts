@@ -28,7 +28,7 @@ export class ActivationClient {
     this.bearer=base64(new TextEncoder().encode(wireJson(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
   }
   async request(route:string,payload:Record<string,unknown>):Promise<any>{
-    if(!['validate','evaluate','activate-plan','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome'].includes(route))throw Error('Unsupported SDK route');
+    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome'].includes(route))throw Error('Unsupported SDK route');
     const response=await fetch(this.baseUrl+'/api/'+route,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+this.bearer},
       body:wireJson(payload),redirect:'error',signal:AbortSignal.timeout(10000)});
@@ -43,6 +43,7 @@ export class ActivationClient {
   validate(schema:string,value:unknown):Promise<ValidationResult>{return this.request('validate',{schema,value});}
   evaluate(input:Record<string,unknown>):Promise<FiniteReceipt>{return this.request('evaluate',input);}
   activatePlan(input:Record<string,unknown>):Promise<ReviewedActivationResult>{return this.request('activate-plan',input);}
+  runReviewed(raw:Uint8Array,request:Record<string,unknown>):Promise<ReviewedActivationResult>{return this.request('reviewed-run',{base64:base64(raw),request});}
   observations(input:Record<string,unknown>):Promise<ObservationGraphResult>{return this.request('observations',input);}
   async trace(input:Record<string,unknown>):Promise<string[]>{return (await this.evaluate(input)).trace;}
   fallback(source_sha256:string):Promise<FallbackResult>{return this.request('fallback',{source_sha256});}

@@ -171,3 +171,41 @@ class ReviewedWorkflowTests(unittest.TestCase):
         request["signed_review"]=review_binding(context,decision="APPROVE",reviewer="reviewer",author_key_id="author",key=self.reviewer,
             key_id="review-key",issued_at="2026-11-04T00:00:00Z",expires_at="2026-11-05T00:00:00Z",nonce="approximation-workflow")
         with self.assertRaises(HTTPError):self.client.activate_plan(**request)
+
+    def test_staged_run_works_from_empty_custody_without_preparatory_upload_calls(self):
+        request=self.request();self.app.root=Path(self.temp.name)/"fresh-runtime"
+        raw=b'{"instruction":"NOT permitted","unit":"mg"}'
+        result=self.client.run_reviewed(raw,request)
+        self.assertEqual(result["finite_constraint_result"],"SAT")
+        store=self.app.store(Principal("alice","a",frozenset({"read"})))
+        self.assertEqual(store.get(request["source_sha256"]),raw)
+        self.assertEqual(store.get(fingerprint(request["artifact"])),canonical(request["artifact"]))
+
+    def test_staged_run_requires_both_read_and_write_and_preserves_review_on_failure(self):
+        request=self.request();raw=b'{"instruction":"NOT permitted","unit":"mg"}'
+        for scopes in (["read"],["write"]):
+            restricted=Client(self.endpoint,self.make_token("restricted","a",scopes))
+            with self.assertRaises(HTTPError):restricted.run_reviewed(raw,request)
+        with self.assertRaises(HTTPError):self.client.run_reviewed(b"wrong original",request)
+        self.assertEqual(self.client.run_reviewed(raw,request)["finite_constraint_result"],"SAT")
+
+    def test_staged_python_typescript_cli_parity_for_preserved_refused_and_fallback(self):
+        raw=b'{"instruction":"NOT permitted","unit":"mg"}'
+        sdk=Path(__file__).resolve().parents[3]/"sdk/typescript/src/activation.ts"
+        script="import {ActivationClient} from "+json.dumps(sdk.as_uri())+";let text='';for await(const c of process.stdin)text+=c;let i=JSON.parse(text);console.log(JSON.stringify(await new ActivationClient(i.url,i.token).runReviewed(new TextEncoder().encode(i.raw),i.request)));"
+        from tools.activation_runtime.cli import main
+        for changes,fallback in ((None,False),({"unit":"g"},False),({"unit":"g"},True)):
+            py=self.client.run_reviewed(raw,self.request(changes=changes,fallback=fallback))
+            child=subprocess.run(["node","--input-type=module","-e",script],input=json.dumps({"url":self.endpoint,"token":self.token,"raw":raw.decode(),"request":self.request(changes=changes,fallback=fallback)}).encode(),capture_output=True,timeout=15)
+            self.assertEqual(child.returncode,0,child.stderr.decode());self.assertEqual(json.loads(child.stdout),py)
+            with tempfile.TemporaryDirectory() as root:
+                path=Path(root);(path/"source.json").write_bytes(raw);(path/"request.json").write_text(json.dumps(self.request(changes=changes,fallback=fallback)));(path/"token.json").write_text(json.dumps(self.token));out=StringIO()
+                with contextlib.redirect_stdout(out):main(["activate-plan","--endpoint",self.endpoint,"--token",str(path/"token.json"),"--request",str(path/"request.json"),"--source",str(path/"source.json")])
+                self.assertEqual(json.loads(out.getvalue()),py)
+
+    def test_staging_cannot_bypass_release_checks_or_silently_accept_extra_options(self):
+        request=self.request();raw=b'{"instruction":"NOT permitted","unit":"mg"}'
+        changed=deepcopy(request);changed["artifact"]["payload"]["f0"]="altered"
+        with self.assertRaises(HTTPError):self.client.run_reviewed(raw,changed)
+        with self.assertRaises(HTTPError):self.client.request("reviewed-run",{"base64":base64.b64encode(raw).decode(),"request":request,"approve":True})
+        self.assertEqual(self.client.run_reviewed(raw,request)["finite_constraint_result"],"SAT")

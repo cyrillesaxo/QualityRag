@@ -126,3 +126,5 @@ four domain flows; cross-tenant access; persisted replay refusal after restart;
 source/policy/contract corruption; key revocation; missing authority/custody;
 subject mismatches; strict options and the exact-runtime boundary. CI also runs
 all twelve worked examples and uploads their inputs and receipts.
+
+For source-file staging and the browser workspace, see REVIEW-WORKSPACE-WORKFLOWS.md. The optional CLI --source argument uses the same staged path.

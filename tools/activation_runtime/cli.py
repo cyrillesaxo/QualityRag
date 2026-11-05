@@ -21,7 +21,7 @@ def main(argv=None):
     sub=parser.add_subparsers(dest="command",required=True)
     p=sub.add_parser("validate");p.add_argument("schema");p.add_argument("file")
     p=sub.add_parser("evaluate");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
-    p=sub.add_parser("activate-plan");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
+    p=sub.add_parser("activate-plan");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True);p.add_argument("--source")
     p=sub.add_parser("trace");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("fallback");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--source-sha256",required=True)
     p=sub.add_parser("observations");p.add_argument("--source",required=True);p.add_argument("--request",required=True)
@@ -39,7 +39,11 @@ def main(argv=None):
         from qualityrag_activation import Client
         client=Client(args.endpoint,read(args.token))
         if args.command=="fallback":result=client.fallback(args.source_sha256)
-        elif args.command=="activate-plan":result=client.activate_plan(**read(args.request))
+        elif args.command=="activate-plan":
+            if args.source:
+                with Path(args.source).open("rb") as stream:raw=stream.read(65537)
+                result=client.run_reviewed(raw,read(args.request))
+            else:result=client.activate_plan(**read(args.request))
         elif args.command=="trace":result=client.trace(**read(args.request))
         else:result=client.evaluate(**read(args.request))
     elif args.command=="observations":

@@ -46,6 +46,8 @@ jobs:
         env:
           QUALITYRAG_APX_ROOT: ${{ github.workspace }}/tools/activation_runtime/vendor/apx
           QUALITYRAG_BROWSER_TESTS: '1'
+          QUALITYRAG_BROWSER_SCREENSHOT: /tmp/review-workspace-mobile.png
+          QUALITYRAG_OBSERVATION_SCREENSHOT: /tmp/observation-workspace-mobile.png
       - run: python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py' -v
       - run: python -m unittest discover -s tools/research_ledger/tests -p 'test_*.py' -v
       - run: python -m tools.activation_runtime.audit
@@ -62,4 +64,6 @@ jobs:
             /tmp/reviewed-workflows
             /tmp/story-delivery
             /tmp/source-observation.json
+            /tmp/review-workspace-mobile.png
+            /tmp/observation-workspace-mobile.png
             /tmp/activation-research/receipt.json

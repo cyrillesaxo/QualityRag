@@ -14,6 +14,28 @@
 <div class="table-wrap"><table><caption>Branches and their current evidence state</caption><thead><tr><th>Branch</th><th>Inquiry</th><th>Evidence</th><th>History</th><th>Action</th></tr></thead><tbody id="branches"></tbody></table></div>
 <h2>Suggestions awaiting review</h2><div id="proposals"></div><p>Suggestions do not validate claims. Changes retain the full history and can be reopened.</p>
 <details><summary>Inspect source-linked events</summary><pre id="history"></pre></details>
+<details id="transformation-panel"><summary>Run a reviewed transformation</summary>
+<p>Use the original source and a request already signed by your configured release issuer and reviewer.</p>
+<p id="transform-availability" hidden>Signed transformation is not configured for this workspace. The workspace owner must configure reviewer authority.</p>
+<form id="transform-form" class="workflow-form">
+<label for="transform-source">Transformation source file</label><input id="transform-source" type="file" accept=".json" required>
+<label for="transform-request">Signed transformation request</label><input id="transform-request" type="file" accept=".json" required>
+<p>Source limit: 64 KiB. Request limit: 350,000 bytes. Running stages the source and artifact, then verifies the signed request. It does not create approval.</p>
+<button type="submit">Run signed transformation</button></form>
+<div id="transform-result" hidden><h2 id="transform-heading"></h2><p id="transform-summary"></p><pre id="transform-output"></pre>
+<details><summary>Inspect checks and execution trace</summary><pre id="transform-receipt"></pre></details>
+<button id="download-receipt" type="button">Download transformation receipt</button></div></details>
+<details id="observation-panel"><summary>Inspect a source observation graph</summary>
+<p>Check source anchors, role references and declared event order. Annotation meaning remains unverified.</p>
+<form id="observation-form" class="workflow-form">
+<label for="observation-source">Observation source file</label><input id="observation-source" type="file" accept=".txt,.json">
+<label for="observation-hash">Or existing source SHA-256</label><input id="observation-hash" type="text" pattern="[0-9a-f]{64}" maxlength="64" autocomplete="off">
+<label for="observation-request">Observation draft file</label><input id="observation-request" type="file" accept=".json" required>
+<p>Choose one source file or one existing source hash. Source limit: 64 KiB of UTF-8 text. Draft limit: 250,000 bytes; drafts may include a complete ID rename.</p>
+<button type="submit">Check observation graph</button></form>
+<div id="observation-result" hidden><h2>Structurally checked observations</h2><p id="observation-summary"></p>
+<div class="table-wrap"><table class="observation-table"><caption>Source-anchored annotations; domain validity remains unknown</caption><thead><tr><th>ID</th><th>Kind</th><th>Annotation</th><th>Quoted source</th></tr></thead><tbody id="observation-nodes"></tbody></table></div>
+<details><summary>Inspect graph and transition</summary><pre id="observation-receipt"></pre></details></div></details>
 </section>
 <dialog id="preview"><form method="dialog"><h2>Review proposed change</h2><p id="preview-text"></p><pre id="preview-data"></pre><div class="actions"><button value="cancel">Keep current state</button><button id="apply" value="apply">Apply reviewed change</button></div></form></dialog>
 </main><footer>Research mode. Independent validation and release approval remain separate.</footer></body></html>

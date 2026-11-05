@@ -850,3 +850,26 @@ remain unreviewed, unsupported information remains UNKNOWN, and the complete
 original remains required as residual/refetch data. US-016 remains blocked on its
 independent semantic/canonical acceptance requirements; code presence alone does
 not close that requirement or authorize generation.
+
+
+## 25. Workspace execution, observation review and token-switch isolation
+
+The research workspace now exposes the reviewed transformation and observation
+graph flows alongside source-linked branch review. A source and previously signed
+request can be staged and executed through one authenticated call; read and write
+scopes are both required. Missing reviewer configuration is shown before execution.
+Python, TypeScript and CLI also expose this staged path. All underlying release,
+review, preservation, source and replay gates remain mandatory.
+
+The workspace distinguishes success, refusal and original fallback, displays
+actual traces, and downloads the exact server receipt without JSON-number
+reserialization. Graph annotations/source quotes render as text; read-only users
+can inspect existing source hashes. Connecting a token clears sensitive views
+and binds file reads and API responses to the current workspace epoch, discarding
+delayed prior-tenant data before rendering or continuing another write.
+
+Real Chromium tests exercise these journeys, including mobile width, injection
+safety, read-only source inspection, refused-request state and held old-tenant
+responses. See `docs/REVIEW-WORKSPACE-WORKFLOWS.md`. Independent user calibration,
+production configuration, domain acceptance and physical-device measurements
+remain external acceptance requirements; browser tests do not satisfy those gates.

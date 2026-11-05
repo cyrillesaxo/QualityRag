@@ -115,3 +115,5 @@ Real HTTP tests establish Python/TypeScript/CLI parity for construction/transiti
 and refusal for cross-tenant access, invalid joins, unsupported options and corrupt
 source bytes. Independent annotation review and canonical semantic parity remain
 separate acceptance requirements.
+
+The review workspace exposes this operation through source/draft file inputs or an existing authorized source hash; see REVIEW-WORKSPACE-WORKFLOWS.md.

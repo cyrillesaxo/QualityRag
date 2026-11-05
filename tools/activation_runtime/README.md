@@ -158,3 +158,13 @@ are checked against actual declared node kinds; anchors are revalidated against
 the original bytes. Unknown annotation meaning remains unknown. This is not a
 claim of canonical APX K/B/C/T/12G parity. See
 [the source-observation graph guide](../../docs/SOURCE-OBSERVATION-GRAPH.md).
+
+
+## Workspace source workflows
+
+The local review workspace also runs already signed transformations from source
+and request files, downloads exact server receipts, and inspects source-observation
+graphs with optional ID transitions. Existing source hashes support read-only
+inspection. Token switching clears results and discards delayed old responses.
+See [workspace workflows](../../docs/REVIEW-WORKSPACE-WORKFLOWS.md) for configuration,
+limits and the staged `run_reviewed` / `runReviewed` API.
