@@ -1,0 +1,59 @@
+name: Generate README QualityRAG GIF
+
+on:
+  push:
+    branches:
+      - docs/readme-animated-qualityrag-workflow
+    paths:
+      - scripts/build_qualityrag_readme_gif.py
+      - .github/workflows/qualityrag-readme-gif.yml
+
+permissions:
+  contents: write
+
+jobs:
+  render-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fonts and Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-dejavu-core
+          python -m pip install 'Pillow>=10,<13'
+      - name: Render actual animated GIF
+        run: |
+          python scripts/build_qualityrag_readme_gif.py \
+            --output docs/assets/qualityrag-how-it-works.gif
+      - name: Verify frames, semantics and file budget
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          gif=Path('docs/assets/qualityrag-how-it-works.gif')
+          im=Image.open(gif)
+          assert im.format=='GIF'
+          assert im.size==(960,540)
+          assert im.n_frames==9
+          assert 50_000 < gif.stat().st_size < 2_000_000
+          readme=Path('README.md').read_text(encoding='utf-8')
+          assert '(docs/assets/qualityrag-how-it-works.gif)' in readme
+          print(f'GIF verified: {im.n_frames} frames, {gif.stat().st_size:,} bytes')
+          PY
+      - name: Commit rendered GIF into README branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/assets/qualityrag-how-it-works.gif
+          if git diff --cached --quiet; then
+            echo 'GIF already committed and unchanged'
+            exit 0
+          fi
+          git commit -m 'docs: include rendered animated QualityRAG workflow GIF'
+          git push origin HEAD:docs/readme-animated-qualityrag-workflow

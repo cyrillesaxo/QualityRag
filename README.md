@@ -10,7 +10,7 @@ QualityRag evaluates a versioned **PackSpec** against retrieved evidence **befor
 
 | Traditional RAG | QualityRAG |
 | --- | --- |
-| ![Traditional RAG: chunk, embed, retrieve, assemble a prompt and generate an answer](docs/assets/traditional-rag.gif) | ![QualityRAG: source structuring, evidence governance and the Semantic Garden research loop](docs/assets/qualityrag-how-it-works.gif) |
+| ![Traditional RAG: chunk, embed, retrieve, assemble a prompt and generate an answer](docs/assets/traditional-rag.gif) | ![QualityRAG: source structuring, evidence governance and the Semantic Garden research loop](docs/assets/qualityrag-architecture.gif) |
 | Retrieves relevant passages and generates an answer from the selected context. | Evaluates the PackSpec's declared evidence requirements before admitting an answer; missing or conflicting evidence can prevent admission. |
 
 The traditional RAG animation depicts a representative baseline **without an explicit completeness contract**; RAG implementations can add their own guardrails. The QualityRAG animation illustrates the broader architecture, including the Semantic Garden's intended continuous grammar and activation research loop. It is not evidence that the full autonomous loop, semantic accuracy or compression superiority has been validated. Admission concerns declared requirements and supplied evidence metadata, not a guarantee of truth.
@@ -42,6 +42,17 @@ python -m tools.activation_runtime.evolution \
 Use the guide's explicit source-family splits and objective configuration. The worker runs until stopped, a budget is exhausted or a provider fails; without fresh evaluation families, it can continue development but cannot promote a research champion.
 
 **Acceptance boundary:** this implementation is a first reversible research backend. It does not yet demonstrate the full autonomous semantic improvement loop, a mature video grammar or superiority over AV1. Scripted lifecycle tests and a provider protocol fixture do not substitute for a live model experiment. Earlier “software-complete” story counts describe component evidence, not fulfillment of that system-level goal. Research promotion grants neither semantic admission nor production release.
+
+## How QualityRAG works (animated)
+
+![Animated QualityRAG walkthrough showing question retrieval, PackSpec obligations, duplicate-origin evidence, INCONCLUSIVE abstention, new independent evidence, ADMIT, and a source-linked answer. The final frame labels Semantic Garden research as experimental.](docs/assets/qualityrag-how-it-works.gif)
+
+**The key difference from ordinary RAG:** documents retrieved from the same origin do not automatically count as independent corroboration. QualityRAG checks the **versioned PackSpec** against the supplied evidence metadata *before* the application decides whether to generate an answer. Insufficient evidence results in **INCONCLUSIVE**, not an invented confident answer. **ADMIT** means the supplied inputs pass the declared checks; it does **not** prove that their sources are truthful.
+
+The final animation frame shows the **separate, experimental Semantic Garden** research loop for grammar and activation ideas. This is not a capability of the stable evidence-gate SDK, and research results are not promoted automatically.
+
+[Read the walkthrough and regenerate the GIF](docs/README-ANIMATION.md)
+
 
 ## PackSpec configuration choices
 
