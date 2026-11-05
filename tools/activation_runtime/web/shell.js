@@ -13,7 +13,8 @@
     $('signin').hidden=connected&&!shell.switching;
     document.body.classList.toggle('switching',shell.switching);
     document.body.classList.toggle('signed-in',connected);
-    for(const id of ['sidebar','ws-name','switch-ws','connect-link','menu-toggle'])$(id).hidden=!connected;
+    for(const id of ['sidebar','ws-name','switch-ws','connect-link','menu-toggle','palette-open'])$(id).hidden=!connected;
+    $('crumb-page').hidden=!connected;document.querySelector('.crumb-page-sep').hidden=!connected;
     $('signin-cancel').hidden=!(connected&&shell.switching);
   }
   new MutationObserver(()=>{if($('workspace').hidden===false)shell.switching=false;layout();}).observe($('workspace'),{attributes:true,attributeFilter:['hidden']});
@@ -28,6 +29,8 @@
     const match=/^#\/([a-z]+)/.exec(location.hash);
     const view=match&&names.includes(match[1])?match[1]:'home';
     for(const v of views)v.hidden=v.dataset.view!==view;
+    const navItem=document.querySelector('[data-nav="'+view+'"]');
+    $('crumb-page').textContent=navItem?navItem.dataset.tip:'';
     for(const a of document.querySelectorAll('[data-nav]')){
       if(a.dataset.nav===view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
     }
@@ -115,6 +118,52 @@
     if(v==='system')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=v;
     try{if(v==='system')localStorage.removeItem('qr-theme');else localStorage.setItem('qr-theme',v);}catch(_e){/* not remembered */}
   });
+
+  // Go to palette (Ctrl/Cmd+K): every screen by name, filtered as you type.
+  const palette=$('palette'),pin=$('palette-input'),plist=$('palette-list');
+  const targets=[...document.querySelectorAll('[data-nav]')].map(a=>({view:a.dataset.nav,label:a.dataset.tip}));
+  let pick=0;
+  function paletteDraw(){
+    const q=pin.value.trim().toLowerCase(),hits=targets.filter(x=>!q||x.label.toLowerCase().includes(q));
+    pick=Math.min(pick,Math.max(0,hits.length-1));plist.replaceChildren();
+    hits.forEach((x,i)=>{
+      const li=document.createElement('li'),a=document.createElement('a');
+      a.href='#/'+x.view;a.textContent=x.label;if(i===pick)a.setAttribute('aria-current','true');
+      a.addEventListener('click',()=>palette.close());li.append(a);plist.append(li);
+    });
+    if(!hits.length){const li=document.createElement('li');li.className='hint';li.textContent='No screen matches.';plist.append(li);}
+    return hits;
+  }
+  function paletteOpen(){if($('workspace').hidden||palette.open)return;pin.value='';pick=0;paletteDraw();palette.showModal();pin.focus();}
+  $('palette-open').addEventListener('click',paletteOpen);
+  pin.addEventListener('input',()=>{pick=0;paletteDraw();});
+  pin.addEventListener('keydown',e=>{
+    const hits=paletteDraw();
+    if(e.key==='ArrowDown'){e.preventDefault();pick=Math.min(pick+1,hits.length-1);paletteDraw();}
+    else if(e.key==='ArrowUp'){e.preventDefault();pick=Math.max(pick-1,0);paletteDraw();}
+    else if(e.key==='Enter'){e.preventDefault();if(hits[pick]){location.hash='#/'+hits[pick].view;palette.close();}}
+  });
+  palette.addEventListener('click',e=>{if(e.target===palette)palette.close();});
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&!e.altKey){e.preventDefault();paletteOpen();}
+  });
+  if(/Mac|iPhone|iPad/.test(navigator.platform||''))document.querySelector('.search-btn kbd').textContent='⌘K';
+
+  // Collapsible icon rail, remembered in this browser.
+  const rail=$('rail-toggle');
+  function railSet(c){document.body.classList.toggle('rail',c);rail.setAttribute('aria-pressed',String(c));rail.setAttribute('aria-label',c?'Expand sidebar':'Collapse sidebar');
+    try{localStorage.setItem('qr-rail',c?'1':'0');}catch(_e){/* not remembered */}}
+  rail.addEventListener('click',()=>railSet(!document.body.classList.contains('rail')));
+  try{if(localStorage.getItem('qr-rail')==='1')railSet(true);}catch(_e){/* default: expanded */}
+
+  // Status messages appear as a toast once signed in, then fade (errors stay longer).
+  let toastTimer=null;
+  new MutationObserver(()=>{
+    const s=$('status');if(!document.body.classList.contains('signed-in'))return;
+    s.classList.add('show');clearTimeout(toastTimer);
+    const error=/denied|invalid|failed|refused|unavailable|error|exceeds|choose|required/i.test(s.textContent);
+    toastTimer=setTimeout(()=>s.classList.remove('show'),error?9000:4500);
+  }).observe($('status'),{childList:true,characterData:true,subtree:true});
 
   layout();route();
 })();

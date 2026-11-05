@@ -17,6 +17,7 @@ All four need only `read` scope. People use them in the console. Developers and 
   - Health severities: *Must fix*, *Review* and *Good to know*.
   - Alternatives: *Works*, *Fails* or *Unknown*.
 - **Background checks.** Health checks run when you sign in and after each check. Home and the sidebar badge show what needs attention.
+- **Navigation.** Press Ctrl+K (⌘K on a Mac) to jump to any screen by name. The sidebar collapses to an icon rail with tooltips, and that choice is remembered in this browser. Each screen has its own link (`#/health`), which survives a reload.
 - **Light or dark.** The top bar has a System / Light / Dark switch. System follows the operating system, and a choice is remembered in this browser. The research tree keeps its dark panel in both themes.
 - **Connect.** Copy-ready curl, Python, TypeScript, CLI and MCP setup for the same API, with the console's own endpoint filled in.
 
