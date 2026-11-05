@@ -134,6 +134,10 @@ class Application:
             garden=Gardener(self.garden_path(principal))
             try:return query(garden.replay(),**body)
             finally:garden.close()
+        if route=="gardener/evolution":
+            if body:raise ValueError("Unsupported evolution status options")
+            from .evolution import status
+            return status(self.garden_path(principal))
         if route=="gardener/state":
             if body:raise ValueError("Unsupported state options")
             garden=Gardener(self.garden_path(principal))

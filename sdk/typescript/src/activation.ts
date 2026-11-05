@@ -33,7 +33,7 @@ export class ActivationClient {
     this.bearer=base64(new TextEncoder().encode(wireJson(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
   }
   async request(route:string,payload:Record<string,unknown>):Promise<any>{
-    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome','gardener/query','policy/example','policy/test','policy/advise','policy/replay','policy/siblings'].includes(route))throw Error('Unsupported SDK route');
+    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/evolution','gardener/proposals','gardener/event','gardener/outcome','gardener/query','policy/example','policy/test','policy/advise','policy/replay','policy/siblings'].includes(route))throw Error('Unsupported SDK route');
     const response=await fetch(this.baseUrl+'/api/'+route,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+this.bearer},
       body:wireJson(payload),redirect:'error',signal:AbortSignal.timeout(10000)});
@@ -64,6 +64,7 @@ export class ActivationClient {
   /** Feasible(s,F,C) per contract (SAT/UNSAT/UNKNOWN), functional siblings, regime boundaries and probes. */
   policySiblings(body:{function:string;contracts:Record<string,Record<string,unknown>>;candidates:unknown[];as_of?:string}):Promise<Record<string,unknown>>{return this.request('policy/siblings',body as Record<string,unknown>);}
   gardenState():Promise<Record<string,unknown>>{return this.request('gardener/state',{});}
+  gardenEvolution():Promise<Record<string,unknown>>{return this.request('gardener/evolution',{});}
   gardenQuery(filters:GardenQuery={}):Promise<GardenQueryResult>{return this.request('gardener/query',filters as Record<string,unknown>);}
   gardenSuggestions():Promise<Record<string,unknown>>{return this.request('gardener/proposals',{});}
   gardenEvent(event:GardenEvent):Promise<Record<string,unknown>>{return this.request('gardener/event',event as unknown as Record<string,unknown>);}

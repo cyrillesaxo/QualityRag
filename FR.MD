@@ -1,13 +1,31 @@
 # FR.MD — QualityRag Semantic Codex, RCT, PackSpec & Activation Grammar
 
 > **Document:** Functional requirements, implementation plan, user stories and acceptance criteria  
-> **Version:** 0.5 · **Date:** 2026-11-05 · **Owner:** APX / QualityRag research program  
+> **Version:** 0.6 · **Date:** 2026-11-05 · **Owner:** APX / QualityRag research program  
 > **Status:** Planning baseline; no story is complete merely because it appears here.  
 > **Source of truth:** This backlog plus linked PRs, source files, independent test receipts and reviewer decisions.  
 > **Research lineage:** Cyrille Eloundou · [apx.guide](https://apx.guide/)  
 > **Repository:** [cyrillesaxo/QualityRag](https://github.com/cyrillesaxo/QualityRag)
 
-## Current acceptance snapshot
+## System acceptance correction: the research tree must keep growing
+
+Component test coverage does not establish fulfillment of the intended system.
+The Semantic Garden must continuously turn failures into investigations,
+propose paired grammar/activation changes, run controlled experiments, retain
+counterexamples and conditional results, and advance or reopen research
+branches. A fixed codec, static proposal roles or a predefined palette sweep
+does not meet that outcome. AV1 is a measured baseline and untouched fallback,
+not the endpoint of the research.
+
+The [continuous RCT Garden implementation](docs/CONTINUOUS-RCT-GARDEN.md)
+connects persistent growth, an open-model proposal adapter, bounded real
+experiments, fresh-family evaluation, coupled grammar/activation programs,
+negative-result retention and purpose-scoped research champions. This is a
+first reversible byte-exact backend. Live model operation, long-horizon
+improvement, canonical semantic/FF-RCT maturity and representative video
+advantage are not established. No component count below is system acceptance.
+
+## Current component acceptance snapshot
 
 **Formal ledger: 2 DONE · 36 IN_REVIEW · 13 BLOCKED.** These are acceptance
 states, not counts of unimplemented stories. See the [software and documentation

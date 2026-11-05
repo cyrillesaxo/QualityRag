@@ -31,7 +31,7 @@ def main(argv=None):
     p=sub.add_parser("encode-scene");p.add_argument("--source",required=True);p.add_argument("--model",required=True);p.add_argument("--out",required=True)
     p=sub.add_parser("decode-scene");p.add_argument("--payload",required=True);p.add_argument("--model",required=True);p.add_argument("--out",required=True)
     p=sub.add_parser("garden",help="query and grow the Semantic Gardener research tree")
-    p.add_argument("action",choices=["state","query","suggestions","event","watch"])
+    p.add_argument("action",choices=["state","query","suggestions","event","watch","evolution"])
     p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True)
     p.add_argument("--text");p.add_argument("--evidence-status");p.add_argument("--lineage-of");p.add_argument("--depends-on")
     p.add_argument("--open-challenge",action="store_true");p.add_argument("--active-only",action="store_true")
@@ -67,6 +67,7 @@ def main(argv=None):
                  "open_challenge":True if args.open_challenge else None,"active":True if args.active_only else None,
                  "limit":args.limit}.items() if v is not None}
         if args.action=="state":result=client.garden_state()
+        elif args.action=="evolution":result=client.garden_evolution()
         elif args.action=="suggestions":result=client.garden_suggestions()
         elif args.action=="event":
             if not args.request:raise ValueError("--request event JSON required")

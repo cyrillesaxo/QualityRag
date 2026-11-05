@@ -1,5 +1,11 @@
 # Software and documentation verification
 
+**System-scope correction:** the counts below are historical component
+verification, not proof of an autonomous, continuously improving Semantic
+Garden. The intended outcome requires a persistent RCT research loop that
+evolves grammar and activation together. See [continuous RCT Garden](CONTINUOUS-RCT-GARDEN.md)
+for its implementation and the explicit remaining live-model/research limits.
+
 **37 stories have accepted or verified software/documentation evidence: two previously accepted, 33 software-verification passes and two documentation-verification passes. Fourteen stories retain additional work or evidence requirements.**
 
 This is source review and executable software/documentation evidence, not independent scientific/domain validation, a merge or production authorization. Formal ledger statuses remain separate: 2 DONE, 36 IN_REVIEW, 13 BLOCKED. They must not be presented as 49 unimplemented stories.

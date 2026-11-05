@@ -1,6 +1,6 @@
 {
   "schema": "qualityrag.software-verification-report/v1",
-  "scope": "SOFTWARE_AND_DOCUMENT_ACCEPTANCE_EVIDENCE_ONLY",
+  "scope": "HISTORICAL_COMPONENT_EVIDENCE_NOT_SYSTEM_ACCEPTANCE",
   "tested_commit": "4fde137d8e19bd2e25944b437a4e559bc3db264c",
   "ci": {
     "commit": "4fde137d8e19bd2e25944b437a4e559bc3db264c",
@@ -2707,5 +2707,16 @@
         }
       ]
     }
-  ]
+  ],
+  "system_conformance": {
+    "required_outcome": "CONTINUOUS_RCT_GRAMMAR_AND_ACTIVATION_RESEARCH",
+    "component_counts_are_system_acceptance": false,
+    "implementation": "FIRST_BOUNDED_BYTE_EXACT_EVOLUTION_BACKEND",
+    "live_open_model_run": "NOT_CONFIGURED_OR_VERIFIED",
+    "long_horizon_grammar_improvement": "NOT_ESTABLISHED",
+    "semantic_codec_maturity": "NOT_ESTABLISHED",
+    "av1_floor": "UNCHANGED_PASSTHROUGH_WHEN_CANDIDATE_OR_RUNTIME_COST_IS_UNQUALIFIED",
+    "documentation": "docs/CONTINUOUS-RCT-GARDEN.md",
+    "test": "tools/activation_runtime/tests/test_evolution.py"
+  }
 }

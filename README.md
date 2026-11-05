@@ -1,6 +1,6 @@
 # QualityRag
 
-**Evidence completeness and semantic governance for retrieval-augmented generation.**
+**Evidence-governed RAG and a growing Semantic Garden for grammar and activation research through RCT.**
 
 QualityRag evaluates a versioned **PackSpec** against retrieved evidence **before** an answer is produced. The SDK uses the same portable contract in Python, Java, and TypeScript/React.
 
@@ -14,6 +14,34 @@ QualityRag evaluates a versioned **PackSpec** against retrieved evidence **befor
 | Retrieves relevant passages and generates an answer from the selected context. | Evaluates the PackSpec's declared evidence requirements before admitting an answer; missing or conflicting evidence can prevent admission. |
 
 The traditional RAG animation depicts a representative baseline **without an explicit completeness contract**; RAG implementations can add their own guardrails. The QualityRAG animation illustrates the broader architecture, including the Semantic Garden's intended continuous grammar and activation research loop. It is not evidence that the full autonomous loop, semantic accuracy or compression superiority has been validated. Admission concerns declared requirements and supplied evidence metadata, not a guarantee of truth.
+
+## Semantic Garden: a continuous RCT research loop
+
+The central research deliverable is an agent-driven system that repeatedly finds, tests and retains better representation regimes while preserving the meaning required by the same PackSpec. **Grammar and activation evolve together.** A fixed codec, deterministic proposal roles or a predefined palette search alone do not fulfill this goal.
+
+1. **Find failure:** identify lost distinctions, excessive representation or activation costs, and cases that perform worse than AV1.
+2. **Investigate the regime:** record the constraints, representation choices and counterexamples that explain the failure.
+3. **Propose changes:** agents revise grammar rules, reusable structures, residual strategies, activation dependencies and paired encoder/decoder behavior.
+4. **Run controlled experiments:** compare each candidate with the current champion and AV1 on held-out families under the same PackSpec. Record setup, representation, activation and research costs; leave unmeasured costs explicit.
+5. **Retain knowledge:** keep hypotheses, lineage, counterexamples, negative experiments and the conditions under which each result holds. The research tree keeps growing.
+6. **Promote or reopen:** retain qualified, versioned research champions and reopen failed or dormant branches when new evidence warrants investigation.
+
+Activation includes what is reconstructed, which modules load, their order and their resource constraints. **AV1 is the baseline and fallback, not the endpoint.** Untouched AV1 fallback can preserve its byte-size floor; it does not establish an advantage in latency, energy, total research cost or semantic compression.
+
+### Executable implementation and current limits
+
+The [continuous research engine](docs/CONTINUOUS-RCT-GARDEN.md) connects persistent Garden branches and the Research Ledger to a host-configured open-model proposer, bounded encoding/activation experiments, fresh evaluation cohorts and research-champion history. Its first backend learns source-bound literal productions and composes reversible operators with eager or on-demand chunk activation. Exact source reconstruction is checked, and unknown decoder installation cost forces original-source fallback.
+
+```bash
+python -m tools.activation_runtime.evolution \
+  --garden /absolute/workspace/gardens/research/events.sqlite \
+  --config /absolute/research-config.json \
+  --model YOUR_INSTALLED_OPEN_MODEL --continuous --work-limit 200
+```
+
+Use the guide's explicit source-family splits and objective configuration. The worker runs until stopped, a budget is exhausted or a provider fails; without fresh evaluation families, it can continue development but cannot promote a research champion.
+
+**Acceptance boundary:** this implementation is a first reversible research backend. It does not yet demonstrate the full autonomous semantic improvement loop, a mature video grammar or superiority over AV1. Scripted lifecycle tests and a provider protocol fixture do not substitute for a live model experiment. Earlier “software-complete” story counts describe component evidence, not fulfillment of that system-level goal. Research promotion grants neither semantic admission nor production release.
 
 ## PackSpec configuration choices
 
@@ -108,3 +136,4 @@ The [PostgreSQL signed-promotion ledger](apps/registry/POSTGRES-SIGNED-LEDGER.md
 ## Operational signed-registry readiness
 
 The [PostgreSQL deployment and recovery runbook](apps/registry/DEPLOYMENT-RUNBOOK.md) describes checksummed advisory-locked migration, fail-closed startup, liveness/readiness probes, and a non-root registry container. It does not provision production database, identity or signing credentials.
+

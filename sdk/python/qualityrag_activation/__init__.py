@@ -100,7 +100,7 @@ class Client:
         self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
-        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome","gardener/query","policy/example","policy/test","policy/advise","policy/replay","policy/siblings"}:
+        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/evolution","gardener/proposals","gardener/event","gardener/outcome","gardener/query","policy/example","policy/test","policy/advise","policy/replay","policy/siblings"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
@@ -120,6 +120,7 @@ class Client:
     # Actor and time are set by the server from the signed token; agents with write scope can
     # propose, challenge and test, while prune, reopen and synthesize need review scope.
     def garden_state(self)->dict[str,object]:return self.request("gardener/state",{})
+    def garden_evolution(self)->dict[str,object]:return self.request("gardener/evolution",{})
     def garden_query(self,**filters)->dict[str,object]:
         """Filters: text, evidence_status, open_challenge, active, lineage_of, depends_on, since, limit."""
         return self.request("gardener/query",filters)

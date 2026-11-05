@@ -200,7 +200,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 3 | Count all additional training/search compute. | SOFTWARE | TESTED | `test_experiments.test_codec_arms_count_additional_search_compute_per_arm`; compute_by_arm totals shared training plus each arm's additional search. |
 | 4 | No “compression advantage” claimed if paired arm does not outperform a qualified baseline within uncertainty. | EXTERNAL_INPUT | NEEDS_INPUT | `test_experiments.test_paired_intervals_reproduce_and_negative_results_retained`; A qualified learned/conventional baseline needs licensed weights and a corpus. |
 
-- **Exercise the software:** see tools/activation_runtime/research/receipts/engineering-v1.json
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_evolution.py'`; see tools/activation_runtime/research/receipts/engineering-v1.json
 - **Inventory blocking text:** Representative hidden corpus and qualified learned/conventional baselines including all search/training costs.
 
 ### US-047 · Independent acceptance ledger (IN_REVIEW)
@@ -593,7 +593,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 3 | Structural edits are previewable and reversible, promotion requires review. | SOFTWARE | TESTED | `test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout` |
 | 4 | Reports false merges, branch churn, cost and utility; no autonomous truth claim. | SOFTWARE | TESTED | `test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty` |
 
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_proposals.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_garden_web.py'`
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_proposals.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_garden_web.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_evolution.py'`
 - **Inventory blocking text:** Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 - **Notes:** Duplicate detection is exact-statement only; paraphrase detection would need a semantic labeler.
@@ -607,7 +607,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 3 | Restricted execution sandbox prevents arbitrary host changes. | SOFTWARE | TESTED | `test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork` |
 | 4 | Evaluation always runs on pinned code/datasets. | SOFTWARE | TESTED | `test_agent_pins.test_worker_rejects_changed_dataset_and_each_stale_code_pin`, `test_agent_pins.test_pin_records_actual_source_bytes_and_exact_task_dataset`; Worker recomputes code/schema/runtime and exact finite task-dataset pins before sandbox execution; parent verifies returned pin. This is not external corpus validation. |
 
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_agents.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_agent_pins.py'`
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_agents.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_agent_pins.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_evolution.py'`
 - **Inventory blocking text:** Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
