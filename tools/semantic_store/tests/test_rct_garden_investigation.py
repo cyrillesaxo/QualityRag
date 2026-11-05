@@ -45,6 +45,34 @@ class GardenInvestigationTests(unittest.TestCase):
         else:
             self.assertEqual(hypothesis["status"], "UNIQUE_TRAINING_HYPOTHESIS")
 
+    def test_ambiguous_operators_generate_unanswered_discriminating_probes(self):
+        import copy
+        ambiguous = copy.deepcopy(TRAIN)
+        for i in (0, 1):
+            extra = [
+                (f"train-s{i}", "alternative_a", f"train-ax{i}"),
+                (f"train-ax{i}", "alternative_b", f"train-ay{i}"),
+                (f"train-ay{i}", "alternative_c", f"train-t{i}"),
+            ]
+            for j, (subject, predicate, destination) in enumerate(extra):
+                ambiguous["facts"].append({
+                    "id": f"alternative-{i}-{j}",
+                    "subject": subject, "predicate": predicate,
+                    "object": destination, "source_ref": f"alt-ref-{i}-{j}"})
+        hypothesis = induce_from_examples(ambiguous, TRAIN_EXAMPLES)
+        self.assertEqual(hypothesis["status"], "AMBIGUOUS")
+        self.assertIsNone(hypothesis["selected_predicate_path"])
+        self.assertGreaterEqual(len(hypothesis["discriminating_probes"]), 1)
+        for probe in hypothesis["discriminating_probes"]:
+            self.assertEqual(probe["reference_answer"], "UNOBSERVED")
+            self.assertEqual(probe["status"], "DISCRIMINATING_PROBE_PROPOSED")
+        inconclusive = run_investigation(
+            ambiguous, TRAIN_EXAMPLES, BEFORE, AFTER,
+            {"subjects": ["live-s0"]}, trials=2)
+        self.assertEqual(inconclusive["status"], "AMBIGUOUS")
+        self.assertIsNone(inconclusive["experiment"])
+        self.assertFalse(inconclusive["promotion_authorized"])
+
     def test_rejects_validation_examples_as_training_evidence(self):
         contaminated = [
             {"subject": "live-s0", "destination": "live-t0", "expected": True},
