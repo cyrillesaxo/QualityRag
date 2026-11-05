@@ -166,6 +166,46 @@ class GardenerTests(unittest.TestCase):
         finally:
             restarted.close()
 
+    def evidence(self, evidence_id, kind):
+        import ledger
+        ledger.evidence(self.garden.db, evidence_id=evidence_id, kind=kind, uri="https://example.test/" + evidence_id,
+                        description="Host-recorded evidence " + evidence_id, at=AT)
+
+    def test_test_operation_with_recorded_evidence(self):
+        self.append("event1", "PROPOSE", "root")
+        with self.assertRaises(ValueError):
+            self.append("event2", "TEST", "root", evidence_ids=["not-recorded"])
+        self.evidence("run1", "TEST_RESULT")
+        state = self.append("event3", "TEST", "root", evidence_ids=["run1"])
+        self.assertEqual(state["branches"]["root"]["events"], ["event1", "event3"])
+
+    def test_evidence_status_reflects_ledger_and_never_inherits(self):
+        import ledger
+        from tools.activation_runtime.proposals import dependency_evidence
+        self.append("event1", "PROPOSE", "root")
+        self.append("event2", "PROPOSE", "other")
+        self.evidence("run1", "TEST_RESULT")
+        self.evidence("review1", "REVIEW")
+        ledger.assess(self.garden.db, event_id="a1", claim_id="gardener-root", assessment="TESTED",
+                      reason="Test evidence recorded", actor="host", evidence_ids=["run1"], at="2026-11-04T12:01:00Z")
+        self.assertEqual(self.garden.replay()["branches"]["root"]["evidence_status"], "TESTED")
+        ledger.assess(self.garden.db, event_id="a2", claim_id="gardener-root", assessment="VALIDATED",
+                      reason="Independently verified", actor="host", evidence_ids=["review1", "run1"],
+                      at="2026-11-04T12:02:00Z", verify_validation=lambda claim, evidence: True)
+        state = self.append("event3", "SYNTHESIZE", "joined", parents=["root", "other"])
+        self.assertEqual(state["branches"]["root"]["evidence_status"], "VALIDATED")
+        self.assertEqual(state["branches"]["other"]["evidence_status"], "UNVERIFIED")
+        deps = dependency_evidence(state)
+        self.assertEqual(deps["root"], "VALIDATED")
+        self.assertEqual(deps["joined"], "UNRESOLVED_DEPENDENCIES")
+        ledger.assess(self.garden.db, event_id="a3", claim_id="gardener-other", assessment="VALIDATED",
+                      reason="Independently verified", actor="host", evidence_ids=["review1", "run1"],
+                      at="2026-11-04T12:03:00Z", verify_validation=lambda claim, evidence: True)
+        state = self.garden.replay()
+        # Both parents validated: the synthesis reports its own claim's status, not theirs.
+        self.assertEqual(dependency_evidence(state)["joined"], "UNVERIFIED")
+        self.assertEqual(state["branches"]["joined"]["evidence_status"], "UNVERIFIED")
+
     def test_rejects_missing_parent_and_invalid_test(self):
         with self.assertRaises(ValueError):
             self.append("event1", "PROPOSE", "branch", parents=["missing"])

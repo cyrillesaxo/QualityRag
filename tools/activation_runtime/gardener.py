@@ -69,6 +69,12 @@ class Gardener:
             branches[branch]["events"].append(event_id)
             events[event_id] = body
             previous = event_hash
+        # Evidence status is owned by the Research Ledger (which only records VALIDATED through
+        # a host-installed verifier); the Gardener reports it and never upgrades it itself.
+        statuses = {claim["claim_id"]: claim["effective_status"]
+                    for claim in ledger.progress(self.db, project="semantic-gardener")["claims"]}
+        for info in branches.values():
+            info["evidence_status"] = statuses.get(info["claim_id"], "UNVERIFIED")
         return {"branches": branches, "events": events, "head": previous,
                 "independent_validation": "NOT_ESTABLISHED"}
 

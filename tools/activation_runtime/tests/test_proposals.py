@@ -27,3 +27,39 @@ class ProposalTests(unittest.TestCase):
             metrics=suggest(path)["metrics"]
             self.assertEqual(metrics["false_merge_rate"],1)
             self.assertEqual(metrics["reported_useful_rate"],0)
+
+    def test_challenge_clears_after_test_and_reopens_on_new_challenge(self):
+        import ledger
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/"garden.sqlite"
+            garden=Gardener(path)
+            ev=lambda i,op,**kw:garden.append(event_id=i,operation=op,branch="b",actor="r",source_sha256="a"*64,
+                source_ref="turn:"+i,statement="Statement "+i,at="2026-11-04T12:00:00Z",**kw)
+            try:
+                ev("e1","PROPOSE");ev("e2","CHALLENGE")
+            finally:garden.close()
+            self.assertEqual([p["kind"] for p in suggest(path)["proposals"]],["UNRESOLVED_CHALLENGE"])
+            garden=Gardener(path)
+            try:
+                ledger.evidence(garden.db,evidence_id="run1",kind="TEST_RESULT",uri="https://example.test/run1",
+                                description="Host-recorded test",at="2026-11-04T12:00:00Z")
+                ev("e3","TEST",evidence_ids=["run1"])
+            finally:garden.close()
+            self.assertEqual(suggest(path)["proposals"],[])
+            garden=Gardener(path)
+            try:ev("e4","CHALLENGE")
+            finally:garden.close()
+            reopened=suggest(path)["proposals"]
+            self.assertEqual([p["kind"] for p in reopened],["UNRESOLVED_CHALLENGE"])
+            self.assertEqual(reopened[0]["source_ref"],"turn:e4")
+
+    def test_pruned_branch_challenge_not_suggested(self):
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/"garden.sqlite"
+            garden=Gardener(path)
+            ev=lambda i,op:garden.append(event_id=i,operation=op,branch="b",actor="r",source_sha256="a"*64,
+                source_ref="turn:"+i,statement="Statement "+i,at="2026-11-04T12:00:00Z")
+            try:ev("e1","PROPOSE");ev("e2","CHALLENGE");ev("e3","PRUNE")
+            finally:garden.close()
+            self.assertEqual(suggest(path)["proposals"],[])
+

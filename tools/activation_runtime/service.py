@@ -116,7 +116,9 @@ class Application:
                 author_public_key=author_key,nonce_store=SQLiteNonceStore(directory/(principal.tenant+".sqlite")),
                 as_of=self.clock(),allow_fallback=body["allow_fallback"])
         if route=="gardener/event":
-            if set(body)!={"event_id","operation","branch","source_sha256","source_ref","statement","parents"}:
+            required={"event_id","operation","branch","source_sha256","source_ref","statement","parents"}
+            # evidence_ids is optional; TEST requires it and append() checks each ID exists in this tenant's ledger.
+            if not required<=set(body)<=required|{"evidence_ids"}:
                 raise ValueError("Unsupported event options")
             store.get(body["source_sha256"])
             garden=Gardener(self.garden_path(principal))

@@ -1669,7 +1669,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "ef8053b26cb5fa0526a19086ec7e68fe7ed17f1c716ab40ee8905794c223096e"
+          "sha256": "ac712e4e33e906e561e24cebb1f095d376fa822bf0f2e8019248851955bb7bd1"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -1711,7 +1711,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "ef8053b26cb5fa0526a19086ec7e68fe7ed17f1c716ab40ee8905794c223096e"
+          "sha256": "ac712e4e33e906e561e24cebb1f095d376fa822bf0f2e8019248851955bb7bd1"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -1827,7 +1827,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/proposals.py",
-          "sha256": "b8b7827f7a2155565e71a52e16b7e7acc0b73c482f7283fd20b252fa128d4872"
+          "sha256": "cc15e8c2a1c3b62a54b33d9266aa506262fd2d9116d7d46bb34714f311fd6b7a"
         },
         {
           "path": "tools/activation_runtime/web/index.html",
@@ -2251,7 +2251,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "7e8092ff6c4afb0c6c6b44946ee708f26a6bda7e3600deaad2e664246c795f66"
+          "sha256": "f01e535d6686e95e1ebecd033efdf3ae6cc5bc31679138bfc0aa11c286b201e6"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
@@ -2275,7 +2275,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
-          "sha256": "7199be29ee97f2d8cd60fd7cadbf6c718c1ee5e4941f28717e548f5b5839ee44"
+          "sha256": "f7f12809afd20d78995e9b21989490caae1eff1218712dc966868816126c008e"
         },
         {
           "path": "tools/activation_runtime/reviewed_activation.py",

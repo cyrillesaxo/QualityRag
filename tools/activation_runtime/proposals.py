@@ -27,9 +27,12 @@ def suggest(path,*,limit=20):
             else:by_source[key]=event
             if len(output)>=limit:break
         for branch,info in state["branches"].items():
-            challenges=[state["events"][eid] for eid in info["events"] if state["events"][eid]["operation"]=="CHALLENGE"]
-            if challenges and len(output)<limit:
-                event=challenges[-1]
+            if not info["active"] or len(output)>=limit:continue
+            history=[state["events"][eid] for eid in info["events"]]
+            last_challenge=max((i for i,e in enumerate(history) if e["operation"]=="CHALLENGE"),default=None)
+            # A challenge is open until a TEST (which must cite ledger evidence) follows it.
+            if last_challenge is not None and not any(e["operation"]=="TEST" for e in history[last_challenge+1:]):
+                event=history[last_challenge]
                 output.append({"id":fingerprint([branch,event["event_id"]]),"kind":"UNRESOLVED_CHALLENGE",
                     "branches":[branch],"source_sha256":event["source_sha256"],"source_ref":event["source_ref"],
                     "confidence":None,"calibration":"UNMEASURED","suggested_operation":"TEST",
@@ -51,9 +54,11 @@ def dependency_evidence(state):
     result={}
     def visit(branch):
         if branch in result:return result[branch]
-        parents=state["branches"][branch]["parents"]
-        unresolved=[p for p in parents if visit(p)!="VALIDATED"]
-        result[branch]="UNRESOLVED_DEPENDENCIES" if unresolved else "UNVERIFIED"
+        info=state["branches"][branch]
+        unresolved=[p for p in info["parents"] if visit(p)!="VALIDATED"]
+        # A branch's own ledger status is used only when every ancestor is VALIDATED;
+        # synthesis has its own claim, so it never inherits validation from parents.
+        result[branch]="UNRESOLVED_DEPENDENCIES" if unresolved else info.get("evidence_status","UNVERIFIED")
         return result[branch]
     for branch in state["branches"]:visit(branch)
     return result

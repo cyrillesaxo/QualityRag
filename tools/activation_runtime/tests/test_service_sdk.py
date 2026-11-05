@@ -61,6 +61,28 @@ class ServiceSDKTests(unittest.TestCase):
         self.assertFalse(py["can_generate"])
         self.assertEqual(base64.b64decode(self.client.fallback(request["source_sha256"])["base64"]),b'{"instruction":"NOT permitted","unit":"mg"}')
 
+    def test_gardener_test_event_accepts_evidence_ids(self):
+        import sqlite3
+        sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"research_ledger"))
+        import ledger
+        auth="Bearer "+base64.urlsafe_b64encode(canonical(self.token)).decode().rstrip("=")
+        source=self.app.dispatch("source",{"base64":base64.b64encode(b"turn").decode()},auth)["source_sha256"]
+        event=lambda i,op,**kw:{"event_id":i,"operation":op,"branch":"b","source_sha256":source,
+                                "source_ref":"turn:1","statement":"Hypothesis "+i,"parents":[],**kw}
+        self.app.dispatch("gardener/event",event("e1","PROPOSE"),auth)
+        with self.assertRaises(ValueError):  # TEST still needs evidence
+            self.app.dispatch("gardener/event",event("e2","TEST"),auth)
+        with self.assertRaises(ValueError):  # unknown evidence is refused
+            self.app.dispatch("gardener/event",event("e2","TEST",evidence_ids=["missing"]),auth)
+        with self.assertRaises(ValueError):  # other extra options are still refused
+            self.app.dispatch("gardener/event",event("e2","TEST",evidence_ids=["run1"],extra=1),auth)
+        with sqlite3.connect(Path(self.temp.name)/"gardens"/"a"/"events.sqlite") as db:  # host-recorded evidence
+            ledger.evidence(db,evidence_id="run1",kind="TEST_RESULT",uri="https://example.test/run1",
+                            description="Host-recorded test",at=AT)
+        state=self.app.dispatch("gardener/event",event("e2","TEST",evidence_ids=["run1"]),auth)
+        self.assertEqual(state["events"]["e2"]["evidence_ids"],["run1"])
+        self.assertEqual(state["events"]["e2"]["actor"],"alice")
+
     def test_cross_tenant_guessed_id_denied_and_scope_enforced(self):
         request=self.request()
         foreign=Client(self.endpoint,self.make_token("bob","b"))
