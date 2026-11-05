@@ -20,7 +20,7 @@ Operator ::= PRESERVE(fields)
            | FALLBACK(regime)
 ```
 
-In v0.1 these operators are *declarations*, not imperative operations. A `TRANSITION` is not yet executed, and an `ACTIVATE` does not load a model. No untrusted code is evaluated.
+In v0.1 these operators are *declarations*, not imperative operations. A `TRANSITION` is not yet executed, and an `ACTIVATE` does not load a model. No untrusted code is evaluated. Declarations are still checked: each operator may carry only its own keys (a misspelled key is rejected), and `PRESERVE`/`VERIFY` may only name fields the contract requires. They do not otherwise change the verdict, and observation *values* are checked for presence only, not compared.
 
 ## Run a real finite example
 

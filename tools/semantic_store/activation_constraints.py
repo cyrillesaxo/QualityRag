@@ -17,6 +17,14 @@ MAX_FIELDS = 128
 MAX_OPERATORS = 32
 MAX_TEXT = 512
 OPERATORS = {"PRESERVE", "TRANSITION", "ACTIVATE", "VERIFY", "FALLBACK"}
+# Exact keys each operator may carry; a misspelled key must fail, not silently default.
+OPERATOR_KEYS = {
+    "PRESERVE": {"op", "fields"},
+    "VERIFY": {"op", "fields"},
+    "TRANSITION": {"op", "from", "to"},
+    "ACTIVATE": {"op", "regime", "modules"},
+    "FALLBACK": {"op", "regime"},
+}
 MISSING = object()
 
 
@@ -86,6 +94,8 @@ def validate_grammar(grammar: dict) -> dict:
         o = _object(op, "operator")
         if o.get("op") not in OPERATORS:
             raise InvalidGrammar("unsupported operator at " + str(i))
+        if not set(o) <= OPERATOR_KEYS[o["op"]]:
+            raise InvalidGrammar("unsupported key in " + o["op"] + " operator at " + str(i))
         if o["op"] == "TRANSITION":
             if o.get("from") not in regimes or o.get("to") not in regimes:
                 raise InvalidGrammar("transition endpoints must exist")
@@ -140,6 +150,13 @@ def evaluate(grammar: dict, contract: dict, observations: dict, *, max_activatio
         raise InvalidGrammar("baseline regime missing")
     required = set(c["required_fields"])
     exact = set(c["exact_fields"])
+    # PRESERVE/VERIFY are declarations, but they must name fields the contract governs;
+    # a field the contract does not know about cannot be preserved or verified against it.
+    for i, op in enumerate(g["operators"]):
+        if op["op"] in ("PRESERVE", "VERIFY"):
+            stray = sorted(set(op.get("fields", [])) - required)
+            if stray:
+                raise InvalidGrammar(op["op"] + " at " + str(i) + " names fields outside the contract: " + ", ".join(stray))
     receipts = []
     for regime_id, cfg in sorted(g["regimes"].items()):
         preserved = set(cfg["preserves"])

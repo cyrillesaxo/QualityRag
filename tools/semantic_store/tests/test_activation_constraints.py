@@ -32,6 +32,18 @@ def fixture():
 
 
 class ActivationTest(unittest.TestCase):
+    def test_operator_with_misspelled_key_is_rejected(self):
+        g, c, o = fixture()
+        g["operators"][3] = {"op": "VERIFY", "feilds": ["symptom"]}
+        with self.assertRaises(InvalidGrammar):
+            validate_grammar(g)
+
+    def test_operator_fields_must_belong_to_contract(self):
+        g, c, o = fixture()
+        g["operators"][3] = {"op": "VERIFY", "fields": ["not-in-contract"]}
+        with self.assertRaises(InvalidGrammar):
+            evaluate(g, c, o, max_activation_ms=10, max_model_bytes=1000)
+
     def test_selects_cheapest_declared_feasible_regime(self):
         g, c, obs = fixture()
         r = evaluate(g, c, obs, max_activation_ms=5, max_model_bytes=500,
