@@ -119,3 +119,47 @@ for the visual Garden event UI shown in the conversation. This PR adds
 measured semantic-store experiments and ledger receipts, **not** a live
 connection to that UI. The UI's actual repository/API must be verified
 before integrating interactive branch/replay/promotion actions.
+
+## Next research increment: bounded co-evolution
+
+`tools/semantic_store/rct_garden_coevolution.py` expands the earlier
+two-hop-only grammar into a **data-mined, variable-length (2–4 hop)
+composition candidate**. This is a genuinely broader candidate space,
+but it is still within the predeclared `RELATION_PATH_COMPOSITION` family;
+it is **not** evidence of inventing arbitrary new mathematical operators.
+
+`induce_from_examples` accepts positive and adversarial negative examples
+that reference **training nodes only** and selects a path only if a unique
+candidate fits all of them. If multiple paths remain consistent, it emits
+`AMBIGUOUS` and requests a discriminating probe instead of choosing one.
+
+`run_investigation` then freezes the chosen path and evaluates it across
+two separately versioned source snapshots. The holdout workload cannot
+inject its own predicate path. An independent SQLite reference query
+checks all feasible subjects, not only the positive examples.
+
+Activation signals are derived from the workload frequency distribution:
+on-demand, frequency-aware prefetch, or all-subject prefetch. Each policy
+records activation, representation, query, verification and reference
+reconstruction costs. The Garden returns candidate measurements, never an
+admitted champion or an authorized policy change.
+
+### Validate the new experiment
+
+```bash
+python -m unittest discover -s tools/semantic_store/tests -p 'test_rct_garden_*.py' -v
+```
+
+### Not yet implemented
+
+This research loop is synchronous and bounded; it does not autonomously
+schedule background investigations. It cannot invent entirely new
+operator *families*, evolve decoder code, execute canonical native FF-RCT,
+or promote reasoning kernels into production. The experimental operators
+and activation signals require held-out stress and full RCT/FFI/PackSpec
+authority before any broader scientific claim.
+
+In particular, `UNIQUE_TRAINING_HYPOTHESIS` means only that one
+predeclared operator **fits the observed training examples**. It does not
+establish semantic truth, k4 transfer, independent witness channels,
+or superiority to a native graph/SQL engine.
