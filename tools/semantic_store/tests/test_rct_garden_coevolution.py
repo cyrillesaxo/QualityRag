@@ -69,8 +69,10 @@ class GardenCoevolutionTests(unittest.TestCase):
         self.assertEqual(BEFORE, before)
         self.assertEqual(result["schema"], SCHEMA)
         self.assertEqual(result["status"], "CANDIDATES_EVALUATED")
-        self.assertEqual(len(result["results"]), 3)
+        self.assertEqual(len(result["results"]), 6)
         self.assertTrue(result["pareto_candidate_indices"])
+        self.assertEqual({x["grammar"] for x in result["results"]},
+                         {"DIRECT_TRAVERSAL", "MATERIALIZED_COMPOSITION"})
         self.assertFalse(result["promotion_authorized"])
         self.assertIsNone(result["champion"])
         for policy in result["results"]:
