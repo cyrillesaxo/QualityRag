@@ -80,6 +80,7 @@ async function refresh(){
       article.append(feedback);list.append(article);
     }
     message('Workspace: '+who.tenant+' · '+Object.keys(state.branches).length+' branches · Research mode');
+    window.dispatchEvent(new CustomEvent('qr:ready',{detail:{who,state,suggestions}}));
   }catch(error){if(epoch===sessionEpoch)message(error.message);}finally{byId('refresh').disabled=false;}
 }
 byId('connect').addEventListener('submit',event=>{

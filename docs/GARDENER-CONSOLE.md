@@ -21,7 +21,7 @@ python -m tools.activation_runtime.cli serve --root ./workspace --keys keys.json
 # open http://127.0.0.1:8769 and paste a signed access token
 ```
 
-The **Research tree** panel at the top of the workspace shows:
+Signing in opens **Home**: a summary of the last answer check, health issues, the research tree and a getting-started list. The sidebar has one screen per job (Check an answer, Health, Policy changes, Alternatives, Research tree, Branches & review, Connect, Advanced tools); each screen has its own link, such as `#/tree`. The **Research tree** screen shows:
 
 - **The tree.** It grows upward from root hypotheses as fractal limbs. Cyan means tested in the ledger, amber an open challenge, pale an unverified hypothesis, and dashed grey a pruned branch (still in history). A synthesis is drawn as two limbs merging.
 - **Live growth.** New events from any person or agent appear within a few seconds; the panel polls the query API with `since`.
@@ -109,4 +109,4 @@ python -m tools.activation_runtime.cli garden watch --endpoint http://127.0.0.1:
 
 ## Governance tools
 
-The same console has a **Governance** panel with a policy tester, an advisor, policy-branch replay and functional-sibling feasibility. Open Gardener challenges appear as Advisor findings. See [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md).
+The same console's Evidence screens are Check an answer (policy tester), Health (advisor), Policy changes (branch replay) and Alternatives (functional siblings). Open Gardener challenges appear as Advisor findings. See [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md).

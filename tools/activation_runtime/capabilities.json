@@ -1879,19 +1879,19 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "1ab46c16b41cd69ba51773bbacdb4c290113267d7c79ac299915965f059bf077"
+          "sha256": "d435c20fbbfb070365591713d86668874a2ac45762c63bfe66d487978c3c6907"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "e00d293a68cbe8171809cd430aebd1bcc19333a4fa09de71b0fcf0edbd65d625"
+          "sha256": "4f81ad3af50c514d8f8b28ff2a76b538a0e6bb2ed843a43a01f70a422b563e97"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "1dfa2b9748a55edbe91c79abd5f705d65be030aeab5053c87e87b8c5e31ea22a"
+          "sha256": "dcefa5a2ebba9e4c3c5cda34e51e1d193152e3cd3c45759243f8d58384bcd8c2"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "10a03cc130fef5ead6e391a0710b34e08154fdca9b98f441395996484241bee1"
+          "sha256": "4afa15e1f231ad6b1d759439ea03d470e87ec0a977863b2bc85a3c7925db1861"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2235,19 +2235,19 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "1ab46c16b41cd69ba51773bbacdb4c290113267d7c79ac299915965f059bf077"
+          "sha256": "d435c20fbbfb070365591713d86668874a2ac45762c63bfe66d487978c3c6907"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "e00d293a68cbe8171809cd430aebd1bcc19333a4fa09de71b0fcf0edbd65d625"
+          "sha256": "4f81ad3af50c514d8f8b28ff2a76b538a0e6bb2ed843a43a01f70a422b563e97"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "1dfa2b9748a55edbe91c79abd5f705d65be030aeab5053c87e87b8c5e31ea22a"
+          "sha256": "dcefa5a2ebba9e4c3c5cda34e51e1d193152e3cd3c45759243f8d58384bcd8c2"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "10a03cc130fef5ead6e391a0710b34e08154fdca9b98f441395996484241bee1"
+          "sha256": "4afa15e1f231ad6b1d759439ea03d470e87ec0a977863b2bc85a3c7925db1861"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2347,7 +2347,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "c5b1390c541cdf8d75aa91d0490f0f7b19cc5ad64570464ab5fbdc8afb1ba3a2"
+          "sha256": "d5423c504ddb7ba04dff2871fdeb35d5d20a0b8bccf3e37272dc22fab39333bc"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
@@ -2371,7 +2371,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
-          "sha256": "5082a9ab49fcaeab43e7045ea6b7682582acfd714d70dc7abb4de58cc9aa5074"
+          "sha256": "b0afc02ccfa59cbb99237c51501e39c2daf6030765f870362957743fa9458ed1"
         },
         {
           "path": "tools/activation_runtime/reviewed_activation.py",
@@ -2387,19 +2387,19 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "1ab46c16b41cd69ba51773bbacdb4c290113267d7c79ac299915965f059bf077"
+          "sha256": "d435c20fbbfb070365591713d86668874a2ac45762c63bfe66d487978c3c6907"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "e00d293a68cbe8171809cd430aebd1bcc19333a4fa09de71b0fcf0edbd65d625"
+          "sha256": "4f81ad3af50c514d8f8b28ff2a76b538a0e6bb2ed843a43a01f70a422b563e97"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "1dfa2b9748a55edbe91c79abd5f705d65be030aeab5053c87e87b8c5e31ea22a"
+          "sha256": "dcefa5a2ebba9e4c3c5cda34e51e1d193152e3cd3c45759243f8d58384bcd8c2"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "10a03cc130fef5ead6e391a0710b34e08154fdca9b98f441395996484241bee1"
+          "sha256": "4afa15e1f231ad6b1d759439ea03d470e87ec0a977863b2bc85a3c7925db1861"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",

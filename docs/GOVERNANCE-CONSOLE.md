@@ -1,8 +1,23 @@
 # Policy tester, Advisor, branch replay and functional siblings
 
-The **Governance** panel in the QualityRag console has four tools that sit on the v0.1 deterministic gate (`qualityrag.compiler.evaluate_compiled`). None of them changes a verdict, the ledger or the Gardener. `ADMIT` remains metadata gate satisfaction, not authorization to act.
+The QualityRag console has four Evidence screens: **Check an answer** (policy tester), **Health** (advisor), **Policy changes** (branch replay) and **Alternatives** (functional siblings). They sit on the v0.1 deterministic gate (`qualityrag.compiler.evaluate_compiled`). None of them changes a verdict, the ledger or the Gardener. `ADMIT` remains metadata gate satisfaction, not authorization to act.
 
 All four need only `read` scope. People use them in the console. Developers and agents use the same API through the Python and TypeScript SDKs and the MCP server.
+
+## Using the console without the internals
+
+- **Sample data by default.** Every screen opens with something to run. Check an answer, Policy changes and Alternatives load the EU payments or joining sample themselves; **Use my own documents** swaps in your file.
+- **Forms, not JSON.**
+  - Passages are a checklist.
+  - A policy is a list of requirements, each with *Independent sources* and *Max age (days)* fields.
+  - Policy changes start from a suggested stricter version of the current policy.
+  - The PackSpec JSON, recorded cases and requirement sets stay under **Advanced**.
+- **Plain language first, the exact term beside it.**
+  - Check results: *Supported*, *Not enough evidence* or *Contradicted*, with the gate verdict (ADMIT, INCONCLUSIVE, REFUSE) as a tag.
+  - Health severities: *Must fix*, *Review* and *Good to know*.
+  - Alternatives: *Works*, *Fails* or *Unknown*.
+- **Background checks.** Health checks run when you sign in and after each check. Home and the sidebar badge show what needs attention.
+- **Connect.** Copy-ready curl, Python, TypeScript, CLI and MCP setup for the same API, with the console's own endpoint filled in.
 
 ## Policy tester
 

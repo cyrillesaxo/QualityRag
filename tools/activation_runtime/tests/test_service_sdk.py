@@ -191,7 +191,7 @@ class ServiceSDKTests(unittest.TestCase):
         from urllib.request import urlopen
         with urlopen(self.endpoint) as response:
             body=response.read()
-            self.assertIn(b"Research review",body)
+            self.assertIn(b"Sign in to your workspace",body)
             self.assertIn("script-src 'self'",response.headers["Content-Security-Policy"])
         self.assertNotIn(b"onclick=",body)
 

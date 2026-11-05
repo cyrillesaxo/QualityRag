@@ -1,13 +1,113 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag Research Review</title><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script><script src="/governance.js" defer></script></head>
-<body><header><a href="/" aria-label="QualityRag home">QualityRag</a><span>Research review</span></header><main>
-<h1>Keep the evidence in view.</h1><p>Review research branches, inspect proposed changes, and preserve their source history.</p>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag</title><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script><script src="/governance.js" defer></script><script src="/shell.js" defer></script></head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+<button type="button" id="menu-toggle" class="icon-btn" aria-controls="sidebar" aria-expanded="false" aria-label="Open menu" hidden><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+<a href="#/home" class="brand" aria-label="QualityRag home"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 20V11M11 11 5 4M11 11l6-7M11 14 7 9M11 14l4-5" fill="none" stroke="#57E0CC" stroke-width="1.8" stroke-linecap="round"/></svg>QualityRag</a>
+<span id="ws-name" class="ws-name" hidden></span>
+<span class="topbar-gap"></span>
+<a href="#/connect" id="connect-link" class="btn-ghost small" hidden>Connect</a>
+<button type="button" id="switch-ws" class="btn-ghost small" hidden>Switch workspace</button>
+</header>
+<div class="shell">
+<nav id="sidebar" class="sidebar" aria-label="Console" hidden>
+<a href="#/home" data-nav="home">Home</a>
+<p class="nav-group">Evidence</p>
+<a href="#/ask" data-nav="ask">Check an answer</a>
+<a href="#/health" data-nav="health">Health <span id="badge-health" class="badge" hidden></span></a>
+<a href="#/changes" data-nav="changes">Policy changes</a>
+<a href="#/alternatives" data-nav="alternatives">Alternatives</a>
+<p class="nav-group">Research</p>
+<a href="#/tree" data-nav="tree">Research tree</a>
+<a href="#/review" data-nav="review">Branches &amp; review <span id="badge-review" class="badge" hidden></span></a>
+<p class="nav-group">Build</p>
+<a href="#/connect" data-nav="connect">Connect</a>
+<a href="#/advanced" data-nav="advanced">Advanced tools</a>
+</nav>
+<main id="main" tabindex="-1">
+<p id="status" role="status" class="statusline">Connect to load your authorized workspace.</p>
+
+<section id="signin" class="signin" aria-labelledby="signin-title">
+<div class="card signin-card">
+<h1 id="signin-title">Sign in to your workspace</h1>
+<p>Check whether retrieved evidence supports an answer, see what to fix, and follow your research as it grows.</p>
 <form id="connect"><label for="token">Access token</label><input id="token" type="password" autocomplete="off" required placeholder="Paste a signed access token"><button type="submit">Open workspace</button></form>
-<p id="status" role="status">Connect to load your authorized workspace.</p>
+<p class="hint">Your workspace owner issues tokens. A token decides what you can see and change; it never leaves this browser except to this server.</p>
+</div>
+</section>
+
 <section id="workspace" hidden>
+<p id="gov-status" class="obs-result" role="status"></p>
+
+<section data-view="home" class="view" aria-labelledby="home-title" hidden>
+<div class="page-head"><div><h1 id="home-title">Welcome back</h1><p id="home-sub" class="sub">Here is what needs your attention.</p></div></div>
+<div class="cards">
+<a class="card link-card" href="#/ask"><span class="card-kicker">Check an answer</span><strong id="home-check">Try it with sample data</strong><span class="card-sub">See which passages support an answer, and why.</span></a>
+<a class="card link-card" href="#/health"><span class="card-kicker">Health</span><strong id="home-health">Checking…</strong><span class="card-sub">Problems the evidence check does not catch on its own.</span></a>
+<a class="card link-card" href="#/tree"><span class="card-kicker">Research tree</span><strong id="home-tree">—</strong><span class="card-sub">Hypotheses, challenges and tests, growing live.</span></a>
+<a class="card link-card" href="#/connect"><span class="card-kicker">Connect</span><strong>Use it from code or an AI agent</strong><span class="card-sub">API, Python, TypeScript, CLI and MCP.</span></a>
+</div>
+<div class="card"><h2 class="card-title">Get started</h2><ol id="home-steps" class="steps">
+<li data-step="ask"><a href="#/ask">Check an answer with the sample data</a></li>
+<li data-step="health"><a href="#/health">Review what the health checks found</a></li>
+<li data-step="changes"><a href="#/changes">Try a stricter policy and compare the results</a></li>
+<li data-step="connect"><a href="#/connect">Connect an agent or your own code</a></li>
+</ol></div>
+</section>
+
+<section data-view="ask" id="gov-test" class="view gov" aria-labelledby="ask-title" hidden>
+<div class="page-head"><div><h1 id="ask-title">Check an answer</h1><p class="sub">Ask a question, choose the passages your search returned, and see whether the evidence supports answering.</p></div></div>
+<div id="gov-sample" class="banner" hidden><span id="gov-sample-text">Using sample data.</span><button type="button" class="btn-ghost small" id="gov-own">Use my own documents</button></div>
+<form id="gov-test-form" class="card gov-form">
+<label for="gov-question">Question</label><input id="gov-question" type="text" maxlength="2000" placeholder="What do you want to answer?">
+<div id="gov-own-docs" class="field" hidden><label for="gov-docs">Your documents (JSON file)</label><input id="gov-docs" type="file" accept=".json"><p class="hint">A list of documents, each with an origin and passages (id, text, requirement_id, status).</p></div>
+<p id="gov-docs-label" class="hint">No documents loaded.</p>
+<fieldset class="field"><legend>Passages your search returned</legend><div id="gov-passages" class="passages"><p class="hint">Load documents to choose passages.</p></div></fieldset>
+<fieldset class="field"><legend>What the answer needs</legend><div id="gov-pack-editor" class="req-editor"></div></fieldset>
+<details class="advanced"><summary>Advanced: edit as JSON</summary>
+<label for="gov-pack">Policy (PackSpec JSON)</label><textarea id="gov-pack" rows="8" spellcheck="false" required></textarea>
+<label for="gov-retrieved">Passage IDs, in order</label><textarea id="gov-retrieved" rows="3" spellcheck="false" required></textarea></details>
+<div class="gov-actions"><button type="button" class="btn-ghost" id="gov-example">Use sample data</button><button type="submit">Check answer</button></div></form>
+<div id="gov-test-result" hidden></div>
+</section>
+
+<section data-view="health" id="gov-advise" class="view gov" aria-labelledby="health-title" hidden>
+<div class="page-head"><div><h1 id="health-title">Health</h1><p class="sub">What the evidence check does not catch on its own: reviewer keys, single sources, conditional wording, calibration and open challenges. Suggestions, not decisions.</p></div></div>
+<form id="gov-advise-form" class="card gov-form compact">
+<details class="advanced"><summary>Options</summary><div class="gov-row"><div><label for="gov-bench">Benchmark report (JSON with false_admission_rate, answer_rate, n)</label><input id="gov-bench" type="file" accept=".json"></div>
+<div><label for="gov-far">Highest acceptable false-answer rate</label><input id="gov-far" type="number" min="0" max="1" step="0.01" value="0.10"></div></div></details>
+<div class="gov-actions"><button type="submit">Run health checks</button></div></form>
+<div id="gov-advise-result" hidden></div>
+</section>
+
+<section data-view="changes" id="gov-replay" class="view gov" aria-labelledby="changes-title" hidden>
+<div class="page-head"><div><h1 id="changes-title">Policy changes</h1><p class="sub">Change what an answer needs, then see every past result that would change. Nothing is applied.</p></div></div>
+<form id="gov-replay-form" class="card gov-form">
+<fieldset class="field"><legend>Proposed policy</legend><div id="gov-branch-editor" class="req-editor"></div></fieldset>
+<p id="gov-cases-label" class="hint">No test cases loaded.</p>
+<details class="advanced"><summary>Advanced: your own test cases or JSON</summary>
+<label for="gov-cases">Test cases (JSON file: id, evidence, optional expect_admit)</label><input id="gov-cases" type="file" accept=".json">
+<label for="gov-branch">Proposed policy (PackSpec JSON)</label><textarea id="gov-branch" rows="8" spellcheck="false" required></textarea></details>
+<div class="gov-actions"><button type="submit">Compare results</button></div></form>
+<div id="gov-replay-result" hidden></div>
+</section>
+
+<section data-view="alternatives" id="gov-siblings" class="view gov" aria-labelledby="alt-title" hidden>
+<div class="page-head"><div><h1 id="alt-title">Alternatives</h1><p class="sub">For one goal, see which mechanisms work under each set of requirements, where the answer changes, and what to test next.</p></div></div>
+<form id="gov-sib-form" class="card gov-form"><label for="gov-sib-function">Goal</label><input id="gov-sib-function" type="text" maxlength="200" required placeholder="JOIN_COMPONENTS">
+<p id="gov-sib-label" class="hint">No candidates loaded.</p>
+<details class="advanced"><summary>Advanced: your own candidates or requirement sets</summary>
+<label for="gov-sib-cands">Candidates (JSON file: id, evidence, optional mechanism_family)</label><input id="gov-sib-cands" type="file" accept=".json">
+<label for="gov-sib-contracts">Requirement sets (JSON object: name → PackSpec)</label><textarea id="gov-sib-contracts" rows="8" spellcheck="false" required></textarea></details>
+<div class="gov-actions"><button type="button" class="btn-ghost" id="gov-sib-example">Use sample data</button><button type="submit">Compare alternatives</button></div></form>
+<div id="gov-sib-result" hidden></div>
+</section>
+
+<section data-view="tree" class="view" aria-labelledby="garden-title" hidden>
 <section id="garden" class="observatory" aria-labelledby="garden-title">
-<div class="obs-head"><div><p class="obs-kicker">Semantic Gardener</p><h2 id="garden-title">Research tree</h2></div>
-<form id="garden-query" role="search"><label for="garden-text">Query the tree</label><input id="garden-text" type="search" maxlength="200" placeholder="Hypothesis, challenge or source">
+<div class="obs-head"><div><p class="obs-kicker">Semantic Gardener</p><h1 id="garden-title" class="obs-h">Research tree</h1></div>
+<form id="garden-query" role="search"><label for="garden-text">Search the tree</label><input id="garden-text" type="search" maxlength="200" placeholder="Hypothesis, challenge or source">
 <label for="garden-filter">Show</label><select id="garden-filter"><option value="all">All branches</option><option value="active">Active</option><option value="open">Open challenges</option><option value="tested">Tested</option><option value="unverified">Unverified</option></select>
 <button type="submit">Query</button></form>
 <label class="obs-live"><input type="checkbox" id="garden-live" checked> Live growth</label></div>
@@ -17,49 +117,33 @@
 <p id="garden-result" class="obs-result" role="status"></p>
 <details class="obs-feed-wrap"><summary>Growth feed</summary><ol id="garden-feed" class="obs-feed"></ol></details>
 </section>
-<section id="governance" class="observatory gov" aria-labelledby="gov-title">
-<div class="obs-head"><div><p class="obs-kicker">Governance</p><h2 id="gov-title">Policies</h2></div>
-<div role="tablist" aria-label="Governance tools" class="gov-tabs"><button type="button" role="tab" id="gov-tab-test" aria-controls="gov-test" aria-selected="true">Policy tester</button><button type="button" role="tab" id="gov-tab-advise" aria-controls="gov-advise" aria-selected="false" tabindex="-1">Advisor</button><button type="button" role="tab" id="gov-tab-replay" aria-controls="gov-replay" aria-selected="false" tabindex="-1">Branch replay</button><button type="button" role="tab" id="gov-tab-siblings" aria-controls="gov-siblings" aria-selected="false" tabindex="-1">Functional siblings</button></div></div>
-<div id="gov-test" role="tabpanel" aria-labelledby="gov-tab-test">
-<p class="obs-empty">Run the gate on retrieved chunks and see exactly which spans it counts. Nothing is written to the ledger.</p>
-<form id="gov-test-form" class="obs-form gov-form">
-<label for="gov-question">Question</label><input id="gov-question" type="text" maxlength="2000">
-<div class="gov-row"><div><label for="gov-pack">PackSpec (JSON)</label><textarea id="gov-pack" rows="8" spellcheck="false" required></textarea></div>
-<div><label for="gov-docs">Documents (JSON file: list of documents with origin and chunks)</label><input id="gov-docs" type="file" accept=".json"><p id="gov-docs-label" class="obs-meta">No documents loaded.</p>
-<label for="gov-retrieved">Retrieved chunk IDs, in order</label><textarea id="gov-retrieved" rows="3" spellcheck="false" required></textarea></div></div>
-<div class="gov-actions"><button type="button" class="ghost" id="gov-example">Load EU payments example</button><button type="submit">Run gate</button></div></form>
-<div id="gov-test-result" hidden></div></div>
-<div id="gov-advise" role="tabpanel" aria-labelledby="gov-tab-advise" hidden>
-<p class="obs-empty">Checks what the gate does not: reviewer trust, single-origin requirements, qualifiers inside supporting spans, calibration and open Gardener challenges. Findings are suggestions, not decisions.</p>
-<form id="gov-advise-form" class="obs-form gov-form"><div class="gov-row"><div><label for="gov-bench">Benchmark report (optional JSON: false_admission_rate, answer_rate, n)</label><input id="gov-bench" type="file" accept=".json"></div>
-<div><label for="gov-far">False-admission limit</label><input id="gov-far" type="number" min="0" max="1" step="0.01" value="0.10"></div></div>
-<div class="gov-actions"><button type="submit">Run advisor</button></div></form>
-<div id="gov-advise-result" hidden></div></div>
-<div id="gov-replay" role="tabpanel" aria-labelledby="gov-tab-replay" hidden>
-<p class="obs-empty">Re-evaluate recorded cases under the current pack and a branch, and see every verdict that changes. Retrieval and labeling are not re-run.</p>
-<form id="gov-replay-form" class="obs-form gov-form"><div class="gov-row"><div><label for="gov-branch">Branch PackSpec (JSON)</label><textarea id="gov-branch" rows="8" spellcheck="false" required></textarea></div>
-<div><label for="gov-cases">Recorded cases (JSON file: id, evidence, optional expect_admit)</label><input id="gov-cases" type="file" accept=".json"><p id="gov-cases-label" class="obs-meta">No cases loaded.</p></div></div>
-<div class="gov-actions"><button type="submit">Replay branch</button></div></form>
-<div id="gov-replay-result" hidden></div></div>
-<div id="gov-siblings" role="tabpanel" aria-labelledby="gov-tab-siblings" hidden>
-<p class="obs-empty">For one function, check candidate mechanisms against each contract through the gate. SAT, UNSAT or UNKNOWN per contract; siblings hold only under their contract and are never equivalence.</p>
-<form id="gov-sib-form" class="obs-form gov-form"><label for="gov-sib-function">Function</label><input id="gov-sib-function" type="text" maxlength="200" required placeholder="JOIN_COMPONENTS">
-<div class="gov-row"><div><label for="gov-sib-contracts">Contracts (JSON object: name → PackSpec)</label><textarea id="gov-sib-contracts" rows="8" spellcheck="false" required></textarea></div>
-<div><label for="gov-sib-cands">Candidates (JSON file: id, evidence, optional mechanism_family)</label><input id="gov-sib-cands" type="file" accept=".json"><p id="gov-sib-label" class="obs-meta">No candidates loaded.</p></div></div>
-<div class="gov-actions"><button type="button" class="ghost" id="gov-sib-example">Load joining example (paper §4)</button><button type="submit">Check feasibility</button></div></form>
-<div id="gov-sib-result" hidden></div></div>
-<p id="gov-status" class="obs-result" role="status"></p>
 </section>
-<details id="new-branch"><summary>Add a research branch</summary>
+
+<section data-view="review" class="view" aria-labelledby="review-title" hidden>
+<div class="page-head"><div><h1 id="review-title">Branches &amp; review</h1><p class="sub">Every research branch with its evidence state, and the suggestions waiting for a person.</p></div></div>
+<details id="new-branch" class="card"><summary>Add a research branch</summary>
 <form id="propose"><label for="branch-name">Branch name</label><input id="branch-name" required maxlength="100" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" placeholder="research-hypothesis">
 <label for="statement">Hypothesis or observation</label><textarea id="statement" required maxlength="2000" rows="3"></textarea>
 <label for="source-file">Original source</label><input id="source-file" type="file" accept=".txt,.json,.csv,.pdf" required>
-<p>Attach the original text, PDF, CSV or JSON file, up to 250 KB. New claims begin unverified.</p>
-<button type="submit">Create source-linked branch</button></form></details><div class="toolbar"><h2>Research branches</h2><label>Search <input id="search" type="search" placeholder="Branch or evidence state"></label><button id="refresh" type="button">Refresh</button></div>
+<p class="hint">Attach the original text, PDF, CSV or JSON file, up to 250 KB. New claims begin unverified.</p>
+<button type="submit">Create source-linked branch</button></form></details>
+<div class="toolbar"><h2>Research branches</h2><label>Search <input id="search" type="search" placeholder="Branch or evidence state"></label><button id="refresh" type="button" class="btn-ghost">Refresh</button></div>
 <div class="table-wrap"><table><caption>Branches and their current evidence state</caption><thead><tr><th>Branch</th><th>Inquiry</th><th>Evidence</th><th>History</th><th>Action</th></tr></thead><tbody id="branches"></tbody></table></div>
-<h2>Suggestions awaiting review</h2><div id="proposals"></div><p>Suggestions do not validate claims. Changes retain the full history and can be reopened.</p>
-<details><summary>Inspect source-linked events</summary><pre id="history"></pre></details>
-<details id="transformation-panel"><summary>Run a reviewed transformation</summary>
+<h2>Suggestions awaiting review</h2><div id="proposals"></div><p class="hint">Suggestions do not validate claims. Changes retain the full history and can be reopened.</p>
+<details class="advanced"><summary>Inspect source-linked events</summary><pre id="history"></pre></details>
+</section>
+
+<section data-view="connect" class="view" aria-labelledby="connect-title" hidden>
+<div class="page-head"><div><h1 id="connect-title">Connect</h1><p class="sub">Everything in this console is one API. Use it from your code, the command line or an AI agent with the same token scopes.</p></div></div>
+<div class="card"><span class="card-kicker">API endpoint</span><div class="copy-row"><code id="connect-endpoint"></code><button type="button" class="btn-ghost small" data-copy="connect-endpoint">Copy</button></div></div>
+<div class="connect-tabs" role="group" aria-label="Choose a client"><button type="button" data-snippet="curl" aria-pressed="true">curl</button><button type="button" data-snippet="python" aria-pressed="false">Python</button><button type="button" data-snippet="ts" aria-pressed="false">TypeScript</button><button type="button" data-snippet="cli" aria-pressed="false">CLI</button><button type="button" data-snippet="mcp" aria-pressed="false">AI agent (MCP)</button></div>
+<div class="card"><pre id="connect-snippet" class="gov-code"></pre><div class="gov-actions"><button type="button" class="btn-ghost small" data-copy="connect-snippet">Copy</button></div>
+<p id="connect-note" class="hint"></p></div>
+</section>
+
+<section data-view="advanced" class="view" aria-labelledby="advanced-title" hidden>
+<div class="page-head"><div><h1 id="advanced-title">Advanced tools</h1><p class="sub">Signed transformations and source observation graphs, for reviewers and integrators.</p></div></div>
+<details id="transformation-panel" class="card"><summary>Run a reviewed transformation</summary>
 <p>Use the original source and a request already signed by your configured release issuer and reviewer.</p>
 <p id="transform-availability" hidden>Signed transformation is not configured for this workspace. The workspace owner must configure reviewer authority.</p>
 <form id="transform-form" class="workflow-form">
@@ -70,7 +154,7 @@
 <div id="transform-result" hidden><h2 id="transform-heading"></h2><p id="transform-summary"></p><pre id="transform-output"></pre>
 <details><summary>Inspect checks and execution trace</summary><pre id="transform-receipt"></pre></details>
 <button id="download-receipt" type="button">Download transformation receipt</button></div></details>
-<details id="observation-panel"><summary>Inspect a source observation graph</summary>
+<details id="observation-panel" class="card"><summary>Inspect a source observation graph</summary>
 <p>Check source anchors, role references and declared event order. Annotation meaning remains unverified.</p>
 <form id="observation-form" class="workflow-form">
 <label for="observation-source">Observation source file</label><input id="observation-source" type="file" accept=".txt,.json">
@@ -82,5 +166,7 @@
 <div class="table-wrap"><table class="observation-table"><caption>Source-anchored annotations; domain validity remains unknown</caption><thead><tr><th>ID</th><th>Kind</th><th>Annotation</th><th>Quoted source</th></tr></thead><tbody id="observation-nodes"></tbody></table></div>
 <details><summary>Inspect graph and transition</summary><pre id="observation-receipt"></pre></details></div></details>
 </section>
-<dialog id="preview"><form method="dialog"><h2>Review proposed change</h2><p id="preview-text"></p><pre id="preview-data"></pre><div class="actions"><button value="cancel">Keep current state</button><button id="apply" value="apply">Apply reviewed change</button></div></form></dialog>
-</main><footer>Research mode. Independent validation and release approval remain separate.</footer></body></html>
+</section>
+<dialog id="preview"><form method="dialog"><h2>Review proposed change</h2><p id="preview-text"></p><pre id="preview-data"></pre><div class="actions"><button value="cancel" class="btn-ghost">Keep current state</button><button id="apply" value="apply">Apply reviewed change</button></div></form></dialog>
+</main></div>
+<footer class="footnote">Research mode. Independent validation and release approval remain separate.</footer></body></html>
