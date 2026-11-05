@@ -1,0 +1,311 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a5-unverified-extraction",
+  "title": "QualityRag Academy · A5 · Broken tables (research preview)",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "My PDF tables are completely messed up.",
+        "How would you even know?"
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"My PDF tables are completely messed up.\"",
+            "at": 0
+          },
+          {
+            "text": "How would you even know?",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A5",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "A fee table, as printed on page four: twenty-five euros per wire, waived above ten thousand.",
+        "The parser flattens the table, and the condition lands in the wrong place.",
+        "The model reads clean-looking text, and answers with full confidence.",
+        "Nothing in the pipeline says the extraction was ever checked."
+      ],
+      "data": {
+        "tf": [
+          "A5",
+          "The failure · illustration"
+        ],
+        "kicker": "fees.pdf · page 4 · illustration",
+        "title": "One table, two readings",
+        "title_size": 52,
+        "cards": [
+          {
+            "id": "page",
+            "meta": "AS PRINTED · row 7",
+            "text": "Wire transfer │ €25.00 │ waived above €10,000",
+            "x": 120,
+            "y": 300,
+            "w": 760,
+            "size": 26,
+            "at": 0
+          },
+          {
+            "id": "parsed",
+            "meta": "AS PARSED · flattened text",
+            "text": "Wire transfer €25.00 €10,000 waived above",
+            "x": 120,
+            "y": 500,
+            "w": 760,
+            "size": 26,
+            "at": 1
+          },
+          {
+            "id": "ans",
+            "meta": "MODEL ANSWER",
+            "text": "Every wire costs €25.",
+            "x": 1240,
+            "y": 500,
+            "w": 560,
+            "size": 30,
+            "at": [
+              2,
+              0.4
+            ]
+          }
+        ],
+        "wires": [
+          {
+            "from": "parsed",
+            "to": "ans",
+            "at": [
+              2,
+              0.0
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              1,
+              1.6
+            ],
+            "card": "parsed",
+            "state": "warn",
+            "tag": "structure lost",
+            "glitch": true
+          },
+          {
+            "at": [
+              3,
+              0.2
+            ],
+            "card": "ans",
+            "state": "bad",
+            "tag": "unchecked extraction"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "QualityRag's rule is simple: an extraction nobody has checked is unknown, not support.",
+        "The parsed cell is marked unknown, so the check is inconclusive.",
+        "After a reviewer compares it with the page, the same cell can count."
+      ],
+      "data": {
+        "tf": [
+          "A5",
+          "Lab"
+        ],
+        "kicker": "Lab A5 · real output",
+        "title": "Unchecked extraction is UNKNOWN, not support",
+        "title_size": 48,
+        "file": "terminal · python sdk",
+        "blocks": [
+          {
+            "cmd": "python docs/academy/labs/a5_unverified_extraction.py",
+            "out": "== Parsed table cell, unverified\nverdict: INCONCLUSIVE\n  wire-fee-eur           INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE, UNKNOWN_EVIDENCE\n\n== Same cell after a reviewer checked the page\nverdict: ADMIT\n  wire-fee-eur           ADMIT         sources=1  -",
+            "at": [
+              0,
+              0.8
+            ],
+            "out_at": [
+              1,
+              0.0
+            ],
+            "reveal": 4.0
+          }
+        ],
+        "notes": [
+          {
+            "text": "UNKNOWN_EVIDENCE → INCONCLUSIVE",
+            "state": "warn",
+            "at": [
+              1,
+              2.2
+            ]
+          },
+          {
+            "text": "reviewed → ADMIT",
+            "state": "ok",
+            "at": [
+              2,
+              1.6
+            ],
+            "x": 520
+          }
+        ]
+      }
+    },
+    {
+      "id": "codex",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "In the research track, Semantic Codex indexes documents with an anchor for every value: page, row, paragraph, or time.",
+        "It says plainly when extraction is partial, and it does not do OCR yet. Checking table structure itself is still research."
+      ],
+      "data": {
+        "tf": [
+          "A5",
+          "Research track"
+        ],
+        "size": 64,
+        "lines": [
+          {
+            "text": "Every value keeps its anchor:",
+            "at": 0
+          },
+          {
+            "text": "page · row · paragraph · time",
+            "at": [
+              0,
+              2.6
+            ],
+            "color": "ok"
+          }
+        ],
+        "note": {
+          "text": "Semantic Codex v0.3 · extraction_coverage: PARTIAL_TEXT_ONLY · no OCR · table-structure validation is research",
+          "at": 1
+        }
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "That's the honest boundary.",
+        "QualityRag won't let an unchecked number pass as evidence. But it doesn't yet repair or validate the table itself.",
+        "You've finished the first five Academy episodes."
+      ],
+      "data": {
+        "tf": [
+          "A5",
+          "The boundary"
+        ],
+        "kicker": "Episode A5 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Treats unverified extraction as UNKNOWN",
+            "at": [
+              1,
+              0.0
+            ]
+          },
+          {
+            "text": "Keeps a source anchor for each value",
+            "at": [
+              1,
+              1.6
+            ]
+          },
+          {
+            "text": "States when coverage is partial",
+            "at": [
+              1,
+              3.0
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Repair a broken table",
+            "at": [
+              1,
+              4.4
+            ]
+          },
+          {
+            "text": "Read scanned pages (no OCR yet)",
+            "at": [
+              1,
+              5.4
+            ]
+          },
+          {
+            "text": "Validate table structure (research)",
+            "at": [
+              1,
+              6.4
+            ]
+          }
+        ],
+        "next": {
+          "text": "Academy · next: the research track",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}

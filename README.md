@@ -67,6 +67,8 @@ Keep your policy **inside the application**, supply it as a **JSON property or m
 
 ## Try it
 
+Then take the **[QualityRag Academy](docs/academy/README.md)**: five problem-driven chapters, each with a cinematic episode, a real SDK lab, a war game and a quiz.
+
 New here? Watch **[QualityRag 101, episode 1: Getting started](docs/training/README.md)**, a three-minute animated walkthrough of installing, signing in, and checking your first answer.
 
 

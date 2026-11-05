@@ -140,10 +140,11 @@ def encode_frames(frames, dur, dest):
 def animation_scene(page, item, dest, episode):
     n = int(round(item["dur"] * FPS))
     name = item["scene"]["id"]
+    tpl, data = item["scene"].get("template", name), item["scene"].get("data")  # data-driven scenes share a template
 
     def frames():
         for i in range(n):
-            page.evaluate("([n,t,m,e,d])=>render(n,t,m,e,d)", [name, i / FPS, item["marks"], episode, item["dur"]])
+            page.evaluate("([n,t,m,e,d,x,k])=>render(n,t,m,e,d,x,k)", [tpl, i / FPS, item["marks"], episode, item["dur"], data, name])
             yield page.screenshot(type="jpeg", quality=92)
     encode_frames(frames(), item["dur"], dest)
 
@@ -396,7 +397,8 @@ def main(argv=None):
             byid = {i["scene"]["id"]: i for i in items}
             for spec in a.stills:
                 name, t = spec.split(":"); it = byid[name]
-                anim.evaluate("([n,t,m,e,d])=>render(n,t,m,e,d)", [name, float(t), it["marks"], episode_label, it["dur"]])
+                sc = it["scene"]
+                anim.evaluate("([n,t,m,e,d,x,k])=>render(n,t,m,e,d,x,k)", [sc.get("template", name), float(t), it["marks"], episode_label, it["dur"], sc.get("data"), name])
                 anim.screenshot(path=str(out / f"still-{name}-{t}.png")); print("  still", name, t)
             browser.close(); return
         console = None

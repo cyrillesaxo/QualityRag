@@ -1,0 +1,305 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a2-governed-abstention",
+  "title": "QualityRag Academy · A2 · When the evidence is missing",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "It confidently invents an answer",
+        "when the evidence is missing."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"It confidently invents an answer…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…when the evidence is missing.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A2",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "case",
+      "kind": "animation",
+      "template": "incident",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "In twenty twenty-four, Air Canada's website chatbot told a grieving passenger he could claim a bereavement fare after he had travelled.",
+        "The airline's own policy page said the opposite.",
+        "Air Canada argued it wasn't responsible for what its chatbot said. The tribunal rejected that, and ordered the airline to pay.",
+        "A fluent answer is not evidence."
+      ],
+      "data": {
+        "tf": [
+          "A2",
+          "Real case"
+        ],
+        "kicker": "Real case · verified",
+        "title": "When the chatbot wrote the policy",
+        "case": "Moffatt v. Air Canada · 2024 BCCRT 149",
+        "facts": [
+          {
+            "k": "The chatbot said",
+            "v": "Bereavement fares can be claimed after travel, within 90 days.",
+            "at": [
+              0,
+              1.5
+            ]
+          },
+          {
+            "k": "The policy said",
+            "v": "Bereavement fares cannot be claimed retroactively.",
+            "at": [
+              1,
+              0.0
+            ]
+          },
+          {
+            "k": "Air Canada argued",
+            "v": "It is not liable for information from its chatbot.",
+            "at": [
+              2,
+              0.0
+            ]
+          },
+          {
+            "k": "The tribunal",
+            "v": "Rejected that: negligent misrepresentation.",
+            "at": [
+              2,
+              3.2
+            ]
+          },
+          {
+            "k": "Awarded",
+            "v": "C$650.88 damages, plus interest and fees",
+            "at": [
+              2,
+              4.6
+            ]
+          }
+        ],
+        "source": "BC Civil Resolution Tribunal, Moffatt v. Air Canada, 2024 BCCRT 149",
+        "src_at": [
+          2,
+          4.8
+        ],
+        "lesson": {
+          "text": "A fluent answer is not evidence.",
+          "at": 3
+        }
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "QualityRag gives your application a third option between right and wrong: withhold.",
+        "The rule fits in a few lines. Check first, and only call the model on admit.",
+        "With one passage, the answer is withheld, and the code names exactly what's missing.",
+        "Supply the evidence, and the same function lets the model answer."
+      ],
+      "data": {
+        "tf": [
+          "A2",
+          "Lab"
+        ],
+        "kicker": "Lab A2 · real code, real output",
+        "title": "Make “not enough evidence” a valid answer",
+        "title_size": 50,
+        "file": "terminal · python sdk",
+        "blocks": [
+          {
+            "cmd": "sed -n 5,11p docs/academy/labs/a2_governed_abstention.py",
+            "out": "def answer_or_withhold(question, evidence):\n    result = evaluate(PACK, evidence, as_of=AS_OF)\n    if result[\"verdict\"] != \"ADMIT\":\n        gap = [f[\"requirement_id\"] for f in result[\"findings\"] if f[\"verdict\"] != \"ADMIT\"]\n        return f\"WITHHELD ({result['verdict']}): missing evidence for {', '.join(gap)}\"\n    return \"GENERATE: call the model with the admitted evidence\"\n",
+            "at": [
+              1,
+              0.0
+            ],
+            "reveal": 1.5
+          },
+          {
+            "cmd": "python docs/academy/labs/a2_governed_abstention.py",
+            "out": "WITHHELD (INCONCLUSIVE): missing evidence for eu-screening-control, approval-or-exception\nGENERATE: call the model with the admitted evidence",
+            "at": [
+              2,
+              0.0
+            ],
+            "out_at": [
+              2,
+              1.8
+            ],
+            "reveal": 0.1
+          }
+        ],
+        "notes": [
+          {
+            "text": "WITHHELD · gap named",
+            "state": "warn",
+            "at": [
+              2,
+              3.0
+            ]
+          },
+          {
+            "text": "GENERATE · only on ADMIT",
+            "state": "ok",
+            "at": [
+              3,
+              0.8
+            ],
+            "x": 340
+          }
+        ]
+      }
+    },
+    {
+      "id": "live",
+      "kind": "console",
+      "pad": [
+        0.4,
+        1.0
+      ],
+      "tf": [
+        "A2",
+        "Live console"
+      ],
+      "prep": [
+        "signin",
+        "open_ask",
+        "run_check"
+      ],
+      "steps": [
+        {
+          "say": "Here is a supported answer in the console.",
+          "do": "point_headline"
+        },
+        {
+          "say": "Remove the memo that covers the exception.",
+          "do": "untick_memo_in_place"
+        },
+        {
+          "say": "Not enough evidence. The answer is withheld, and the gap is named.",
+          "do": "point_inconclusive"
+        }
+      ],
+      "zoom": {
+        "x": 390,
+        "y": 0,
+        "w": 1500
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "The pattern is simple.",
+        "Check first, answer only on admit, and show the gap otherwise.",
+        "QualityRag won't search again by itself, and it can't stop a model you call without asking it. That part is your code.",
+        "Next: three sources that agree, but aren't independent."
+      ],
+      "data": {
+        "tf": [
+          "A2",
+          "The boundary"
+        ],
+        "kicker": "Episode A2 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Returns INCONCLUSIVE instead of guessing",
+            "at": [
+              1,
+              0.0
+            ]
+          },
+          {
+            "text": "Names each missing requirement",
+            "at": [
+              1,
+              1.4
+            ]
+          },
+          {
+            "text": "Gives your code a clear reason to withhold",
+            "at": [
+              1,
+              2.8
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Search again on its own",
+            "at": [
+              2,
+              0.0
+            ]
+          },
+          {
+            "text": "Stop a model you call without checking",
+            "at": [
+              2,
+              2.6
+            ]
+          },
+          {
+            "text": "Make missing evidence appear",
+            "at": [
+              2,
+              4.4
+            ]
+          }
+        ],
+        "next": {
+          "text": "Next · A3 · are your sources really independent?",
+          "at": [
+            3,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}

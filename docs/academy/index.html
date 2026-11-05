@@ -1,0 +1,526 @@
+<title>QualityRag Academy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a training console. Sticky status bar, chapter rail, one chapter at a time as a sequence of training frames.
+   Deliberately single-theme (dark), matching the Academy films. */
+:root{
+  --ground:#070A0F; --panel:#0E141C; --panel-2:#131B25; --line:#223042; --line-2:#2E4157;
+  --ink:#E8EDF3; --ink-2:#B7C2CF; --muted:#7F8DA0;
+  --signal:#57E0CC; --signal-ink:#04110E; --signal-soft:rgba(87,224,204,.12);
+  --amber:#F2C26B; --amber-soft:rgba(242,194,107,.12); --red:#FF8A8A; --red-soft:rgba(255,138,138,.12); --violet:#A99BFF;
+  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif; --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ground);color:var(--ink)}
+body{font:16px/1.6 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ground)}
+a{color:var(--signal)}
+h1,h2,h3{font-family:var(--display);letter-spacing:.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.05}
+h2{font-size:24px;line-height:1.2}
+h3{font-size:18px}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.mono{font-family:var(--mono)}
+.label{font:500 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* status bar */
+.status{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--ground) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)))}
+.status .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px max(16px,env(safe-area-inset-left,0px))}
+.brand{display:flex;align-items:center;gap:10px;font:600 18px var(--display);color:var(--ink);text-decoration:none;margin-right:auto}
+.meter{display:flex;align-items:baseline;gap:6px;font:500 13px var(--mono);color:var(--ink-2);white-space:nowrap}
+.meter b{font:600 16px var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+.flame{display:inline-block;width:10px;height:14px;border-radius:50% 50% 45% 45%/60% 60% 40% 40%;background:linear-gradient(var(--amber),#FF7A45);transform-origin:50% 100%;animation:flick 1.8s ease-in-out infinite}
+@keyframes flick{50%{transform:scale(1.12) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.flame{animation:none}}
+.warn-line{width:100%;font:500 13px var(--mono);color:var(--amber)}
+.warn-line:empty{display:none}
+
+/* shell */
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;margin-top:24px}
+@media (max-width:860px){.shell{grid-template-columns:minmax(0,1fr)}}
+nav.rail{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:6px}
+@media (max-width:860px){nav.rail{position:static;flex-direction:row;flex-wrap:wrap}}
+.rail a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;text-decoration:none;color:var(--ink-2);border:1px solid transparent}
+.rail a[aria-current="page"]{background:var(--panel);border-color:var(--line-2);color:var(--ink)}
+.rail a:hover{color:var(--ink)}
+.rail .code{font:600 13px var(--mono);color:var(--signal);width:28px}
+.rail .dot{width:8px;height:8px;border-radius:9px;background:var(--line-2);margin-left:auto;flex:none}
+.rail .dot.done{background:var(--signal)}.rail .dot.part{background:var(--amber)}
+@media (max-width:860px){.rail .t{display:none}.rail .dot{margin-left:0}}
+
+/* frames */
+main{min-width:0;display:flex;flex-direction:column;gap:22px}
+.frame{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame>header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.frame .tf{font:500 12px var(--mono);letter-spacing:.16em;color:var(--signal);text-transform:uppercase}
+.frame .xp{margin-left:auto;font:500 12px var(--mono);color:var(--muted)}
+.hero{padding:34px 28px;background:radial-gradient(900px 320px at 0% 0%,rgba(87,224,204,.10),transparent 70%),var(--panel)}
+.hero .complaint{font:500 clamp(20px,2.6vw,28px)/1.35 var(--display);color:var(--amber);max-width:40ch}
+.lede{color:var(--ink-2);max-width:68ch}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.tile{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.tile .k{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font:600 26px var(--display);font-variant-numeric:tabular-nums}
+.tile .s{font-size:13px;color:var(--ink-2)}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--mono);letter-spacing:.06em;padding:3px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2);white-space:nowrap}
+.chip.ok{color:var(--signal);border-color:rgba(87,224,204,.45);background:var(--signal-soft)}
+.chip.warn{color:var(--amber);border-color:rgba(242,194,107,.45);background:var(--amber-soft)}
+.chip.bad{color:var(--red);border-color:rgba(255,138,138,.45);background:var(--red-soft)}
+.btn{border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink);padding:9px 16px;border-radius:9px}
+.btn:hover{border-color:var(--signal)}
+.btn.primary{background:var(--signal);border-color:var(--signal);color:var(--signal-ink);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+video{width:100%;border-radius:10px;background:#000;aspect-ratio:16/9;max-width:100%}
+.bloom{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.bloom .tile .k{color:var(--signal)}
+.dialogue{display:flex;flex-direction:column;gap:12px}
+.line{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:start}
+.av{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font:700 15px var(--display);color:var(--signal-ink)}
+.av.Cloudina{background:var(--signal)}.av.Grumpy{background:var(--amber)}.av.Junior{background:var(--violet)}
+.line .who{font:600 13px var(--mono);color:var(--muted)}
+.case{border-color:rgba(255,138,138,.35);background:linear-gradient(180deg,var(--red-soft),transparent 60%),var(--panel)}
+.case ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--ink-2)}
+.concept h3{color:var(--ink)}
+.concept p{color:var(--ink-2);max-width:70ch}
+.hook{border-left:3px solid var(--signal);padding:8px 14px;background:var(--signal-soft);border-radius:0 8px 8px 0}
+pre{margin:0;background:#05080C;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font:13.5px/1.55 var(--mono);color:var(--ink-2)}
+pre .A{color:var(--signal)}pre .I{color:var(--amber)}pre .R{color:var(--red)}
+.cmd{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.cmd code{flex:1 1 320px;min-width:0;overflow-x:auto;white-space:nowrap;background:#05080C;border:1px solid var(--line);border-radius:9px;padding:10px 14px;font:14px var(--mono);color:var(--signal)}
+input[type=text],textarea{font:15px var(--body);background:#05080C;color:var(--ink);border:1px solid var(--line-2);border-radius:8px;padding:8px 12px;min-width:0}
+input[type=text].good{border-color:var(--signal)}input[type=text].bad{border-color:var(--red)}
+.recall{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink);padding:10px 14px;border-radius:9px}
+.opt:hover:not(:disabled){border-color:var(--signal)}
+.opt.right{border-color:var(--signal);background:var(--signal-soft)}
+.opt.wrong{border-color:var(--red);background:var(--red-soft)}
+.opt:disabled{cursor:default}
+.why{font-size:14px;color:var(--ink-2)}
+.step{display:flex;flex-direction:column;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.step:first-of-type{border-top:0;padding-top:0}
+.boss{border-color:rgba(169,155,255,.4);background:linear-gradient(180deg,rgba(169,155,255,.10),transparent 50%),var(--panel)}
+.hp{height:10px;border-radius:9px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
+.hp>div{height:100%;background:linear-gradient(90deg,var(--violet),var(--red));transition:width .4s}
+.hint{font-size:14px;color:var(--amber)}
+.conf{display:flex;flex-direction:column;gap:8px;max-width:520px}
+.conf input{width:100%;accent-color:var(--signal)}
+.scale{display:flex;justify-content:space-between;font:12px var(--mono);color:var(--muted)}
+.check li{list-style:none;display:flex;gap:10px;align-items:center}
+.check ul{padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.tick{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line-2);display:grid;place-items:center;flex:none}
+.tick.on{background:var(--signal);border-color:var(--signal)}
+.tick.on::after{content:"";width:8px;height:4px;border:2px solid var(--signal-ink);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.instructor{border-style:dashed;border-color:var(--amber)}
+.ask{display:flex;gap:8px;flex-wrap:wrap}.ask input{flex:1 1 260px}
+.answer{white-space:pre-wrap;color:var(--ink-2);font-size:15px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{border-top:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--signal);color:var(--signal-ink);font:600 14px var(--display);padding:10px 16px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;z-index:20}
+.toast.on{opacity:1;transform:none}
+footer{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;color:var(--muted);font-size:13px}
+[hidden]{display:none!important}
+</style>
+
+<div class="status" role="banner"><div class="wrap">
+  <a class="brand" href="#home"><svg viewBox="0 0 22 22" width="22" height="22" aria-hidden="true"><path d="M11 20V11M11 11 5 4M11 11l6-7M11 14 7 9M11 14l4-5" fill="none" stroke="#57E0CC" stroke-width="1.8" stroke-linecap="round"/></svg>QualityRag Academy</a>
+  <span class="meter"><span class="flame" aria-hidden="true"></span>streak <b id="m-streak">0</b> d</span>
+  <span class="meter">XP <b id="m-xp">0</b></span>
+  <span class="meter">level <b id="m-level">Retriever</b></span>
+  <span class="meter">reviews due <b id="m-due">0</b></span>
+  <div class="warn-line" id="m-warn" role="status"></div>
+</div></div>
+
+<div class="wrap shell">
+  <nav class="rail" id="rail" aria-label="Chapters"></nav>
+  <main id="main-content"></main>
+</div>
+<div class="wrap"><footer>
+  <span>QualityRag Academy · v1 · <span id="saved-where">progress saved in this browser</span></span>
+  <button class="btn" id="instructor-toggle" type="button">Instructor mode: off</button>
+  <a href="https://github.com/cyrillesaxo/QualityRag/tree/docs/activation-research-fr-v01/docs/academy">Sources and labs on GitHub</a>
+</footer></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DATA = {"academy": "QualityRag Academy", "intro": "Five problem-driven chapters. Each one opens on a failure that RAG teams describe in their own words, shows what QualityRag does about it with real SDK output, and ends on what it does not guarantee.", "levels": ["Retriever", "Evidence Scout", "Witness Examiner", "PackSpec Author", "Evidence Architect"], "roadmap": [["A6", "It can't combine several documents", "Research"], ["A7", "It can't understand diagrams, images and video", "Research"], ["A8", "Right rule, wrong customer or region", "Research"], ["A9", "It works with one PDF, fails with more", "Available (partial)"], ["A10", "Chunking is destroying the context", "Partial"], ["A11", "The answer is in my documents, but RAG can't find it", "Partial"], ["A12", "We can't measure whether our RAG is improving", "Experimental"], ["A13", "Excellent in the demo, unreliable in production", "Experimental"], ["A14", "Every change breaks something", "Experimental"], ["A15", "We can't guarantee who sees which documents", "Partial"], ["A16", "Too slow and expensive at scale", "Research"], ["A17", "Vector search can't find exact product codes", "Not addressed"], ["A18", "Deep dive: the deceptive witness", "Planned"], ["A19", "Deep dive: authoring a PackSpec", "Planned"], ["A20", "Deep dive: the Semantic Garden", "Planned"]], "chapters": [{"id": "a1", "code": "A1", "title": "It found the right document", "complaint": "“It found the right document, but gave the wrong answer.”", "video": "academy-a1-right-document-wrong-answer", "lab_file": "a1_right_document_wrong_answer.py", "objectives": [["Remember", "Name the three verdicts QualityRag can return: ADMIT, INCONCLUSIVE and REFUSE."], ["Understand", "Explain why a set of relevant passages can still leave a requirement unsupported."], ["Apply", "Run lab A1 and read which requirement each passage supports."], ["Analyze", "Separate passages that are relevant from passages that are governing."], ["Evaluate", "Judge whether an ADMIT result is enough to act on in a high-consequence workflow."], ["Create", "Write a three-requirement PackSpec for a question from your own domain."]], "scenario": {"setup": "Priya is the on-call lead for an EU payments team. At 02:10 the sanctions-screening dependency fails and the gateway stops. The team's assistant says on-call may restart it automatically.", "dialogue": [["Junior", "The assistant cited the handbook, an incident report and the runbook. Three citations. We're fine to restart, right?"], ["Grumpy", "Three citations about restarting in general. Not one about restarting the EU gateway when screening is down. Do you want to explain the fine to compliance?"], ["Cloudina", "Start from what the answer needs, not from what search returned. If the rule that governs this case never reached the model, the answer can't be trusted, however good the citations look."]]}, "concepts": [["Relevant is not sufficient", "Retrieval ranks passages by similarity to the question. A passage can be on topic, recent and correctly cited, and still say nothing about the condition that decides the case."], ["Requirements first", "A PackSpec lists what any answer to this kind of question must be backed by. QualityRag checks each requirement on its own and reports which ones have evidence."], ["Conditions need a reader", "When a supporting passage contains words like unless or only, the console flags it. The passage still counts, but the check does not decide whether the exception applies. A person does."]], "hook": "A requirement with no supporting evidence makes the whole result INCONCLUSIVE.", "recall": [{"q": "When a requirement has no supporting evidence, the overall verdict is", "a": ["INCONCLUSIVE"]}, {"q": "The file that lists what an answer must be backed by is called a", "a": ["PackSpec", "pack spec", "packspec"]}], "lab_try": "Remove the annex line from the second evaluation and run it again. Which requirement fails, and what reason does it give?", "wargame": {"name": "02:10, gateway down", "brief": "The EU gateway is down. The assistant answered “yes, restart automatically” and cited four passages. Your compliance officer is asleep. Revenue impact is real, but so is a screening breach.", "steps": [{"q": "What do you do first?", "options": [["Restart now; four citations agree", false, "All four passages are about generic recovery. None covers the EU screening control."], ["Run the evidence check against the team's PackSpec", true, "The check shows two of three requirements unsupported. You now know exactly what is missing."], ["Ask the assistant to double-check its answer", false, "Asking again re-runs the same retrieval. It doesn't tell you what the answer needs."]]}, {"q": "The check is INCONCLUSIVE: eu-screening-control and approval-or-exception are missing. Next?", "options": [["Retrieve the EU controls annex and the regional memo, then check again", true, "Targeted retrieval for the named gaps is the fastest route to a justified answer."], ["Override the check; the outage is costing money", false, "An override skips the one rule that governs this case. That's the scenario the policy exists for."], ["Lower the requirement count to 1 overall", false, "Changing the policy to fit the answer defeats the policy."]]}, {"q": "Now the check ADMITs, and the annex says sign-off is required unless the emergency exception applies. Can you restart?", "options": [["Yes, ADMIT means it's authorised", false, "ADMIT means the declared checks passed. It is not authorisation to act."], ["Only after a person confirms whether the emergency exception applies, or gets sign-off", true, "The condition is flagged for a human reader. Deciding it is your job, not the gate's."], ["No, ADMIT is never enough", false, "ADMIT is enough to generate an answer. Acting on that answer still depends on the condition."]]}]}, "boss": {"name": "The Confident Answer", "phases": [{"title": "Spot the gap", "task": "A PackSpec has requirements recovery-procedure, eu-screening-control and approval-or-exception. Search returned two handbook passages for recovery-procedure and nothing else. What is the verdict?", "options": ["ADMIT", "INCONCLUSIVE", "REFUSE"], "correct": 1, "hints": ["Count which requirements have any supporting evidence.", "Two of three requirements have zero sources.", "INCONCLUSIVE: insufficient independent evidence for two requirements."]}, {"title": "Name the reason", "task": "Which reason does the SDK attach to the unsupported requirements?", "options": ["STALE_EVIDENCE", "INSUFFICIENT_INDEPENDENT_EVIDENCE", "CONTRADICTION"], "correct": 1, "hints": ["Nothing was too old, and nothing contradicted.", "The count of independent origins is below the minimum.", "INSUFFICIENT_INDEPENDENT_EVIDENCE."]}, {"title": "Read the boundary", "task": "After targeted retrieval the verdict is ADMIT. Which statement is true?", "options": ["The source documents are guaranteed to be true", "The declared checks passed on the supplied evidence metadata", "The exception has been verified to apply"], "correct": 1, "hints": ["What does the gate actually inspect?", "It inspects declared requirements and evidence metadata, not the world.", "ADMIT means the declared checks passed on the supplied metadata."]}]}, "quiz": [{"q": "Retrieval returned four relevant, recent passages. Can the answer still be unjustified?", "options": ["No, relevance implies support", "Yes, if a governing requirement has no evidence", "Only if the passages are older than a year"], "correct": 1, "why": "Relevance is about topic. Justification is about every requirement having evidence."}, {"q": "What does QualityRag check first?", "options": ["How confident the model sounds", "Each requirement declared in the PackSpec", "The similarity score of the top passage"], "correct": 1, "why": "Requirements are checked one by one, before any answer is generated."}, {"q": "An incident report says automated recovery reduced downtime. Which requirement does it support?", "options": ["recovery-procedure", "approval-or-exception", "None; it is history, not authority"], "correct": 2, "why": "In the sample corpus the incident is linked to no requirement, so it isn't counted."}, {"q": "A supporting passage contains the word “unless”. What does the console do?", "options": ["Rejects the passage", "Counts it and flags the condition for a person", "Decides whether the exception applies"], "correct": 1, "why": "Qualifiers inside supporting spans are not evaluated by the gate. They are highlighted for a reader."}, {"q": "What should your application do on INCONCLUSIVE?", "options": ["Generate anyway with a disclaimer", "Withhold the answer and fetch the missing evidence", "Lower the policy thresholds"], "correct": 1, "why": "The verdict names the gap so you can retrieve for it."}], "deep": {"title": "The rule in one line", "body": "For each requirement r: let S(r) be the supporting evidence linked to r that is valid, fresh and not contradicted. r is admitted when |origins(S(r))| ≥ min_independent_sources(r). The result is ADMIT only if every r is admitted, REFUSE if any r has a contradiction, and INCONCLUSIVE otherwise. In lab A1 the first run has |origins| = 0 for two requirements, so the result is INCONCLUSIVE."}, "instructor": {"icebreaker": "Ask each participant for one time an assistant gave them a confident answer that turned out to be missing a condition. Two minutes, no names of systems needed.", "confusions": [["“ADMIT means the answer is correct.”", "ADMIT means the declared checks passed on the supplied metadata. Show the README's decision semantics."], ["“The gate reads the passages.”", "In v0.1 it reads evidence metadata (requirement links, origins, dates, status). Show the lab's ev() helper."]], "timing": "Video 1.5 min · lab 10 min · war game 8 min · quiz 5 min. Skip the deep path if short on time.", "activity": "In pairs, write a three-requirement PackSpec for a question from your own work, then swap and try to find a passage set that would ADMIT a wrong answer."}}, {"id": "a2", "code": "A2", "title": "When the evidence is missing", "complaint": "“It confidently invents an answer when the evidence is missing.”", "video": "academy-a2-governed-abstention", "lab_file": "a2_governed_abstention.py", "objectives": [["Remember", "State the three-way decision: generate on ADMIT, withhold on INCONCLUSIVE or REFUSE."], ["Understand", "Explain why “not enough evidence” is a valid, useful answer."], ["Apply", "Wrap a model call in answer_or_withhold() from lab A2."], ["Analyze", "Trace how the gap list is built from the findings."], ["Evaluate", "Assess the risk of calling a model without checking first."], ["Create", "Design the message your users see when an answer is withheld."]], "scenario": {"setup": "Marco runs customer support tooling at a travel company. A customer asks whether a fare rule applies after travel. The policy page that answers it was never indexed.", "dialogue": [["Junior", "The model still answered. It even gave a deadline. Isn't an answer better than nothing?"], ["Grumpy", "An invented deadline is worse than nothing. Someone in Canada found that out in front of a tribunal."], ["Cloudina", "Give the application a third option: withhold. If the check can't admit the answer, say what's missing instead of guessing."]]}, "concepts": [["Abstention is a feature", "Most pipelines have two outcomes: answer or error. QualityRag adds a governed third: the evidence is insufficient, and here is exactly which requirement is unsupported."], ["Check first, then generate", "Call the evaluator before the model. Only an ADMIT result lets your code call the model with the admitted evidence."], ["The gap is the next action", "The findings list each unsupported requirement by id. That list is what your application retrieves for next, or shows to the user."]], "hook": "Only ADMIT lets your code call the model. Everything else withholds and names the gap.", "recall": [{"q": "The one verdict that lets your code call the model is", "a": ["ADMIT"]}, {"q": "In lab A2, the function that decides is called answer_or_____", "a": ["withhold"]}], "case": {"name": "Moffatt v. Air Canada", "court": "BC Civil Resolution Tribunal · 2024 BCCRT 149", "facts": ["Air Canada's website chatbot told a passenger he could claim a bereavement fare after travel, within 90 days.", "The airline's policy page said bereavement fares could not be claimed retroactively.", "Air Canada argued it was not liable for its chatbot's information. The tribunal held it liable for negligent misrepresentation.", "Awarded C$650.88 in damages, plus C$36.14 pre-judgment interest and C$125 in tribunal fees."], "lesson": "A fluent answer is not evidence. An application that can withhold would have said the policy evidence was missing.", "source": ["Mondaq summary of 2024 BCCRT 149", "https://www.mondaq.com/canada/new-technology/1427926/airline-ordered-to-compensate-a-bc-man-because-its-chatbot-provided-inaccurate-information"]}, "lab_try": "Change answer_or_withhold() so the withheld message also prints the verdict reasons for each missing requirement.", "wargame": {"name": "The refund question", "brief": "Your support assistant is live. A customer asks whether they can claim a discounted fare after travelling. Retrieval returns a marketing page and an FAQ about booking, but not the fare-rules page.", "steps": [{"q": "The check returns INCONCLUSIVE for fare-eligibility-rule. What should the customer see?", "options": [["The model's best guess, with a small disclaimer", false, "A disclaimer doesn't stop a customer relying on an invented rule."], ["A clear message that the rule couldn't be confirmed, plus a route to a person", true, "Withholding with a reason and a next step is the governed outcome."], ["A generic error", false, "An error hides the reason. The gap is useful: name it."]]}, {"q": "Your product manager wants fewer withheld answers. What's the right lever?", "options": [["Lower min_independent_sources to 0", false, "The SDK rejects a minimum below 1, and for good reason."], ["Index the fare-rules page and retrieve for named gaps", true, "Fix the evidence supply, not the threshold."], ["Let the model answer when it is confident", false, "Model confidence isn't evidence of anything the policy declares."]]}]}, "boss": {"name": "The Invented Deadline", "phases": [{"title": "Choose the gate", "task": "Where should the evaluate() call sit?", "options": ["After the model answers, to grade it", "Before the model is called", "Only in nightly evaluation"], "correct": 1, "hints": ["What can you still prevent after the answer exists?", "The point is to decide whether to generate at all.", "Before the model is called."]}, {"title": "Build the gap", "task": "Which findings go in the gap list?", "options": ["Every finding", "Findings whose verdict is not ADMIT", "Findings with more than one source"], "correct": 1, "hints": ["You want what's missing.", "Admitted requirements aren't gaps.", "Findings whose verdict is not ADMIT."]}, {"title": "Know the limit", "task": "Your code calls the model directly in one code path, without evaluate(). What does QualityRag do?", "options": ["Blocks the call", "Nothing; enforcement is your application's job", "Logs a warning to the model"], "correct": 1, "hints": ["QualityRag is a library you call.", "It can't see calls it isn't part of.", "Nothing. Enforcement lives in your code."]}]}, "quiz": [{"q": "Which result should withhold the answer?", "options": ["ADMIT only", "INCONCLUSIVE and REFUSE", "REFUSE only"], "correct": 1, "why": "Integrators should refuse or ask for more evidence on either."}, {"q": "What does INCONCLUSIVE give you that a generic error doesn't?", "options": ["A retry timer", "The ids of the unsupported requirements", "A confidence score"], "correct": 1, "why": "The findings name each gap."}, {"q": "Does the base evaluator search again on its own?", "options": ["Yes", "No, re-retrieval is the application's job", "Only for REFUSE"], "correct": 1, "why": "The training guide says the base evaluator does not automatically search again."}, {"q": "In Moffatt v. Air Canada, what did the tribunal decide about the chatbot?", "options": ["It was a separate entity", "The airline was liable for what it said", "The policy page excused the error"], "correct": 1, "why": "The tribunal rejected the separate-entity argument and found negligent misrepresentation."}, {"q": "Is a model call needed to evaluate the evidence?", "options": ["Yes", "No, the evaluator is deterministic and needs no model", "Only for large packs"], "correct": 1, "why": "No LLM is required for evaluation."}], "deep": {"title": "Why abstention is cheap", "body": "The evaluator is a pure function of the PackSpec, the evidence metadata and an as-of time. It makes no network or model calls, so you can run it on every request before generation. Its cost grows with the number of evidence rows, not with document size."}, "instructor": {"icebreaker": "Show the Air Canada facts without the outcome and ask the room to predict the tribunal's decision.", "confusions": [["“Withholding will annoy users.”", "Compare an invented rule with a clear “we couldn't confirm this, here's a person”. Ask which one support would rather defend."], ["“QualityRag stops the model.”", "It returns a verdict. Your code decides. Show the one-path-without-check boss phase."]], "timing": "Video 1.5 min · case 5 min · lab 10 min · war game 6 min · quiz 5 min.", "activity": "Write the exact withheld-answer message for your product, including the gap and the next step. Read three aloud."}}, {"id": "a3", "code": "A3", "title": "Are your sources independent?", "complaint": "“Three sources agree, but they all copied the same original.”", "video": "academy-a3-independent-sources", "lab_file": "a3_independent_sources.py", "objectives": [["Remember", "Recall that QualityRag counts distinct origins, not citations."], ["Understand", "Explain why a mirror or a forwarded copy adds no corroboration."], ["Apply", "Set min_independent_sources to 2 and run lab A3."], ["Analyze", "Trace three citations back to their origin."], ["Evaluate", "Decide when a requirement deserves two independent sources."], ["Create", "Propose the origin metadata your ingestion should record."]], "scenario": {"setup": "Lena reviews an internal research summary. It cites three sources that all agree. Two weeks later an auditor asks where each one came from.", "dialogue": [["Junior", "Three sources agree. That's strong corroboration, isn't it?"], ["Grumpy", "It's one handbook wearing three hats: a PDF, a wiki mirror and somebody's forwarded email."], ["Cloudina", "Count origins, not citations. If your policy needs two independent sources, a copy can't be the second one."]]}, "concepts": [["The deceptive witness", "Evidence that looks like support but isn't: a copy of the same original, an incident report treated as authority, a superseded runbook. Each adds a citation without adding independent support."], ["Origins decide independence", "Every evidence row carries an origin. The evaluator counts the distinct origins among valid supporting rows and compares that number with min_independent_sources."], ["Metadata is the trust boundary", "The origin is whatever your ingestion records. QualityRag counts it faithfully, but it doesn't yet verify authorship or catch a copy that hides where it came from."]], "hook": "Three citations from one origin are one independent source.", "recall": [{"q": "Independence is counted by distinct", "a": ["origins", "origin"]}, {"q": "The PackSpec field that sets how many independent sources a requirement needs is min_independent_____", "a": ["sources"]}], "case": {"name": "Mata v. Avianca, Inc.", "court": "U.S. District Court, S.D.N.Y. · No. 22-cv-1461 (PKC) · 22 June 2023", "facts": ["Lawyers filed a brief citing judicial opinions that did not exist.", "The opinions, with fake quotes and citations, had been generated by ChatGPT.", "The court sanctioned the lawyers and their firm: US$5,000."], "lesson": "A citation that looks right is not support. Support has to trace back to a real, independent origin.", "source": ["Reed Smith summary of Mata v. Avianca (S.D.N.Y. June 22, 2023)", "https://www.reedsmith.com/our-insights/blogs/viewpoints/102ilzz/chatgpt-artificial-intelligence-tool-generates-fake-opinions/"]}, "lab_try": "Give the forwarded email a different origin, “ops-team-inbox”. The verdict becomes ADMIT. Discuss: is that origin really independent? What would your ingestion need to know?", "wargame": {"name": "The audit trail", "brief": "An auditor is reviewing an answer that a policy admitted with min_independent_sources = 2. The evidence shows origins ops-handbook and ops-handbook-wiki.", "steps": [{"q": "What is your first concern?", "options": [["None, two origins were counted", false, "Two origin labels were counted. Whether they're really independent depends on how they were assigned."], ["Whether the wiki is a copy of the handbook with a different origin label", true, "Independence is only as good as the origin metadata."], ["Whether the passages are recent", false, "Freshness matters, but it isn't the concern here."]]}, {"q": "The wiki page is a copy. What's the fix?", "options": [["Record origin from the source of truth at ingestion, so copies share it", true, "Then the evaluator counts them once, as it does for the mirror in the sample data."], ["Raise min_independent_sources to 3", false, "More copies with bad labels would still pass."], ["Delete the wiki", false, "Copies will keep appearing. Fix the metadata, not the corpus."]]}]}, "boss": {"name": "The Three-Headed Witness", "phases": [{"title": "Count", "task": "Rows: ops-7.3 (origin ops-handbook), ops-mirror-7.3 (ops-handbook), fwd-email-7.3 (ops-handbook). How many independent sources?", "options": ["3", "1", "0"], "correct": 1, "hints": ["Look at the origin column only.", "All three share one value.", "1."]}, {"title": "Verdict", "task": "The requirement needs 2. What's the verdict?", "options": ["ADMIT", "INCONCLUSIVE", "REFUSE"], "correct": 1, "hints": ["Is anything contradicted?", "No contradiction, but too few origins.", "INCONCLUSIVE."]}, {"title": "Boundary", "task": "Which of these can QualityRag v0.1 not do?", "options": ["Count copies once when they share an origin", "Verify who really authored a document", "Require two independent sources"], "correct": 1, "hints": ["Two of these are in the lab.", "Authorship verification isn't in the evaluator.", "Verify who really authored a document."]}]}, "quiz": [{"q": "Three citations, one origin, min 2. Verdict?", "options": ["ADMIT", "INCONCLUSIVE", "REFUSE"], "correct": 1, "why": "One distinct origin is below the minimum."}, {"q": "What made lab A3 admit?", "options": ["A fourth copy of the handbook", "Minutes from the change board, a separate origin", "Lowering the minimum"], "correct": 1, "why": "Adding a genuinely separate origin raised the count to 2."}, {"q": "What was the problem in Mata v. Avianca?", "options": ["Stale citations", "Citations to opinions that did not exist", "Too few citations"], "correct": 1, "why": "The cited opinions were fabricated by ChatGPT."}, {"q": "Where does the origin value come from?", "options": ["QualityRag infers it", "Your ingestion metadata", "The language model"], "correct": 1, "why": "The evaluator counts the origin it is given."}, {"q": "How does the console mark the mirrored handbook?", "options": ["As contradicted", "As the same origin, counted once", "It hides it"], "correct": 1, "why": "It shows “Same origin as ops-7.3: counted once, not twice.”"}], "deep": {"title": "Independence as a set", "body": "independent_sources(r) = |{ e.origin : e ∈ valid supporting evidence for r }|. Duplicates collapse because a set has no repeats. The guarantee is therefore exactly as strong as the function that assigns origin. Two documents with different origin labels count twice even if one copied the other."}, "instructor": {"icebreaker": "Hand out three printed “sources” that are visibly the same paragraph in different formats. Ask how many sources the group has.", "confusions": [["“Different file formats mean different sources.”", "Format is not origin. Show the mirror in the corpus: HTML, same origin."], ["“QualityRag detects plagiarism.”", "It counts origin labels. Detection is upstream, in ingestion."]], "timing": "Video 1.5 min · case 5 min · lab 10 min · war game 6 min · quiz 5 min.", "activity": "List the systems your documents come from and decide, for each, what its origin value should be."}}, {"id": "a4", "code": "A4", "title": "Old rules and contradictions", "complaint": "“It uses outdated policies, and picks a side when documents disagree.”", "video": "academy-a4-stale-and-contradicting", "lab_file": "a4_stale_and_contradicted.py", "objectives": [["Remember", "Name the reasons STALE_EVIDENCE and CONTRADICTION."], ["Understand", "Explain how max_age_seconds turns freshness into a requirement."], ["Apply", "Run lab A4 with a one-year age limit."], ["Analyze", "Explain why a contradiction produces REFUSE rather than INCONCLUSIVE."], ["Evaluate", "Choose sensible age limits for different kinds of policy."], ["Create", "Sketch how your ingestion would mark a passage as contradicting."]], "scenario": {"setup": "Sam maintains runbooks for a platform team. A 2024 restart procedure still ranks first in search, and a newer memo says the EU approval rule supersedes it.", "dialogue": [["Junior", "The 2024 runbook is the top hit. Search thinks it's the best match."], ["Grumpy", "It is the best match. It's also out of date. Similarity doesn't read the calendar."], ["Cloudina", "Make freshness part of the contract, and make contradictions visible. Then the result can't quietly pick a side."]]}, "concepts": [["Freshness is declared", "A requirement can set max_age_seconds. Evidence observed earlier than that is rejected with STALE_EVIDENCE before anything is counted."], ["Contradiction refuses", "If any valid evidence for a requirement is marked CONTRADICTS, that requirement is REFUSE, and so is the whole result. The evaluator doesn't choose between documents."], ["The metadata knows the dates", "The evaluator uses observed_at and status from your metadata. It doesn't read effective dates out of documents or spot supersession in free text. That is on the roadmap."]], "hook": "Stale evidence is removed first. Any contradiction makes the result REFUSE.", "recall": [{"q": "The PackSpec field that limits evidence age is max_age_____", "a": ["seconds"]}, {"q": "A requirement with contradicting evidence gets the verdict", "a": ["REFUSE"]}], "lab_try": "Set max_age_seconds to three years and run again. Which reason disappears, and what happens to each verdict?", "wargame": {"name": "The superseded runbook", "brief": "Your assistant answered a restart question using the 2024 runbook. A memo from this year says the EU approval rule supersedes it.", "steps": [{"q": "How should the restart requirement handle the 2024 runbook?", "options": [["Set max_age_seconds so evidence older than the policy cycle is rejected", true, "Freshness becomes part of the requirement, and the reason shows in the result."], ["Delete the runbook from the index", false, "Deletion helps once. An age limit keeps working as documents age."], ["Trust ranking to prefer newer documents", false, "Ranking optimises similarity, not validity."]]}, {"q": "The current handbook supports a restart and the memo contradicts it. What should the result be?", "options": [["ADMIT, because the handbook is newer", false, "That's choosing a side silently."], ["REFUSE, with the contradiction shown", true, "A contradiction is something a person resolves, with both sides visible."], ["INCONCLUSIVE", false, "INCONCLUSIVE means missing evidence. Here the evidence disagrees."]]}]}, "boss": {"name": "The Ghost Policy", "phases": [{"title": "Age", "task": "max_age_seconds = 365 days. Evidence observed 2024-03-01, checked on 2026-11-05. What happens to it?", "options": ["It counts", "It's rejected as STALE_EVIDENCE", "It contradicts"], "correct": 1, "hints": ["How many days apart are the dates?", "979 days is more than 365.", "Rejected as STALE_EVIDENCE."]}, {"title": "Disagreement", "task": "One fresh SUPPORTS row and one fresh CONTRADICTS row. Verdict?", "options": ["ADMIT", "INCONCLUSIVE", "REFUSE"], "correct": 2, "hints": ["What does the evaluator do with CONTRADICTS?", "Any contradiction sets the requirement to REFUSE.", "REFUSE."]}, {"title": "Boundary", "task": "Which can QualityRag v0.1 not do on its own?", "options": ["Reject evidence older than max_age_seconds", "Work out from raw text which document supersedes which", "Refuse on a marked contradiction"], "correct": 1, "hints": ["Two of these were in the lab.", "Supersession in free text needs extraction upstream.", "Work out which document supersedes which."]}]}, "quiz": [{"q": "What does STALE_EVIDENCE mean?", "options": ["The passage is irrelevant", "It was observed earlier than max_age_seconds allows", "It contradicts another passage"], "correct": 1, "why": "Age is computed from observed_at against the as-of time."}, {"q": "Why REFUSE rather than INCONCLUSIVE on a contradiction?", "options": ["REFUSE is faster", "Evidence disagrees, which needs resolution, not more retrieval", "INCONCLUSIVE is only for tables"], "correct": 1, "why": "INCONCLUSIVE means missing. REFUSE means contradicted."}, {"q": "In lab A4, the final result shows which reasons?", "options": ["CONTRADICTION and STALE_EVIDENCE", "Only CONTRADICTION", "UNKNOWN_EVIDENCE"], "correct": 0, "why": "The stale runbook and the contradicting memo both appear."}, {"q": "Where does observed_at come from?", "options": ["The model", "Your evidence metadata", "The document's title"], "correct": 1, "why": "The evaluator only knows the dates you supply."}, {"q": "Evidence dated in the future is", "options": ["Counted", "Rejected as FUTURE_EVIDENCE", "Treated as fresh"], "correct": 1, "why": "The SDK rejects negative ages."}], "deep": {"title": "Order of rejection", "body": "Per evidence row the evaluator checks, in order: required fields present, a known status, a parseable date, not in the future, not older than max_age_seconds, then contradiction or support. So a stale contradicting row is rejected as stale before it can contradict. Lab A4's REFUSE comes from the fresh memo."}, "instructor": {"icebreaker": "Ask who has followed a runbook that turned out to be superseded. What was the clue they missed?", "confusions": [["“REFUSE means the answer is false.”", "It means the declared evidence disagrees. A person resolves it."], ["“QualityRag knows document dates.”", "It knows observed_at from metadata. Effective-date handling is a roadmap item."]], "timing": "Video 1 min · lab 10 min · war game 6 min · quiz 5 min.", "activity": "For three of your policies, choose a max age and justify it in one sentence."}}, {"id": "a5", "code": "A5", "title": "Broken tables", "research": true, "complaint": "“My PDF tables are completely messed up. How would I even know?”", "video": "academy-a5-unverified-extraction", "lab_file": "a5_unverified_extraction.py", "objectives": [["Remember", "Recall that unverified extraction is UNKNOWN, not SUPPORTS."], ["Understand", "Explain how flattening a table can move a condition."], ["Apply", "Run lab A5 and compare the unverified and reviewed cell."], ["Analyze", "Identify which of your sources have tables that matter."], ["Evaluate", "Judge what “partial text only” coverage means for a result."], ["Create", "Design a reviewer step that upgrades an extraction to SUPPORTS."]], "scenario": {"setup": "Ade builds a fees assistant from PDF schedules. The parser flattens a table and the condition “waived above €10,000” lands next to the wrong number.", "dialogue": [["Junior", "The extracted text looks clean. The model read it fine."], ["Grumpy", "Clean text that says the wrong thing. Every wire costs €25? Our biggest client will love that."], ["Cloudina", "Treat an extraction nobody checked as unknown. Then it can't pass as evidence until someone compares it with the page."]]}, "concepts": [["Structure carries meaning", "In a table, a value means something because of its row, column and header. Flattening to text can separate a value from its condition without any visible error."], ["Unknown is honest", "An evidence row with status UNKNOWN is never counted as support. The result shows UNKNOWN_EVIDENCE, so the gap is visible."], ["Anchors, not answers", "In the research track, Semantic Codex indexes CSV rows, PDF pages, DOCX paragraphs and subtitle times with a source anchor for every value, and marks coverage PARTIAL_TEXT_ONLY. It has no OCR yet, and table-structure validation is research."]], "hook": "Unchecked extraction is UNKNOWN. It never counts as support.", "recall": [{"q": "An extraction nobody has checked should have the status", "a": ["UNKNOWN"]}, {"q": "Semantic Codex marks text-only coverage as PARTIAL_TEXT_____", "a": ["ONLY"]}], "lab_try": "Add a second, reviewed cell for the same requirement from a different origin. Does the unverified cell still matter to the verdict?", "wargame": {"name": "The fee schedule", "brief": "Your fees assistant reads PDF schedules. A client is told every wire costs €25, but their transfers are above €10,000 and should be free.", "steps": [{"q": "How should parsed table values enter QualityRag?", "options": [["As SUPPORTS; the parser is reliable", false, "That's how the wrong fee became evidence."], ["As UNKNOWN until reviewed against the page", true, "Unknown never counts, so the answer is withheld until someone checks."], ["Skip tables entirely", false, "Then the fee question can never be answered."]]}, {"q": "What should a reviewer record when a value is confirmed?", "options": [["Change status to SUPPORTS, keeping the page and row anchor", true, "The anchor lets anyone re-check the cell later."], ["Just the corrected number", false, "Without the anchor nobody can audit it."], ["Nothing; the verdict is enough", false, "The verdict depends on the status you record."]]}]}, "boss": {"name": "The Flattened Table", "phases": [{"title": "Status", "task": "A cell read by the parser, not yet checked. Status?", "options": ["SUPPORTS", "UNKNOWN", "CONTRADICTS"], "correct": 1, "hints": ["Has anyone confirmed it?", "Unconfirmed is not support.", "UNKNOWN."]}, {"title": "Verdict", "task": "It's the only evidence for the requirement. Verdict and reason?", "options": ["ADMIT", "INCONCLUSIVE with UNKNOWN_EVIDENCE", "REFUSE with CONTRADICTION"], "correct": 1, "hints": ["UNKNOWN rows are not counted.", "Zero sources, and the reason names the unknown row.", "INCONCLUSIVE with UNKNOWN_EVIDENCE."]}, {"title": "Boundary", "task": "What does QualityRag not do today?", "options": ["Keep source anchors for indexed values", "Repair or validate a broken table", "Mark partial coverage"], "correct": 1, "hints": ["Two of these are in Semantic Codex v0.3.", "Table repair is research.", "Repair or validate a broken table."]}]}, "quiz": [{"q": "Why is flattened table text risky?", "options": ["It's slower to index", "Values can be separated from their conditions", "Models can't read numbers"], "correct": 1, "why": "Row and column structure carries meaning."}, {"q": "What does UNKNOWN evidence contribute to the source count?", "options": ["One source", "Nothing", "Half a source"], "correct": 1, "why": "Only SUPPORTS rows are counted."}, {"q": "What turned the lab's verdict into ADMIT?", "options": ["A second unverified cell", "A reviewer marking the cell SUPPORTS", "Lowering the minimum"], "correct": 1, "why": "The reviewed cell is valid support."}, {"q": "Does Semantic Codex v0.3 do OCR?", "options": ["Yes", "No", "Only for tables"], "correct": 1, "why": "Its documentation says there is no OCR in this release."}, {"q": "Which is research, not shipped?", "options": ["Source anchors for CSV rows", "Table-structure validation", "UNKNOWN status in the SDK"], "correct": 1, "why": "Checking table structure itself is still research."}], "deep": {"title": "Anchors make review possible", "body": "A source anchor (page 4, row 7, column 3) turns “check the extraction” into a bounded task: open one place and compare one value. Without an anchor, review means rereading the document. That's why anchors come before automated validation in the research plan."}, "instructor": {"icebreaker": "Show a real fee or rate table and its copy-pasted text side by side. Ask what changed.", "confusions": [["“A5 means QualityRag fixes tables.”", "It doesn't. It stops unchecked values counting as evidence. Repair is research."], ["“Partial coverage means broken.”", "It means stated limits: text only, no OCR, no images."]], "timing": "Video 1.5 min · lab 8 min · war game 6 min · quiz 5 min.", "activity": "Pick one table your team relies on and write the review step that would upgrade its values to SUPPORTS."}}], "labs": {"a1_right_document_wrong_answer.py": "== Retrieved top-4 passages\nverdict: INCONCLUSIVE\n  recovery-procedure     ADMIT         sources=1  -\n  eu-screening-control   INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE\n  approval-or-exception  INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE\n\n== After targeted retrieval\nverdict: ADMIT\n  recovery-procedure     ADMIT         sources=1  -\n  eu-screening-control   ADMIT         sources=1  -\n  approval-or-exception  ADMIT         sources=1  -", "a2_governed_abstention.py": "WITHHELD (INCONCLUSIVE): missing evidence for eu-screening-control, approval-or-exception\nGENERATE: call the model with the admitted evidence", "a3_independent_sources.py": "== Three citations, one origin\nverdict: INCONCLUSIVE\n  recovery-procedure     INCONCLUSIVE  sources=1  INSUFFICIENT_INDEPENDENT_EVIDENCE\n\n== Add one independent origin\nverdict: ADMIT\n  recovery-procedure     ADMIT         sources=2  -", "a4_stale_and_contradicted.py": "== Only the 2024 runbook\nverdict: INCONCLUSIVE\n  restart-procedure      INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE, STALE_EVIDENCE\n\n== Current handbook vs a contradicting memo\nverdict: REFUSE\n  restart-procedure      REFUSE        sources=1  CONTRADICTION, STALE_EVIDENCE", "a5_unverified_extraction.py": "== Parsed table cell, unverified\nverdict: INCONCLUSIVE\n  wire-fee-eur           INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE, UNKNOWN_EVIDENCE\n\n== Same cell after a reviewer checked the page\nverdict: ADMIT\n  wire-fee-eur           ADMIT         sources=1  -"}, "videos": {}};
+const C = DATA.chapters, BY = Object.fromEntries(C.map(c => [c.id, c]));
+const DAY = 86400000, INTERVALS = [1, 3, 7, 14, 30], DECAY = 15;
+const today = () => new Date().toISOString().slice(0, 10);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[ch]));
+const $ = s => document.querySelector(s);
+
+// ---------- progress: private per learner (db) or this browser ----------
+let P = {xp: 0, last: null, streak: 0, best: 0, path: "standard", ch: {}, rev: {}, instructor: false, decayNote: ""};
+let store = {save() {}};
+const LKEY = "qr-academy-v1";
+function local() { try { return JSON.parse(localStorage.getItem(LKEY) || "null"); } catch (e) { return null; } }
+function saveLocal() { try { localStorage.setItem(LKEY, JSON.stringify(P)); } catch (e) {} }
+let saveTimer = null;
+function save() { saveLocal(); clearTimeout(saveTimer); saveTimer = setTimeout(() => store.save(P), 800); }
+function ch(id) { return P.ch[id] || (P.ch[id] = {recall: {}, war: {}, boss: {}, hints: {}, quiz: null}); }
+
+function applyDecayAndStreak() {
+  if (!P.last) return;
+  const idle = Math.floor((Date.parse(today()) - Date.parse(P.last)) / DAY) - 1;
+  if (idle > 0 && !P.decayed?.[today()]) {
+    const lost = Math.min(P.xp, idle * DECAY);
+    P.xp -= lost; P.decayed = {[today()]: true};
+    if (lost) P.decayNote = `You were away ${idle} day${idle > 1 ? "s" : ""}: −${lost} XP decay. Your streak resets on your next activity.`;
+  }
+}
+function activity() {
+  const t = today();
+  if (P.last !== t) {
+    const gap = P.last ? Math.floor((Date.parse(t) - Date.parse(P.last)) / DAY) : 99;
+    P.streak = gap === 1 ? P.streak + 1 : 1; P.best = Math.max(P.best, P.streak); P.last = t; P.decayNote = "";
+    for (const m of [7, 30, 100]) if (P.streak === m) { P.xp += m === 7 ? 100 : m === 30 ? 500 : 2000; toast(`${m}-day streak · bonus XP`); }
+  }
+}
+function award(n, why) { activity(); P.xp = Math.max(0, P.xp + n); if (n) toast((n > 0 ? "+" : "") + n + " XP · " + why); save(); meters(); }
+function level() { const i = Math.min(DATA.levels.length - 1, Math.floor(P.xp / 500)); return DATA.levels[i]; }
+function due() { const now = Date.now(); return Object.entries(P.rev).filter(([, r]) => r.due <= now).map(([k]) => k); }
+function meters() {
+  $("#m-streak").textContent = P.streak; $("#m-xp").textContent = P.xp; $("#m-level").textContent = level(); $("#m-due").textContent = due().length;
+  $("#m-warn").textContent = P.decayNote || (P.last && P.last !== today() ? `Learn something today to keep your ${P.streak}-day streak and avoid −${DECAY} XP a day.` : "");
+  renderRail();
+}
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2200); }
+
+// ---------- spaced repetition ----------
+function reviewItems(c) { return c.recall.map((r, i) => ({key: c.id + ":" + i, from: c.code, q: r.q + " ____", a: r.a[0]})).concat([{key: c.id + ":hook", from: c.code, q: "What was the rule to remember?", a: c.hook}]); }
+function schedule(c) { for (const it of reviewItems(c)) if (!P.rev[it.key]) P.rev[it.key] = {step: 0, due: Date.now() + DAY}; }
+function allItems() { return Object.fromEntries(C.flatMap(reviewItems).map(i => [i.key, i])); }
+function reviewBlock(filterFn) {
+  const items = allItems(), keys = due().filter(k => items[k] && filterFn(items[k]));
+  const el = document.createElement("section"); el.className = "frame"; el.setAttribute("aria-label", "Spaced review");
+  el.innerHTML = `<header><span class="tf">Spaced review</span><h2>Quick recall</h2><span class="xp">+5 XP each</span></header>`;
+  if (!keys.length) { el.insertAdjacentHTML("beforeend", `<p class="lede">Nothing due. Finished chapters come back here after 1, 3, 7, 14 and 30 days.</p>`); return el; }
+  for (const k of keys.slice(0, 4)) {
+    const it = items[k], card = document.createElement("div"); card.className = "tile";
+    card.innerHTML = `<div class="k">From ${esc(it.from)}</div><p>${esc(it.q)}</p><details><summary>Show answer</summary><p class="mono" style="color:var(--signal)">${esc(it.a)}</p></details><div class="row" style="margin-top:8px"><button class="btn" data-r="1" type="button">I remembered</button><button class="btn" data-r="0" type="button">I forgot</button></div>`;
+    card.querySelectorAll("button").forEach(b => b.onclick = () => {
+      const r = P.rev[k], ok = b.dataset.r === "1"; r.step = ok ? Math.min(r.step + 1, INTERVALS.length - 1) : 0; r.due = Date.now() + INTERVALS[r.step] * DAY;
+      award(ok ? 5 : 0, "review"); card.remove();
+    });
+    el.append(card);
+  }
+  return el;
+}
+
+// ---------- rendering helpers ----------
+const PATHS = {quick: 0, standard: 1, deep: 2};
+function frame(tf, title, xpNote, min) {
+  const s = document.createElement("section"); s.className = "frame";
+  if (min) s.dataset.pathMin = min;
+  s.innerHTML = `<header><span class="tf">${esc(tf)}</span><h2>${esc(title)}</h2>${xpNote ? `<span class="xp">${esc(xpNote)}</span>` : ""}</header>`;
+  return s;
+}
+function applyPath() { document.querySelectorAll("[data-path-min]").forEach(e => { e.hidden = PATHS[P.path] < PATHS[e.dataset.pathMin]; }); document.querySelectorAll(".instructor").forEach(e => e.hidden = !P.instructor); }
+function colourOut(s) { return esc(s).replace(/\b(ADMIT|GENERATE)\b/g, '<span class="A">$1</span>').replace(/\b(INCONCLUSIVE|WITHHELD|STALE_EVIDENCE|UNKNOWN_EVIDENCE|INSUFFICIENT_INDEPENDENT_EVIDENCE)\b/g, '<span class="I">$1</span>').replace(/\b(REFUSE|CONTRADICTION)\b/g, '<span class="R">$1</span>'); }
+function progressOf(c) {
+  const s = P.ch[c.id]; if (!s) return 0;
+  const parts = [s.video, c.recall.every((_, i) => s.recall[i]), s.lab, c.wargame.steps.every((_, i) => s.war[i] && s.war[i].solved), c.boss.phases.every((_, i) => s.boss[i]), s.quiz && s.quiz.done];
+  return parts.filter(Boolean).length / parts.length;
+}
+function renderRail() {
+  const cur = location.hash.slice(1) || "home", r = $("#rail");
+  r.innerHTML = `<a href="#home" ${cur === "home" ? 'aria-current="page"' : ""}><span class="code">◇</span><span class="t">Overview</span></a>` +
+    C.map(c => { const p = P.ch[c.id]?.done ? "done" : progressOf(c) > 0 ? "part" : ""; return `<a href="#${c.id}" ${cur === c.id ? 'aria-current="page"' : ""}><span class="code">${c.code}</span><span class="t">${esc(c.title)}</span><span class="dot ${p}" aria-label="${p || "not started"}"></span></a>`; }).join("");
+}
+
+// ---------- home ----------
+function home() {
+  const m = $("#main-content"); m.innerHTML = "";
+  const done = C.filter(c => P.ch[c.id]?.done).length;
+  const gains = C.map(c => P.ch[c.id]).filter(s => s && s.pre && s.post).map(s => s.post - s.pre);
+  const hero = document.createElement("section"); hero.className = "frame hero";
+  hero.innerHTML = `<span class="tf">QualityRag Academy · five chapters</span><h1>Evidence before answers</h1><p class="lede">${esc(DATA.intro)}</p>
+    <div class="row"><a class="btn primary" href="#${(C.find(c => !P.ch[c.id]?.done) || C[0]).id}">${done ? "Continue" : "Start with A1"}</a><a class="btn" href="https://github.com/cyrillesaxo/QualityRag/blob/docs/activation-research-fr-v01/docs/training/film-01-evidence-engine/qualityrag-the-evidence-engine.mp4">Watch the flagship film</a></div>`;
+  m.append(hero);
+  const stats = frame("Your learning analytics", "Progress");
+  stats.insertAdjacentHTML("beforeend", `<div class="grid g3">
+    <div class="tile"><div class="k">XP</div><div class="v">${P.xp}</div><div class="s">${level()} · next level at ${(Math.floor(P.xp / 500) + 1) * 500}</div></div>
+    <div class="tile"><div class="k">Streak</div><div class="v">${P.streak} d</div><div class="s">best ${P.best} d · milestones at 7, 30, 100</div></div>
+    <div class="tile"><div class="k">Chapters complete</div><div class="v">${done} / ${C.length}</div><div class="s">${C.length - done} to go</div></div>
+    <div class="tile"><div class="k">Confidence gain</div><div class="v">${gains.length ? (gains.reduce((a, b) => a + b, 0) / gains.length).toFixed(1) : "–"}</div><div class="s">average, on a 1–5 scale</div></div>
+    <div class="tile"><div class="k">Reviews due</div><div class="v">${due().length}</div><div class="s">spaced recall from finished chapters</div></div></div>`);
+  m.append(stats);
+  const path = frame("Learning path", "How deep do you want to go?");
+  const opts = [["quick", "Quick · about 20 min a chapter", "Video, core ideas, recall, lab and quiz."], ["standard", "Standard · about 40 min", "Adds the scenario, real case, war game and boss fight."], ["deep", "Deep · about 60 min", "Adds the formal rule behind each chapter."]];
+  path.insertAdjacentHTML("beforeend", `<div class="grid g3">${opts.map(o => `<button type="button" class="opt ${P.path === o[0] ? "right" : ""}" data-path="${o[0]}"><b>${o[1]}</b><br><span class="why">${o[2]}</span></button>`).join("")}</div>`);
+  path.querySelectorAll("[data-path]").forEach(b => b.onclick = () => { P.path = b.dataset.path; save(); home(); });
+  m.append(path);
+  m.append(reviewBlock(() => true));
+  const road = frame("The full programme", "Twenty problems, one chapter each");
+  road.insertAdjacentHTML("beforeend", `<div class="tablewrap"><table><thead><tr><th>Chapter</th><th>The complaint</th><th>Status</th></tr></thead><tbody>${C.map(c => `<tr><td class="mono">${c.code}</td><td><a href="#${c.id}">${esc(c.complaint)}</a></td><td><span class="chip ${c.research ? "warn" : "ok"}">${c.research ? "Research preview" : "Available now"}</span></td></tr>`).join("")}${DATA.roadmap.map(r => `<tr><td class="mono">${r[0]}</td><td>${esc(r[1])}</td><td><span class="chip">${esc(r[2])}</span></td></tr>`).join("")}</tbody></table></div>`);
+  m.append(road);
+  applyPath();
+}
+
+// ---------- chapter ----------
+function chapter(c) {
+  const s = ch(c.id), m = $("#main-content"); m.innerHTML = "";
+  const idx = C.indexOf(c), next = C[idx + 1];
+  const hero = document.createElement("section"); hero.className = "frame hero";
+  hero.innerHTML = `<span class="tf">Chapter ${c.code}${c.research ? " · research preview" : ""} · ${Math.round(progressOf(c) * 100)}% complete</span><h1>${esc(c.title)}</h1><p class="complaint">${esc(c.complaint)}</p>`;
+  m.append(hero);
+  m.append(reviewBlock(it => it.from !== c.code));
+
+  const vid = frame("Training frame 01", "Watch the episode", s.video ? "watched · +25 XP earned" : "+25 XP when it ends");
+  const src = (DATA.videos || {})[c.video] || `episodes/${c.video}/${c.video}.mp4`;
+  vid.insertAdjacentHTML("beforeend", `<video controls preload="metadata" playsinline src="${esc(src)}" aria-label="Episode ${c.code} video"></video><p class="why">Captions are burned into the video. If it doesn't play here, <a href="https://github.com/cyrillesaxo/QualityRag/tree/docs/activation-research-fr-v01/docs/academy/episodes/${c.video}">open it on GitHub</a>.</p>`);
+  vid.querySelector("video").addEventListener("ended", () => { if (!s.video) { s.video = true; award(25, "episode watched"); } });
+  m.append(vid);
+
+  const obj = frame("Learning objectives", "By the end you can");
+  obj.insertAdjacentHTML("beforeend", `<div class="bloom">${c.objectives.map(o => `<div class="tile"><div class="k">${esc(o[0])}</div><p>${esc(o[1])}</p></div>`).join("")}</div>`);
+  m.append(obj);
+
+  m.append(confidence(c, "pre"));
+
+  const sc = frame("Training frame 02", "The scenario", "", "standard");
+  sc.insertAdjacentHTML("beforeend", `<p class="lede">${esc(c.scenario.setup)}</p><div class="dialogue">${c.scenario.dialogue.map(d => `<div class="line"><div class="av ${d[0]}" aria-hidden="true">${d[0][0]}</div><div><div class="who">${d[0]}</div><p>${esc(d[1])}</p></div></div>`).join("")}</div>`);
+  m.append(sc);
+
+  if (c.case) {
+    const k = frame("Real case · verified", c.case.name, "", "standard"); k.classList.add("case");
+    k.insertAdjacentHTML("beforeend", `<p class="label">${esc(c.case.court)}</p><ul>${c.case.facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul><p class="hook">${esc(c.case.lesson)}</p><p class="why">Source: <a href="${esc(c.case.source[1])}" target="_blank" rel="noopener">${esc(c.case.source[0])}</a></p>`);
+    m.append(k);
+  }
+
+  const con = frame("Training frame 03", "Core ideas");
+  con.insertAdjacentHTML("beforeend", c.concepts.map(x => `<div class="concept"><h3>${esc(x[0])}</h3><p>${esc(x[1])}</p></div>`).join("") + `<p class="hook"><span class="label">Remember this</span><br>${esc(c.hook)}</p>`);
+  m.append(con);
+
+  const rc = frame("Active recall", "Quick check", "+10 XP each");
+  c.recall.forEach((r, i) => {
+    const row = document.createElement("div"); row.className = "recall";
+    row.innerHTML = `<label for="rc-${c.id}-${i}">${esc(r.q)}</label><input type="text" id="rc-${c.id}-${i}" autocomplete="off" spellcheck="false" size="16"><button class="btn" type="button">Check</button>`;
+    const inp = row.querySelector("input"), b = row.querySelector("button");
+    if (s.recall[i]) { inp.value = r.a[0]; inp.classList.add("good"); b.disabled = true; b.textContent = "Correct"; }
+    b.onclick = () => { const ok = r.a.some(a => a.toLowerCase() === inp.value.trim().toLowerCase()); inp.classList.toggle("good", ok); inp.classList.toggle("bad", !ok);
+      if (ok && !s.recall[i]) { s.recall[i] = true; b.disabled = true; b.textContent = "Correct"; award(10, "recall"); } else if (!ok) b.textContent = "Try again"; };
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") b.click(); });
+    rc.append(row);
+  });
+  m.append(rc);
+
+  m.append(lab(c, s));
+  m.append(wargame(c, s));
+  m.append(boss(c, s));
+
+  const dp = frame("Deep path", c.deep.title, "", "deep");
+  dp.insertAdjacentHTML("beforeend", `<p class="lede mono" style="font-size:14px">${esc(c.deep.body)}</p>`);
+  m.append(dp);
+
+  m.append(quiz(c, s));
+  m.append(confidence(c, "post"));
+  m.append(completion(c, s, next));
+  m.append(instructor(c));
+  applyPath();
+}
+
+function confidence(c, phase) {
+  const s = ch(c.id), f = frame(phase === "pre" ? "Before you start" : "After the chapter", phase === "pre" ? "How confident are you?" : "How confident are you now?");
+  const labels = phase === "pre" ? ["Novice", "Beginner", "Competent", "Proficient", "Expert"] : ["Still learning", "Getting there", "Comfortable", "Confident", "Could teach it"];
+  const v = s[phase] || 3;
+  f.insertAdjacentHTML("beforeend", `<div class="conf"><label for="cf-${c.id}-${phase}">${esc(c.title)}: <b id="cfv-${c.id}-${phase}">${labels[v - 1]}</b></label><input type="range" min="1" max="5" value="${v}" id="cf-${c.id}-${phase}"><div class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><div class="row"><button class="btn" type="button">${s[phase] ? "Update" : "Save"}</button><span class="why" id="cfm-${c.id}-${phase}"></span></div></div>`);
+  const r = f.querySelector("input"), out = f.querySelector(`#cfv-${c.id}-${phase}`), msg = f.querySelector(`#cfm-${c.id}-${phase}`);
+  r.oninput = () => out.textContent = labels[r.value - 1];
+  const say = () => { if (phase === "post" && s.pre && s.post) { const g = s.post - s.pre; msg.textContent = g >= 2 ? `+${g}: a big step up.` : g === 1 ? "+1: you've strengthened it." : g === 0 ? "No change. Try the deep path, or redo the boss fight." : `${g}: this one is hard. Ask Cloudina in the lab, or rewatch the episode.`; } };
+  f.querySelector("button").onclick = () => { s[phase] = +r.value; save(); msg.textContent = "Saved."; say(); };
+  say();
+  return f;
+}
+
+function lab(c, s) {
+  const f = frame("Training frame 04 · lab", "Run it yourself", s.lab ? "done · +40 XP earned" : "+40 XP");
+  const cmd = `python docs/academy/labs/${c.lab_file}`;
+  f.insertAdjacentHTML("beforeend", `<p class="lede">From a clone of the QualityRag repository, run the lab. No model, keys or network are needed. The output below is the lab's real output.</p>
+    <div class="cmd"><code>${esc(cmd)}</code><button class="btn" type="button" data-copy>Copy</button></div>
+    <pre aria-label="Expected output">${colourOut(DATA.labs[c.lab_file])}</pre>
+    <p><span class="label">Try it</span><br>${esc(c.lab_try)}</p>
+    <div class="row"><button class="btn primary" type="button" data-ran ${s.lab ? "disabled" : ""}>${s.lab ? "Lab done" : "I ran it and read the result"}</button></div>
+    <div class="ai" hidden><span class="label">Ask Cloudina, the lab assistant</span><div class="ask"><input type="text" id="ask-${c.id}" placeholder="What does INSUFFICIENT_INDEPENDENT_EVIDENCE mean here?"><button class="btn" type="button" data-ask>Ask</button></div><p class="answer" aria-live="polite"></p></div>`);
+  const copyBtn = f.querySelector("[data-copy]");
+  copyBtn.onclick = async () => { try { await navigator.clipboard.writeText(cmd); copyBtn.textContent = "Copied"; } catch (e) { const r = document.createRange(); r.selectNodeContents(f.querySelector(".cmd code")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); copyBtn.textContent = "Selected"; } };
+  f.querySelector("[data-ran]").onclick = e => { if (!s.lab) { s.lab = true; e.target.disabled = true; e.target.textContent = "Lab done"; award(40, "lab"); } };
+  sampleReady.then(sample => {
+    if (!sample) return;
+    const box = f.querySelector(".ai"), inp = box.querySelector("input"), out = box.querySelector(".answer"), btn = box.querySelector("[data-ask]");
+    box.hidden = false;
+    let ctl = null;
+    const ask = async () => {
+      const q = inp.value.trim(); if (!q) return;
+      if (ctl) ctl.abort(); ctl = new AbortController(); btn.disabled = true; out.textContent = "Thinking…";
+      const prompt = `You are Cloudina, the encouraging, precise lab assistant of QualityRag Academy, chapter ${c.code} "${c.title}".
+Answer the learner in at most 120 words, plainly. Only use the facts below; if the answer is not in them, say you are not sure and point to the repository docs. Never invent QualityRag features.
+Facts about QualityRag v0.1: evaluate(pack, evidence, as_of) is deterministic and needs no model. Verdicts: ADMIT (every requirement has at least min_independent_sources distinct origins of valid SUPPORTS evidence), REFUSE (any valid evidence marked CONTRADICTS), INCONCLUSIVE otherwise. Reasons: INSUFFICIENT_INDEPENDENT_EVIDENCE, STALE_EVIDENCE (older than max_age_seconds), FUTURE_EVIDENCE, UNKNOWN_EVIDENCE (status UNKNOWN), INVALID_EVIDENCE, CONTRADICTION. ADMIT means the declared checks passed on the supplied metadata, not that a source is true. Origins come from the application's metadata.
+Chapter ideas: ${c.concepts.map(x => x[0] + ": " + x[1]).join(" ")}
+Lab command: python docs/academy/labs/${c.lab_file}
+Lab output:
+${DATA.labs[c.lab_file]}
+Learner's question: ${q}`;
+      try { const r = await sample(prompt, {modelTier: "quick", signal: ctl.signal, onText: ({text}) => { out.textContent = text; }}); out.textContent = r.text; }
+      catch (e) { if (e.name === "AbortError") return; out.textContent = e.code === "rate_limited" ? "Cloudina is busy. Try again in a minute." : e.code === "not_granted" ? "Cloudina isn't available on this page." : "Cloudina couldn't answer that. Try rephrasing."; if (e.code === "not_granted") box.hidden = true; }
+      finally { btn.disabled = false; }
+    };
+    btn.onclick = ask; inp.addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
+  });
+  return f;
+}
+
+function choiceStep(container, q, options, st, onFirstRight) {
+  // st: {first: true|false, solved: bool}; XP only when the first choice is right.
+  const el = document.createElement("div"); el.className = "step";
+  el.innerHTML = `<p><b>${esc(q)}</b></p><div class="opts"></div><p class="why" aria-live="polite"></p>`;
+  const box = el.querySelector(".opts"), why = el.querySelector(".why");
+  options.forEach(o => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.textContent = o[0];
+    b.onclick = () => {
+      if (st.first === undefined) st.first = !!o[1];
+      b.classList.add(o[1] ? "right" : "wrong"); why.textContent = o[2] || "";
+      if (o[1]) { st.solved = true; box.querySelectorAll("button").forEach(x => x.disabled = true); if (st.first) onFirstRight(); else save(); }
+      else { b.disabled = true; save(); }
+    };
+    box.append(b);
+  });
+  if (st.solved) { const r = options.findIndex(o => o[1]); box.children[r].classList.add("right"); box.querySelectorAll("button").forEach(x => x.disabled = true); why.textContent = options[r][2] || ""; }
+  container.append(el);
+}
+
+function wargame(c, s) {
+  const w = c.wargame, f = frame("Training frame 05 · war game", w.name, "+30 XP per right first call", "standard");
+  f.insertAdjacentHTML("beforeend", `<p class="lede">${esc(w.brief)}</p>`);
+  w.steps.forEach((stp, i) => { s.war[i] = s.war[i] || {}; choiceStep(f, stp.q, stp.options, s.war[i], () => award(30, "war game")); });
+  return f;
+}
+
+function boss(c, s) {
+  const b = c.boss, f = frame("Boss fight", b.name, "+50 XP a phase · hints cost XP", "standard"); f.classList.add("boss");
+  const hp = document.createElement("div"); hp.className = "hp"; hp.innerHTML = "<div></div>"; f.append(hp);
+  const setHp = () => { const won = b.phases.filter((_, i) => s.boss[i]).length; hp.firstChild.style.width = (100 - 100 * won / b.phases.length) + "%"; };
+  b.phases.forEach((ph, i) => {
+    const st = document.createElement("div"); st.className = "step";
+    st.innerHTML = `<p class="label">Phase ${i + 1} · ${esc(ph.title)}</p><p><b>${esc(ph.task)}</b></p><div class="opts"></div><div class="row" data-hints></div><p class="hint" aria-live="polite"></p>`;
+    const box = st.querySelector(".opts"), hintRow = st.querySelector("[data-hints]"), hintOut = st.querySelector(".hint");
+    const used = s.hints[i] || 0;
+    const showHints = n => { hintOut.innerHTML = ph.hints.slice(0, n).map(esc).join("<br>"); };
+    showHints(used);
+    [10, 25, 50].forEach((cost, h) => {
+      const hb = document.createElement("button"); hb.type = "button"; hb.className = "btn"; hb.textContent = h < 2 ? `Hint ${h + 1} (−${cost} XP)` : `Reveal (−${cost} XP)`;
+      hb.disabled = used > h || !!s.boss[i];
+      let armed = false;
+      hb.onclick = () => {
+        if (!armed) { armed = true; hb.textContent = `Confirm −${cost} XP`; setTimeout(() => { armed = false; hb.textContent = h < 2 ? `Hint ${h + 1} (−${cost} XP)` : `Reveal (−${cost} XP)`; }, 3000); return; }
+        s.hints[i] = Math.max(s.hints[i] || 0, h + 1); award(-cost, "hint"); showHints(s.hints[i]); hintRow.querySelectorAll("button").forEach((x, j) => x.disabled = j < s.hints[i]);
+      };
+      hintRow.append(hb);
+    });
+    ph.options.forEach((o, j) => {
+      const ob = document.createElement("button"); ob.type = "button"; ob.className = "opt"; ob.textContent = o;
+      if (s.boss[i]) { ob.disabled = true; if (j === ph.correct) ob.classList.add("right"); }
+      ob.onclick = () => {
+        if (j === ph.correct) { ob.classList.add("right"); box.querySelectorAll("button").forEach(x => x.disabled = true); hintRow.querySelectorAll("button").forEach(x => x.disabled = true);
+          if (!s.boss[i]) { s.boss[i] = true; award(50, "boss phase"); setHp(); if (b.phases.every((_, k) => s.boss[k])) toast(`${b.name} defeated`); } }
+        else { ob.classList.add("wrong"); ob.disabled = true; }
+      };
+      box.append(ob);
+    });
+    f.append(st);
+  });
+  setHp();
+  return f;
+}
+
+function quiz(c, s) {
+  const f = frame("Assessment", "Quiz", "+20 XP per right answer, first try");
+  const answers = s.quiz?.answers || {};
+  c.quiz.forEach((q, i) => {
+    const st = document.createElement("div"); st.className = "step";
+    st.innerHTML = `<p><b>${i + 1}. ${esc(q.q)}</b></p><div class="opts"></div><p class="why" aria-live="polite"></p>`;
+    const box = st.querySelector(".opts"), why = st.querySelector(".why");
+    q.options.forEach((o, j) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.textContent = o;
+      const lock = () => { box.querySelectorAll("button").forEach((x, k) => { x.disabled = true; if (k === q.correct) x.classList.add("right"); }); why.textContent = q.why; };
+      if (answers[i] !== undefined) { if (j === answers[i] && j !== q.correct) b.classList.add("wrong"); }
+      b.onclick = () => {
+        answers[i] = j; if (j !== q.correct) b.classList.add("wrong"); lock();
+        s.quiz = {answers, done: Object.keys(answers).length === c.quiz.length, score: c.quiz.filter((qq, k) => answers[k] === qq.correct).length};
+        if (j === q.correct) award(20, "quiz"); else save();
+        score.textContent = `Score: ${s.quiz.score} / ${c.quiz.length}`;
+      };
+      box.append(b);
+      if (answers[i] !== undefined && j === q.options.length - 1) setTimeout(lock);
+    });
+    f.append(st);
+  });
+  const score = document.createElement("p"); score.className = "label"; score.textContent = s.quiz ? `Score: ${s.quiz.score} / ${c.quiz.length}` : "";
+  f.append(score);
+  return f;
+}
+
+function completion(c, s, next) {
+  const f = frame("Completion", s.done ? `${c.code} complete` : "Finish the chapter", s.done ? "" : "+100 XP");
+  const items = [["Watched the episode", s.video], ["Answered the quick check", c.recall.every((_, i) => s.recall[i])], ["Ran the lab", s.lab], ["Played the war game", c.wargame.steps.every((_, i) => s.war[i] && s.war[i].solved)], ["Beat the boss", c.boss.phases.every((_, i) => s.boss[i])], ["Finished the quiz", s.quiz && s.quiz.done]];
+  const needed = PATHS[P.path] === 0 ? [0, 1, 2, 5] : [0, 1, 2, 3, 4, 5];
+  const ok = needed.every(i => items[i][1]);
+  f.insertAdjacentHTML("beforeend", `<div class="check"><ul>${items.map((it, i) => `<li><span class="tick ${it[1] ? "on" : ""}" aria-hidden="true"></span><span>${esc(it[0])}${needed.includes(i) ? "" : " (optional on the quick path)"}</span></li>`).join("")}</ul></div>
+    <div class="row"><button class="btn primary" type="button" ${s.done || !ok ? "disabled" : ""}>${s.done ? "Completed" : ok ? "Complete chapter" : "Complete the items above first"}</button>${next ? `<a class="btn" href="#${next.id}">Next: ${next.code} · ${esc(next.title)}</a>` : `<a class="btn" href="#home">Back to the overview</a>`}</div>`);
+  f.querySelector("button").onclick = () => { if (s.done) return; s.done = true; schedule(c); award(100, `${c.code} complete`); chapter(c); };
+  return f;
+}
+
+function instructor(c) {
+  const n = c.instructor, f = frame("Instructor notes", "Facilitating " + c.code); f.classList.add("instructor");
+  f.insertAdjacentHTML("beforeend", `<div class="grid g2"><div class="tile"><div class="k">Ice breaker</div><p>${esc(n.icebreaker)}</p></div><div class="tile"><div class="k">Group activity</div><p>${esc(n.activity)}</p></div></div>
+    <div class="tile"><div class="k">Common confusions</div>${n.confusions.map(x => `<p style="margin-top:8px"><b>${esc(x[0])}</b> ${esc(x[1])}</p>`).join("")}</div>
+    <div class="tile"><div class="k">Timing</div><p>${esc(n.timing)}</p></div>`);
+  return f;
+}
+
+// ---------- routing ----------
+function route() {
+  const id = location.hash.slice(1);
+  if (BY[id]) chapter(BY[id]); else home();
+  renderRail(); window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+$("#instructor-toggle").onclick = () => { P.instructor = !P.instructor; $("#instructor-toggle").textContent = "Instructor mode: " + (P.instructor ? "on" : "off"); save(); applyPath(); };
+
+// ---------- boot ----------
+const sampleReady = (window.claude?.use ? claude.use("sample") : Promise.resolve(null)).catch(() => null);
+(function boot() {
+  const l = local(); if (l) P = Object.assign(P, l);
+  applyDecayAndStreak(); $("#instructor-toggle").textContent = "Instructor mode: " + (P.instructor ? "on" : "off");
+  meters(); route();
+  if (!window.claude?.use) return;
+  Promise.all([claude.use("db"), claude.use("user")]).then(async ([db, user]) => {
+    if (!db || !user) return;
+    const id = await user.id(); if (!id) return;
+    const doc = db.doc("data/users/" + id + "/academy");
+    try {
+      const snap = await Promise.race([doc.get(), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10000))]);
+      const remote = snap && snap.exists ? snap.data() : null;
+      if (remote && typeof remote === "object" && (remote.xp || 0) >= (P.xp || 0)) { P = Object.assign(P, remote); applyDecayAndStreak(); meters(); route(); }
+      store = {save: p => doc.set(JSON.parse(JSON.stringify(p))).catch(() => {})};
+      $("#saved-where").textContent = "progress saved to your account";
+      store.save(P);
+    } catch (e) {}
+  }).catch(() => {});
+})();
+</script>

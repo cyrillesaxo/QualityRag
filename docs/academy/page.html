@@ -1,0 +1,526 @@
+<title>QualityRag Academy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a training console. Sticky status bar, chapter rail, one chapter at a time as a sequence of training frames.
+   Deliberately single-theme (dark), matching the Academy films. */
+:root{
+  --ground:#070A0F; --panel:#0E141C; --panel-2:#131B25; --line:#223042; --line-2:#2E4157;
+  --ink:#E8EDF3; --ink-2:#B7C2CF; --muted:#7F8DA0;
+  --signal:#57E0CC; --signal-ink:#04110E; --signal-soft:rgba(87,224,204,.12);
+  --amber:#F2C26B; --amber-soft:rgba(242,194,107,.12); --red:#FF8A8A; --red-soft:rgba(255,138,138,.12); --violet:#A99BFF;
+  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif; --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ground);color:var(--ink)}
+body{font:16px/1.6 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ground)}
+a{color:var(--signal)}
+h1,h2,h3{font-family:var(--display);letter-spacing:.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.05}
+h2{font-size:24px;line-height:1.2}
+h3{font-size:18px}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.mono{font-family:var(--mono)}
+.label{font:500 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* status bar */
+.status{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--ground) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)))}
+.status .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px max(16px,env(safe-area-inset-left,0px))}
+.brand{display:flex;align-items:center;gap:10px;font:600 18px var(--display);color:var(--ink);text-decoration:none;margin-right:auto}
+.meter{display:flex;align-items:baseline;gap:6px;font:500 13px var(--mono);color:var(--ink-2);white-space:nowrap}
+.meter b{font:600 16px var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+.flame{display:inline-block;width:10px;height:14px;border-radius:50% 50% 45% 45%/60% 60% 40% 40%;background:linear-gradient(var(--amber),#FF7A45);transform-origin:50% 100%;animation:flick 1.8s ease-in-out infinite}
+@keyframes flick{50%{transform:scale(1.12) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.flame{animation:none}}
+.warn-line{width:100%;font:500 13px var(--mono);color:var(--amber)}
+.warn-line:empty{display:none}
+
+/* shell */
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;margin-top:24px}
+@media (max-width:860px){.shell{grid-template-columns:minmax(0,1fr)}}
+nav.rail{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:6px}
+@media (max-width:860px){nav.rail{position:static;flex-direction:row;flex-wrap:wrap}}
+.rail a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;text-decoration:none;color:var(--ink-2);border:1px solid transparent}
+.rail a[aria-current="page"]{background:var(--panel);border-color:var(--line-2);color:var(--ink)}
+.rail a:hover{color:var(--ink)}
+.rail .code{font:600 13px var(--mono);color:var(--signal);width:28px}
+.rail .dot{width:8px;height:8px;border-radius:9px;background:var(--line-2);margin-left:auto;flex:none}
+.rail .dot.done{background:var(--signal)}.rail .dot.part{background:var(--amber)}
+@media (max-width:860px){.rail .t{display:none}.rail .dot{margin-left:0}}
+
+/* frames */
+main{min-width:0;display:flex;flex-direction:column;gap:22px}
+.frame{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame>header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.frame .tf{font:500 12px var(--mono);letter-spacing:.16em;color:var(--signal);text-transform:uppercase}
+.frame .xp{margin-left:auto;font:500 12px var(--mono);color:var(--muted)}
+.hero{padding:34px 28px;background:radial-gradient(900px 320px at 0% 0%,rgba(87,224,204,.10),transparent 70%),var(--panel)}
+.hero .complaint{font:500 clamp(20px,2.6vw,28px)/1.35 var(--display);color:var(--amber);max-width:40ch}
+.lede{color:var(--ink-2);max-width:68ch}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.tile{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.tile .k{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font:600 26px var(--display);font-variant-numeric:tabular-nums}
+.tile .s{font-size:13px;color:var(--ink-2)}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--mono);letter-spacing:.06em;padding:3px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2);white-space:nowrap}
+.chip.ok{color:var(--signal);border-color:rgba(87,224,204,.45);background:var(--signal-soft)}
+.chip.warn{color:var(--amber);border-color:rgba(242,194,107,.45);background:var(--amber-soft)}
+.chip.bad{color:var(--red);border-color:rgba(255,138,138,.45);background:var(--red-soft)}
+.btn{border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink);padding:9px 16px;border-radius:9px}
+.btn:hover{border-color:var(--signal)}
+.btn.primary{background:var(--signal);border-color:var(--signal);color:var(--signal-ink);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+video{width:100%;border-radius:10px;background:#000;aspect-ratio:16/9;max-width:100%}
+.bloom{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.bloom .tile .k{color:var(--signal)}
+.dialogue{display:flex;flex-direction:column;gap:12px}
+.line{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:start}
+.av{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font:700 15px var(--display);color:var(--signal-ink)}
+.av.Cloudina{background:var(--signal)}.av.Grumpy{background:var(--amber)}.av.Junior{background:var(--violet)}
+.line .who{font:600 13px var(--mono);color:var(--muted)}
+.case{border-color:rgba(255,138,138,.35);background:linear-gradient(180deg,var(--red-soft),transparent 60%),var(--panel)}
+.case ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--ink-2)}
+.concept h3{color:var(--ink)}
+.concept p{color:var(--ink-2);max-width:70ch}
+.hook{border-left:3px solid var(--signal);padding:8px 14px;background:var(--signal-soft);border-radius:0 8px 8px 0}
+pre{margin:0;background:#05080C;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font:13.5px/1.55 var(--mono);color:var(--ink-2)}
+pre .A{color:var(--signal)}pre .I{color:var(--amber)}pre .R{color:var(--red)}
+.cmd{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.cmd code{flex:1 1 320px;min-width:0;overflow-x:auto;white-space:nowrap;background:#05080C;border:1px solid var(--line);border-radius:9px;padding:10px 14px;font:14px var(--mono);color:var(--signal)}
+input[type=text],textarea{font:15px var(--body);background:#05080C;color:var(--ink);border:1px solid var(--line-2);border-radius:8px;padding:8px 12px;min-width:0}
+input[type=text].good{border-color:var(--signal)}input[type=text].bad{border-color:var(--red)}
+.recall{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink);padding:10px 14px;border-radius:9px}
+.opt:hover:not(:disabled){border-color:var(--signal)}
+.opt.right{border-color:var(--signal);background:var(--signal-soft)}
+.opt.wrong{border-color:var(--red);background:var(--red-soft)}
+.opt:disabled{cursor:default}
+.why{font-size:14px;color:var(--ink-2)}
+.step{display:flex;flex-direction:column;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.step:first-of-type{border-top:0;padding-top:0}
+.boss{border-color:rgba(169,155,255,.4);background:linear-gradient(180deg,rgba(169,155,255,.10),transparent 50%),var(--panel)}
+.hp{height:10px;border-radius:9px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
+.hp>div{height:100%;background:linear-gradient(90deg,var(--violet),var(--red));transition:width .4s}
+.hint{font-size:14px;color:var(--amber)}
+.conf{display:flex;flex-direction:column;gap:8px;max-width:520px}
+.conf input{width:100%;accent-color:var(--signal)}
+.scale{display:flex;justify-content:space-between;font:12px var(--mono);color:var(--muted)}
+.check li{list-style:none;display:flex;gap:10px;align-items:center}
+.check ul{padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.tick{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line-2);display:grid;place-items:center;flex:none}
+.tick.on{background:var(--signal);border-color:var(--signal)}
+.tick.on::after{content:"";width:8px;height:4px;border:2px solid var(--signal-ink);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.instructor{border-style:dashed;border-color:var(--amber)}
+.ask{display:flex;gap:8px;flex-wrap:wrap}.ask input{flex:1 1 260px}
+.answer{white-space:pre-wrap;color:var(--ink-2);font-size:15px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{border-top:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--signal);color:var(--signal-ink);font:600 14px var(--display);padding:10px 16px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;z-index:20}
+.toast.on{opacity:1;transform:none}
+footer{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;color:var(--muted);font-size:13px}
+[hidden]{display:none!important}
+</style>
+
+<div class="status" role="banner"><div class="wrap">
+  <a class="brand" href="#home"><svg viewBox="0 0 22 22" width="22" height="22" aria-hidden="true"><path d="M11 20V11M11 11 5 4M11 11l6-7M11 14 7 9M11 14l4-5" fill="none" stroke="#57E0CC" stroke-width="1.8" stroke-linecap="round"/></svg>QualityRag Academy</a>
+  <span class="meter"><span class="flame" aria-hidden="true"></span>streak <b id="m-streak">0</b> d</span>
+  <span class="meter">XP <b id="m-xp">0</b></span>
+  <span class="meter">level <b id="m-level">Retriever</b></span>
+  <span class="meter">reviews due <b id="m-due">0</b></span>
+  <div class="warn-line" id="m-warn" role="status"></div>
+</div></div>
+
+<div class="wrap shell">
+  <nav class="rail" id="rail" aria-label="Chapters"></nav>
+  <main id="main-content"></main>
+</div>
+<div class="wrap"><footer>
+  <span>QualityRag Academy · v1 · <span id="saved-where">progress saved in this browser</span></span>
+  <button class="btn" id="instructor-toggle" type="button">Instructor mode: off</button>
+  <a href="https://github.com/cyrillesaxo/QualityRag/tree/docs/activation-research-fr-v01/docs/academy">Sources and labs on GitHub</a>
+</footer></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const C = DATA.chapters, BY = Object.fromEntries(C.map(c => [c.id, c]));
+const DAY = 86400000, INTERVALS = [1, 3, 7, 14, 30], DECAY = 15;
+const today = () => new Date().toISOString().slice(0, 10);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[ch]));
+const $ = s => document.querySelector(s);
+
+// ---------- progress: private per learner (db) or this browser ----------
+let P = {xp: 0, last: null, streak: 0, best: 0, path: "standard", ch: {}, rev: {}, instructor: false, decayNote: ""};
+let store = {save() {}};
+const LKEY = "qr-academy-v1";
+function local() { try { return JSON.parse(localStorage.getItem(LKEY) || "null"); } catch (e) { return null; } }
+function saveLocal() { try { localStorage.setItem(LKEY, JSON.stringify(P)); } catch (e) {} }
+let saveTimer = null;
+function save() { saveLocal(); clearTimeout(saveTimer); saveTimer = setTimeout(() => store.save(P), 800); }
+function ch(id) { return P.ch[id] || (P.ch[id] = {recall: {}, war: {}, boss: {}, hints: {}, quiz: null}); }
+
+function applyDecayAndStreak() {
+  if (!P.last) return;
+  const idle = Math.floor((Date.parse(today()) - Date.parse(P.last)) / DAY) - 1;
+  if (idle > 0 && !P.decayed?.[today()]) {
+    const lost = Math.min(P.xp, idle * DECAY);
+    P.xp -= lost; P.decayed = {[today()]: true};
+    if (lost) P.decayNote = `You were away ${idle} day${idle > 1 ? "s" : ""}: −${lost} XP decay. Your streak resets on your next activity.`;
+  }
+}
+function activity() {
+  const t = today();
+  if (P.last !== t) {
+    const gap = P.last ? Math.floor((Date.parse(t) - Date.parse(P.last)) / DAY) : 99;
+    P.streak = gap === 1 ? P.streak + 1 : 1; P.best = Math.max(P.best, P.streak); P.last = t; P.decayNote = "";
+    for (const m of [7, 30, 100]) if (P.streak === m) { P.xp += m === 7 ? 100 : m === 30 ? 500 : 2000; toast(`${m}-day streak · bonus XP`); }
+  }
+}
+function award(n, why) { activity(); P.xp = Math.max(0, P.xp + n); if (n) toast((n > 0 ? "+" : "") + n + " XP · " + why); save(); meters(); }
+function level() { const i = Math.min(DATA.levels.length - 1, Math.floor(P.xp / 500)); return DATA.levels[i]; }
+function due() { const now = Date.now(); return Object.entries(P.rev).filter(([, r]) => r.due <= now).map(([k]) => k); }
+function meters() {
+  $("#m-streak").textContent = P.streak; $("#m-xp").textContent = P.xp; $("#m-level").textContent = level(); $("#m-due").textContent = due().length;
+  $("#m-warn").textContent = P.decayNote || (P.last && P.last !== today() ? `Learn something today to keep your ${P.streak}-day streak and avoid −${DECAY} XP a day.` : "");
+  renderRail();
+}
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2200); }
+
+// ---------- spaced repetition ----------
+function reviewItems(c) { return c.recall.map((r, i) => ({key: c.id + ":" + i, from: c.code, q: r.q + " ____", a: r.a[0]})).concat([{key: c.id + ":hook", from: c.code, q: "What was the rule to remember?", a: c.hook}]); }
+function schedule(c) { for (const it of reviewItems(c)) if (!P.rev[it.key]) P.rev[it.key] = {step: 0, due: Date.now() + DAY}; }
+function allItems() { return Object.fromEntries(C.flatMap(reviewItems).map(i => [i.key, i])); }
+function reviewBlock(filterFn) {
+  const items = allItems(), keys = due().filter(k => items[k] && filterFn(items[k]));
+  const el = document.createElement("section"); el.className = "frame"; el.setAttribute("aria-label", "Spaced review");
+  el.innerHTML = `<header><span class="tf">Spaced review</span><h2>Quick recall</h2><span class="xp">+5 XP each</span></header>`;
+  if (!keys.length) { el.insertAdjacentHTML("beforeend", `<p class="lede">Nothing due. Finished chapters come back here after 1, 3, 7, 14 and 30 days.</p>`); return el; }
+  for (const k of keys.slice(0, 4)) {
+    const it = items[k], card = document.createElement("div"); card.className = "tile";
+    card.innerHTML = `<div class="k">From ${esc(it.from)}</div><p>${esc(it.q)}</p><details><summary>Show answer</summary><p class="mono" style="color:var(--signal)">${esc(it.a)}</p></details><div class="row" style="margin-top:8px"><button class="btn" data-r="1" type="button">I remembered</button><button class="btn" data-r="0" type="button">I forgot</button></div>`;
+    card.querySelectorAll("button").forEach(b => b.onclick = () => {
+      const r = P.rev[k], ok = b.dataset.r === "1"; r.step = ok ? Math.min(r.step + 1, INTERVALS.length - 1) : 0; r.due = Date.now() + INTERVALS[r.step] * DAY;
+      award(ok ? 5 : 0, "review"); card.remove();
+    });
+    el.append(card);
+  }
+  return el;
+}
+
+// ---------- rendering helpers ----------
+const PATHS = {quick: 0, standard: 1, deep: 2};
+function frame(tf, title, xpNote, min) {
+  const s = document.createElement("section"); s.className = "frame";
+  if (min) s.dataset.pathMin = min;
+  s.innerHTML = `<header><span class="tf">${esc(tf)}</span><h2>${esc(title)}</h2>${xpNote ? `<span class="xp">${esc(xpNote)}</span>` : ""}</header>`;
+  return s;
+}
+function applyPath() { document.querySelectorAll("[data-path-min]").forEach(e => { e.hidden = PATHS[P.path] < PATHS[e.dataset.pathMin]; }); document.querySelectorAll(".instructor").forEach(e => e.hidden = !P.instructor); }
+function colourOut(s) { return esc(s).replace(/\b(ADMIT|GENERATE)\b/g, '<span class="A">$1</span>').replace(/\b(INCONCLUSIVE|WITHHELD|STALE_EVIDENCE|UNKNOWN_EVIDENCE|INSUFFICIENT_INDEPENDENT_EVIDENCE)\b/g, '<span class="I">$1</span>').replace(/\b(REFUSE|CONTRADICTION)\b/g, '<span class="R">$1</span>'); }
+function progressOf(c) {
+  const s = P.ch[c.id]; if (!s) return 0;
+  const parts = [s.video, c.recall.every((_, i) => s.recall[i]), s.lab, c.wargame.steps.every((_, i) => s.war[i] && s.war[i].solved), c.boss.phases.every((_, i) => s.boss[i]), s.quiz && s.quiz.done];
+  return parts.filter(Boolean).length / parts.length;
+}
+function renderRail() {
+  const cur = location.hash.slice(1) || "home", r = $("#rail");
+  r.innerHTML = `<a href="#home" ${cur === "home" ? 'aria-current="page"' : ""}><span class="code">◇</span><span class="t">Overview</span></a>` +
+    C.map(c => { const p = P.ch[c.id]?.done ? "done" : progressOf(c) > 0 ? "part" : ""; return `<a href="#${c.id}" ${cur === c.id ? 'aria-current="page"' : ""}><span class="code">${c.code}</span><span class="t">${esc(c.title)}</span><span class="dot ${p}" aria-label="${p || "not started"}"></span></a>`; }).join("");
+}
+
+// ---------- home ----------
+function home() {
+  const m = $("#main-content"); m.innerHTML = "";
+  const done = C.filter(c => P.ch[c.id]?.done).length;
+  const gains = C.map(c => P.ch[c.id]).filter(s => s && s.pre && s.post).map(s => s.post - s.pre);
+  const hero = document.createElement("section"); hero.className = "frame hero";
+  hero.innerHTML = `<span class="tf">QualityRag Academy · five chapters</span><h1>Evidence before answers</h1><p class="lede">${esc(DATA.intro)}</p>
+    <div class="row"><a class="btn primary" href="#${(C.find(c => !P.ch[c.id]?.done) || C[0]).id}">${done ? "Continue" : "Start with A1"}</a><a class="btn" href="https://github.com/cyrillesaxo/QualityRag/blob/docs/activation-research-fr-v01/docs/training/film-01-evidence-engine/qualityrag-the-evidence-engine.mp4">Watch the flagship film</a></div>`;
+  m.append(hero);
+  const stats = frame("Your learning analytics", "Progress");
+  stats.insertAdjacentHTML("beforeend", `<div class="grid g3">
+    <div class="tile"><div class="k">XP</div><div class="v">${P.xp}</div><div class="s">${level()} · next level at ${(Math.floor(P.xp / 500) + 1) * 500}</div></div>
+    <div class="tile"><div class="k">Streak</div><div class="v">${P.streak} d</div><div class="s">best ${P.best} d · milestones at 7, 30, 100</div></div>
+    <div class="tile"><div class="k">Chapters complete</div><div class="v">${done} / ${C.length}</div><div class="s">${C.length - done} to go</div></div>
+    <div class="tile"><div class="k">Confidence gain</div><div class="v">${gains.length ? (gains.reduce((a, b) => a + b, 0) / gains.length).toFixed(1) : "–"}</div><div class="s">average, on a 1–5 scale</div></div>
+    <div class="tile"><div class="k">Reviews due</div><div class="v">${due().length}</div><div class="s">spaced recall from finished chapters</div></div></div>`);
+  m.append(stats);
+  const path = frame("Learning path", "How deep do you want to go?");
+  const opts = [["quick", "Quick · about 20 min a chapter", "Video, core ideas, recall, lab and quiz."], ["standard", "Standard · about 40 min", "Adds the scenario, real case, war game and boss fight."], ["deep", "Deep · about 60 min", "Adds the formal rule behind each chapter."]];
+  path.insertAdjacentHTML("beforeend", `<div class="grid g3">${opts.map(o => `<button type="button" class="opt ${P.path === o[0] ? "right" : ""}" data-path="${o[0]}"><b>${o[1]}</b><br><span class="why">${o[2]}</span></button>`).join("")}</div>`);
+  path.querySelectorAll("[data-path]").forEach(b => b.onclick = () => { P.path = b.dataset.path; save(); home(); });
+  m.append(path);
+  m.append(reviewBlock(() => true));
+  const road = frame("The full programme", "Twenty problems, one chapter each");
+  road.insertAdjacentHTML("beforeend", `<div class="tablewrap"><table><thead><tr><th>Chapter</th><th>The complaint</th><th>Status</th></tr></thead><tbody>${C.map(c => `<tr><td class="mono">${c.code}</td><td><a href="#${c.id}">${esc(c.complaint)}</a></td><td><span class="chip ${c.research ? "warn" : "ok"}">${c.research ? "Research preview" : "Available now"}</span></td></tr>`).join("")}${DATA.roadmap.map(r => `<tr><td class="mono">${r[0]}</td><td>${esc(r[1])}</td><td><span class="chip">${esc(r[2])}</span></td></tr>`).join("")}</tbody></table></div>`);
+  m.append(road);
+  applyPath();
+}
+
+// ---------- chapter ----------
+function chapter(c) {
+  const s = ch(c.id), m = $("#main-content"); m.innerHTML = "";
+  const idx = C.indexOf(c), next = C[idx + 1];
+  const hero = document.createElement("section"); hero.className = "frame hero";
+  hero.innerHTML = `<span class="tf">Chapter ${c.code}${c.research ? " · research preview" : ""} · ${Math.round(progressOf(c) * 100)}% complete</span><h1>${esc(c.title)}</h1><p class="complaint">${esc(c.complaint)}</p>`;
+  m.append(hero);
+  m.append(reviewBlock(it => it.from !== c.code));
+
+  const vid = frame("Training frame 01", "Watch the episode", s.video ? "watched · +25 XP earned" : "+25 XP when it ends");
+  const src = (DATA.videos || {})[c.video] || `episodes/${c.video}/${c.video}.mp4`;
+  vid.insertAdjacentHTML("beforeend", `<video controls preload="metadata" playsinline src="${esc(src)}" aria-label="Episode ${c.code} video"></video><p class="why">Captions are burned into the video. If it doesn't play here, <a href="https://github.com/cyrillesaxo/QualityRag/tree/docs/activation-research-fr-v01/docs/academy/episodes/${c.video}">open it on GitHub</a>.</p>`);
+  vid.querySelector("video").addEventListener("ended", () => { if (!s.video) { s.video = true; award(25, "episode watched"); } });
+  m.append(vid);
+
+  const obj = frame("Learning objectives", "By the end you can");
+  obj.insertAdjacentHTML("beforeend", `<div class="bloom">${c.objectives.map(o => `<div class="tile"><div class="k">${esc(o[0])}</div><p>${esc(o[1])}</p></div>`).join("")}</div>`);
+  m.append(obj);
+
+  m.append(confidence(c, "pre"));
+
+  const sc = frame("Training frame 02", "The scenario", "", "standard");
+  sc.insertAdjacentHTML("beforeend", `<p class="lede">${esc(c.scenario.setup)}</p><div class="dialogue">${c.scenario.dialogue.map(d => `<div class="line"><div class="av ${d[0]}" aria-hidden="true">${d[0][0]}</div><div><div class="who">${d[0]}</div><p>${esc(d[1])}</p></div></div>`).join("")}</div>`);
+  m.append(sc);
+
+  if (c.case) {
+    const k = frame("Real case · verified", c.case.name, "", "standard"); k.classList.add("case");
+    k.insertAdjacentHTML("beforeend", `<p class="label">${esc(c.case.court)}</p><ul>${c.case.facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul><p class="hook">${esc(c.case.lesson)}</p><p class="why">Source: <a href="${esc(c.case.source[1])}" target="_blank" rel="noopener">${esc(c.case.source[0])}</a></p>`);
+    m.append(k);
+  }
+
+  const con = frame("Training frame 03", "Core ideas");
+  con.insertAdjacentHTML("beforeend", c.concepts.map(x => `<div class="concept"><h3>${esc(x[0])}</h3><p>${esc(x[1])}</p></div>`).join("") + `<p class="hook"><span class="label">Remember this</span><br>${esc(c.hook)}</p>`);
+  m.append(con);
+
+  const rc = frame("Active recall", "Quick check", "+10 XP each");
+  c.recall.forEach((r, i) => {
+    const row = document.createElement("div"); row.className = "recall";
+    row.innerHTML = `<label for="rc-${c.id}-${i}">${esc(r.q)}</label><input type="text" id="rc-${c.id}-${i}" autocomplete="off" spellcheck="false" size="16"><button class="btn" type="button">Check</button>`;
+    const inp = row.querySelector("input"), b = row.querySelector("button");
+    if (s.recall[i]) { inp.value = r.a[0]; inp.classList.add("good"); b.disabled = true; b.textContent = "Correct"; }
+    b.onclick = () => { const ok = r.a.some(a => a.toLowerCase() === inp.value.trim().toLowerCase()); inp.classList.toggle("good", ok); inp.classList.toggle("bad", !ok);
+      if (ok && !s.recall[i]) { s.recall[i] = true; b.disabled = true; b.textContent = "Correct"; award(10, "recall"); } else if (!ok) b.textContent = "Try again"; };
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") b.click(); });
+    rc.append(row);
+  });
+  m.append(rc);
+
+  m.append(lab(c, s));
+  m.append(wargame(c, s));
+  m.append(boss(c, s));
+
+  const dp = frame("Deep path", c.deep.title, "", "deep");
+  dp.insertAdjacentHTML("beforeend", `<p class="lede mono" style="font-size:14px">${esc(c.deep.body)}</p>`);
+  m.append(dp);
+
+  m.append(quiz(c, s));
+  m.append(confidence(c, "post"));
+  m.append(completion(c, s, next));
+  m.append(instructor(c));
+  applyPath();
+}
+
+function confidence(c, phase) {
+  const s = ch(c.id), f = frame(phase === "pre" ? "Before you start" : "After the chapter", phase === "pre" ? "How confident are you?" : "How confident are you now?");
+  const labels = phase === "pre" ? ["Novice", "Beginner", "Competent", "Proficient", "Expert"] : ["Still learning", "Getting there", "Comfortable", "Confident", "Could teach it"];
+  const v = s[phase] || 3;
+  f.insertAdjacentHTML("beforeend", `<div class="conf"><label for="cf-${c.id}-${phase}">${esc(c.title)}: <b id="cfv-${c.id}-${phase}">${labels[v - 1]}</b></label><input type="range" min="1" max="5" value="${v}" id="cf-${c.id}-${phase}"><div class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><div class="row"><button class="btn" type="button">${s[phase] ? "Update" : "Save"}</button><span class="why" id="cfm-${c.id}-${phase}"></span></div></div>`);
+  const r = f.querySelector("input"), out = f.querySelector(`#cfv-${c.id}-${phase}`), msg = f.querySelector(`#cfm-${c.id}-${phase}`);
+  r.oninput = () => out.textContent = labels[r.value - 1];
+  const say = () => { if (phase === "post" && s.pre && s.post) { const g = s.post - s.pre; msg.textContent = g >= 2 ? `+${g}: a big step up.` : g === 1 ? "+1: you've strengthened it." : g === 0 ? "No change. Try the deep path, or redo the boss fight." : `${g}: this one is hard. Ask Cloudina in the lab, or rewatch the episode.`; } };
+  f.querySelector("button").onclick = () => { s[phase] = +r.value; save(); msg.textContent = "Saved."; say(); };
+  say();
+  return f;
+}
+
+function lab(c, s) {
+  const f = frame("Training frame 04 · lab", "Run it yourself", s.lab ? "done · +40 XP earned" : "+40 XP");
+  const cmd = `python docs/academy/labs/${c.lab_file}`;
+  f.insertAdjacentHTML("beforeend", `<p class="lede">From a clone of the QualityRag repository, run the lab. No model, keys or network are needed. The output below is the lab's real output.</p>
+    <div class="cmd"><code>${esc(cmd)}</code><button class="btn" type="button" data-copy>Copy</button></div>
+    <pre aria-label="Expected output">${colourOut(DATA.labs[c.lab_file])}</pre>
+    <p><span class="label">Try it</span><br>${esc(c.lab_try)}</p>
+    <div class="row"><button class="btn primary" type="button" data-ran ${s.lab ? "disabled" : ""}>${s.lab ? "Lab done" : "I ran it and read the result"}</button></div>
+    <div class="ai" hidden><span class="label">Ask Cloudina, the lab assistant</span><div class="ask"><input type="text" id="ask-${c.id}" placeholder="What does INSUFFICIENT_INDEPENDENT_EVIDENCE mean here?"><button class="btn" type="button" data-ask>Ask</button></div><p class="answer" aria-live="polite"></p></div>`);
+  const copyBtn = f.querySelector("[data-copy]");
+  copyBtn.onclick = async () => { try { await navigator.clipboard.writeText(cmd); copyBtn.textContent = "Copied"; } catch (e) { const r = document.createRange(); r.selectNodeContents(f.querySelector(".cmd code")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); copyBtn.textContent = "Selected"; } };
+  f.querySelector("[data-ran]").onclick = e => { if (!s.lab) { s.lab = true; e.target.disabled = true; e.target.textContent = "Lab done"; award(40, "lab"); } };
+  sampleReady.then(sample => {
+    if (!sample) return;
+    const box = f.querySelector(".ai"), inp = box.querySelector("input"), out = box.querySelector(".answer"), btn = box.querySelector("[data-ask]");
+    box.hidden = false;
+    let ctl = null;
+    const ask = async () => {
+      const q = inp.value.trim(); if (!q) return;
+      if (ctl) ctl.abort(); ctl = new AbortController(); btn.disabled = true; out.textContent = "Thinking…";
+      const prompt = `You are Cloudina, the encouraging, precise lab assistant of QualityRag Academy, chapter ${c.code} "${c.title}".
+Answer the learner in at most 120 words, plainly. Only use the facts below; if the answer is not in them, say you are not sure and point to the repository docs. Never invent QualityRag features.
+Facts about QualityRag v0.1: evaluate(pack, evidence, as_of) is deterministic and needs no model. Verdicts: ADMIT (every requirement has at least min_independent_sources distinct origins of valid SUPPORTS evidence), REFUSE (any valid evidence marked CONTRADICTS), INCONCLUSIVE otherwise. Reasons: INSUFFICIENT_INDEPENDENT_EVIDENCE, STALE_EVIDENCE (older than max_age_seconds), FUTURE_EVIDENCE, UNKNOWN_EVIDENCE (status UNKNOWN), INVALID_EVIDENCE, CONTRADICTION. ADMIT means the declared checks passed on the supplied metadata, not that a source is true. Origins come from the application's metadata.
+Chapter ideas: ${c.concepts.map(x => x[0] + ": " + x[1]).join(" ")}
+Lab command: python docs/academy/labs/${c.lab_file}
+Lab output:
+${DATA.labs[c.lab_file]}
+Learner's question: ${q}`;
+      try { const r = await sample(prompt, {modelTier: "quick", signal: ctl.signal, onText: ({text}) => { out.textContent = text; }}); out.textContent = r.text; }
+      catch (e) { if (e.name === "AbortError") return; out.textContent = e.code === "rate_limited" ? "Cloudina is busy. Try again in a minute." : e.code === "not_granted" ? "Cloudina isn't available on this page." : "Cloudina couldn't answer that. Try rephrasing."; if (e.code === "not_granted") box.hidden = true; }
+      finally { btn.disabled = false; }
+    };
+    btn.onclick = ask; inp.addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
+  });
+  return f;
+}
+
+function choiceStep(container, q, options, st, onFirstRight) {
+  // st: {first: true|false, solved: bool}; XP only when the first choice is right.
+  const el = document.createElement("div"); el.className = "step";
+  el.innerHTML = `<p><b>${esc(q)}</b></p><div class="opts"></div><p class="why" aria-live="polite"></p>`;
+  const box = el.querySelector(".opts"), why = el.querySelector(".why");
+  options.forEach(o => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.textContent = o[0];
+    b.onclick = () => {
+      if (st.first === undefined) st.first = !!o[1];
+      b.classList.add(o[1] ? "right" : "wrong"); why.textContent = o[2] || "";
+      if (o[1]) { st.solved = true; box.querySelectorAll("button").forEach(x => x.disabled = true); if (st.first) onFirstRight(); else save(); }
+      else { b.disabled = true; save(); }
+    };
+    box.append(b);
+  });
+  if (st.solved) { const r = options.findIndex(o => o[1]); box.children[r].classList.add("right"); box.querySelectorAll("button").forEach(x => x.disabled = true); why.textContent = options[r][2] || ""; }
+  container.append(el);
+}
+
+function wargame(c, s) {
+  const w = c.wargame, f = frame("Training frame 05 · war game", w.name, "+30 XP per right first call", "standard");
+  f.insertAdjacentHTML("beforeend", `<p class="lede">${esc(w.brief)}</p>`);
+  w.steps.forEach((stp, i) => { s.war[i] = s.war[i] || {}; choiceStep(f, stp.q, stp.options, s.war[i], () => award(30, "war game")); });
+  return f;
+}
+
+function boss(c, s) {
+  const b = c.boss, f = frame("Boss fight", b.name, "+50 XP a phase · hints cost XP", "standard"); f.classList.add("boss");
+  const hp = document.createElement("div"); hp.className = "hp"; hp.innerHTML = "<div></div>"; f.append(hp);
+  const setHp = () => { const won = b.phases.filter((_, i) => s.boss[i]).length; hp.firstChild.style.width = (100 - 100 * won / b.phases.length) + "%"; };
+  b.phases.forEach((ph, i) => {
+    const st = document.createElement("div"); st.className = "step";
+    st.innerHTML = `<p class="label">Phase ${i + 1} · ${esc(ph.title)}</p><p><b>${esc(ph.task)}</b></p><div class="opts"></div><div class="row" data-hints></div><p class="hint" aria-live="polite"></p>`;
+    const box = st.querySelector(".opts"), hintRow = st.querySelector("[data-hints]"), hintOut = st.querySelector(".hint");
+    const used = s.hints[i] || 0;
+    const showHints = n => { hintOut.innerHTML = ph.hints.slice(0, n).map(esc).join("<br>"); };
+    showHints(used);
+    [10, 25, 50].forEach((cost, h) => {
+      const hb = document.createElement("button"); hb.type = "button"; hb.className = "btn"; hb.textContent = h < 2 ? `Hint ${h + 1} (−${cost} XP)` : `Reveal (−${cost} XP)`;
+      hb.disabled = used > h || !!s.boss[i];
+      let armed = false;
+      hb.onclick = () => {
+        if (!armed) { armed = true; hb.textContent = `Confirm −${cost} XP`; setTimeout(() => { armed = false; hb.textContent = h < 2 ? `Hint ${h + 1} (−${cost} XP)` : `Reveal (−${cost} XP)`; }, 3000); return; }
+        s.hints[i] = Math.max(s.hints[i] || 0, h + 1); award(-cost, "hint"); showHints(s.hints[i]); hintRow.querySelectorAll("button").forEach((x, j) => x.disabled = j < s.hints[i]);
+      };
+      hintRow.append(hb);
+    });
+    ph.options.forEach((o, j) => {
+      const ob = document.createElement("button"); ob.type = "button"; ob.className = "opt"; ob.textContent = o;
+      if (s.boss[i]) { ob.disabled = true; if (j === ph.correct) ob.classList.add("right"); }
+      ob.onclick = () => {
+        if (j === ph.correct) { ob.classList.add("right"); box.querySelectorAll("button").forEach(x => x.disabled = true); hintRow.querySelectorAll("button").forEach(x => x.disabled = true);
+          if (!s.boss[i]) { s.boss[i] = true; award(50, "boss phase"); setHp(); if (b.phases.every((_, k) => s.boss[k])) toast(`${b.name} defeated`); } }
+        else { ob.classList.add("wrong"); ob.disabled = true; }
+      };
+      box.append(ob);
+    });
+    f.append(st);
+  });
+  setHp();
+  return f;
+}
+
+function quiz(c, s) {
+  const f = frame("Assessment", "Quiz", "+20 XP per right answer, first try");
+  const answers = s.quiz?.answers || {};
+  c.quiz.forEach((q, i) => {
+    const st = document.createElement("div"); st.className = "step";
+    st.innerHTML = `<p><b>${i + 1}. ${esc(q.q)}</b></p><div class="opts"></div><p class="why" aria-live="polite"></p>`;
+    const box = st.querySelector(".opts"), why = st.querySelector(".why");
+    q.options.forEach((o, j) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.textContent = o;
+      const lock = () => { box.querySelectorAll("button").forEach((x, k) => { x.disabled = true; if (k === q.correct) x.classList.add("right"); }); why.textContent = q.why; };
+      if (answers[i] !== undefined) { if (j === answers[i] && j !== q.correct) b.classList.add("wrong"); }
+      b.onclick = () => {
+        answers[i] = j; if (j !== q.correct) b.classList.add("wrong"); lock();
+        s.quiz = {answers, done: Object.keys(answers).length === c.quiz.length, score: c.quiz.filter((qq, k) => answers[k] === qq.correct).length};
+        if (j === q.correct) award(20, "quiz"); else save();
+        score.textContent = `Score: ${s.quiz.score} / ${c.quiz.length}`;
+      };
+      box.append(b);
+      if (answers[i] !== undefined && j === q.options.length - 1) setTimeout(lock);
+    });
+    f.append(st);
+  });
+  const score = document.createElement("p"); score.className = "label"; score.textContent = s.quiz ? `Score: ${s.quiz.score} / ${c.quiz.length}` : "";
+  f.append(score);
+  return f;
+}
+
+function completion(c, s, next) {
+  const f = frame("Completion", s.done ? `${c.code} complete` : "Finish the chapter", s.done ? "" : "+100 XP");
+  const items = [["Watched the episode", s.video], ["Answered the quick check", c.recall.every((_, i) => s.recall[i])], ["Ran the lab", s.lab], ["Played the war game", c.wargame.steps.every((_, i) => s.war[i] && s.war[i].solved)], ["Beat the boss", c.boss.phases.every((_, i) => s.boss[i])], ["Finished the quiz", s.quiz && s.quiz.done]];
+  const needed = PATHS[P.path] === 0 ? [0, 1, 2, 5] : [0, 1, 2, 3, 4, 5];
+  const ok = needed.every(i => items[i][1]);
+  f.insertAdjacentHTML("beforeend", `<div class="check"><ul>${items.map((it, i) => `<li><span class="tick ${it[1] ? "on" : ""}" aria-hidden="true"></span><span>${esc(it[0])}${needed.includes(i) ? "" : " (optional on the quick path)"}</span></li>`).join("")}</ul></div>
+    <div class="row"><button class="btn primary" type="button" ${s.done || !ok ? "disabled" : ""}>${s.done ? "Completed" : ok ? "Complete chapter" : "Complete the items above first"}</button>${next ? `<a class="btn" href="#${next.id}">Next: ${next.code} · ${esc(next.title)}</a>` : `<a class="btn" href="#home">Back to the overview</a>`}</div>`);
+  f.querySelector("button").onclick = () => { if (s.done) return; s.done = true; schedule(c); award(100, `${c.code} complete`); chapter(c); };
+  return f;
+}
+
+function instructor(c) {
+  const n = c.instructor, f = frame("Instructor notes", "Facilitating " + c.code); f.classList.add("instructor");
+  f.insertAdjacentHTML("beforeend", `<div class="grid g2"><div class="tile"><div class="k">Ice breaker</div><p>${esc(n.icebreaker)}</p></div><div class="tile"><div class="k">Group activity</div><p>${esc(n.activity)}</p></div></div>
+    <div class="tile"><div class="k">Common confusions</div>${n.confusions.map(x => `<p style="margin-top:8px"><b>${esc(x[0])}</b> ${esc(x[1])}</p>`).join("")}</div>
+    <div class="tile"><div class="k">Timing</div><p>${esc(n.timing)}</p></div>`);
+  return f;
+}
+
+// ---------- routing ----------
+function route() {
+  const id = location.hash.slice(1);
+  if (BY[id]) chapter(BY[id]); else home();
+  renderRail(); window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+$("#instructor-toggle").onclick = () => { P.instructor = !P.instructor; $("#instructor-toggle").textContent = "Instructor mode: " + (P.instructor ? "on" : "off"); save(); applyPath(); };
+
+// ---------- boot ----------
+const sampleReady = (window.claude?.use ? claude.use("sample") : Promise.resolve(null)).catch(() => null);
+(function boot() {
+  const l = local(); if (l) P = Object.assign(P, l);
+  applyDecayAndStreak(); $("#instructor-toggle").textContent = "Instructor mode: " + (P.instructor ? "on" : "off");
+  meters(); route();
+  if (!window.claude?.use) return;
+  Promise.all([claude.use("db"), claude.use("user")]).then(async ([db, user]) => {
+    if (!db || !user) return;
+    const id = await user.id(); if (!id) return;
+    const doc = db.doc("data/users/" + id + "/academy");
+    try {
+      const snap = await Promise.race([doc.get(), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10000))]);
+      const remote = snap && snap.exists ? snap.data() : null;
+      if (remote && typeof remote === "object" && (remote.xp || 0) >= (P.xp || 0)) { P = Object.assign(P, remote); applyDecayAndStreak(); meters(); route(); }
+      store = {save: p => doc.set(JSON.parse(JSON.stringify(p))).catch(() => {})};
+      $("#saved-where").textContent = "progress saved to your account";
+      store.save(P);
+    } catch (e) {}
+  }).catch(() => {});
+})();
+</script>

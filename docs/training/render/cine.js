@@ -21,14 +21,14 @@
   let frameNo=0;
   const ensure=()=>{if(!fx.isConnected){stage.append(fx);stage.append(hud);}};
 
-  window.QR.after=function(name,t,marks,dur){
+  window.QR.after=function(name,t,marks,dur,data){
     const cine=stage.classList.contains('cine');
     fx.style.display=hud.style.display=cine?'':'none';
     if(!cine)return;ensure();
-    const sc=scenes[name];
-    hud.querySelector('.tf').textContent=sc.tf?('TF '+sc.tf[0]+' · '+sc.tf[1]).toUpperCase():'';
+    const sc=scenes[name],tf=(data&&data.tf)||sc.tf;
+    hud.querySelector('.tf').textContent=tf?('TF '+tf[0]+' · '+tf[1]).toUpperCase():'';
     hud.querySelector('.clock').textContent='T+'+String(Math.floor(t/60)).padStart(2,'0')+':'+(t%60).toFixed(2).padStart(5,'0');
-    hud.style.opacity=sc.tf?Math.min(1,t/0.6):0;
+    hud.style.opacity=tf?Math.min(1,t/0.6):0;
     // Static grain: a texture, not per-frame noise (per-frame noise multiplies the file size by ~10).
     if(!frameNo++){const r=rng(7919),d=grainImg.data;for(let i=0;i<d.length;i+=4){const v=r()*255;d[i]=d[i+1]=d[i+2]=v;d[i+3]=255;}grainCtx.putImageData(grainImg,0,0);}
     const sceneEl=document.getElementById('scene');

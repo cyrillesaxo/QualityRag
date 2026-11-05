@@ -30,6 +30,8 @@ The Garden and Evolution frames show how the research loop is designed. They are
 
 ## QualityRag Academy: twenty problems, one episode each
 
+**Chapters A1–A5 are built:** videos, interactive chapters and labs are in [docs/academy](../academy/README.md).
+
 Each Academy episode opens on a failure that RAG teams describe in their own words. It then demonstrates what QualityRag does about that failure, and states what it does *not* guarantee. The first five are the customer-acquisition episodes.
 
 | Order | Episode (the complaint) | What QualityRag shows | Status |

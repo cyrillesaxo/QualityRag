@@ -1,0 +1,47 @@
+1
+00:00:00,700 --> 00:00:02,514
+It uses the old policy
+
+2
+00:00:02,814 --> 00:00:05,631
+and picks a side when documents disagree.
+
+3
+00:00:06,967 --> 00:00:08,461
+Two classic failures.
+
+4
+00:00:08,761 --> 00:00:13,156
+A runbook from twenty twenty-four still ranks high, because it is relevant.
+
+5
+00:00:13,456 --> 00:00:18,342
+And when a newer memo contradicts the handbook, most pipelines quietly pick one.
+
+6
+00:00:18,642 --> 00:00:22,504
+Neither failure looks like an error. Both sound confident.
+
+7
+00:00:23,867 --> 00:00:29,499
+In a PackSpec, freshness is part of the requirement. Here, nothing older than a year.
+
+8
+00:00:29,799 --> 00:00:36,072
+On its own, the twenty twenty-four runbook is rejected as stale, so the check is inconclusive.
+
+9
+00:00:36,372 --> 00:00:44,629
+Add the current handbook and a memo that contradicts it, and the check refuses. It doesn't pick a side. It shows the contradiction.
+
+10
+00:00:45,967 --> 00:00:49,402
+Age and contradiction are explicit in the result.
+
+11
+00:00:49,702 --> 00:01:00,945
+But QualityRag only knows what your metadata says: when a passage was observed, and whether it contradicts. Spotting supersession in raw text is still on the roadmap.
+
+12
+00:01:01,245 --> 00:01:05,363
+Next, a research preview: tables your parser quietly broke.

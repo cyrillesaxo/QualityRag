@@ -1,0 +1,67 @@
+1
+00:00:00,700 --> 00:00:02,791
+It confidently invents an answer
+
+2
+00:00:03,091 --> 00:00:04,671
+when the evidence is missing.
+
+3
+00:00:06,033 --> 00:00:14,333
+In twenty twenty-four, Air Canada's website chatbot told a grieving passenger he could claim a bereavement fare after he had travelled.
+
+4
+00:00:14,633 --> 00:00:17,748
+The airline's own policy page said the opposite.
+
+5
+00:00:18,048 --> 00:00:26,390
+Air Canada argued it wasn't responsible for what its chatbot said. The tribunal rejected that, and ordered the airline to pay.
+
+6
+00:00:26,690 --> 00:00:28,824
+A fluent answer is not evidence.
+
+7
+00:00:30,167 --> 00:00:35,714
+QualityRag gives your application a third option between right and wrong: withhold.
+
+8
+00:00:36,014 --> 00:00:40,964
+The rule fits in a few lines. Check first, and only call the model on admit.
+
+9
+00:00:41,264 --> 00:00:46,811
+With one passage, the answer is withheld, and the code names exactly what's missing.
+
+10
+00:00:47,111 --> 00:00:51,187
+Supply the evidence, and the same function lets the model answer.
+
+11
+00:00:52,433 --> 00:00:55,079
+Here is a supported answer in the console.
+
+12
+00:00:55,379 --> 00:00:58,025
+Remove the memo that covers the exception.
+
+13
+00:00:58,325 --> 00:01:02,614
+Not enough evidence. The answer is withheld, and the gap is named.
+
+14
+00:01:03,967 --> 00:01:05,397
+The pattern is simple.
+
+15
+00:01:05,697 --> 00:01:09,665
+Check first, answer only on admit, and show the gap otherwise.
+
+16
+00:01:09,965 --> 00:01:17,795
+QualityRag won't search again by itself, and it can't stop a model you call without asking it. That part is your code.
+
+17
+00:01:18,095 --> 00:01:21,595
+Next: three sources that agree, but aren't independent.

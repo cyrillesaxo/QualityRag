@@ -1,0 +1,329 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a4-stale-and-contradicting",
+  "title": "QualityRag Academy · A4 · Old rules and contradictions",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "It uses the old policy",
+        "and picks a side when documents disagree."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"It uses the old policy…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…and picks a side when documents disagree.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A4",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Two classic failures.",
+        "A runbook from twenty twenty-four still ranks high, because it is relevant.",
+        "And when a newer memo contradicts the handbook, most pipelines quietly pick one.",
+        "Neither failure looks like an error. Both sound confident."
+      ],
+      "data": {
+        "tf": [
+          "A4",
+          "The failure"
+        ],
+        "kicker": "Requirement",
+        "title": "restart-procedure · nothing older than a year",
+        "title_size": 46,
+        "cards": [
+          {
+            "id": "old",
+            "meta": "runbook-restart · DOCX · observed 2024-03-01",
+            "text": "Restart the gateway once upstream stabilizes.",
+            "x": 120,
+            "y": 300,
+            "w": 640,
+            "at": [
+              1,
+              0.0
+            ]
+          },
+          {
+            "id": "cur",
+            "meta": "ops-7.3 · handbook · observed 2026-09-01",
+            "text": "On-call may initiate automated recovery.",
+            "x": 120,
+            "y": 470,
+            "w": 640,
+            "at": [
+              2,
+              0.0
+            ]
+          },
+          {
+            "id": "memo",
+            "meta": "memo-supersedes · email · 2026",
+            "text": "The EU approval rule supersedes the generic recovery flow.",
+            "x": 120,
+            "y": 640,
+            "w": 640,
+            "at": [
+              2,
+              0.6
+            ]
+          },
+          {
+            "id": "req",
+            "meta": "REQUIREMENT · max age 365 days",
+            "text": "restart-procedure",
+            "x": 1240,
+            "y": 470,
+            "w": 560,
+            "size": 30,
+            "at": 0
+          }
+        ],
+        "wires": [
+          {
+            "from": "old",
+            "to": "req",
+            "at": [
+              1,
+              0.6
+            ]
+          },
+          {
+            "from": "cur",
+            "to": "req",
+            "at": [
+              2,
+              0.4
+            ]
+          },
+          {
+            "from": "memo",
+            "to": "req",
+            "at": [
+              2,
+              1.0
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              1,
+              2.4
+            ],
+            "card": "old",
+            "state": "warn",
+            "tag": "observed 2024 · 979 days old"
+          },
+          {
+            "at": [
+              2,
+              1.8
+            ],
+            "card": "cur",
+            "state": "ok",
+            "tag": "supports"
+          },
+          {
+            "at": [
+              2,
+              2.6
+            ],
+            "card": "memo",
+            "state": "bad",
+            "tag": "contradicts"
+          },
+          {
+            "at": [
+              3,
+              0.4
+            ],
+            "card": "req",
+            "state": "bad",
+            "tag": "which one wins?"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "In a PackSpec, freshness is part of the requirement. Here, nothing older than a year.",
+        "On its own, the twenty twenty-four runbook is rejected as stale, so the check is inconclusive.",
+        "Add the current handbook and a memo that contradicts it, and the check refuses. It doesn't pick a side. It shows the contradiction."
+      ],
+      "data": {
+        "tf": [
+          "A4",
+          "Lab"
+        ],
+        "kicker": "Lab A4 · real code, real output",
+        "title": "Freshness and contradiction are part of the contract",
+        "title_size": 48,
+        "file": "terminal · python sdk",
+        "blocks": [
+          {
+            "cmd": "sed -n 4,5p docs/academy/labs/a4_stale_and_contradicted.py",
+            "out": "pack = {\"id\": \"restart-policy\", \"version\": \"1.0\",\n        \"requirements\": [{\"id\": \"restart-procedure\", \"min_independent_sources\": 1, \"max_age_seconds\": 365 * 24 * 3600}]}",
+            "at": [
+              0,
+              0.6
+            ],
+            "reveal": 0.8
+          },
+          {
+            "cmd": "python docs/academy/labs/a4_stale_and_contradicted.py",
+            "out": "== Only the 2024 runbook\nverdict: INCONCLUSIVE\n  restart-procedure      INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE, STALE_EVIDENCE\n\n== Current handbook vs a contradicting memo\nverdict: REFUSE\n  restart-procedure      REFUSE        sources=1  CONTRADICTION, STALE_EVIDENCE",
+            "at": [
+              1,
+              0.0
+            ],
+            "out_at": [
+              1,
+              1.6
+            ],
+            "reveal": 5.5
+          }
+        ],
+        "size": 20,
+        "notes": [
+          {
+            "text": "STALE_EVIDENCE → INCONCLUSIVE",
+            "state": "warn",
+            "at": [
+              1,
+              3.5
+            ]
+          },
+          {
+            "text": "CONTRADICTION → REFUSE",
+            "state": "bad",
+            "at": [
+              2,
+              4.0
+            ],
+            "x": 460
+          }
+        ]
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "Age and contradiction are explicit in the result.",
+        "But QualityRag only knows what your metadata says: when a passage was observed, and whether it contradicts. Spotting supersession in raw text is still on the roadmap.",
+        "Next, a research preview: tables your parser quietly broke."
+      ],
+      "data": {
+        "tf": [
+          "A4",
+          "The boundary"
+        ],
+        "kicker": "Episode A4 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Rejects evidence older than max_age_seconds",
+            "at": [
+              0,
+              0.0
+            ]
+          },
+          {
+            "text": "Refuses when evidence is marked as contradicting",
+            "at": [
+              0,
+              1.3
+            ]
+          },
+          {
+            "text": "Shows both reasons, side by side",
+            "at": [
+              0,
+              2.6
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Work out which document supersedes which",
+            "at": [
+              1,
+              5.0
+            ]
+          },
+          {
+            "text": "Detect contradictions in free text",
+            "at": [
+              1,
+              6.6
+            ]
+          },
+          {
+            "text": "Know a date you did not supply",
+            "at": [
+              1,
+              2.4
+            ]
+          }
+        ],
+        "next": {
+          "text": "Next · A5 · research preview: broken tables",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}
