@@ -226,9 +226,12 @@ python tools/semantic_store/rct_garden_lifecycle_demo.py \
 ```
 
 The demonstration uses *synthetic* data, persists a research experiment,
-simulates a new source revision, and appends the reopening event. Its example
-URI does not authenticate a document, and the separately written receipt
-file is not automatically uploaded to that URI.
+simulates a new source revision, **reruns the investigation**, and stores a
+second claim with a `QUALIFIES` link to the earlier claim. The original
+claim retains an append-only reopening event. The research assessment
+remains `INCONCLUSIVE` for both versions. Its example URI does not
+authenticate a document, and the separately written receipt file is not
+automatically uploaded to that URI.
 
 **Remaining limitation:** Existing research-ledger write functions commit
 individual records; this adapter is not yet an atomic multi-write
@@ -236,3 +239,22 @@ transaction and can leave a partial local record on process interruption.
 Only the canonical ledger backend should own transactional writes in a
 production integration. The lifecycle is manually invoked and not
 a continuously running scheduler.
+
+### Replay semantics
+
+`replay_after_revision` accepts actual source snapshots and new observation
+references; it does not infer them from a screenshot or a GitHub commit. It
+checks source identities against the original experiment, reruns bounded
+training-only grammar induction, performs finite held-out evaluation on the
+changed source, appends an invalidation event, and opens a **new** source-bound
+experimental claim. `QUALIFIES` links the new claim to its historical
+predecessor without asserting that either is a valid production champion.
+
+Ambiguous or unresolvable re-induction leaves the old claim reopened and
+returns a discriminating-probe request; it cannot fabricate research
+evidence or promote an unverified operator.
+
+Because research-ledger writes currently commit individually, the replay
+operation is **not transactionally atomic** across every ledger record. A
+process crash can leave incomplete local records; this must be resolved
+through the canonical ledger transaction API before deployment.
