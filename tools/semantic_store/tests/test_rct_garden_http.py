@@ -123,6 +123,22 @@ class GardenHTTPTests(unittest.TestCase):
                          if x["id"] == result["ledger_claim_id"])
         self.assertEqual(new_claim["assessment"], "INCONCLUSIVE")
 
+    def test_one_click_engine_self_test_is_real_but_not_research_evidence(self):
+        code, denied = self.call("POST", "/garden/self-test", {},
+                                 token="incorrect")
+        self.assertEqual(code, 401)
+        code, result = self.call("POST", "/garden/self-test", {})
+        self.assertEqual(code, 200, result)
+        self.assertEqual(result["schema"], "rct.garden-engine-self-test/v0.1")
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["paired_candidates"], 6)
+        self.assertTrue(result["synthetic_test_only"])
+        self.assertFalse(result["ledger_persisted"])
+        self.assertFalse(result["promotion_authorized"])
+        self.assertEqual(self.call("GET", "/garden/projection")[1]["summary"]["branches"], 1)
+        code, error = self.call("POST", "/garden/self-test", {"untrusted": True})
+        self.assertEqual(code, 400)
+
     def test_invalid_budget_and_missing_auth_fail(self):
         code, _ = self.call("POST", "/garden/investigate", {"trials": 2},
                             token="wrong")
