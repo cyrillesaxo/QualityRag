@@ -1,5 +1,6 @@
 """Local Garden console ⇄ actual controller HTTP integration tests."""
 import json
+import hashlib
 import sqlite3
 import sys
 import tempfile
@@ -116,6 +117,18 @@ class GardenHTTPTests(unittest.TestCase):
         evidence_path = self.receipts / (result["receipt_fingerprint"] + ".json")
         self.assertEqual(json.loads(evidence_path.read_text())["fingerprint"],
                          result["receipt_fingerprint"])
+        self.assertEqual(hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
+                         result["receipt_file_sha256"])
+        with sqlite3.connect(self.db_path) as proof:
+            row = proof.execute(
+                "SELECT content_sha256,metadata_json FROM research_evidence "
+                "WHERE evidence_id=?",
+                ("garden.cycle-evidence." +
+                 result["ledger_claim_id"].split(".")[-1],)).fetchone()
+            self.assertIsNotNone(row)
+            self.assertEqual(row[0], result["receipt_file_sha256"])
+            self.assertEqual(json.loads(row[1])["experiment_fingerprint"],
+                             result["receipt_fingerprint"])
         # A persisted experiment is still INCONCLUSIVE, never admitted.
         projection = self.call("GET", "/garden/projection")[1]
         self.assertEqual(projection["summary"]["branches"], 2)
