@@ -258,3 +258,52 @@ Because research-ledger writes currently commit individually, the replay
 operation is **not transactionally atomic** across every ledger record. A
 process crash can leave incomplete local records; this must be resolved
 through the canonical ledger transaction API before deployment.
+
+## Bounded research controller (experimental v0.3)
+
+`rct_garden_controller.py` now selects the **next research action**
+synchronously. For a uniquely inferred training hypothesis it invokes the
+same six-way held-out experiment. For ambiguous explanations, it proposes
+an unresolved, bounded discriminating question and accepts only a narrowly
+scoped response through a separate caller-provided oracle interface.
+Without an oracle, it returns `NEEDS_ORACLE`. When the probe limit is
+exhausted, it returns `BUDGET_EXHAUSTED` instead of guessing.
+
+The oracle receives only the proposed training subject/destination,
+**never** gold test answers, inferred operator definitions, or held-out
+source objects. A returned label is recorded with a reference and oracle
+identifier, but its independence and source authenticity are explicitly
+`UNVERIFIED`. A label based on the same algorithm under evaluation is
+not an independent scientific witness.
+
+### Run a synthetic controller demonstration
+
+```bash
+python tools/semantic_store/rct_garden_controller_demo.py \
+  --db /tmp/garden-controller.sqlite \
+  --receipt /tmp/garden-controller.json \
+  --uri https://example.org/replace-with-your-actual-receipt
+```
+
+This uses a small synthetic rule as a stand-in for an external probe source.
+It demonstrates control flow, six-way measurement, and append-only research
+recording, **not** an authenticated external oracle or new AI capability.
+
+The controller does not schedule ongoing work, invoke an LLM, generate
+unrestricted new grammatical operator families, evolve decoder source code,
+or promote a production champion. It is a deterministic bounded
+investigation controller whose scientific claims are restricted to finite
+typed-graph structural tests.
+
+### Next missing integrations
+
+- Connect the actual Semantic Gardener UI/event service to the existing
+  research ledger without exposing arbitrary policy-write operations.
+- Replace synthetic probe callbacks with independently verifiable
+  authenticated witnesses, D15/FFI challenges, and canonical k/b/c/τ gates.
+- Integrate original native FF-RCT encoding and activation with realistic
+  end-to-end compute/storage/verification costs.
+- Give the research loop a trigger/scheduler plus frozen run manifests and
+  durable retries, with bounded resource accounting and manual promotion.
+- Extend operator discovery beyond variable-length path composition and
+  measure meaningful capability-frontier gains on unseen task families.
