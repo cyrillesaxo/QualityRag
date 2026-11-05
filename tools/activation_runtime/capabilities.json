@@ -4,61 +4,67 @@
     {
       "story_id": "US-001",
       "title": "Source and capability inventory",
-      "status": "DONE",
-      "engineering_status": "COMPLETE_SOURCE_INVENTORY_VERIFIED_CI",
+      "status": "IN_REVIEW",
+      "engineering_status": "REVERIFYING_UPDATED_INVENTORY_GATE",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
-      "implementation_commit": "a9255368f0f5cb5fd59fb4376f6975b2af75a3ff",
+      "implementation_commit": null,
       "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
       "criteria": [
         {
           "number": 1,
           "text": "Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations.",
-          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
         },
         {
           "number": 2,
           "text": "PR #69 remains IN_REVIEW until merged.",
-          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
         },
         {
           "number": 3,
           "text": "CI rejects a DONE claim with no link to passing test receipt.",
-          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
         },
         {
           "number": 4,
           "text": "Report explicitly lists unavailable video decoder and independent admission.",
-          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
         }
       ],
       "modules": [
         {
           "path": "tools/activation_runtime/audit.py",
-          "sha256": "a0ec78ac40eeba7184f5d702c8a1b875fcbc75a346799ebd7382805b97b09e76"
+          "sha256": "7b8559f217ff162af8445d755ff5b3689659675d434d8150b29490d538918a81"
         },
         {
           "path": "tools/activation_runtime/inventory_completion.py",
-          "sha256": "8cd1389185e4562c1ef2006dd00bb5c13f7ce9e05792d39a20ecbe361cd0f4fe"
+          "sha256": "9a3a8339ddb0899c49061a06623c90d336c93a2f6f7e2ae6958bd60059134990"
         },
         {
           "path": "docs/INVENTORY-ACCEPTANCE.md",
-          "sha256": "db1f5a51d6b71653eb3939ad4cc06b2b92d8044763e432af7baa17dec5a861d6"
+          "sha256": "b6f7552a9cf6efe7bd29c5b5da4059faa00885fa16409c2bf434335c8803eced"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py",
-      "remaining": "No remaining US-001 software criterion. Independent domain admission is not established or claimed.",
+      "remaining": "Renewing source/CI evidence for the updated inventory auditor; prior accepted revision is retained in history.",
       "completion_envelope": null,
       "independent_validation": "DOMAIN_VALIDATION_NOT_ESTABLISHED_OR_CLAIMED",
-      "completion_evidence": {
-        "kind": "GITHUB_VERIFIED_SOURCE_INVENTORY/v1",
-        "repository": "cyrillesaxo/QualityRag",
-        "implementation_commit": "a9255368f0f5cb5fd59fb4376f6975b2af75a3ff",
-        "module_inventory_sha256": "5d6ea0ef6deb711e9139f6a759fce6092493e3a986d4aff8f7762d821f294372",
-        "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
-        "workflow_run_id": 41973124257,
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/41973124257"
-      }
+      "completion_evidence": null,
+      "acceptance_history": [
+        {
+          "status": "DONE_AT_PRIOR_IMPLEMENTATION",
+          "completion_evidence": {
+            "kind": "GITHUB_VERIFIED_SOURCE_INVENTORY/v1",
+            "repository": "cyrillesaxo/QualityRag",
+            "implementation_commit": "a9255368f0f5cb5fd59fb4376f6975b2af75a3ff",
+            "module_inventory_sha256": "5d6ea0ef6deb711e9139f6a759fce6092493e3a986d4aff8f7762d821f294372",
+            "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
+            "workflow_run_id": 41973124257,
+            "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/41973124257"
+          }
+        }
+      ]
     },
     {
       "story_id": "US-002",
@@ -94,7 +100,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/contracts.py",
-          "sha256": "221c97486615d1918e987d69e0e0431fd06415de3de9dd403bae9eaab6a0ace9"
+          "sha256": "0120d947b7a6916e72ed63785fe7a79531225e6fd02870acbf9ea49952d038d2"
         },
         {
           "path": "tools/activation_runtime/schemas/reviewed-activation.json",
@@ -111,10 +117,90 @@
         {
           "path": "tools/activation_runtime/fixtures/observation-graph.json",
           "sha256": "4765e39f4ce84828a5f6d2bc8e4ecfc24b5998974f157c60e857f5e061bae04f"
+        },
+        {
+          "path": "docs/SCHEMA-CATALOG-ACCEPTANCE.md",
+          "sha256": "871844c2f874c64741978cceb42c465c4d0b122577bfafe1cfc9dc3e78bf56ac"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/grammar.json",
+          "sha256": "f1a5720a60f7c68b8e1a94646c914a2a81a510328f5ac6300bbaae84b7640d30"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/operator-ast.json",
+          "sha256": "e9233313d402624e78bc781304e2753bd48e08748ac1452d503caa4f5cedd214"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/packspec.json",
+          "sha256": "0113f359471771d945495f43a0cc56e83489ab1dbe1b21bc3abeafbccd152a4c"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/payload.json",
+          "sha256": "63766a9f2cf21685dde6175cda10821a7d1364739c3fd0a53ca29c44590e0334"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/receipt.json",
+          "sha256": "7e7d44e6947b45b1659d8b995708f915475c10b845298438134b07e4d638e028"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/source.json",
+          "sha256": "ac56ed1ff0fbb53ba5f180d074b5cfd580795a2d517ba52260e1b114d19775e3"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/transform.json",
+          "sha256": "517305fd50ba3693c04668c0b13406945686fb126cdf563e079d5fbfb85b56b9"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/verdict.json",
+          "sha256": "92e38f739830ff356a55dacee87f7cf726b9b8639af60581c6df703df54b5cf5"
+        },
+        {
+          "path": "tools/activation_runtime/inventory_completion.py",
+          "sha256": "9a3a8339ddb0899c49061a06623c90d336c93a2f6f7e2ae6958bd60059134990"
+        },
+        {
+          "path": "tools/activation_runtime/schema_completion.py",
+          "sha256": "17a07ae55674cd6ae7f550a5f317163507191e7a96913fe387a320e47ac49a2f"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/grammar.json",
+          "sha256": "1f9fbb78a55e002f964d2e19b545e2149393c8fa79cd55cda4c294ccee02fa0d"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/operator-ast.json",
+          "sha256": "21065838b34d57e0dede6458b484e1a39eb9d9d62a0b14b2217e5e3c3443eb6d"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/packspec.json",
+          "sha256": "797956bf76a78780ab848123884b1da5e428a93618749c49c500cc9873bc676d"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/payload.json",
+          "sha256": "cbcc768deccb56f45a542ee22ea1deddef9a26e820a66b017548730169abebaa"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/receipt.json",
+          "sha256": "00c4231a6bd41e5bde27c6f100fcc7718b43a97bb04e81314e009fd7525b5a6b"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/source.json",
+          "sha256": "7592ce3ba4192dd47bc91666c13a8b504fe32cc10ffdf25cbca1f5e58915558c"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/transform.json",
+          "sha256": "de73533d2ee3e73b43eeed9aee3cc5e14761f9c95f1d7f3f8a9a0b7ada8a9ce5"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/verdict.json",
+          "sha256": "6b9433d4d1a3334c8d018aa3ed542cf0f54d6d0eb895d767c18c805de6811f0e"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_schema_catalog.py",
+          "sha256": "ef8f453ff8391210856e6878fa87012cfef8f905a22bb94fc1ad4568386f8bb9"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_contracts.py",
-      "remaining": "Merged review; no schema shape check is independent semantic validation.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_contracts.py; tools/activation_runtime/tests/test_schema_catalog.py; python -m tools.activation_runtime.cli catalog",
+      "remaining": "Awaiting observed source/CI catalog acceptance. Shape validation does not establish domain truth.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },
@@ -1469,7 +1555,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "66aaafc9b1e2544b9ab7e43ab3a83c788471d6cf9dc5eab7911e715e1f005313"
+          "sha256": "0fbb65c32cbad05d4f35bbd52dbcb85cc0f673ce1cdf424b9494a0097ef899f2"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1985,7 +2071,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "66aaafc9b1e2544b9ab7e43ab3a83c788471d6cf9dc5eab7911e715e1f005313"
+          "sha256": "0fbb65c32cbad05d4f35bbd52dbcb85cc0f673ce1cdf424b9494a0097ef899f2"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -2167,7 +2253,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "66aaafc9b1e2544b9ab7e43ab3a83c788471d6cf9dc5eab7911e715e1f005313"
+          "sha256": "0fbb65c32cbad05d4f35bbd52dbcb85cc0f673ce1cdf424b9494a0097ef899f2"
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
@@ -2287,11 +2373,11 @@
       "modules": [
         {
           "path": "tools/activation_runtime/audit.py",
-          "sha256": "a0ec78ac40eeba7184f5d702c8a1b875fcbc75a346799ebd7382805b97b09e76"
+          "sha256": "7b8559f217ff162af8445d755ff5b3689659675d434d8150b29490d538918a81"
         },
         {
           "path": "tools/activation_runtime/delivery.py",
-          "sha256": "7966f1572defe35e5f99e33edfe856b519ac4e8d69ae11a47319398e2d3830a1"
+          "sha256": "6cadb233623498dd32bbb7263e9ce3b088ab6d7d9e93a9057f3205821ecb28ab"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",

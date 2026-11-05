@@ -7,14 +7,13 @@
 > **Research lineage:** Cyrille Eloundou · [apx.guide](https://apx.guide/)  
 > **Repository:** [cyrillesaxo/QualityRag](https://github.com/cyrillesaxo/QualityRag)
 
-## Current acceptance snapshot
+## Current acceptance verification
 
-**1 DONE · 36 IN_REVIEW · 14 BLOCKED · 50 open.** US-001 source-inventory
-software acceptance is bound to immutable implementation commit
-`a9255368f0f5cb5fd59fb4376f6975b2af75a3ff` and observed passing
-[CI run 41973124257](https://github.com/cyrillesaxo/QualityRag/actions/runs/41973124257).
-Its closure does not assert independent domain validation or satisfy another
-story's review/merge requirement. Earlier delivery-section counts are historical.
+US-002 catalog acceptance is being verified. The shared auditor changes require
+renewing US-001's evidence against the updated implementation; its earlier accepted
+source/CI point remains in history. Both current entries remain IN_REVIEW until
+new passing source/CI evidence is bound and checked. No scientific acceptance is
+inferred from this software verification.
 
 ## 0. The product and the falsifiable thesis
 
@@ -561,7 +560,7 @@ listed below. It does not mean all software or research acceptance is satisfied.
 
 | Story | Status | Remaining acceptance |
 |---|---|---|
-| US-001 | DONE | Verified source-inventory software acceptance; no domain validation is claimed. |
+| US-001 | IN_REVIEW | Renewing acceptance evidence for the updated shared auditor. |
 | US-002 | IN_REVIEW | Merged review; no schema shape check is independent semantic validation. |
 | US-003 | IN_REVIEW | Independent replay on the pinned reference environment. |
 | US-004 | IN_REVIEW | Independent novelty assessment; no priority or superiority claim is made. |
@@ -920,3 +919,19 @@ was invented. The completion record points to actual push run 41973124257 at
 commit a9255368f0f5cb5fd59fb4376f6975b2af75a3ff, whose 326 focused tests and all
 23 workflows passed. The following inventory commit must pass CI again, executing
 the live GitHub source/CI verifier with read-only host credentials.
+
+
+## 28. Versioned catalog completion verification
+
+US-002's stated software criteria now have a criterion-specific acceptance check.
+All ten catalog schemas and examples are pinned, bounded local schema loading
+rejects external references/base changes, public validation rejects duplicate
+PackSpec/observation IDs, and actual canonical round-trip/rejection witnesses are
+reported by the catalog CLI. CI executes and uploads that report.
+
+Acceptance requires its exact report hash, all catalog modules, an actual passing
+push run with the catalog step and unskipped test/audit steps, and matching
+immutable source bytes. Because this extends the shared auditor, US-001's evidence
+is being renewed alongside US-002 rather than silently carried across changed
+code. Other research stories keep their explicit independent-review gates. See
+`docs/SCHEMA-CATALOG-ACCEPTANCE.md`; no criterion text or fingerprint is changed.

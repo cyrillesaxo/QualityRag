@@ -7,7 +7,7 @@ an independent semantic-review signature. Earlier implementation metadata added
 those universal prerequisites and prevented objective inventory work from closing.
 
 The corrected rule is narrow: only US-001 can use
-GITHUB_VERIFIED_SOURCE_INVENTORY/v1 completion evidence. Every other DONE entry
+GITHUB_VERIFIED_SOURCE_INVENTORY/v1 completion evidence. US-002 has a separate versioned-catalog acceptance path. Every remaining DONE entry
 retains the existing independent signed completion check. No research criterion,
 source license, physical-device measurement, explicit merge prerequisite, domain
 admission or production approval is waived by completing the inventory.

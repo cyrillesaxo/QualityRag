@@ -55,6 +55,7 @@ jobs:
           QUALITYRAG_OBSERVATION_SCREENSHOT: /tmp/observation-workspace-mobile.png
       - run: python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py' -v
       - run: python -m unittest discover -s tools/research_ledger/tests -p 'test_*.py' -v
+      - run: python -m tools.activation_runtime.cli catalog > /tmp/schema-catalog.json
       - run: python -m tools.activation_runtime.audit
       - run: python -m tools.activation_runtime.cli observations --source tools/activation_runtime/fixtures/observation-source.txt --request tools/activation_runtime/fixtures/observation-request.json > /tmp/source-observation.json
       - run: python -m tools.activation_runtime.delivery --out /tmp/story-delivery
@@ -69,6 +70,7 @@ jobs:
             /tmp/reviewed-workflows
             /tmp/story-delivery
             /tmp/source-observation.json
+            /tmp/schema-catalog.json
             /tmp/review-workspace-mobile.png
             /tmp/observation-workspace-mobile.png
             /tmp/activation-research/receipt.json

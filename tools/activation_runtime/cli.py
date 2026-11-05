@@ -19,6 +19,7 @@ def read(path,limit=524288):
 def main(argv=None):
     parser=argparse.ArgumentParser()
     sub=parser.add_subparsers(dest="command",required=True)
+    sub.add_parser("catalog")
     p=sub.add_parser("validate");p.add_argument("schema");p.add_argument("file")
     p=sub.add_parser("evaluate");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("activate-plan");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True);p.add_argument("--source")
@@ -31,7 +32,10 @@ def main(argv=None):
     p=sub.add_parser("decode-scene");p.add_argument("--payload",required=True);p.add_argument("--model",required=True);p.add_argument("--out",required=True)
     p=sub.add_parser("serve");p.add_argument("--root",required=True);p.add_argument("--keys",required=True);p.add_argument("--port",type=int,default=8769)
     args=parser.parse_args(argv)
-    if args.command=="validate":
+    if args.command=="catalog":
+        from .contracts import catalog_report
+        result=catalog_report()
+    elif args.command=="validate":
         validate(args.schema,read(args.file));result={"valid":True,"semantic_admission":"INCONCLUSIVE"}
     elif args.command in {"evaluate","activate-plan","trace","fallback"}:
         sdk=str(Path(__file__).resolve().parents[2]/"sdk"/"python")

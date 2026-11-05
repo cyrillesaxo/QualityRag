@@ -20,7 +20,7 @@ def report(root=None,*,reviewer_keys=None,as_of=None):
             "source_inventory_sha256":sha256(path.read_bytes()).hexdigest(),"requirements_sha256":sha256((root/"FR.MD").read_bytes()).hexdigest(),
             "counts":checked["counts"],"criterion_count":sum(len(s["criteria"]) for s in stories),"stories":stories,
             "integrated_workflow_stories":[s["story_id"] for s in stories if s["software_status"]=="INTEGRATED_REVIEWED_FINITE_WORKFLOW"],
-            "acceptance_authority":"US-001 uses live GitHub source/CI acceptance; all other DONE entries retain independent signed completion. This report grants no approval."}
+            "acceptance_authority":"US-001/002 use their criterion-specific live GitHub source/CI acceptance; all other DONE entries retain independent signed completion. This report grants no approval."}
 
 
 def markdown(value):

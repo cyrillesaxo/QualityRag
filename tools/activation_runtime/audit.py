@@ -1,4 +1,4 @@
-"""Coverage audit: objective inventory evidence, independent signed research acceptance."""
+"""Coverage audit: objective inventory/catalog evidence, independent signed research acceptance."""
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -49,6 +49,13 @@ def audit(root=None,*,reviewer_keys=None,as_of=None):
             from .inventory_completion import KIND,verify as verify_inventory
             if item["story_id"]=="US-001" and isinstance(item.get("completion_evidence"),dict) and item["completion_evidence"].get("kind")==KIND:
                 administrative.append(verify_inventory(item,inventory,root))
+            elif item["story_id"]=="US-002":
+                from .schema_completion import KIND as SCHEMA_KIND,verify as verify_catalog
+                if isinstance(item.get("completion_evidence"),dict) and item["completion_evidence"].get("kind")==SCHEMA_KIND:
+                    administrative.append(verify_catalog(item,inventory,root))
+                else:
+                    if not reviewer_keys or not as_of or not item.get("completion_envelope"):raise ValueError("DONE requires independently signed completion evidence")
+                    _completion(item,reviewer_keys,as_of)
             else:
                 if not reviewer_keys or not as_of or not item.get("completion_envelope"):raise ValueError("DONE requires independently signed completion evidence")
                 _completion(item,reviewer_keys,as_of)
@@ -59,7 +66,7 @@ def audit(root=None,*,reviewer_keys=None,as_of=None):
                 raise ValueError("Missing or altered implementation evidence")
     return {"stories":51,"done":sum(x["status"]=="DONE" for x in stories),
             "counts":{s:sum(x["status"]==s for x in stories) for s in ("IN_REVIEW","PARTIAL","NOT_STARTED","BLOCKED","DONE")},
-            "independent_validation":"SIGNED_RESEARCH_ACCEPTANCE_REQUIRED_INVENTORY_USES_LIVE_SOURCE_AND_CI",
+            "independent_validation":"SIGNED_RESEARCH_ACCEPTANCE_REQUIRED_OBJECTIVE_INVENTORY_AND_CATALOG",
             "objective_software_acceptance":administrative}
 
 

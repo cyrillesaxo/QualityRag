@@ -177,3 +177,11 @@ commit-bound GitHub source/CI evidence. This does not accept research claims or
 waive another story's signed review or merge prerequisite. Private-repository
 replay uses a host `GITHUB_TOKEN` with read-only access. See
 [inventory acceptance](../../docs/INVENTORY-ACCEPTANCE.md).
+
+
+## Versioned schema catalog
+
+`python -m tools.activation_runtime.cli catalog` checks all ten schema/example
+pairs, canonical round-trip and required rejection witnesses. It does not grant
+semantic admission. US-002's source/CI completion check and its evidence renewal
+procedure are described in [catalog acceptance](../../docs/SCHEMA-CATALOG-ACCEPTANCE.md).
