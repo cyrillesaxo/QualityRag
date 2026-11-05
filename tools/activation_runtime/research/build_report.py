@@ -14,14 +14,22 @@ def build(receipt,output):
     for row in data["ablation"]["measurements"]:
         groups[row["arm"]].append(row.get("payload_bytes",row.get("encoded_bytes"))+row.get("model_bytes",0))
     means={arm:mean(values) for arm,values in groups.items()}
+    negative=means["paired"]>=means["av1"]
+    comparison=("The paired palette arm is no smaller than the lossless AV1 baseline. This negative result is retained."
+                if negative else "The paired palette arm has fewer measured bytes in these authored clips. This is not independently validated compression improvement.")
+    reference_rows=[r for r in data["ablation"]["measurements"] if r["arm"] in {"fixed","decoder-only","paired"}]
+    frame_claim=("All evaluated reference-arm normalized frames match the source in these clips."
+                 if reference_rows and all(r.get("exact_frame_match") is True for r in reference_rows)
+                 else "Exact frame preservation is incomplete or failed; these results do not qualify as quality equivalence.")
     import matplotlib
     matplotlib.use("Agg")
+    matplotlib.rcParams["svg.hashsalt"]="qualityrag-activation-research-v1"
     import matplotlib.pyplot as plt
     fig,axis=plt.subplots(figsize=(7,3.5))
     names=["av1","fixed","decoder-only","paired"]
     bars=axis.bar(names,[means[n] for n in names],color=["#155e46","#72867d","#72867d","#72867d"])
     axis.set_ylabel("Bytes per clip including one model copy")
-    axis.set_title("Authored test clips: reference codec is larger than AV1",fontsize=11,loc="left",pad=18)
+    axis.set_title("Authored test clips: measured bytes, including model",fontsize=11,loc="left",pad=18)
     axis.spines[["top","right"]].set_visible(False)
     for bar in bars:axis.text(bar.get_x()+bar.get_width()/2,bar.get_height()+100,str(round(bar.get_height())),ha="center",fontsize=9)
     axis.set_ylim(0,max(means.values())*1.2)
@@ -30,7 +38,6 @@ def build(receipt,output):
     fig.savefig(root/"codec-bytes.png",dpi=180)
     plt.close(fig)
     rows="\n".join("| "+arm+" | "+str(round(means[arm]))+" |" for arm in names)
-    negative=means["paired"]>=means["av1"]
     text="""# QualityRag Activation Research
 ## Executable reference system and open validation
 Cyrille Eloundou - APX / QualityRag - 2026-11-04 - https://apx.guide/
@@ -65,6 +72,15 @@ each with min_independent_sources=1. These genuine evidence-presence clauses
 are not executable video-fidelity guarantees. The review label is deliberately
 identified as unauthenticated; missing independent evidence keeps admission
 INCONCLUSIVE. Distinct policy-source and transformed-data hashes are retained.
+
+### Versioned experimental proposals
+The protocol template is `activation-research-v1` (research/protocol.json).
+Its H1-H6 variables and null hypotheses are explicit; it is not a registered
+experiment until a real corpus is bound and the holdout is independently opened.
+The typed search proposal uses `rct.typed-operator-grammar/v1.4`; finite agent
+proposals use `qualityrag.agent-proposal/v1` and explicit patch lists. The video
+reference uses `qualityrag.scene-palette/v1` and `qualityrag.scene-video/v1`.
+These versioned proposals do not assert canonical FF-RCT parity or novelty.
 
 ### Methods
 The source-to-output path stores exact original bytes, checks a signed release
@@ -102,9 +118,8 @@ includes one complete model copy for each clip, a declared cold-install view.
 |---|---|
 """+rows+"""
 
-All evaluated reference-arm normalized frames match the source in these clips.
-The reference and paired palette arms are larger than the lossless AV1 baseline.
-This negative result is retained. Decoder-only retains the fixed encoder/model and selects between scalar and strided-XOR
+"""+frame_claim+"\n"+comparison+"""
+Decoder-only retains the fixed encoder/model and selects between scalar and strided-XOR
 decoders on training data only. No held-out data is sent to the proposing agents. Paired palette selection
 uses training clips only; the receipt counts its actual search time.
 No confidence interval or generalization claim is computed from these correlated
@@ -212,8 +227,12 @@ recorded in research/prior-art.md.
         canvas.setFont("DocSans",8);canvas.setFillColor(colors.HexColor("#536360"))
         canvas.drawString(42,28,"QualityRag research reference | Independent validation pending")
         canvas.drawRightString(570,28,str(doc.page))
+    from reportlab.pdfgen.canvas import Canvas
+    def stable_canvas(*args,**kwargs):
+        kwargs["invariant"]=1
+        return Canvas(*args,**kwargs)
     SimpleDocTemplate(str(root/"report.pdf"),pagesize=(612,792),rightMargin=42,leftMargin=42,topMargin=42,bottomMargin=45,
-                      title="QualityRag Activation Research",author="Cyrille Eloundou - APX / QualityRag").build(flow,onFirstPage=footer,onLaterPages=footer)
+                      title="QualityRag Activation Research",author="Cyrille Eloundou - APX / QualityRag").build(flow,onFirstPage=footer,onLaterPages=footer,canvasmaker=stable_canvas)
     return root/"report.pdf"
 
 

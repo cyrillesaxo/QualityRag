@@ -303,10 +303,14 @@
         {
           "path": "tools/activation_runtime/research/prior-art.md",
           "sha256": "c6d60674d068e731dbe53b254f76b58e9862b7526b629a23fa422e0255c04fca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "24c0095d59f183b4259b8b79f64b7bd72bd15df03a9233fcc85fb1db1bf698fc"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/research/paper/report.md",
-      "remaining": "Independent novelty assessment; no priority or superiority claim is made.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_research_package.py",
+      "remaining": "Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },
@@ -2601,11 +2605,35 @@
       "modules": [
         {
           "path": "tools/activation_runtime/research/build_report.py",
-          "sha256": "5a04a5a4e4df46c205f230bcf0b378fdb7a57e421fef125d311be8abd7734890"
+          "sha256": "08294d097c20e95b692e353869fe6ce1a50e78ff768cfb0ec923095b39d27dd2"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "24c0095d59f183b4259b8b79f64b7bd72bd15df03a9233fcc85fb1db1bf698fc"
+        },
+        {
+          "path": "tools/activation_runtime/research/receipts/engineering-v1.json",
+          "sha256": "5e4ecb3f17ae0783aa3fc4a86cf230e36d2a8c3b2839020afb7c8b4e6805c278"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.png",
+          "sha256": "d84d9c5ae15edfc294b0b0e5a1dee7e4960d981bcc050aae2c37dff9448be4fd"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.svg",
+          "sha256": "26043af338e040fad94dd288cc9a12e800930cb34cb36a1f1f7255bfb245e8cb"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.md",
+          "sha256": "cdf01e9e52bfb5aa8d162d4dad9b5bc689cb6fed5fad4248cea4462e0d22a8e7"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.pdf",
+          "sha256": "e0230e5b9085f791dfce36ce5de10ab24e9d728b92ac9b92bf00084d244bee53"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/research/paper/report.pdf",
-      "remaining": "Independent peer review; no validated compression improvement is claimed.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_research_package.py",
+      "remaining": "Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },

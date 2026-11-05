@@ -24,9 +24,23 @@ ACTIVATE, VERIFY and FALLBACK with a deterministic trace and no eval.
 The PackSpec source in the finite demonstration explicitly states:
 "Original source custody evidence is required." The real compiler extracts that
 authored clause into ConstraintIR. The demonstration maps it to
-EVIDENCE_PRESENCE with min_independent_sources=1. The review label is deliberately
+EVIDENCE_PRESENCE with min_independent_sources=1.
+The existing repository policy examples/apx-packspecs/policies/ffi.json
+(id=apx-training-ffi, version=1.0) declares
+verbatim-source-custody, discriminating-probe and independent-corroboration,
+each with min_independent_sources=1. These genuine evidence-presence clauses
+are not executable video-fidelity guarantees. The review label is deliberately
 identified as unauthenticated; missing independent evidence keeps admission
 INCONCLUSIVE. Distinct policy-source and transformed-data hashes are retained.
+
+### Versioned experimental proposals
+The protocol template is `activation-research-v1` (research/protocol.json).
+Its H1-H6 variables and null hypotheses are explicit; it is not a registered
+experiment until a real corpus is bound and the holdout is independently opened.
+The typed search proposal uses `rct.typed-operator-grammar/v1.4`; finite agent
+proposals use `qualityrag.agent-proposal/v1` and explicit patch lists. The video
+reference uses `qualityrag.scene-palette/v1` and `qualityrag.scene-video/v1`.
+These versioned proposals do not assert canonical FF-RCT parity or novelty.
 
 ### Methods
 The source-to-output path stores exact original bytes, checks a signed release
@@ -68,9 +82,9 @@ includes one complete model copy for each clip, a declared cold-install view.
 | paired | 10984 |
 
 All evaluated reference-arm normalized frames match the source in these clips.
-The reference and paired palette arms are larger than the lossless AV1 baseline.
-This negative result is retained. Decoder-only uses the same deterministic
-decoder and makes no unsupported improvement claim. Paired palette selection
+The paired palette arm is no smaller than the lossless AV1 baseline. This negative result is retained.
+Decoder-only retains the fixed encoder/model and selects between scalar and strided-XOR
+decoders on training data only. No held-out data is sent to the proposing agents. Paired palette selection
 uses training clips only; the receipt counts its actual search time.
 No confidence interval or generalization claim is computed from these correlated
 authored fixtures. Energy, full lifecycle USD and physical-device effects remain

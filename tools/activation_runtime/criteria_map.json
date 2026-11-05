@@ -44,27 +44,38 @@
       {
         "n": 1,
         "kind": "DOCUMENT",
-        "status": "NEEDS_INPUT",
-        "evidence": [],
-        "note": "Reviewer checks research/prior-art.md."
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+        ],
+        "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
       },
       {
         "n": 2,
         "kind": "DOCUMENT",
-        "status": "NEEDS_INPUT",
-        "evidence": []
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+        ],
+        "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
       },
       {
         "n": 3,
         "kind": "DOCUMENT",
-        "status": "NEEDS_INPUT",
-        "evidence": []
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+        ],
+        "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
       },
       {
         "n": 4,
         "kind": "DOCUMENT",
-        "status": "NEEDS_INPUT",
-        "evidence": []
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+        ],
+        "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
       }
     ],
     "US-005": [
@@ -1616,29 +1627,39 @@
       {
         "n": 1,
         "kind": "DOCUMENT",
-        "status": "NEEDS_INPUT",
-        "evidence": [],
-        "note": "Reviewer checks research/paper/report.md."
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+        ],
+        "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
       },
       {
         "n": 2,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
-        "note": "research/build_report.py regenerates figures from committed receipts."
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt",
+          "test_research_package.test_changed_receipts_change_figure_and_do_not_keep_false_claims"
+        ],
+        "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
       },
       {
         "n": 3,
         "kind": "DOCUMENT",
-        "status": "IMPLEMENTED",
-        "evidence": [],
-        "note": "research/build_report.py writes a claim-to-evidence matrix into report.md and the PDF."
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+        ],
+        "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
       },
       {
         "n": 4,
         "kind": "DOCUMENT",
-        "status": "NEEDS_INPUT",
-        "evidence": []
+        "status": "TESTED",
+        "evidence": [
+          "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+        ],
+        "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
       }
     ],
     "US-051": [
