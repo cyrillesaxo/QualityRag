@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import RLock
 import hmac
+import hashlib
 import json
 import os
 import sqlite3
@@ -198,10 +199,12 @@ def create_app(db_path: Path, token: str, *, receipt_dir: Path | None = None):
                                     json.dump(experiment, stream, ensure_ascii=False,
                                               allow_nan=False, sort_keys=True)
                                     stream.write("\n")
+                                file_sha256 = hashlib.sha256(receipt_file.read_bytes()).hexdigest()
                                 ledger_ref = register_cycle(
                                     db, experiment, sources=sources,
                                     evidence_uri=receipt_file.resolve().as_uri(),
-                                    actor="garden-local-controller")
+                                    actor="garden-local-controller",
+                                    receipt_content_sha256=file_sha256)
                             except Exception:
                                 # Partial ledger writes are still a known
                                 # canonical-ledger transaction limitation.
@@ -209,6 +212,7 @@ def create_app(db_path: Path, token: str, *, receipt_dir: Path | None = None):
                         result = {**result, "ledger_persisted": True,
                                   "ledger_claim_id": ledger_ref["claim_id"],
                                   "receipt_fingerprint": experiment_id,
+                                  "receipt_file_sha256": file_sha256,
                                   "ledger_integrity": "CONSISTENT"}
                 else:
                     result = {**result, "ledger_persisted": False}
