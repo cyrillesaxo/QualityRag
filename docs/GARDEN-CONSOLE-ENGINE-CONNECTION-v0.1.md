@@ -147,3 +147,28 @@ The self-test runs an actual bounded synthetic experiment but intentionally
 does **not** write a scientific research claim into the ledger. It proves
 a narrow localhost execution path, not production deployment, browser
 acceptance, source authenticity, or agent capability expansion.
+
+## Automated console-to-engine integration test
+
+The dedicated GitHub Actions workflow
+`.github/workflows/garden-console-connection.yml` now builds Studio,
+starts the actual Python engine with an ephemeral SQLite research ledger
+and bearer token, starts the Vite console on `127.0.0.1:5173`, then
+makes live HTTP requests through the **Vite /garden proxy**.
+
+`scripts/test-garden-console-connection.sh` checks authenticated
+`/garden/status`, `/garden/projection`, `/garden/self-test`, and
+explicit 401 rejection of incorrect bearer credentials. It verifies
+that the engine executed six synthetic configurations and did not
+promote or persist the smoke experiment.
+
+This is a **cross-process console proxy acceptance test**, much stronger
+than an isolated frontend build and backend unit test. It is not a
+Playwright/browser UI automation test and cannot establish deployment
+routing, real-user identity authorization, or production availability.
+
+Run it locally from repository root after installing Studio dependencies:
+
+```bash
+bash scripts/test-garden-console-connection.sh
+```
