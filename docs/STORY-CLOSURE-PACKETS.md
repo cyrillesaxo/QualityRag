@@ -8,21 +8,21 @@ Inventory: 14 BLOCKED, 2 DONE, 35 IN_REVIEW. Open: 49, with 196 criteria.
 
 | Category | Stories |
 |---|---|
-| Software work remaining (0) | — |
+| Software work remaining (2) | US-033, US-038 |
 | A written criterion requires human review (4) | US-009, US-031, US-046, US-051 |
 | Needs external input (11) | US-007, US-021, US-022, US-025, US-027, US-028, US-029, US-041, US-047, US-048, US-049 |
 | Document check only (2) | US-004, US-050 |
-| Written software criteria met (32) | US-003, US-005, US-006, US-008, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-023, US-024, US-026, US-030, US-032, US-033, US-034, US-035, US-036, US-037, US-038, US-039, US-040, US-042, US-043, US-044, US-045 |
+| Written software criteria met (30) | US-003, US-005, US-006, US-008, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-023, US-024, US-026, US-030, US-032, US-034, US-035, US-036, US-037, US-039, US-040, US-042, US-043, US-044, US-045 |
 
 Criteria by kind and status:
 
 | Kind | GAP | IMPLEMENTED | NEEDS_INPUT | PARTIAL | TESTED |
 |---|---|---|---|---|---|
-| DOCUMENT | 0 | 2 | 6 | 0 | 0 |
+| DOCUMENT | 0 | 1 | 6 | 0 | 1 |
 | EXTERNAL_INPUT | 0 | 0 | 18 | 3 | 0 |
 | HUMAN_REVIEW | 0 | 0 | 5 | 0 | 0 |
 | MERGE | 0 | 0 | 1 | 0 | 0 |
-| SOFTWARE | 0 | 10 | 0 | 0 | 151 |
+| SOFTWARE | 1 | 6 | 0 | 2 | 152 |
 
 ## Signing
 
@@ -55,6 +55,35 @@ python -m tools.activation_runtime.story_completion attach --story US-0XX --impl
 - the receipt is bound to the story's acceptance text and module hashes, so any later change to those modules invalidates it and the story must be re-reviewed.
 
 Residual risk: someone holding a *retired* key could still sign a receipt dated between a run's completion and the retirement time. If a retired key may be in other hands, mark it `compromised`.
+
+## Software work remaining
+
+1. Implement the PARTIAL/GAP criteria in the table; these need no outside input.
+2. Add a test per criterion and record it in criteria_map.json.
+
+### US-033 · Streaming segment delivery and seek (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Segment index supports seek, pause/resume and bitrate changes. | SOFTWARE | TESTED | `test_streaming.test_signed_seek_pause_resume_variants_and_missing_segment_fallback` |
+| 2 | Scene state dependencies are explicit. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_duplicate_reordered_and_bad_dependency_indices_refuse` |
+| 3 | Missing module/segment falls back without silent frame corruption. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_and_malformed_frame_records_fallback_without_position_advance` |
+| 4 | Measure startup latency, buffering and seek times against AV1 baseline. | SOFTWARE | PARTIAL | Verification found startup/seek timings only. benchmark_seek explicitly returns network_buffering=UNMEASURED; full criterion is not met. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming_boundaries.py'`
+- **Inventory blocking text:** Network/device startup, buffering and seek measurements against conventional playback.
+
+### US-038 · Isolated agent experiment harness (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Candidate agents run with scoped CPU/token/time and tool permissions. | SOFTWARE | TESTED | `test_agents.test_input_budgets_and_unknown_operators` |
+| 2 | Every proposal includes parent grammar hash, patches and rationale. | SOFTWARE | PARTIAL | `test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale`; The cited check proves parent hash, patches and rationale for grammar-compiler only. Other role proposals do not uniformly carry patches; every-proposal criterion is not yet established. |
+| 3 | Restricted execution sandbox prevents arbitrary host changes. | SOFTWARE | TESTED | `test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork` |
+| 4 | Evaluation always runs on pinned code/datasets. | SOFTWARE | GAP | Worker requests bind parent grammar and task, but neither worker nor evaluation currently enforces a pinned evaluator-code identity and dataset manifest. Passing CI is not that runtime binding. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_agents.py'`
+- **Inventory blocking text:** Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim.
 
 ## A written criterion requires human review
 
@@ -356,7 +385,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
 | 1 | SAT only if every modeled obligation is satisfied. | SOFTWARE | TESTED | `test_preservation.test_exhaustive_counterexample_all_pairs` |
-| 2 | UNSAT includes minimal available counterexample and violated clause. | SOFTWARE | TESTED | `test_preservation.test_exhaustive_counterexample_all_pairs` |
+| 2 | UNSAT includes minimal available counterexample and violated clause. | SOFTWARE | TESTED | `test_software_verification.test_single_changed_obligation_identifies_counterexample_and_clause`; A single altered anchored obligation returns a reproducible field counterexample and CHANGED_REQUIRED_DISTINCTION clause. |
 | 3 | Missing data or exhausted search returns UNKNOWN. | SOFTWARE | TESTED | `test_criterion_behaviors.test_incomplete_execution_returns_unknown_without_output`; interpreter.execute_plan returns UNKNOWN when no check is UNSAT and verification is incomplete. |
 | 4 | Finite SAT never emits QualityRag ADMIT or can_generate=true by itself. | SOFTWARE | TESTED | `test_runtime.test_signed_activation_uses_real_gate_and_remains_unadmitted` |
 
@@ -485,7 +514,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 | Typed interpreter implements bounded, sandboxed operators with no `eval`/dynamic imports. | SOFTWARE | IMPLEMENTED | No eval/exec/dynamic import in interpreter.py. |
+| 1 | Typed interpreter implements bounded, sandboxed operators with no `eval`/dynamic imports. | SOFTWARE | TESTED | `test_software_verification.test_finite_interpreter_language_rejects_code_and_bounds_work`; Finite language sandbox: rejects code/import/callback/runtime options and sequences exceeding 32 steps. This is not an arbitrary-code process sandbox. |
 | 2 | Uses actual transformed output, not merely stated `preserves` lists. | SOFTWARE | TESTED | `test_preservation.test_actual_failed_candidate_uses_checked_fallback_once` |
 | 3 | VERIFY compares actual output to all anchored obligations; fallback must independently satisfy authorization, compatibility, preservation and resource limits. At most one fallback attempt; failure terminates in REFUSE without releasing output. | SOFTWARE | TESTED | `test_reviewed_workflow.test_signed_original_fallback_is_reverified_and_only_attempted_once`, `test_reviewed_workflow.test_negative_candidate_refuses_without_releasing_output` |
 | 4 | Replay emits deterministic execution trace. | SOFTWARE | TESTED | `test_criterion_behaviors.test_replay_trace_is_identical_and_inputs_unchanged` |
@@ -527,7 +556,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 1 | Ingest actual frames and output a versioned decodable payload. | SOFTWARE | TESTED | `test_scene_codec.test_actual_playable_decode_and_seek` |
 | 2 | Decoder manifest pins shared model and modules. | SOFTWARE | TESTED | `test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse` |
 | 3 | A complete decode demonstrably reconstructs playable clip. | SOFTWARE | TESTED | `test_scene_codec.test_actual_playable_decode_and_seek` |
-| 4 | Encoding time, bytes, model size and fallback ratio measured. **Not accomplished by PR #69**. | SOFTWARE | IMPLEMENTED | encode() reports encode_ns, payload_bytes, model_bytes and fallback_ratio. |
+| 4 | Encoding time, bytes, model size and fallback ratio measured. **Not accomplished by PR #69**. | SOFTWARE | TESTED | `test_software_verification.test_actual_encoder_measures_bytes_time_model_and_raw_fallback`; encode() reports encode_ns, payload_bytes, model_bytes and fallback_ratio. |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_scene_codec.py'`
 - **Inventory blocking text:** Research review of the actual palette/residual reference; this is not learned semantic understanding or FF-RCT.
@@ -544,19 +573,6 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_search_pilot.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_economic_uncertainty.py'`
 - **Inventory blocking text:** Measured full lifecycle inputs and uncertainty by real catalog/viewer/device cohort.
-- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
-
-### US-033 · Streaming segment delivery and seek (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Segment index supports seek, pause/resume and bitrate changes. | SOFTWARE | TESTED | `test_streaming.test_signed_seek_pause_resume_variants_and_missing_segment_fallback` |
-| 2 | Scene state dependencies are explicit. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_duplicate_reordered_and_bad_dependency_indices_refuse` |
-| 3 | Missing module/segment falls back without silent frame corruption. | SOFTWARE | TESTED | `test_streaming_boundaries.test_missing_and_malformed_frame_records_fallback_without_position_advance` |
-| 4 | Measure startup latency, buffering and seek times against AV1 baseline. | SOFTWARE | IMPLEMENTED | streaming.benchmark_seek compares cold-session seek with a fresh AV1 process on the host; network buffering is not measured. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_streaming_boundaries.py'`
-- **Inventory blocking text:** Network/device startup, buffering and seek measurements against conventional playback.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
 ### US-034 · Append-only conversation tree (IN_REVIEW)
@@ -611,19 +627,6 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Inventory blocking text:** Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 - **Notes:** Duplicate detection is exact-statement only; paraphrase detection would need a semantic labeler.
-
-### US-038 · Isolated agent experiment harness (IN_REVIEW)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Candidate agents run with scoped CPU/token/time and tool permissions. | SOFTWARE | TESTED | `test_agents.test_input_budgets_and_unknown_operators` |
-| 2 | Every proposal includes parent grammar hash, patches and rationale. | SOFTWARE | TESTED | `test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale`; Proposals carry parent_grammar_sha256 and the task. |
-| 3 | Restricted execution sandbox prevents arbitrary host changes. | SOFTWARE | TESTED | `test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork` |
-| 4 | Evaluation always runs on pinned code/datasets. | SOFTWARE | IMPLEMENTED | — |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_agents.py'`
-- **Inventory blocking text:** Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim.
-- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
 ### US-039 · Dedicated agent roles (IN_REVIEW)
 
@@ -681,7 +684,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 | Key rotation and version policy documented. | DOCUMENT | IMPLEMENTED | Key rotation is described in tools/packspec_compiler/SIGNED-BUNDLES.md. |
+| 1 | Key rotation and version policy documented. | DOCUMENT | TESTED | `test_software_verification.test_key_lifecycle_and_version_floor_are_documented`; Verified signed-bundle minimum sequence/revocation documentation and completion-receipt rotation/compromise policy; runtime rollback behavior has separate tests. |
 | 2 | Signatures bind source, grammar, policy, model, decoder and relevant run IDs. | SOFTWARE | TESTED | `test_release_authority.test_each_source_runtime_target_and_version_change_invalidates_review` |
 | 3 | Unauthorized replay/downgrade attacks produce refusal; explicit authorized rollback must respect compatibility, revocation and minimum-version policy. | SOFTWARE | TESTED | `test_release_authority.test_invalid_hashes_counts_and_downgrade_refuse_before_nonce_use`, `test_release_authority.test_replay_refuses_after_success` |
 | 4 | Existing signed-bundle code reused, not silently substituted with raw hashes. | SOFTWARE | TESTED | `test_criterion_behaviors.test_authority_uses_canonical_bundle_signatures`; authority.py reuses tools/packspec_compiler/signed_bundles.py. |

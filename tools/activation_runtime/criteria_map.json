@@ -294,8 +294,9 @@
         "kind": "SOFTWARE",
         "status": "TESTED",
         "evidence": [
-          "test_preservation.test_exhaustive_counterexample_all_pairs"
-        ]
+          "test_software_verification.test_single_changed_obligation_identifies_counterexample_and_clause"
+        ],
+        "note": "A single altered anchored obligation returns a reproducible field counterexample and CHANGED_REQUIRED_DISTINCTION clause."
       },
       {
         "n": 3,
@@ -693,9 +694,11 @@
       {
         "n": 1,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
-        "note": "No eval/exec/dynamic import in interpreter.py."
+        "status": "TESTED",
+        "evidence": [
+          "test_software_verification.test_finite_interpreter_language_rejects_code_and_bounds_work"
+        ],
+        "note": "Finite language sandbox: rejects code/import/callback/runtime options and sequences exceeding 32 steps. This is not an arbitrary-code process sandbox."
       },
       {
         "n": 2,
@@ -948,8 +951,10 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_software_verification.test_actual_encoder_measures_bytes_time_model_and_raw_fallback"
+        ],
         "note": "encode() reports encode_ns, payload_bytes, model_bytes and fallback_ratio."
       }
     ],
@@ -1045,9 +1050,9 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
+        "status": "PARTIAL",
         "evidence": [],
-        "note": "streaming.benchmark_seek compares cold-session seek with a fresh AV1 process on the host; network buffering is not measured."
+        "note": "Verification found startup/seek timings only. benchmark_seek explicitly returns network_buffering=UNMEASURED; full criterion is not met."
       }
     ],
     "US-034": [
@@ -1201,11 +1206,11 @@
       {
         "n": 2,
         "kind": "SOFTWARE",
-        "status": "TESTED",
+        "status": "PARTIAL",
         "evidence": [
           "test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale"
         ],
-        "note": "Proposals carry parent_grammar_sha256 and the task."
+        "note": "The cited check proves parent hash, patches and rationale for grammar-compiler only. Other role proposals do not uniformly carry patches; every-proposal criterion is not yet established."
       },
       {
         "n": 3,
@@ -1218,8 +1223,9 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": []
+        "status": "GAP",
+        "evidence": [],
+        "note": "Worker requests bind parent grammar and task, but neither worker nor evaluation currently enforces a pinned evaluator-code identity and dataset manifest. Passing CI is not that runtime binding."
       }
     ],
     "US-039": [
@@ -1399,9 +1405,11 @@
       {
         "n": 1,
         "kind": "DOCUMENT",
-        "status": "IMPLEMENTED",
-        "evidence": [],
-        "note": "Key rotation is described in tools/packspec_compiler/SIGNED-BUNDLES.md."
+        "status": "TESTED",
+        "evidence": [
+          "test_software_verification.test_key_lifecycle_and_version_floor_are_documented"
+        ],
+        "note": "Verified signed-bundle minimum sequence/revocation documentation and completion-receipt rotation/compromise policy; runtime rollback behavior has separate tests."
       },
       {
         "n": 2,
