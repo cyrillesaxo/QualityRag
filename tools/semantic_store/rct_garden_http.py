@@ -28,10 +28,15 @@ LOCK = RLock()
 ALLOWED_ORIGINS = ("http://127.0.0.1:5173", "http://localhost:5173")
 
 
-def create_app(db_path: Path, token: str):
+def create_app(db_path: Path, token: str, *, receipt_dir: Path | None = None):
     if not isinstance(token, str) or len(token) < 24:
         raise ValueError("Explicit Garden engine token of 24+ characters required")
     db_path = Path(db_path)
+    if receipt_dir is not None:
+        receipt_dir = Path(receipt_dir)
+        if not receipt_dir.is_dir() or receipt_dir.is_symlink():
+            raise ValueError("Existing non-symlink receipt directory required")
+        receipt_dir = receipt_dir.resolve(strict=True)
     if db_path.is_symlink():
         raise ValueError("Symlink ledger database forbidden")
     if not db_path.is_file():
@@ -141,11 +146,38 @@ def create_app(db_path: Path, token: str):
                         "source": digest(payload["source"]),
                         "revised": digest(payload["revised_source"]),
                     }
-                    # The HTTP body is not an authenticated source document.
-                    # Persist only experiment metadata and receipt hash;
-                    # never pretend we have a retrievable receipt artifact.
-                    result = {**result, "ledger_persisted": False,
-                              "ledger_reason": "NO_RETRIEVABLE_ATTESTED_RECEIPT"}
+                    if receipt_dir is None:
+                        result = {**result, "ledger_persisted": False,
+                                  "ledger_reason": "NO_RECEIPT_DIRECTORY_CONFIGURED"}
+                    else:
+                        # Save the actual engine-generated experiment receipt,
+                        # not the browser's request or an invented source URI.
+                        # A file:// URI is locally retrievable, not independent
+                        # scientific authentication or public access.
+                        experiment_id = experiment["fingerprint"]
+                        receipt_file = receipt_dir / (experiment_id + ".json")
+                        with LOCK:
+                            try:
+                                fd = os.open(receipt_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                            except FileExistsError:
+                                raise ValueError("EXPERIMENT_ALREADY_RECORDED")
+                            try:
+                                with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                                    json.dump(experiment, stream, ensure_ascii=False,
+                                              allow_nan=False, sort_keys=True)
+                                    stream.write("\\n")
+                                ledger_ref = register_cycle(
+                                    db, experiment, sources=sources,
+                                    evidence_uri=receipt_file.resolve().as_uri(),
+                                    actor="garden-local-controller")
+                            except Exception:
+                                # Partial ledger writes are still a known
+                                # canonical-ledger transaction limitation.
+                                raise
+                        result = {**result, "ledger_persisted": True,
+                                  "ledger_claim_id": ledger_ref["claim_id"],
+                                  "receipt_fingerprint": experiment_id,
+                                  "ledger_integrity": "CONSISTENT"}
                 else:
                     result = {**result, "ledger_persisted": False}
                 return self._reply(200, result)
@@ -169,7 +201,9 @@ def main():
     port = int(os.environ.get("QUALITYRAG_GARDEN_PORT", "5057"))
     if not 1024 <= port <= 65535:
         raise ValueError("Invalid Garden port")
-    handler, conn = create_app(Path(db_path), token)
+    receipt_path = os.environ.get("QUALITYRAG_GARDEN_RECEIPT_DIR")
+    handler, conn = create_app(Path(db_path), token,
+                               receipt_dir=Path(receipt_path) if receipt_path else None)
     try:
         server = ThreadingHTTPServer(("127.0.0.1", port), handler)
         print(f"Semantic Garden local engine listening on 127.0.0.1:{port}",
