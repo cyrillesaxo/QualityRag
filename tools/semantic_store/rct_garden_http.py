@@ -118,10 +118,42 @@ def create_app(db_path: Path, token: str, *, receipt_dir: Path | None = None):
         def do_POST(self):
             if not self._authorized():
                 return
-            if self.path != "/garden/investigate":
+            if self.path not in ("/garden/investigate", "/garden/self-test"):
                 return self._reply(404, {"error": "NOT_FOUND"})
             try:
                 payload = self._body()
+                if self.path == "/garden/self-test":
+                    if payload:
+                        raise ValueError("SELF_TEST_ARGUMENTS_FORBIDDEN")
+                    from rct_garden_demo import fixture
+                    training = fixture("selftest-train-")
+                    source = fixture("selftest-source-")
+                    updated = fixture("selftest-source-", revised=True)
+                    result = run_controller(
+                        training, [
+                            {"subject": "selftest-train-s0",
+                             "destination": "selftest-train-t0", "expected": True},
+                            {"subject": "selftest-train-s1",
+                             "destination": "selftest-train-t1", "expected": True},
+                            {"subject": "selftest-train-s0",
+                             "destination": "selftest-train-t1", "expected": False},
+                        ], source, updated,
+                        {"subjects": ["selftest-source-s0", "selftest-source-s1"]},
+                        oracle=None, trials=2, max_probes=0)
+                    if (result["status"] != "EVALUATED_UNVERIFIED" or
+                            len(result["investigation"]["experiment"]["results"]) != 6):
+                        raise ValueError("SELF_TEST_RESEARCH_INVARIANT_FAILED")
+                    return self._reply(200, {
+                        "schema": "rct.garden-engine-self-test/v0.1",
+                        "status": "PASS",
+                        "engine_result": result["status"],
+                        "paired_candidates": 6,
+                        "research_receipt_sha256": result["fingerprint"],
+                        "synthetic_test_only": True,
+                        "ledger_persisted": False,
+                        "qualityrag_admission": "INCONCLUSIVE",
+                        "promotion_authorized": False,
+                    })
                 required = {"training", "examples", "source", "revised_source",
                             "workload", "trials", "max_probes"}
                 if set(payload) != required:
