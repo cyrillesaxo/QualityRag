@@ -307,3 +307,50 @@ typed-graph structural tests.
   durable retries, with bounded resource accounting and manual promotion.
 - Extend operator discovery beyond variable-length path composition and
   measure meaningful capability-frontier gains on unseen task families.
+
+## APX runtime integration discovery and UI contract
+
+Repository discovery identified the canonical APX
+`packages/apx-rcoc/src/index.ts` implementation, including the 12G
+semantic assurance snapshot, deceptive-witness identity diffs, TERM
+invalidation and explicit transformation-order requirements. The
+`packages/apx-epistemic/src/index.ts` compiler separately exposes
+bounded regime transitions and evidence obligations. These must remain
+authoritative; the Garden controller must **not** fabricate their
+measurement fields from research ledger assessment labels.
+
+Searches across the accessible APX, APX UI, APX Studio and QualityRag
+default branches did **not** locate the precise Semantic Gardener
+component/service shown in the reference screenshot. Therefore there
+is no asserted live UI wiring or automatic RCOC admission in this PR.
+
+Instead, `rct_garden_projection.py` now exposes a **read-only**
+`rct.semantic-gardener-projection/v0.1` view over the existing
+QualityRag research ledger: branches, typed relation edges,
+chronological immutable assessment events, evidence references,
+counterexample/refutation history and consistent summary counts.
+It fails closed when checksum verification or bounded projection limits
+fail. A status of `active_research` is explicitly distinct from
+PackSpec or scientific admission.
+
+### Export current research lineage for the Gardener UI
+
+```bash
+python tools/semantic_store/rct_garden_projection_cli.py \
+  --db .research/progress.sqlite \
+  --output /tmp/gardener-projection.json \
+  --project QualityRag
+```
+
+The command opens SQLite in read-only mode and refuses to create a
+missing database. It makes no network calls and does not expose
+write, promotion or policy mutation endpoints. When the real Garden
+UI/server path is identified, its view model can consume the JSON
+contract through an authenticated, access-controlled read route.
+
+**Remaining production work:** verify the UI source and ACLs; implement
+tenant-scoped pagination and read authorization; transactionally connect
+canonical APX RCOC/FFI/D15 receipts; accept authenticated probes with
+independent provenance; implement a constrained scheduler; measure
+native FF-RCT grammar/activation improvements on held-out workloads.
+The present projection is a truthful display of research state only.
