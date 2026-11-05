@@ -11,7 +11,7 @@ from pathlib import Path
 
 from rct_garden_coevolution import run_investigation
 from rct_garden_demo import fixture
-from rct_garden_lifecycle import register_cycle, reopen_on_revision
+from rct_garden_lifecycle import register_cycle, replay_after_revision
 from store import digest
 
 from sys import path
@@ -60,20 +60,23 @@ def main():
             "id": "live-third-revision", "subject": "live-n1",
             "predicate": "governs", "object": "live-later-target",
             "source_ref": "live-new-revision"})
-        changed = dict(sources, revised=digest(next_source))
-        reopened = reopen_on_revision(
-            db, opened["claim_id"], observed_sources=changed,
-            evidence_uri=a.uri, actor=a.actor)
+        replayed = replay_after_revision(
+            db, opened["claim_id"], training=train, examples=examples,
+            source=before, revised_source=next_source,
+            workload={"subjects": ["live-s0", "live-s0", "live-s1", "live-s2"]},
+            actor=a.actor, observation_uri=a.uri, receipt_uri=a.uri, trials=2)
         print(json.dumps({
             "schema": "rct.garden-lifecycle-demo/v0.1",
             "hypothesis": investigation["hypothesis"]["status"],
             "experimental_candidates": len(experiment["results"]),
             "experiment_claim": opened["claim_id"],
-            "reopened": reopened["event_appended"],
-            "replay_required": reopened.get("replay_required", False),
+            "replay_status": replayed["status"],
+            "replayed": replayed["replayed"],
+            "new_claim_id": replayed.get("new_claim_id"),
             "ledger_event_count": len(next(
                 x for x in progress(db)["claims"]
                 if x["claim_id"] == opened["claim_id"])["events"]),
+            "ledger_claim_count": progress(db)["counts"]["total"],
             "ledger_integrity": verify_integrity(db)["consistent"],
             "qualityrag_admission": "INCONCLUSIVE",
             "promotion_authorized": False,
