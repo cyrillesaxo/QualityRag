@@ -598,7 +598,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/pipeline.py",
-          "sha256": "53c0a786fbfa5cad789cb74c390b0d115cf37e2c357c172b43ff6a7c8e595423"
+          "sha256": "4a833a2fa46dcb74c6391b16013bffd89f3f693f6acef8a32ad899d70585a3d5"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -782,7 +782,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/pipeline.py",
-          "sha256": "53c0a786fbfa5cad789cb74c390b0d115cf37e2c357c172b43ff6a7c8e595423"
+          "sha256": "4a833a2fa46dcb74c6391b16013bffd89f3f693f6acef8a32ad899d70585a3d5"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",

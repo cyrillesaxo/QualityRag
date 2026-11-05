@@ -22,7 +22,7 @@ Criteria by kind and status:
 | EXTERNAL_INPUT | 0 | 0 | 18 | 3 | 0 |
 | HUMAN_REVIEW | 0 | 0 | 5 | 0 | 0 |
 | MERGE | 0 | 0 | 1 | 0 | 0 |
-| SOFTWARE | 0 | 11 | 0 | 0 | 150 |
+| SOFTWARE | 0 | 10 | 0 | 0 | 151 |
 
 ## Signing
 
@@ -397,7 +397,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 1 | Compilation records input obligation fingerprints and compiler version. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation`; Receipt records compiler_version and input fingerprints. |
 | 2 | Repeated equivalent queries reuse artifacts without changing verdicts. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation` |
 | 3 | Invalidated input/policy triggers recompile. | SOFTWARE | TESTED | `test_runtime.test_existing_typed_engine_cache_and_policy_invalidation` |
-| 4 | Actual compiled artifact bytes, construction time, cache hits and runtime costs measured. | SOFTWARE | IMPLEMENTED | Receipt records compiled bytes, lookup/compile time and cache hits. |
+| 4 | Actual compiled artifact bytes, construction time, cache hits and runtime costs measured. | SOFTWARE | TESTED | `test_criterion_behaviors.test_cache_measures_compiled_bytes_construction_and_runtime`; Receipts measure canonical compiled bytes, construction/cache lookup, cache hits and actual validation/lens/gate runtime; absent execution is explicitly marked. |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
 - **Inventory blocking text:** Independent replay of compiler/cache invalidation and measured amortization beyond authored fixtures.

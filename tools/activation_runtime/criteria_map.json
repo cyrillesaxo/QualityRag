@@ -413,9 +413,11 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
-        "note": "Receipt records compiled bytes, lookup/compile time and cache hits."
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_cache_measures_compiled_bytes_construction_and_runtime"
+        ],
+        "note": "Receipts measure canonical compiled bytes, construction/cache lookup, cache hits and actual validation/lens/gate runtime; absent execution is explicitly marked."
       }
     ],
     "US-015": [

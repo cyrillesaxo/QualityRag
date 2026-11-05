@@ -104,15 +104,18 @@ class RCTCache:
                    "cache_key": key, "cache_hit": hit, "cache_hits_total": self.hits,
                    "compiler_version": COMPILER_VERSION, "input_fingerprints": inputs,
                    "compiled_bytes": len(canonical(rule)), "lookup_or_compile_ns": compile_ns,
+                   "runtime_ns": None, "runtime_executed": False,
                    "qualityrag_admission": "INCONCLUSIVE", "can_generate": False}
         if rule["status"] != "CANDIDATE":
             receipt["finite_constraint_result"] = "UNKNOWN"
             return receipt
+        runtime_start = perf_counter_ns()
         assessment = validate_typed_rule(training, rule, heldout, heldout_labels, grammar)
         lens = compile_typed_lens(heldout, rule=rule, assessment=assessment, grammar=grammar,
                                   lens_id="activation-rct", purpose=purpose)
         binding = bind_candidate(lens, ir, purpose=purpose)
         gate = evaluate_bound_lens(lens, ir, binding, witnesses, {}, as_of)
         receipt.update(assessment=assessment, binding=binding, gate=gate,
+                       runtime_ns=perf_counter_ns()-runtime_start, runtime_executed=True,
                        finite_constraint_result=assessment["finite_graph_verdict"])
         return receipt

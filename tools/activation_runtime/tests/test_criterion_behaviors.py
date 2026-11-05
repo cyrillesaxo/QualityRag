@@ -16,6 +16,31 @@ from test_runtime import policy
 
 
 class CriterionBehaviorTests(unittest.TestCase):
+    def test_cache_measures_compiled_bytes_construction_and_runtime(self):
+        from tools.activation_runtime.pipeline import RCTCache
+        from tools.activation_runtime.common import canonical
+        source = {"schema":"rct.structured-ast/v1","facts":[
+            {"id":"f1","subject":"a","predicate":"p","object":"b","source_ref":"s#1"}]}
+        labels = [{"subject":"a","object":"b","positive":True,"source_ref":"l#1"},
+                  {"subject":"b","object":"a","positive":False,"source_ref":"l#2"}]
+        grammar = {"schema":"rct.typed-operator-grammar/v1.4","predicate_types":{"p":["actor","recipient"]},
+                   "operators":["EDGE"],"max_ast_nodes":1,"max_candidates":10}
+        cache = RCTCache()
+        heldout = {"schema":"rct.structured-ast/v1","facts":[
+            {"id":"f2","subject":"x","predicate":"p","object":"y","source_ref":"h#1"}]}
+        held_labels = [{"subject":"x","object":"y","positive":True,"source_ref":"hl#1"},
+                       {"subject":"y","object":"x","positive":False,"source_ref":"hl#2"}]
+        receipts = [cache.evaluate(source, labels, heldout, held_labels, grammar, policy(),
+            purpose="role-check", witnesses=[], as_of="2026-11-04T12:00:00Z") for _ in range(2)]
+        self.assertEqual([r["cache_hit"] for r in receipts], [False, True])
+        self.assertEqual(receipts[1]["cache_hits_total"], 1)
+        for receipt in receipts:
+            self.assertEqual(receipt["compiled_bytes"], len(canonical(receipt["rule"])))
+            self.assertGreater(receipt["lookup_or_compile_ns"], 0)
+            self.assertTrue(receipt["runtime_executed"])
+            self.assertGreater(receipt["runtime_ns"], 0)
+            self.assertEqual(receipt["finite_constraint_result"], "SAT")
+
     def fixture(self):
         raw = b'{"instruction":"must NOT disclose","unit":"mg"}'
         ir = policy()
