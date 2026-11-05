@@ -107,5 +107,14 @@
     setTimeout(()=>{b.textContent='Copy';},1800);
   });
 
+  // Theme: System (follow the OS), Light or Dark; remembered in this browser only.
+  const theme=$('theme');
+  theme.value=document.documentElement.dataset.theme||'system';
+  theme.addEventListener('change',()=>{
+    const v=theme.value;
+    if(v==='system')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=v;
+    try{if(v==='system')localStorage.removeItem('qr-theme');else localStorage.setItem('qr-theme',v);}catch(_e){/* not remembered */}
+  });
+
   layout();route();
 })();

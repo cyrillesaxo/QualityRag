@@ -1879,7 +1879,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "d435c20fbbfb070365591713d86668874a2ac45762c63bfe66d487978c3c6907"
+          "sha256": "c048ce10369a491d8f015919f588ad91fdf69f2de0ae3cecb4486a3c141ad66c"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -1887,11 +1887,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "dcefa5a2ebba9e4c3c5cda34e51e1d193152e3cd3c45759243f8d58384bcd8c2"
+          "sha256": "64a4ea8edc3056e374e318f618c4be47b0f2aa849deb9f1c137cd196cba4bcab"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "4afa15e1f231ad6b1d759439ea03d470e87ec0a977863b2bc85a3c7925db1861"
+          "sha256": "d65bfd8b7c38e73554115b3c83528046d9570db86c3d7151d3e57b3c03a9642c"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2235,7 +2235,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "d435c20fbbfb070365591713d86668874a2ac45762c63bfe66d487978c3c6907"
+          "sha256": "c048ce10369a491d8f015919f588ad91fdf69f2de0ae3cecb4486a3c141ad66c"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2243,11 +2243,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "dcefa5a2ebba9e4c3c5cda34e51e1d193152e3cd3c45759243f8d58384bcd8c2"
+          "sha256": "64a4ea8edc3056e374e318f618c4be47b0f2aa849deb9f1c137cd196cba4bcab"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "4afa15e1f231ad6b1d759439ea03d470e87ec0a977863b2bc85a3c7925db1861"
+          "sha256": "d65bfd8b7c38e73554115b3c83528046d9570db86c3d7151d3e57b3c03a9642c"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2347,7 +2347,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "d5423c504ddb7ba04dff2871fdeb35d5d20a0b8bccf3e37272dc22fab39333bc"
+          "sha256": "d511323fbbe0589706c618ba7a3394a7489ecef90e4e7757449e4a62d4a3a99e"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
@@ -2387,7 +2387,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "d435c20fbbfb070365591713d86668874a2ac45762c63bfe66d487978c3c6907"
+          "sha256": "c048ce10369a491d8f015919f588ad91fdf69f2de0ae3cecb4486a3c141ad66c"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2395,11 +2395,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "dcefa5a2ebba9e4c3c5cda34e51e1d193152e3cd3c45759243f8d58384bcd8c2"
+          "sha256": "64a4ea8edc3056e374e318f618c4be47b0f2aa849deb9f1c137cd196cba4bcab"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "4afa15e1f231ad6b1d759439ea03d470e87ec0a977863b2bc85a3c7925db1861"
+          "sha256": "d65bfd8b7c38e73554115b3c83528046d9570db86c3d7151d3e57b3c03a9642c"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",

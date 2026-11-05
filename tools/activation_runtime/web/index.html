@@ -1,12 +1,13 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag</title><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script><script src="/governance.js" defer></script><script src="/shell.js" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag</title><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script><script src="/governance.js" defer></script><script src="/shell.js" defer></script></head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
 <button type="button" id="menu-toggle" class="icon-btn" aria-controls="sidebar" aria-expanded="false" aria-label="Open menu" hidden><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-<a href="#/home" class="brand" aria-label="QualityRag home"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 20V11M11 11 5 4M11 11l6-7M11 14 7 9M11 14l4-5" fill="none" stroke="#57E0CC" stroke-width="1.8" stroke-linecap="round"/></svg>QualityRag</a>
+<a href="#/home" class="brand" aria-label="QualityRag home"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 20V11M11 11 5 4M11 11l6-7M11 14 7 9M11 14l4-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>QualityRag</a>
 <span id="ws-name" class="ws-name" hidden></span>
 <span class="topbar-gap"></span>
+<label for="theme" class="sr-only">Theme</label><select id="theme" class="theme-select"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
 <a href="#/connect" id="connect-link" class="btn-ghost small" hidden>Connect</a>
 <button type="button" id="switch-ws" class="btn-ghost small" hidden>Switch workspace</button>
 </header>
