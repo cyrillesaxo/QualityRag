@@ -4,7 +4,7 @@ This is a short animated course, made for people who are new to QualityRag. No p
 
 | # | Episode | You will be able to | Status |
 |---|---------|---------------------|--------|
-| 1 | **Getting started** | install QualityRag, sign in, check your first answer, and read the result | [Watch](https://github.com/cyrillesaxo/qualityrag/releases/tag/training-ep01) |
+| 1 | **Getting started** | install QualityRag, sign in, check your first answer, and read the result | [Watch](episode-01-getting-started/episode-01-getting-started.mp4) |
 | 2 | Fixing what Health finds | work through each Health finding and confirm the fix | planned |
 | 3 | Testing a stricter policy | use the policy tester and advisor, then replay a change on a branch | planned |
 | 4 | Bring your own documents | load your own passages and requirements in place of the sample data | planned |
@@ -14,6 +14,8 @@ This is a short animated course, made for people who are new to QualityRag. No p
 The episodes are meant to be watched in order, and each one builds on the one before.
 
 ## Episode 1 · Getting started (about 3 minutes)
+
+[![Episode 1: Getting started](episode-01-getting-started/poster.jpg)](episode-01-getting-started/episode-01-getting-started.mp4)
 
 1. **Why a check?** A RAG system answers even when its passages don't support the answer.
 2. **The check.** Your policy lists what an answer needs. For each requirement, the check counts independent sources and rejects evidence that is stale or contradicted. The result is *supported*, *not enough evidence*, or *contradicted*.
@@ -32,7 +34,7 @@ python -m tools.activation_runtime.cli serve --root ~/qualityrag-local/state \
 # open http://127.0.0.1:8769 and paste the token from ~/qualityrag-local/browser-token.txt
 ```
 
-Each episode comes with captions in WebVTT and SRT format, attached to the same release.
+Each episode folder holds the video, with captions burnt in, plus the captions as [WebVTT](episode-01-getting-started/episode-01-getting-started.vtt) and [SRT](episode-01-getting-started/episode-01-getting-started.srt).
 
 ## How the videos are made
 
