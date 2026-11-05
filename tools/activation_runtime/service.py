@@ -128,6 +128,12 @@ class Application:
             if set(body)!={"proposal_id","verdict","useful","elapsed_ms","false_merge"}:
                 raise ValueError("Unsupported review outcome options")
             return record_outcome(self.garden_path(principal),actor=principal.subject,**body)
+        if route=="gardener/query":
+            from .gardener import QUERY_KEYS,query
+            if not set(body)<=QUERY_KEYS:raise ValueError("Unsupported query options")
+            garden=Gardener(self.garden_path(principal))
+            try:return query(garden.replay(),**body)
+            finally:garden.close()
         if route=="gardener/state":
             if body:raise ValueError("Unsupported state options")
             garden=Gardener(self.garden_path(principal))
@@ -173,7 +179,7 @@ def handler(application):
             self.send_header("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'")
             self.end_headers();self.wfile.write(raw)
         def do_GET(self):
-            assets={"/":"index.html","/app.js":"app.js","/style.css":"style.css"}
+            assets={"/":"index.html","/app.js":"app.js","/garden.js":"garden.js","/style.css":"style.css"}
             if self.path not in assets:self.reply(404,b'{"error":"NOT_FOUND"}');return
             path=WEB/assets[self.path]
             mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8"}

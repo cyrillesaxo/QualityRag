@@ -1577,7 +1577,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "0fbb65c32cbad05d4f35bbd52dbcb85cc0f673ce1cdf424b9494a0097ef899f2"
+          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1673,10 +1673,10 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "c05ad943fa478ea5137e92f47f342539dc1880e59d2bc3d25f72f15cfecfcb89"
+          "sha256": "021ffae072aaca48e3ede79077a34144ca770cdb6384d9926e8346ba9ce975c6"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_garden_query.py",
       "remaining": "Merged review and independent restart/custody replay.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1715,7 +1715,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "c05ad943fa478ea5137e92f47f342539dc1880e59d2bc3d25f72f15cfecfcb89"
+          "sha256": "021ffae072aaca48e3ede79077a34144ca770cdb6384d9926e8346ba9ce975c6"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -1835,26 +1835,30 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "34a69f9cdfff70630b3767e0da4f10522d3a5f891ff3f4c441a9e90ca116a0be"
+          "sha256": "43228120302ec2e07be7378738f0cc05f62809cf8c08a1b2b90d79db7deca1c2"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "35ea8062b8c1ac98980d6ca96e6109606d848fa927da60edd1b3bfaf5179ee66"
+          "sha256": "7dd6e17c4114faae580b342290f3946357e4b818707585cba43459df80734eb1"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "a3c3dff1a7e68ad8c5ca083e85ac0a4f618bf37e82948fa0dce3e5ddff7c29cf"
+          "sha256": "0c8e3fce3caa7b152c2ae76ad03707063686521223a1d0aa5eb6b136ac530f6c"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "2fd48f54f8b53649ffab263d3822300dc362094673435dda7b2dc111741d5191"
+          "sha256": "9a23b7712420955ae06907f69c6766d20ddf21e4d31a1cfb32d3a6caf0af4155"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
           "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        },
+        {
+          "path": "tools/activation_runtime/web/garden.js",
+          "sha256": "7da35e02f348ffe9f24970fc720d687727763226f111d0adcc3ddd6d856abcdf"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_garden_web.py",
       "remaining": "Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -2093,7 +2097,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "0fbb65c32cbad05d4f35bbd52dbcb85cc0f673ce1cdf424b9494a0097ef899f2"
+          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -2143,19 +2147,19 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "34a69f9cdfff70630b3767e0da4f10522d3a5f891ff3f4c441a9e90ca116a0be"
+          "sha256": "43228120302ec2e07be7378738f0cc05f62809cf8c08a1b2b90d79db7deca1c2"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "35ea8062b8c1ac98980d6ca96e6109606d848fa927da60edd1b3bfaf5179ee66"
+          "sha256": "7dd6e17c4114faae580b342290f3946357e4b818707585cba43459df80734eb1"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "a3c3dff1a7e68ad8c5ca083e85ac0a4f618bf37e82948fa0dce3e5ddff7c29cf"
+          "sha256": "0c8e3fce3caa7b152c2ae76ad03707063686521223a1d0aa5eb6b136ac530f6c"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "2fd48f54f8b53649ffab263d3822300dc362094673435dda7b2dc111741d5191"
+          "sha256": "9a23b7712420955ae06907f69c6766d20ddf21e4d31a1cfb32d3a6caf0af4155"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2255,15 +2259,15 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "f01e535d6686e95e1ebecd033efdf3ae6cc5bc31679138bfc0aa11c286b201e6"
+          "sha256": "bfc297db2b60f07527e77f2688854048882f15c9eba51c8a0b0e50bc743164f9"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
-          "sha256": "0cd440ebaec6d99887889b25b363b85807a6b91f0412c0e86f8d824a11ac8abc"
+          "sha256": "778699b810218ec56778108795b879d603cf5c85531c50cbc99a1666e7111599"
         },
         {
           "path": "sdk/typescript/src/activation.ts",
-          "sha256": "f99b68e1dca0451c1ad6f379b49687af8a9432409cdf33b8cf028fbaf5c0b9fd"
+          "sha256": "eb33b33902b60a6b96f49f0bd4b28a70d6404067b84a91426ce457d3559ed6ad"
         },
         {
           "path": "sdk/typescript/src/index.ts",
@@ -2271,11 +2275,11 @@
         },
         {
           "path": "sdk/typescript/test/activation.test.mjs",
-          "sha256": "6566746c44633a51a8eee5bd517e1eec6445ecb7c9fe9c6853315d1c97e678c0"
+          "sha256": "ecd77d13d2b6f28aa39756a30422d5f91ceaa8cf60e53f64846d785d9107d19a"
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "0fbb65c32cbad05d4f35bbd52dbcb85cc0f673ce1cdf424b9494a0097ef899f2"
+          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
@@ -2295,26 +2299,30 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "34a69f9cdfff70630b3767e0da4f10522d3a5f891ff3f4c441a9e90ca116a0be"
+          "sha256": "43228120302ec2e07be7378738f0cc05f62809cf8c08a1b2b90d79db7deca1c2"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
-          "sha256": "35ea8062b8c1ac98980d6ca96e6109606d848fa927da60edd1b3bfaf5179ee66"
+          "sha256": "7dd6e17c4114faae580b342290f3946357e4b818707585cba43459df80734eb1"
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "a3c3dff1a7e68ad8c5ca083e85ac0a4f618bf37e82948fa0dce3e5ddff7c29cf"
+          "sha256": "0c8e3fce3caa7b152c2ae76ad03707063686521223a1d0aa5eb6b136ac530f6c"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "2fd48f54f8b53649ffab263d3822300dc362094673435dda7b2dc111741d5191"
+          "sha256": "9a23b7712420955ae06907f69c6766d20ddf21e4d31a1cfb32d3a6caf0af4155"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
           "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        },
+        {
+          "path": "tools/activation_runtime/mcp_server.py",
+          "sha256": "59169af1d5755265f5fe5c0ce7c535ed0996b7f7a165db5ac78a99e66f57a477"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_gardener_agents.py",
       "remaining": "Merged review and release/package acceptance; Python/TypeScript/CLI golden parity covers all four operations and refusal behavior.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"

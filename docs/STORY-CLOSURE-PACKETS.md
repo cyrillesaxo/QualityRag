@@ -568,7 +568,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 3 | Replay deterministically rebuilds tree after restart. | SOFTWARE | TESTED | `test_runtime.test_fork_synthesis_prune_reopen_and_restart` |
 | 4 | No inference-generated concept is treated as reviewer-approved. | SOFTWARE | TESTED | `test_runtime.test_evidence_status_reflects_ledger_and_never_inherits` |
 
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py'`
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_garden_query.py'`
 - **Inventory blocking text:** Merged review and independent restart/custody replay.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 
@@ -607,7 +607,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 3 | Structural edits are previewable and reversible, promotion requires review. | SOFTWARE | TESTED | `test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout` |
 | 4 | Reports false merges, branch churn, cost and utility; no autonomous truth claim. | SOFTWARE | TESTED | `test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty` |
 
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_proposals.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py'`
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_proposals.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_garden_web.py'`
 - **Inventory blocking text:** Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
 - **Notes:** Duplicate detection is exact-statement only; paraphrase detection would need a semantic labeler.
@@ -699,6 +699,6 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 3 | Unsupported API options explicitly fail. | SOFTWARE | TESTED | `test_service_sdk.test_unsupported_options_and_cross_tenant_fallback_refuse_in_both_sdks_and_cli` |
 | 4 | Examples demonstrate external PackSpec and source-backed receipts. | SOFTWARE | TESTED | `test_reviewed_workflow.test_python_typescript_and_cli_match_on_all_three_outcomes` |
 
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_service_sdk.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_reviewed_workflow.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py'`; `(cd sdk/typescript && npm ci && npm test)`
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_service_sdk.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_reviewed_workflow.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_browser.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_gardener_agents.py'`; `(cd sdk/typescript && npm ci && npm test)`
 - **Inventory blocking text:** Merged review and release/package acceptance; Python/TypeScript/CLI golden parity covers all four operations and refusal behavior.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.

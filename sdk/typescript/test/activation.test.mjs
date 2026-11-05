@@ -40,3 +40,17 @@ test('activation SDK refuses unsafe response integers instead of silently roundi
     await assert.rejects(client.request('status',{}),/Unsupported JSON number/);
   } finally {globalThis.fetch=original;}
 });
+
+
+test('gardener methods use the documented routes and payloads',async()=>{
+  const original=globalThis.fetch,calls=[];
+  try {
+    globalThis.fetch=async(url,init)=>{calls.push([url,JSON.parse(init.body)]);return new Response('{"ok":true}',{status:200});};
+    const client=new ActivationClient('http://127.0.0.1:9',token);
+    await client.gardenQuery({text:'labeler',open_challenge:true,since:3});
+    await client.gardenState();await client.gardenSuggestions();
+    await client.gardenEvent({event_id:'e1',operation:'CHALLENGE',branch:'b',source_sha256:'a'.repeat(64),source_ref:'turn:1',statement:'s',parents:[]});
+    assert.deepEqual(calls.map(([url])=>url.split('/api/')[1]),['gardener/query','gardener/state','gardener/proposals','gardener/event']);
+    assert.deepEqual(calls[0][1],{text:'labeler',open_challenge:true,since:3});
+  } finally {globalThis.fetch=original;}
+});

@@ -174,3 +174,71 @@ class BrowserWorkspaceTests(unittest.TestCase):
                 self.assertEqual(page.locator("#token").input_value(),"")
                 self.assertIn("Workspace: b",page.locator("#status").text_content())
             finally:browser.close()
+
+
+@unittest.skipUnless(os.environ.get("QUALITYRAG_BROWSER_TESTS")=="1" and importlib.util.find_spec("playwright"),
+                     "Real browser suite requires opt-in and installed Chromium")
+class GardenTreeBrowserTests(unittest.TestCase):
+    def test_tree_renders_selects_queries_replays_and_grows_live(self):
+        from playwright.sync_api import sync_playwright
+        with tempfile.TemporaryDirectory() as temp:
+            key=Ed25519PrivateKey.generate()
+            token=issue_access(subject="reviewer",tenant="demo",scopes=["read","write","review"],
+                key=key,key_id="issuer",issued_at="2026-11-04T00:00:00Z",expires_at="2026-11-05T00:00:00Z")
+            encoded=base64.urlsafe_b64encode(canonical(token)).decode().rstrip("=")
+            app=Application(temp,access_keys={"issuer":key.public_key()},release_keys={},clock=lambda:"2026-11-04T12:00:00Z")
+            auth="Bearer "+encoded
+            source=app.dispatch("source",{"base64":base64.b64encode(b"Research notes").decode()},auth)["source_sha256"]
+            def event(i,op,branch,statement,parents=()):
+                app.dispatch("gardener/event",{"event_id":i,"operation":op,"branch":branch,"source_sha256":source,
+                    "source_ref":"turn:"+i,"statement":statement,"parents":list(parents)},auth)
+            event("e1","PROPOSE","gate","An evidence gate stops unsupported answers")
+            event("e2","PROPOSE","lexical","Word overlap is a sufficient labeler",["gate"])
+            event("e3","PROPOSE","llm","An LLM labeler with exact quotes",["gate"])
+            event("e4","CHALLENGE","lexical","Adversarial questions reuse the passage wording")
+            event("e5","PRUNE","lexical","Not viable alone")
+            event("e6","SYNTHESIZE","shared","One labeler for gate and Gardener",["gate","llm"])
+            http=server(app);thread=Thread(target=http.serve_forever,daemon=True);thread.start()
+            try:
+                with sync_playwright() as runtime:
+                    executable=os.environ.get("QUALITYRAG_BROWSER_EXECUTABLE")
+                    browser=runtime.chromium.launch(headless=True,args=["--no-sandbox"],**({"executable_path":executable} if executable else {}))
+                    page=browser.new_page(viewport={"width":1280,"height":1000})
+                    errors=[];page.on("pageerror",lambda error:errors.append(str(error)))
+                    page.goto("http://127.0.0.1:"+str(http.server_port))
+                    page.get_by_label("Access token").fill(encoded)
+                    page.get_by_role("button",name="Open workspace").click()
+                    nodes=page.locator("#garden-svg .node")
+                    nodes.first.wait_for()
+                    self.assertEqual(nodes.count(),4)
+                    self.assertIn("pruned",page.locator('#garden-svg .node[data-branch="lexical"]').get_attribute("aria-label"))
+                    page.locator('#garden-svg .node[data-branch="llm"]').click()
+                    page.locator("#garden-inspector h3").filter(has_text="An LLM labeler with exact quotes").wait_for()
+                    page.locator('#garden-svg .node[data-branch="shared"]').focus();page.keyboard.press("Enter")
+                    page.locator("#garden-inspector").filter(has_text="synthesis · never inherits validation").wait_for()
+                    # Challenge from the inspector appends a real event.
+                    page.locator('#garden-svg .node[data-branch="llm"]').click()
+                    page.get_by_role("button",name="Challenge").click()
+                    page.get_by_label("Counterexample or objection").fill("Self-abstaining LLMs may match it")
+                    page.get_by_role("button",name="Append CHALLENGE").click()
+                    page.locator('#garden-svg .node[data-branch="llm"]').filter(has_text="open challenge").wait_for()
+                    # Query highlights matches only.
+                    page.locator("#garden-text").fill("labeler");page.get_by_role("button",name="Query").click()
+                    page.locator("#garden-result").filter(has_text="3 matching branches").wait_for()
+                    self.assertEqual(page.locator('#garden-svg .node[data-branch="gate"]').get_attribute("opacity"),"0.22")
+                    page.locator("#garden-filter").select_option("all");page.locator("#garden-text").fill("")
+                    page.get_by_role("button",name="Query").click()
+                    # Replay to before the synthesis.
+                    page.locator("#garden-time").fill("5");page.locator("#garden-time").dispatch_event("input")
+                    page.locator("#garden-time-label").filter(has_text="event 5 / 7").wait_for()
+                    self.assertEqual(page.locator('#garden-svg .node[data-branch="shared"]').count(),0)
+                    page.locator("#garden-time").fill("7");page.locator("#garden-time").dispatch_event("input")
+                    # Another client's event appears without a reload.
+                    event("e8","PROPOSE","prefilter","Overlap as a cheap pre-filter",["lexical"])
+                    page.locator('#garden-svg .node[data-branch="prefilter"]').wait_for(timeout=12000)
+                    page.locator("#garden-result").filter(has_text="new event").wait_for()
+                    page.set_viewport_size({"width":390,"height":844})
+                    self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"),390)
+                    self.assertEqual(errors,[])
+                    browser.close()
+            finally:http.shutdown();http.server_close()

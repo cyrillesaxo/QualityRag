@@ -1,10 +1,22 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag Research Review</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag Research Review</title><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script></head>
 <body><header><a href="/" aria-label="QualityRag home">QualityRag</a><span>Research review</span></header><main>
 <h1>Keep the evidence in view.</h1><p>Review research branches, inspect proposed changes, and preserve their source history.</p>
 <form id="connect"><label for="token">Access token</label><input id="token" type="password" autocomplete="off" required placeholder="Paste a signed access token"><button type="submit">Open workspace</button></form>
 <p id="status" role="status">Connect to load your authorized workspace.</p>
 <section id="workspace" hidden>
+<section id="garden" class="observatory" aria-labelledby="garden-title">
+<div class="obs-head"><div><p class="obs-kicker">Semantic Gardener</p><h2 id="garden-title">Research tree</h2></div>
+<form id="garden-query" role="search"><label for="garden-text">Query the tree</label><input id="garden-text" type="search" maxlength="200" placeholder="Hypothesis, challenge or source">
+<label for="garden-filter">Show</label><select id="garden-filter"><option value="all">All branches</option><option value="active">Active</option><option value="open">Open challenges</option><option value="tested">Tested</option><option value="unverified">Unverified</option></select>
+<button type="submit">Query</button></form>
+<label class="obs-live"><input type="checkbox" id="garden-live" checked> Live growth</label></div>
+<div class="obs-body"><div class="obs-canvas"><svg id="garden-svg" role="img" aria-label="Research tree"></svg></div>
+<aside id="garden-inspector" aria-live="polite"><p class="obs-empty">Select a branch to inspect its history.</p></aside></div>
+<div class="obs-history"><label for="garden-time">Replay history</label><input type="range" id="garden-time" min="0" max="0" value="0"><span id="garden-time-label">No events yet</span></div>
+<p id="garden-result" class="obs-result" role="status"></p>
+<details class="obs-feed-wrap"><summary>Growth feed</summary><ol id="garden-feed" class="obs-feed"></ol></details>
+</section>
 <details id="new-branch"><summary>Add a research branch</summary>
 <form id="propose"><label for="branch-name">Branch name</label><input id="branch-name" required maxlength="100" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" placeholder="research-hypothesis">
 <label for="statement">Hypothesis or observation</label><textarea id="statement" required maxlength="2000" rows="3"></textarea>

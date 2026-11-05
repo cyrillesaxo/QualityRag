@@ -30,6 +30,14 @@ def main(argv=None):
     p=sub.add_parser("train-scene");p.add_argument("--source",action="append",required=True);p.add_argument("--out",required=True)
     p=sub.add_parser("encode-scene");p.add_argument("--source",required=True);p.add_argument("--model",required=True);p.add_argument("--out",required=True)
     p=sub.add_parser("decode-scene");p.add_argument("--payload",required=True);p.add_argument("--model",required=True);p.add_argument("--out",required=True)
+    p=sub.add_parser("garden",help="query and grow the Semantic Gardener research tree")
+    p.add_argument("action",choices=["state","query","suggestions","event","watch"])
+    p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True)
+    p.add_argument("--text");p.add_argument("--evidence-status");p.add_argument("--lineage-of")
+    p.add_argument("--open-challenge",action="store_true");p.add_argument("--active-only",action="store_true")
+    p.add_argument("--since",type=int,default=0);p.add_argument("--limit",type=int,default=200)
+    p.add_argument("--request",help="event JSON for the event action")
+    p.add_argument("--interval",type=float,default=2.0);p.add_argument("--max-polls",type=int,default=0,help="watch: stop after N polls (0 = until interrupted)")
     p=sub.add_parser("serve");p.add_argument("--root",required=True);p.add_argument("--keys",required=True);p.add_argument("--port",type=int,default=8769)
     args=parser.parse_args(argv)
     if args.command=="catalog":
@@ -50,6 +58,32 @@ def main(argv=None):
             else:result=client.activate_plan(**read(args.request))
         elif args.command=="trace":result=client.trace(**read(args.request))
         else:result=client.evaluate(**read(args.request))
+    elif args.command=="garden":
+        sdk=str(Path(__file__).resolve().parents[2]/"sdk"/"python")
+        if sdk not in sys.path:sys.path.insert(0,sdk)
+        from qualityrag_activation import Client
+        client=Client(args.endpoint,read(args.token))
+        filters={k:v for k,v in {"text":args.text,"evidence_status":args.evidence_status,"lineage_of":args.lineage_of,
+                 "open_challenge":True if args.open_challenge else None,"active":True if args.active_only else None,
+                 "limit":args.limit}.items() if v is not None}
+        if args.action=="state":result=client.garden_state()
+        elif args.action=="suggestions":result=client.garden_suggestions()
+        elif args.action=="event":
+            if not args.request:raise ValueError("--request event JSON required")
+            result=client.garden_event(**read(args.request))
+        elif args.action=="query":result=client.garden_query(since=args.since,**filters)
+        else:
+            # Stream the tree's growth as JSON lines: one line per new event.
+            if not 0.5<=args.interval<=300:raise ValueError("Watch interval between 0.5 and 300 seconds")
+            import time
+            since,polls=args.since,0
+            while True:
+                delta=client.garden_query(since=since,limit=1)
+                for event in delta["events"]:print(json.dumps(event,sort_keys=True),flush=True)
+                since=delta["head_sequence"] if not delta["events_truncated"] else since+len(delta["events"])
+                polls+=1
+                if args.max_polls and polls>=args.max_polls:return
+                time.sleep(args.interval)
     elif args.command=="observations":
         from .semantic_ir import evaluate
         with Path(args.source).open("rb") as stream:raw=stream.read(65537)

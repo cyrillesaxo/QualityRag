@@ -5,6 +5,11 @@ export type ReviewedActivationResult={schema:'qualityrag.reviewed-activation/v1'
 export type ObservationGraphResult={schema:'qualityrag.observation-result/v1';ast:Record<string,unknown>;transition:Record<string,unknown>|null;source_sha256:string;type_status:'WELL_TYPED';domain_validity:'UNKNOWN';canonical_apx_parity:'NOT_ESTABLISHED';can_generate:false};
 export type ValidationResult={valid:true;semantic_admission:'INCONCLUSIVE'};
 export type FallbackResult={source_sha256:string;base64:string;fallback:'AUTHORIZED_ORIGINAL_BYTES'};
+export type GardenOperation='PROPOSE'|'CHALLENGE'|'TEST'|'SYNTHESIZE'|'PRUNE'|'REOPEN';
+export type GardenEvent={event_id:string;operation:GardenOperation;branch:string;source_sha256:string;source_ref:string;statement:string;parents:string[];evidence_ids?:string[]};
+export type GardenQuery={text?:string;evidence_status?:string;open_challenge?:boolean;active?:boolean;lineage_of?:string;since?:number;limit?:number};
+export type GardenBranchSummary={branch:string;statement:string;active:boolean;evidence_status:string;parents:string[];children:string[];open_challenge:boolean;events:number;created_sequence:number;last_sequence:number;source_ref:string;source_sha256:string};
+export type GardenQueryResult={schema:'qualityrag.gardener-query/v1';branches:GardenBranchSummary[];total:number;truncated:boolean;events:Record<string,unknown>[];since:number;head_sequence:number;events_truncated:boolean;independent_validation:'NOT_ESTABLISHED'};
 function base64(bytes:Uint8Array):string {return btoa(Array.from(bytes,value=>String.fromCharCode(value)).join(""));}
 function endpoint(value:string):string {
   if(typeof value!=='string'||value.includes('\\')||/[\u0000-\u0020\u007f]/.test(value)||!/^[a-z][a-z0-9+.-]*:\/\/[^/?#]/i.test(value))throw Error('Trusted HTTPS or loopback endpoint required');
@@ -28,7 +33,7 @@ export class ActivationClient {
     this.bearer=base64(new TextEncoder().encode(wireJson(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
   }
   async request(route:string,payload:Record<string,unknown>):Promise<any>{
-    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome'].includes(route))throw Error('Unsupported SDK route');
+    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome','gardener/query'].includes(route))throw Error('Unsupported SDK route');
     const response=await fetch(this.baseUrl+'/api/'+route,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+this.bearer},
       body:wireJson(payload),redirect:'error',signal:AbortSignal.timeout(10000)});
@@ -48,4 +53,9 @@ export class ActivationClient {
   async trace(input:Record<string,unknown>):Promise<string[]>{return (await this.evaluate(input)).trace;}
   fallback(source_sha256:string):Promise<FallbackResult>{return this.request('fallback',{source_sha256});}
   upload(raw:Uint8Array){return this.request('source',{base64:base64(raw)});}
+  /** Semantic Gardener. The server sets actor and time from the token; prune/reopen/synthesize need review scope. */
+  gardenState():Promise<Record<string,unknown>>{return this.request('gardener/state',{});}
+  gardenQuery(filters:GardenQuery={}):Promise<GardenQueryResult>{return this.request('gardener/query',filters as Record<string,unknown>);}
+  gardenSuggestions():Promise<Record<string,unknown>>{return this.request('gardener/proposals',{});}
+  gardenEvent(event:GardenEvent):Promise<Record<string,unknown>>{return this.request('gardener/event',event as unknown as Record<string,unknown>);}
 }

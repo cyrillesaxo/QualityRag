@@ -41,7 +41,7 @@ class Gardener:
         self.db.close()
 
     def replay(self):
-        branches, events, previous = {}, {}, None
+        branches, events, previous, order = {}, {}, None, []
         for sequence, event_id, body_raw, event_hash in self.db.execute(
                 "SELECT sequence,event_id,body,event_hash FROM gardener_events ORDER BY sequence"):
             body = json.loads(body_raw)
@@ -75,7 +75,8 @@ class Gardener:
                     "prior_challenges": list(branches[branch].get("challenges", [])),
                     "parents": list(branches[branch]["parents"])}
             branches[branch]["events"].append(event_id)
-            events[event_id] = body
+            events[event_id] = {**body, "sequence": len(order) + 1}  # 1-based position in the chain
+            order.append(event_id)
             previous = event_hash
         # Evidence status is owned by the Research Ledger (which only records VALIDATED through
         # a host-installed verifier); the Gardener reports it and never upgrades it itself.
@@ -83,7 +84,8 @@ class Gardener:
                     for claim in ledger.progress(self.db, project="semantic-gardener")["claims"]}
         for info in branches.values():
             info["evidence_status"] = statuses.get(info["claim_id"], "UNVERIFIED")
-        return {"branches": branches, "events": events, "head": previous,
+        return {"branches": branches, "events": events, "head": previous, "order": order,
+                "head_sequence": len(order),
                 "independent_validation": "NOT_ESTABLISHED"}
 
     def append(self, *, event_id, operation, branch, actor, source_sha256,
@@ -143,3 +145,80 @@ class Gardener:
             self.db.rollback()
             raise
         return self.replay()
+
+
+QUERY_KEYS = {"text", "evidence_status", "open_challenge", "active", "lineage_of", "since", "limit"}
+
+
+def _open_challenge(state, info):
+    history = [state["events"][eid] for eid in info["events"]]
+    last = max((i for i, e in enumerate(history) if e["operation"] == "CHALLENGE"), default=None)
+    return last is not None and not any(e["operation"] == "TEST" for e in history[last + 1:])
+
+
+def query(state, *, text=None, evidence_status=None, open_challenge=None, active=None,
+          lineage_of=None, since=0, limit=200):
+    """Read-only query over a replayed garden.
+
+    Filters combine with AND. ``lineage_of`` keeps a branch with its ancestors and descendants.
+    ``since`` returns the events appended after that sequence number, so a client can follow
+    the tree as it grows without reloading it. Nothing here validates a claim.
+    """
+    if text is not None and (not isinstance(text, str) or len(text) > 200):
+        raise ValueError("Bounded text query required")
+    if evidence_status is not None and not isinstance(evidence_status, str):
+        raise ValueError("Evidence status must be a string")
+    for name, value in (("open_challenge", open_challenge), ("active", active)):
+        if value is not None and type(value) is not bool:
+            raise ValueError(name + " must be a boolean")
+    if type(since) is not int or since < 0 or type(limit) is not int or not 1 <= limit <= 500:
+        raise ValueError("Bounded since/limit required")
+    branches = state["branches"]
+    children = {name: [] for name in branches}
+    for name, info in branches.items():
+        for parent in info["parents"]:
+            children[parent].append(name)
+    keep = None
+    if lineage_of is not None:
+        if lineage_of not in branches:
+            raise ValueError("Unknown branch")
+        keep, stack = {lineage_of}, [lineage_of]
+        while stack:  # ancestors
+            for parent in branches[stack.pop()]["parents"]:
+                if parent not in keep:
+                    keep.add(parent); stack.append(parent)
+        down, stack = set(), [lineage_of]
+        while stack:  # descendants
+            for child in children[stack.pop()]:
+                if child not in down:
+                    down.add(child); stack.append(child)
+        keep |= down
+    needle = text.casefold().strip() if text else None
+    rows = []
+    for name, info in branches.items():
+        history = [state["events"][eid] for eid in info["events"]]
+        opened = _open_challenge(state, info)
+        if keep is not None and name not in keep:
+            continue
+        if evidence_status is not None and info["evidence_status"] != evidence_status:
+            continue
+        if open_challenge is not None and opened != open_challenge:
+            continue
+        if active is not None and info["active"] != active:
+            continue
+        if needle and needle not in (name + " " + " ".join(e["statement"] for e in history)).casefold():
+            continue
+        first = history[0]
+        rows.append({"branch": name, "statement": first["statement"], "active": info["active"],
+                     "evidence_status": info["evidence_status"], "parents": list(info["parents"]),
+                     "children": sorted(children[name]), "open_challenge": opened,
+                     "events": len(history), "created_sequence": first["sequence"],
+                     "last_sequence": history[-1]["sequence"], "source_ref": first["source_ref"],
+                     "source_sha256": first["source_sha256"]})
+    rows.sort(key=lambda r: r["created_sequence"])
+    new_events = [state["events"][eid] for eid in state["order"][since:since + 500]]
+    return {"schema": "qualityrag.gardener-query/v1", "branches": rows[:limit], "total": len(rows),
+            "truncated": len(rows) > limit, "events": new_events, "since": since,
+            "head_sequence": state["head_sequence"], "events_truncated": state["head_sequence"] - since > 500,
+            "independent_validation": "NOT_ESTABLISHED"}
+

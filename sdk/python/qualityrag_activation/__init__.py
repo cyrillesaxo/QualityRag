@@ -100,7 +100,7 @@ class Client:
         self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
-        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome"}:
+        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome","gardener/query"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
@@ -115,3 +115,22 @@ class Client:
     def trace(self,**payload)->list[str]:return self.evaluate(**payload)["trace"]
     def fallback(self,source_sha256:str)->FallbackResult:return self.request("fallback",{"source_sha256":source_sha256})
     def upload(self,raw):return self.request("source",{"base64":base64.b64encode(raw).decode()})
+
+    # ---- Semantic Gardener -------------------------------------------------------------
+    # Actor and time are set by the server from the signed token; agents with write scope can
+    # propose, challenge and test, while prune, reopen and synthesize need review scope.
+    def garden_state(self)->dict[str,object]:return self.request("gardener/state",{})
+    def garden_query(self,**filters)->dict[str,object]:
+        """Filters: text, evidence_status, open_challenge, active, lineage_of, since, limit."""
+        return self.request("gardener/query",filters)
+    def garden_suggestions(self)->dict[str,object]:return self.request("gardener/proposals",{})
+    def garden_event(self,*,event_id:str,operation:str,branch:str,source_sha256:str,source_ref:str,
+                     statement:str,parents:list[str]|None=None,evidence_ids:list[str]|None=None)->dict[str,object]:
+        body={"event_id":event_id,"operation":operation,"branch":branch,"source_sha256":source_sha256,
+              "source_ref":source_ref,"statement":statement,"parents":list(parents or [])}
+        if evidence_ids is not None:body["evidence_ids"]=list(evidence_ids)
+        return self.request("gardener/event",body)
+    def garden_outcome(self,*,proposal_id:str,verdict:str,useful:bool,elapsed_ms:int,false_merge:bool)->dict[str,object]:
+        return self.request("gardener/outcome",{"proposal_id":proposal_id,"verdict":verdict,"useful":useful,
+                                                "elapsed_ms":elapsed_ms,"false_merge":false_merge})
+
