@@ -198,3 +198,41 @@ the remaining candidates, the result marks
 evidence regime. No candidate becomes a champion merely by winning a
 training comparison. This is a bounded active-test mechanism, **not**
 implementation of the canonical 15-cell D15/FFI investigator.
+
+## Source-version lifecycle and replay (increment v0.2)
+
+`rct_garden_lifecycle.py` now registers the bounded research experiment with
+its exact training, evaluation, and revised-source SHA-256 identities in the
+**existing append-only QualityRag research ledger**. Source identity here is
+content fingerprinting, **not external source authenticity**.
+
+`inspect_revisions` compares an observed source manifest against the
+original experiment dependencies, including removed and unexpected sources.
+`reopen_on_revision` emits a source-observation record followed by a new
+`INCONCLUSIVE` assessment event if any bound source changes. Repeated
+identical observations do not duplicate research events.
+
+The retained event is an invalidation/replay **request**, not a replayed
+experiment. The research cannot become `VALIDATED` or `ADMIT` from these
+writes, and the original branch/events remain intact.
+
+### Reproducible end-to-end local demonstration
+
+```bash
+python tools/semantic_store/rct_garden_lifecycle_demo.py \
+  --db /tmp/garden-research.sqlite \
+  --receipt /tmp/garden-experiment.json \
+  --uri https://example.org/research/replace-with-real-receipt-uri
+```
+
+The demonstration uses *synthetic* data, persists a research experiment,
+simulates a new source revision, and appends the reopening event. Its example
+URI does not authenticate a document, and the separately written receipt
+file is not automatically uploaded to that URI.
+
+**Remaining limitation:** Existing research-ledger write functions commit
+individual records; this adapter is not yet an atomic multi-write
+transaction and can leave a partial local record on process interruption.
+Only the canonical ledger backend should own transactional writes in a
+production integration. The lifecycle is manually invoked and not
+a continuously running scheduler.
