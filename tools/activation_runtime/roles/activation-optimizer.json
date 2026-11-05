@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/agents/activation-optimizer/v1.0",
+  "title": "activation-optimizer bounded research task",
+  "type": "object",
+  "properties": {
+    "modules": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_modules": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "decoder_variants": {
+      "type": "array",
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "scalar",
+          "strided"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

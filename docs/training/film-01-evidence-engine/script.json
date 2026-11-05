@@ -1,0 +1,52 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "qualityrag-the-evidence-engine",
+  "title": "QualityRag · The Evidence Engine",
+  "theme": "cine",
+  "score": true,
+  "voice": {"engine": "kokoro-v1.0", "voice": "af_bella", "lang": "en-us", "speed": 0.93, "sentence_gap": 0.5},
+  "scenes": [
+    {"id": "cold_open", "kind": "animation", "pad": [0.8, 1.0], "say": [
+      "Eighty-five thousand documents.",
+      "One question.",
+      "And an answer that sounds completely certain."]},
+    {"id": "witness", "kind": "animation", "pad": [0.5, 1.2], "say": [
+      "Meet the deceptive witness.",
+      "Evidence that looks like support, but isn't.",
+      "Two citations agree, until you trace them back to one original.",
+      "An incident report describes the past. It does not authorize the present.",
+      "And a runbook from twenty twenty-four still speaks with a confidence it no longer has."]},
+    {"id": "packspec", "kind": "animation", "pad": [0.5, 1.2], "say": [
+      "QualityRag answers with a contract.",
+      "A PackSpec declares what any answer must prove: each requirement, how many independent sources, and how fresh they must be.",
+      "It is versioned, and the same contract runs in ten languages.",
+      "No language model decides whether the evidence is enough."]},
+    {"id": "verdicts", "kind": "animation", "pad": [0.5, 1.2], "say": [
+      "Every check ends in one of three verdicts.",
+      "Admit.",
+      "Inconclusive.",
+      "Refuse.",
+      "When proof is missing, the answer is withheld, and the gap is named.",
+      "And admit means the declared checks passed. Not that the source is true."]},
+    {"id": "live", "kind": "console", "pad": [0.4, 1.0], "tf": ["04", "Live engine"],
+     "prep": ["signin", "open_ask", "run_check"],
+     "zoom": {"x": 390, "y": 0, "w": 1500},
+     "steps": [
+      {"say": "This is not a mockup. It is the live engine, checking a real policy.", "do": "point_headline"},
+      {"say": "Remove one memo, and the verdict changes.", "do": "untick_memo_in_place"},
+      {"say": "Not enough evidence. The gap is named.", "do": "point_inconclusive"}]},
+    {"id": "garden", "kind": "animation", "pad": [0.5, 1.4], "say": [
+      "But a contract is only as good as the knowledge behind it.",
+      "So QualityRag grows a Semantic Garden: an append-only research tree.",
+      "People and AI agents propose, challenge, test, and synthesize.",
+      "Nothing is ever deleted.",
+      "A pruned branch can be reopened, when new evidence arrives."]},
+    {"id": "evolve", "kind": "animation", "pad": [0.5, 2.0], "say": [
+      "Candidates compete with the champion on fresh, held-out families, under the same PackSpec.",
+      "The winner is promoted. The other is kept, because a counterexample is knowledge.",
+      "That is the loop: find failure, investigate, propose, test, retain, and promote, or reopen."]},
+    {"id": "finale", "kind": "animation", "pad": [0.6, 3.0], "say": [
+      "Evidence before answers.",
+      "QualityRag. Start with the Academy, or read the code."]}
+  ]
+}

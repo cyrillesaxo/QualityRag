@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/agents/decomposition/v1.0",
+  "title": "decomposition bounded research task",
+  "type": "object",
+  "properties": {
+    "obligations": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

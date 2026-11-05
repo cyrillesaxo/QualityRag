@@ -1,0 +1,52 @@
+{
+  "author": "fixture-author",
+  "authorization": "REQUIRES_SIGNED_REVIEW",
+  "default_unspecified": "PRESERVE_IN_RESIDUAL",
+  "ir_sha256": "efea8897a4a6c28769069087ab0d5e5e8438c6bfc6dd862de953e41abed91d6d",
+  "obligations": [
+    {
+      "anchor": {
+        "key": "symptom_quote",
+        "kind": "json-key",
+        "value_sha256": "6904a5e82beecb07160f7d28388e5cc24a9cac289a976ca38681fdb14fd32d56"
+      },
+      "field": "symptom_quote",
+      "ir_node_id": "field-symptom_quote",
+      "mode": "EXACT",
+      "omission_permitted": false,
+      "tolerance": null
+    },
+    {
+      "anchor": {
+        "key": "context_quote",
+        "kind": "json-key",
+        "value_sha256": "5bb114377b2b5dcfc8d6d6ecf8e37a387c8c73d4b6b9eeb524ca698eb9919e1a"
+      },
+      "field": "context_quote",
+      "ir_node_id": "field-context_quote",
+      "mode": "EXACT",
+      "omission_permitted": false,
+      "tolerance": null
+    },
+    {
+      "anchor": {
+        "key": "diagnosis",
+        "kind": "json-key",
+        "value_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "field": "diagnosis",
+      "ir_node_id": "field-diagnosis",
+      "mode": "UNKNOWN",
+      "omission_permitted": false,
+      "tolerance": null
+    }
+  ],
+  "policy_source_sha256": "90902876ff4ad3690b8b4f909896b3b2b3502ddbac4865ad9efef785143307ec",
+  "reviewer": "independent-review-required",
+  "schema": "qualityrag.preservation-contract/v1",
+  "source_sha256": "c0e383ddd7fbcc255ffc331d69169686fb3a3c1553bb514a9f222292315dc1a7",
+  "task": "clinical-description",
+  "tenant": "research",
+  "unspecified_fields": [],
+  "version": "1.0"
+}

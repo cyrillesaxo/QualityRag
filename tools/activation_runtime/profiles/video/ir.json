@@ -1,0 +1,114 @@
+{
+  "assurance": "NO_AUTOMATIC_SEMANTIC_ENFORCEMENT",
+  "ir_sha256": "a56a3f2bbccc84ef5074c5e3c90e552ac8e41a4d7fb7d07e563f3ecd374a8ae7",
+  "nodes": [
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-frame_sha256",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-frame_sha256"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0001",
+        "location": "/requirements/0",
+        "quotation": "Independent custody evidence for frame_sha256 is required.",
+        "quotation_sha256": "38a718c375e3d4cefb5ce4c86a91af4e26754f8fc633d212f4dfa55cfe715d5b",
+        "source_sha256": "ee40762bd73562c9aee9e3c771458b1d5577c7fb5c63e220a646604de1d47be2"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-pts",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-pts"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0002",
+        "location": "/requirements/1",
+        "quotation": "Independent custody evidence for pts is required.",
+        "quotation_sha256": "607f4b4ee482b45f928b5e3fd19acacb7eef9869795340cfe4728ed5125fd7b5",
+        "source_sha256": "ee40762bd73562c9aee9e3c771458b1d5577c7fb5c63e220a646604de1d47be2"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-subtitle_text",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-subtitle_text"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0003",
+        "location": "/requirements/2",
+        "quotation": "Independent custody evidence for subtitle_text is required.",
+        "quotation_sha256": "8a5e5556a6fc2e6727a728fa55e6cdc56ef44f88dbe1b2cf1ed1925638379be7",
+        "source_sha256": "ee40762bd73562c9aee9e3c771458b1d5577c7fb5c63e220a646604de1d47be2"
+      },
+      "status": "PROJECTION_ONLY"
+    },
+    {
+      "kind": "EVIDENCE_PRESENCE",
+      "node_id": "field-identity",
+      "parameters": {
+        "min_independent_sources": 1,
+        "requirement_id": "field-identity"
+      },
+      "review": {
+        "approved": true,
+        "authentication": "UNVERIFIED_REVIEWER_LABEL",
+        "rationale": "Separate domain preservation fixture; independent reviewer authority is not supplied",
+        "reviewed_by": "AUTHORED_FIXTURE_LABEL_ONLY"
+      },
+      "runtime": "METADATA_GATE_V0_1",
+      "source": {
+        "candidate_id": "C0004",
+        "location": "/requirements/3",
+        "quotation": "Independent custody evidence for identity is required.",
+        "quotation_sha256": "84d716d174d6a5d91d7ac30fe0e1202ce66c2d34f12c9de2e125546d5086955c",
+        "source_sha256": "ee40762bd73562c9aee9e3c771458b1d5577c7fb5c63e220a646604de1d47be2"
+      },
+      "status": "PROJECTION_ONLY"
+    }
+  ],
+  "schema": "qualityrag.constraint-ir/v1",
+  "scope": "INSPECTION_DERIVED_CANDIDATES_ONLY",
+  "source": {
+    "bytes": 292,
+    "filename": "policy-source.json",
+    "format": "json",
+    "pack_id": "profile-video",
+    "sha256": "ee40762bd73562c9aee9e3c771458b1d5577c7fb5c63e220a646604de1d47be2",
+    "version": "1.0"
+  },
+  "summary": {
+    "deferred_semantic_constraints": 0,
+    "evidence_presence_projections": 4,
+    "semantic_constraints_executed": 0,
+    "total": 4
+  }
+}

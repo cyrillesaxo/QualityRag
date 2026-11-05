@@ -1,0 +1,30 @@
+/* Cinematic theme for flagship films: letterbox, HUD training frames, grain, glow. Enabled by .stage.cine */
+.stage.cine{background:#030508}
+.stage.cine .ambient{background:radial-gradient(1200px 700px at 50% 45%,rgba(87,224,204,.07),transparent 70%),radial-gradient(900px 600px at 90% 110%,rgba(124,108,255,.10),transparent 60%)}
+.stage.cine .ambient::after{display:none}
+.stage.cine .brandmark,.stage.cine .epmark{display:none}
+.cine-fx{position:absolute;inset:0;pointer-events:none;z-index:50}
+.cine-fx .bar{position:absolute;left:0;right:0;height:96px;background:#000}
+.cine-fx .bar.top{top:0}.cine-fx .bar.bot{bottom:0}
+.cine-fx .scan{position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.018) 0 1px,transparent 1px 4px)}
+.cine-fx .vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.65) 100%)}
+.cine-fx canvas{position:absolute;left:0;top:0;width:100%;height:100%;opacity:.07;mix-blend-mode:screen}
+.hud{position:absolute;inset:0;pointer-events:none;z-index:60;font-family:var(--mono);color:rgba(87,224,204,.75);font-size:17px;letter-spacing:.14em}
+.hud .corner{position:absolute;width:44px;height:44px;border-color:rgba(87,224,204,.55);border-style:solid;border-width:0}
+.hud .tl{left:48px;top:120px;border-left-width:2px;border-top-width:2px}.hud .tr{right:48px;top:120px;border-right-width:2px;border-top-width:2px}
+.hud .bl{left:48px;bottom:120px;border-left-width:2px;border-bottom-width:2px}.hud .br{right:48px;bottom:120px;border-right-width:2px;border-bottom-width:2px}
+.hud .lab{position:absolute;white-space:nowrap}
+.hud .rec{display:inline-block;width:10px;height:10px;border-radius:99px;background:#FF6B6B;margin-right:10px;vertical-align:1px}
+.cine-title{font-weight:750;letter-spacing:-.02em;color:#F3F6FA;text-shadow:0 0 28px rgba(87,224,204,.35)}
+.cine-kicker{font-family:var(--mono);font-size:20px;letter-spacing:.32em;color:#57E0CC;text-transform:uppercase}
+.holo{position:absolute;border:1.5px solid rgba(87,224,204,.38);background:linear-gradient(180deg,rgba(87,224,204,.07),rgba(87,224,204,.02));border-radius:14px;box-shadow:0 0 30px rgba(87,224,204,.12),inset 0 0 24px rgba(87,224,204,.05);backdrop-filter:blur(8px)}
+.holo.warn{border-color:rgba(245,196,107,.55);box-shadow:0 0 30px rgba(245,196,107,.14)}
+.holo.bad{border-color:rgba(255,120,120,.55);box-shadow:0 0 30px rgba(255,120,120,.14)}
+.holo.dim{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.02);box-shadow:none}
+.holo .meta{font:18px var(--mono);color:#8E97A5;letter-spacing:.04em}
+.holo .txt{font-size:27px;line-height:1.35;color:#EDEFF3;margin-top:8px}
+.tag{position:absolute;font:600 17px var(--mono);letter-spacing:.12em;padding:6px 12px;border-radius:6px;white-space:nowrap;text-transform:uppercase}
+.tag.ok{color:#04110E;background:#57E0CC}.tag.warn{color:#1A1203;background:#F5C46B}.tag.bad{color:#1A0505;background:#FF8A8A}.tag.dim{color:#C4CAD4;background:rgba(255,255,255,.12)}
+.code{font:26px/1.55 var(--mono);color:#C4CAD4;white-space:pre}
+.code .k{color:#A99BFF}.code .s{color:#57E0CC}.code .n{color:#F5C46B}
+.verdict{position:absolute;font-weight:800;letter-spacing:.06em;font-size:120px;white-space:nowrap}

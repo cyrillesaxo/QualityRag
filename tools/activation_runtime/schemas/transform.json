@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/schemas/transform/v1.0",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "qualityrag.finite-activation/v0.1"
+    },
+    "runtime": {
+      "const": "flat-json-rename/v1"
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "mapping": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 128,
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "payload": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 128,
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "additionalProperties": {
+        "type": [
+          "string",
+          "integer",
+          "number",
+          "boolean",
+          "null"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "runtime",
+    "source_sha256",
+    "mapping",
+    "payload"
+  ],
+  "additionalProperties": false
+}

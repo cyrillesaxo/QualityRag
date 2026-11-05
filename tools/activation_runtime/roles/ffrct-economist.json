@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/agents/ffrct-economist/v1.0",
+  "title": "ffrct-economist bounded research task",
+  "type": "object",
+  "properties": {
+    "costs": {
+      "type": "object",
+      "maxProperties": 32,
+      "additionalProperties": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0
+      }
+    }
+  },
+  "additionalProperties": false
+}

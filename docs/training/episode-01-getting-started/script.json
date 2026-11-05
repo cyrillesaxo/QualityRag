@@ -1,0 +1,51 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "episode-01-getting-started",
+  "title": "QualityRag 101 · Episode 1 · Getting started",
+  "voice": {"engine": "kokoro-v1.0", "voice": "af_bella", "lang": "en-us", "speed": 0.95, "sentence_gap": 0.4},
+  "scenes": [
+    {"id": "title", "kind": "animation", "pad": [0.6, 1.0], "say": [
+      "Welcome to QualityRag 101.",
+      "In this first episode, you'll run QualityRag on your own machine and check your first answer, in about four minutes."]},
+    {"id": "rag", "kind": "animation", "pad": [0.4, 0.8], "say": [
+      "Most retrieval systems work the same way.",
+      "They search your documents, hand the top passages to a language model, and the model answers.",
+      "It answers even when the passages don't really support it, like an old runbook that predates today's controls."]},
+    {"id": "gate", "kind": "animation", "pad": [0.4, 0.8], "say": [
+      "QualityRag adds a check before the answer.",
+      "Your policy lists what an answer needs.",
+      "For each requirement, the check counts independent sources, and rejects evidence that is too old or contradicted.",
+      "The result is one of three: supported, not enough evidence, or contradicted."]},
+    {"id": "copies", "kind": "animation", "pad": [0.4, 0.8], "say": [
+      "Two details matter.",
+      "Copies of the same document count once, so a mirrored handbook is still one source.",
+      "And conditional words, like unless, or only, are highlighted. The check counts the passage, but it does not read the condition. A person should."]},
+    {"id": "setup", "kind": "animation", "pad": [0.4, 0.8], "say": [
+      "Let's run it.",
+      "Clone the repository, and install the requirements.",
+      "The bootstrap command creates local keys, and a sign in token that lasts twenty four hours.",
+      "Then start the console, and open it in your browser."]},
+    {"id": "signin", "kind": "console", "pad": [0.3, 0.6], "steps": [
+      {"say": "Paste the token from browser token dot text, and open your workspace.", "do": "signin"},
+      {"say": "Home shows what needs your attention. The engine panel below lists every part of the machinery, read live from the server.", "do": "home_engine"}]},
+    {"id": "check", "kind": "console", "pad": [0.3, 0.6], "steps": [
+      {"say": "Open, check an answer. Sample data loads by itself, so you can try everything before bringing your own documents.", "do": "open_ask"},
+      {"say": "The checklist shows the passages your search returned. The requirements show what the answer needs.", "do": "tour_form"},
+      {"say": "Choose, check answer.", "do": "run_check"},
+      {"say": "The answer is supported. But read the line beside it: two requirements rely on conditional wording, and all three rest on a single source.", "do": "point_headline"}]},
+    {"id": "inspect", "kind": "console", "pad": [0.3, 0.6], "steps": [
+      {"say": "Select a requirement, to see exactly which passages were counted.", "do": "select_screening"},
+      {"say": "Here, the word unless is highlighted. The passage counts, but the condition needs a human reader.", "do": "point_unless"},
+      {"say": "And for the recovery procedure, the mirrored copy of the handbook is counted once, not twice.", "do": "select_recovery"}]},
+    {"id": "experiment", "kind": "console", "pad": [0.3, 0.6], "steps": [
+      {"say": "Now untick the memo about the emergency exception, and check again.", "do": "untick_memo"},
+      {"say": "One requirement has lost its only source, so the result becomes, not enough evidence.", "do": "point_inconclusive"},
+      {"say": "That is the core idea. The result follows the evidence, not the model's confidence.", "do": "hold"}]},
+    {"id": "health", "kind": "console", "pad": [0.3, 0.6], "steps": [
+      {"say": "Finally, open health.", "do": "open_health"},
+      {"say": "It lists what the check cannot see on its own, with a fix for each one. We'll work through them in episode two.", "do": "point_findings"}]},
+    {"id": "recap", "kind": "animation", "pad": [0.4, 1.6], "say": [
+      "You've installed QualityRag, signed in, and checked your first answer.",
+      "Next time: fixing what health finds."]}
+  ]
+}

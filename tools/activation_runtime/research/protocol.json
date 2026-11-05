@@ -1,0 +1,17 @@
+{
+  "id": "activation-research-v1",
+  "hypotheses": {
+    "H1": {"independent": "representation arm", "dependent": "payload plus shared-model bytes per independent family", "null": "No byte reduction at matched required fidelity"},
+    "H2": {"independent": "catalog size, reuse and device cohort", "dependent": "full lifecycle USD per watched hour", "null": "No lifecycle cost crossover"},
+    "H3": {"independent": "sparse versus full module activation", "dependent": "cold start and sustained activation nanoseconds", "null": "No activation-time improvement at matched fidelity"},
+    "H4": {"independent": "transformation arm and adversarial distinction", "dependent": "critical-field failure and abstention rates", "null": "Any critical distinction loss rejects preservation"},
+    "H5": {"independent": "transcript, graph or event-sourced Gardener", "dependent": "blinded source-recovery accuracy, false merges and total cost", "null": "No continuity advantage"},
+    "H6": {"independent": "fixed pair, decoder-only or paired evolution", "dependent": "heldout fidelity-qualified bytes, latency, energy and total search cost", "null": "No evolution advantage including search"}
+  },
+  "arms": ["av1", "neural", "no-grammar", "fixed", "decoder-only", "paired"],
+  "metrics": {"critical_field_failures_max": 0, "interval": "family-paired bootstrap, 2000 resamples, seed 1701", "human_rubric": "Blinded per-field preservation; two independent reviewers; report agreement and disagreements", "multiple_tests": "Report six hypotheses separately; no omnibus success from isolated gains"},
+  "rejection": {"critical_loss": "Immediate REFUSE", "missing_cost": "UNKNOWN, no savings claim", "missing_baseline": "INCONCLUSIVE comparator result", "nonpositive_advantage": "Retain negative or no-crossover result"},
+  "sample_plan": {"minimum_real_clips": 100, "unit": "underlying scene/problem family", "split": "family-disjoint train/dev/holdout", "power": "Estimate variance on dev families, then freeze final sample plan before opening holdout; 100 clips is an inventory floor, not a statistical power assertion"},
+  "dataset_sha256": "UNBOUND_UNTIL_AUTHORIZED_CORPUS_IS_REGISTERED",
+  "registered_at": "UNREGISTERED_TEMPLATE"
+}

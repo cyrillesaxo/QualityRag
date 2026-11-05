@@ -1,0 +1,2722 @@
+{
+  "schema": "qualityrag.software-verification-report/v1",
+  "scope": "HISTORICAL_COMPONENT_EVIDENCE_NOT_SYSTEM_ACCEPTANCE",
+  "tested_commit": "4fde137d8e19bd2e25944b437a4e559bc3db264c",
+  "ci": {
+    "commit": "4fde137d8e19bd2e25944b437a4e559bc3db264c",
+    "activation_run_id": 42035039771,
+    "job_id": 127270857723,
+    "runs": [
+      {
+        "id": 42035048264,
+        "name": "Additional SDKs",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048264"
+      },
+      {
+        "id": 42035048341,
+        "name": "Source PackSpec compiler",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048341"
+      },
+      {
+        "id": 42035048224,
+        "name": "Spring Boot integration",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048224"
+      },
+      {
+        "id": 42035048349,
+        "name": "Kotlin PHP Ruby Swift",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048349"
+      },
+      {
+        "id": 42035048389,
+        "name": "Studio and Registry",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048389"
+      },
+      {
+        "id": 42035048325,
+        "name": "APX PackSpec-derived examples",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048325"
+      },
+      {
+        "id": 42035048209,
+        "name": "Enterprise RAG training example",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048209"
+      },
+      {
+        "id": 42035048350,
+        "name": "Real document ingestion lab",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048350"
+      },
+      {
+        "id": 42035048250,
+        "name": "SDK CI",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048250"
+      },
+      {
+        "id": 42035048183,
+        "name": "PackSpec source selection",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048183"
+      },
+      {
+        "id": 42035048164,
+        "name": "APX Semantic Store Prototype",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048164"
+      },
+      {
+        "id": 42035048248,
+        "name": "Activation runtime research",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035048248"
+      },
+      {
+        "id": 42035039901,
+        "name": "Studio and Registry",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039901"
+      },
+      {
+        "id": 42035039794,
+        "name": "Kotlin PHP Ruby Swift",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039794"
+      },
+      {
+        "id": 42035039922,
+        "name": "Additional SDKs",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039922"
+      },
+      {
+        "id": 42035039935,
+        "name": "Enterprise RAG training example",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039935"
+      },
+      {
+        "id": 42035039953,
+        "name": "Real document ingestion lab",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039953"
+      },
+      {
+        "id": 42035039785,
+        "name": "Source PackSpec compiler",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039785"
+      },
+      {
+        "id": 42035039810,
+        "name": "APX PackSpec-derived examples",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039810"
+      },
+      {
+        "id": 42035040031,
+        "name": "PackSpec source selection",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035040031"
+      },
+      {
+        "id": 42035039889,
+        "name": "SDK CI",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039889"
+      },
+      {
+        "id": 42035039891,
+        "name": "Spring Boot integration",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039891"
+      },
+      {
+        "id": 42035039771,
+        "name": "Activation runtime research",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42035039771"
+      }
+    ],
+    "tests": {
+      "runtime": 330,
+      "typescript": 24,
+      "finite_activation": 10,
+      "compiler": 40,
+      "ledger": 15,
+      "total": 419,
+      "skipped": 0
+    }
+  },
+  "input_sha256": {
+    "criteria_map.json": "3062955a4bc8766d470994a697729daee28f7e02cda65838924da6ceb203682b",
+    "capabilities.json": "14eebb80cb1ab3cc627613deaca7604d813710fae3d9a7ef52d81fbb9f01e584"
+  },
+  "summary": {
+    "candidates": 35,
+    "verified_software_stories": 33,
+    "verified_document_stories": 2,
+    "incomplete_candidates": 0,
+    "previously_formally_accepted": 2,
+    "accepted_or_verified_total": 37,
+    "stories_with_remaining_requirements": 14
+  },
+  "limitations": [
+    "Not independent domain/scientific validation.",
+    "Not production authorization or deployment.",
+    "Does not mark story status DONE or assert a merge.",
+    "TESTED cites exercised behavior; no inference from a test name alone."
+  ],
+  "previous_verification": {
+    "tested_commit": "3484f2575deda90b9d9a591b480332cee67456d9",
+    "passed": 32
+  },
+  "stories": [
+    {
+      "story_id": "US-003",
+      "title": "Independently replayable research harness",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Pinned tool/runtime versions and fixed fixtures.",
+          "result": "PASS",
+          "evidence": [
+            "test_run_research.test_environment_mismatch_is_reported"
+          ],
+          "note": "Live runtime compared with research/environment.lock.json; mismatches reported in the receipt."
+        },
+        {
+          "number": 2,
+          "text": "Command emits source/policy/grammar digests, exact arguments, stdout and machine-readable result.",
+          "result": "PASS",
+          "evidence": [
+            "test_run_research.test_receipt_records_invocation_inputs_and_environment",
+            "test_run_research.test_full_run_writes_identical_stdout_and_repeats_structurally"
+          ],
+          "note": "Receipt records argv, input digests and environment; stdout kept as stdout.json."
+        },
+        {
+          "number": 3,
+          "text": "Repeat yields identical structural verdicts.",
+          "result": "PASS",
+          "evidence": [
+            "test_demo_media.test_two_independent_runs_have_identical_structural_receipts"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Any unavailable dependency causes explicit SKIP/UNKNOWN, not synthetic PASS.",
+          "result": "PASS",
+          "evidence": [
+            "test_run_research.test_missing_dependency_is_skip_not_pass"
+          ],
+          "note": "Missing ffmpeg marks dependent components SKIP and the run INCOMPLETE."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/run_research.py",
+          "sha256": "d7811f29040cc661daa3d924ca317a8d95716d6903f9e5fd36dfbd58b146166b"
+        },
+        {
+          "path": "tools/activation_runtime/worked_workflows.py",
+          "sha256": "65d17c58b2781612008cdc70917f3397168b730401856826f9a6687ab00c85ef"
+        }
+      ]
+    },
+    {
+      "story_id": "US-004",
+      "title": "Risk, prior art and novelty register",
+      "verification_kind": "DOCUMENTATION",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Each claimed novelty links to a falsifiable comparator.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        },
+        {
+          "number": 2,
+          "text": "Prior-art citations have dates/versions.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        },
+        {
+          "number": 3,
+          "text": "No generic \u201cfirst\u201d or \u201cbetter compression\u201d claim without experiment.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        },
+        {
+          "number": 4,
+          "text": "Negative results are retained.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_prior_art_register_has_comparators_dates_and_negative_boundaries"
+          ],
+          "note": "Reviewed all six comparator rows, the retrieval date/version references, explicit no-priority boundary and failure/negative-result register. This is a document check, not a positive novelty assessment."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/research/prior-art.md",
+          "sha256": "c6d60674d068e731dbe53b254f76b58e9862b7526b629a23fa422e0255c04fca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
+        }
+      ]
+    },
+    {
+      "story_id": "US-005",
+      "title": "Purpose-scoped information obligations",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Schema expresses mandatory fields, exact fields, allowable approximation and unanswered/unknown distinctions.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_executable_dsl_and_role_inversion"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Every required field maps to immutable source anchors.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_exact_unicode_character_and_byte_anchors"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Unspecified critical fields cannot silently be treated as disposable.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_unknown_field_not_disposable_and_policy_invalidation"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Contract identifies task, author, reviewer, version and authorization scope.",
+          "result": "PASS",
+          "evidence": [
+            "test_profiles.test_distinct_profiles_protect_their_own_load_bearing_fields"
+          ],
+          "note": "Contracts carry task, author, reviewer, version and authorization."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        }
+      ]
+    },
+    {
+      "story_id": "US-006",
+      "title": "ConstraintIR-to-activation binding",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Use existing `tools/packspec_compiler` and `unified_gate.py`; do not create a second self-certifying admission engine.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_contract_rejects_tampered_compiler_ir"
+          ],
+          "note": "preservation.py uses unified_gate._checked_ir."
+        },
+        {
+          "number": 2,
+          "text": "Each mapped obligation references reviewed IR node IDs, source hash, omission permission and independent-review signature.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_review_signature_binds_exact_source_policy_and_obligations",
+            "test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Deferred/unsupported semantics remain UNKNOWN.",
+          "result": "PASS",
+          "evidence": [
+            "test_omission_authority.test_unknown_missing_fields_remain_unknown_and_require_residual"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Any mismatch REFUSEs use.",
+          "result": "PASS",
+          "evidence": [
+            "test_omission_authority.test_ir_content_cannot_change_while_retaining_claimed_hash",
+            "test_reviewed_workflow.test_source_artifact_and_policy_tampering_preserve_review_for_valid_request"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        },
+        {
+          "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
+          "sha256": "131e96b66161ae0f3b8fd8750e494e0404aa0c9805b4f5ca4fdc14d003c42abc"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_omission_authority.py",
+          "sha256": "bc8367c40d0c762fc0351c215b0b6352113fe33de064673043ba71f412da7638"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        }
+      ]
+    },
+    {
+      "story_id": "US-007",
+      "title": "WitnessGraph and evidence independence",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Witness derivation graph records source roots and custody.",
+          "result": "PASS",
+          "evidence": [
+            "test_witness_graph.test_roots_and_custody_are_recorded_through_derivation"
+          ],
+          "note": "witness_graph.py records source roots and custodians through derivations."
+        },
+        {
+          "number": 2,
+          "text": "Shared roots collapse under independence calculation.",
+          "result": "PASS",
+          "evidence": [
+            "test_witness_graph.test_shared_roots_collapse",
+            "test_witness_graph.test_merged_derivation_joins_groups_transitively",
+            "test_witness_graph.test_gate_counts_a_mirror_once"
+          ],
+          "note": "No root-collapsing independence calculation."
+        },
+        {
+          "number": 3,
+          "text": "Contradictory, stale or missing witnesses cannot satisfy exact-information preservation.",
+          "result": "PASS",
+          "evidence": [
+            "test_witness_graph.test_contradicting_stale_unknown_or_missing_cannot_satisfy"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed.",
+          "result": "PASS",
+          "evidence": [
+            "test_native_witness.test_original_apx_matches_pinned_golden_groups",
+            "test_native_witness.test_discrepancy_blocks_root_assessment_and_gate_projection",
+            "test_native_witness.test_missing_or_changed_canonical_source_never_falls_back"
+          ],
+          "note": "Original APX evidence module found at the already pinned commit, vendored unmodified, executed through Node, and checked against declared custody-root components. Discrepancy or missing/modified source refuses use. Declared-key grouping is not source authentication."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/native_apx.py",
+          "sha256": "90e2d1d1df9a5b1529027d06b853594372775829264f04ea0888e3a5121a0e15"
+        },
+        {
+          "path": "tools/activation_runtime/witness_graph.py",
+          "sha256": "40bb27022b9c90edbc208736a0a16315ec59615c2075865a6b7f9e7fab884f28"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness.py",
+          "sha256": "c61a6fd19c417b9be2be4a0b96c21c0bf0959549e3e8e50542241f78f06a1fa9"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness_runner.mjs",
+          "sha256": "f7c5f12b6cebefc042825c2991852d16d848e258302f334b5035c3e00a62d945"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/packages/apx-evidence/src/index.ts",
+          "sha256": "49c690848c4dcb1022f815d5deb258ddd074317eb0cc3cebde40a99d069199ee"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/PROVENANCE.json",
+          "sha256": "07ac56e008ae8e1c71043f048452810fe3919d6057e5c1bdecd86a6a7a9764d3"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/canonical-witness-graph.json",
+          "sha256": "7814b546ef2791f01ab8f9eaad4d332470c801dd3a2df761ef5345313aa9b1a6"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_native_witness.py",
+          "sha256": "6d68d5b454c81ea6a58f1ed7ec771e20f5399c86cf9dbc754d097431b83ff781"
+        },
+        {
+          "path": "docs/CANONICAL-WITNESS-GRAPH.md",
+          "sha256": "74a489d1312aa201fb147cac95851fd0cf40bed9b755b926d8e3cf77ddd6ae8e"
+        }
+      ]
+    },
+    {
+      "story_id": "US-008",
+      "title": "Omission and residual audit",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Each candidate emits preserved, approximated, omitted, unknown and residual-required fields.",
+          "result": "PASS",
+          "evidence": [
+            "test_omission_authority.test_unknown_missing_fields_remain_unknown_and_require_residual"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Every omission references a governing obligation and review disposition.",
+          "result": "PASS",
+          "evidence": [
+            "test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Unauthorized omissions block activation.",
+          "result": "PASS",
+          "evidence": [
+            "test_omission_authority.test_unsigned_omission_is_unsat_and_boolean_approval_refuses"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Replaying against a changed PackSpec invalidates stale approvals.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_unknown_field_not_disposable_and_policy_invalidation"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        },
+        {
+          "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
+          "sha256": "131e96b66161ae0f3b8fd8750e494e0404aa0c9805b4f5ca4fdc14d003c42abc"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_omission_authority.py",
+          "sha256": "bc8367c40d0c762fc0351c215b0b6352113fe33de064673043ba71f412da7638"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        }
+      ]
+    },
+    {
+      "story_id": "US-010",
+      "title": "RCT typed grammar integration",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Reuse the existing module rather than rewriting it.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Typed endpoints checked on `PATH`; shared endpoint types checked on `AND`.",
+          "result": "PASS",
+          "evidence": [
+            "semantic_store/test_rct_typed_grammar"
+          ],
+          "note": "Checked by the reused module's own suite."
+        },
+        {
+          "number": 3,
+          "text": "Unique minimal candidate requirement and budget-driven UNKNOWN retained.",
+          "result": "PASS",
+          "evidence": [
+            "semantic_store/test_rct_typed_grammar"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Source fact IDs retained through path derivation.",
+          "result": "PASS",
+          "evidence": [
+            "semantic_store/test_rct_typed_grammar"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "4a833a2fa46dcb74c6391b16013bffd89f3f693f6acef8a32ad899d70585a3d5"
+        }
+      ]
+    },
+    {
+      "story_id": "US-011",
+      "title": "SAT/UNSAT/UNKNOWN semantics",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "SAT only if every modeled obligation is satisfied.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_exhaustive_counterexample_all_pairs"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "UNSAT includes minimal available counterexample and violated clause.",
+          "result": "PASS",
+          "evidence": [
+            "test_software_verification.test_single_changed_obligation_identifies_counterexample_and_clause"
+          ],
+          "note": "A single altered anchored obligation returns a reproducible field counterexample and CHANGED_REQUIRED_DISTINCTION clause."
+        },
+        {
+          "number": 3,
+          "text": "Missing data or exhausted search returns UNKNOWN.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_incomplete_execution_returns_unknown_without_output"
+          ],
+          "note": "interpreter.execute_plan returns UNKNOWN when no check is UNSAT and verification is incomplete."
+        },
+        {
+          "number": 4,
+          "text": "Finite SAT never emits QualityRag ADMIT or can_generate=true by itself.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_signed_activation_uses_real_gate_and_remains_unadmitted"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        }
+      ]
+    },
+    {
+      "story_id": "US-012",
+      "title": "Purpose-preserving regime transition",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Executes at least one source-anchored reversible mapping on non-video data.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_reversible_rename_updates_all_roles_orders_and_hashes"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Produces a transform trace and versioned source hash.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_canonical_roundtrip_and_input_order_are_deterministic"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Unknown role/negation/temporal cases refuse or preserve raw source.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_missing_nonentity_and_unknown_role_endpoints_refuse"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Round-trip tested for required distinction equivalence; no invented labels.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_mapping_must_be_total_bijective_and_bounded"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        },
+        {
+          "path": "tools/activation_runtime/semantic_ir.py",
+          "sha256": "e389036fdc65ca924f01152a22ecdec90fae7a75beb5c5e9582b685e7178d5e1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_semantic_ir.py",
+          "sha256": "d0c9c95b3a517bf02bab626224e5ba2987f721b3dacc0ec30bef3842352a4577"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_observation_service.py",
+          "sha256": "6a273c5333f83813497967a9cc1a3ae524d7cde0d63700b9c0864b5ab080eae4"
+        },
+        {
+          "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
+          "sha256": "f6552c5739ccd1be134274e59f273fe59e0185f1d28cc5495c964572735b93b9"
+        }
+      ]
+    },
+    {
+      "story_id": "US-013",
+      "title": "RCT candidate search with early stopping",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Explicit candidate count, depth, wall-clock/CPU and memory limits.",
+          "result": "PASS",
+          "evidence": [
+            "test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards"
+          ],
+          "note": "Candidate-count and depth limits come from the reused typed grammar and are reported with CPU/memory/wall budgets."
+        },
+        {
+          "number": 2,
+          "text": "Deterministic selection for fixed search inputs.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_fixed_inputs_choose_identical_search_candidate"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Inconclusive search reports budget and discarded candidates.",
+          "result": "PASS",
+          "evidence": [
+            "test_search_pilot.test_search_reports_candidate_and_depth_limits_and_discards"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Baseline \u201cstay in present regime\u201d is always considered.",
+          "result": "PASS",
+          "evidence": [
+            "test_search_pilot.test_actual_bounded_rct_search_and_identity_baseline"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/search.py",
+          "sha256": "209e260190f2d1c2259ea6a97e43a9ace22dff97ee585b23074208fbb7a8ca06"
+        }
+      ]
+    },
+    {
+      "story_id": "US-014",
+      "title": "Constraint compilation and reusable decisions",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Compilation records input obligation fingerprints and compiler version.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+          ],
+          "note": "Receipt records compiler_version and input fingerprints."
+        },
+        {
+          "number": 2,
+          "text": "Repeated equivalent queries reuse artifacts without changing verdicts.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Invalidated input/policy triggers recompile.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_existing_typed_engine_cache_and_policy_invalidation"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Actual compiled artifact bytes, construction time, cache hits and runtime costs measured.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_cache_measures_compiled_bytes_construction_and_runtime"
+          ],
+          "note": "Receipts measure canonical compiled bytes, construction/cache lookup, cache hits and actual validation/lens/gate runtime; absent execution is explicitly marked."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "4a833a2fa46dcb74c6391b16013bffd89f3f693f6acef8a32ad899d70585a3d5"
+        }
+      ]
+    },
+    {
+      "story_id": "US-015",
+      "title": "Finite equivalence proof and counterexamples",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Compare relevant query results across source and transformed graph for all finite test pairs.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_exhaustive_counterexample_all_pairs"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Include negative witnesses and role/order reversals.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_executable_dsl_and_role_inversion"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Failure emits reproducible counterexample.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_exhaustive_counterexample_all_pairs"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Result is scoped to finite graph and never generalized as universal meaning conservation.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_graph_sat_remains_scoped_to_declared_vocabulary"
+          ],
+          "note": "Result carries scope DECLARED_FINITE_GRAPH_ONLY."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        }
+      ]
+    },
+    {
+      "story_id": "US-016",
+      "title": "Typed semantic intermediate representation",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Typed entities, roles, polarity, quantity/unit, temporal order, modality, provenance and unknowns are representable.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_complete_typed_inventory_anchors_quantities_and_unknowns"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Invalid joins/roles rejected by type checker.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_relation_requires_exact_binary_entity_endpoints",
+            "test_semantic_ir.test_entity_and_unknown_nodes_cannot_assert_relation_joins"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Source quote, byte/character anchors and hashes stored.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_unicode_quote_offsets_use_utf8_bytes_without_normalizing_source"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Canonical serialization round-trips.",
+          "result": "PASS",
+          "evidence": [
+            "test_semantic_ir.test_canonical_roundtrip_and_input_order_are_deterministic"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        },
+        {
+          "path": "tools/activation_runtime/semantic_ir.py",
+          "sha256": "e389036fdc65ca924f01152a22ecdec90fae7a75beb5c5e9582b685e7178d5e1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_semantic_ir.py",
+          "sha256": "d0c9c95b3a517bf02bab626224e5ba2987f721b3dacc0ec30bef3842352a4577"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_observation_service.py",
+          "sha256": "6a273c5333f83813497967a9cc1a3ae524d7cde0d63700b9c0864b5ab080eae4"
+        },
+        {
+          "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
+          "sha256": "f6552c5739ccd1be134274e59f273fe59e0185f1d28cc5495c964572735b93b9"
+        }
+      ]
+    },
+    {
+      "story_id": "US-017",
+      "title": "Exact information and reversible source custody",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Raw-source immutable reference or lossless original bytes retained.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_corruption_and_duplicate_put"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Every omission has a location and residual/refetch plan.",
+          "result": "PASS",
+          "evidence": [
+            "test_omission_authority.test_exact_output_review_authorizes_only_declared_omission_once"
+          ],
+          "note": "Each authorized omission carries its source anchor and a REFETCH_FROM_CUSTODY plan."
+        },
+        {
+          "number": 3,
+          "text": "Content hash verification catches corruption.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_corruption_and_duplicate_put"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Unavailable original causes an explicit fidelity limitation/REFUSE.",
+          "result": "PASS",
+          "evidence": [
+            "test_reviewed_workflow.test_missing_original_or_artifact_custody_cannot_fallback"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ]
+    },
+    {
+      "story_id": "US-018",
+      "title": "Source adapters (text, PDF, HTML, CSV/SQL)",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Two complete initial adapters (e.g., PDF and CSV), plus text fixture.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_pdf_and_text_adapters_repeated_headings",
+            "test_runtime.test_csv_multiline_and_exact_strings"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Text/tabular spans map back to original pages/rows.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_pdf_and_text_adapters_repeated_headings",
+            "test_runtime.test_csv_multiline_and_exact_strings"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Unsupported structure is marked UNKNOWN, not silently dropped.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_blank_pdf_reports_unknown_structure"
+          ],
+          "note": "PDF projection lists unsupported content and reports coverage UNKNOWN."
+        },
+        {
+          "number": 4,
+          "text": "Unit/regression tests include duplicated headings and malformed input.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_pdf_and_text_adapters_repeated_headings",
+            "test_runtime.test_bad_csv"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/adapters.py",
+          "sha256": "92bb2975b63f22eb8b3d67a354b5dfb6d37674d01a1493811e1fee6798cb1696"
+        }
+      ]
+    },
+    {
+      "story_id": "US-019",
+      "title": "Review-gated relation and role extraction",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Reuse existing v1.2 explicit `RELATE` and v1.3 bounded linguistic extractors.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_candidates_reuse_both_canonical_extractors"
+          ],
+          "note": "adapters.py calls the existing v1.2 and v1.3 extractors."
+        },
+        {
+          "number": 2,
+          "text": "Opposite polarity candidates quarantined.",
+          "result": "PASS",
+          "evidence": [
+            "semantic_store/test_linguistic_relation_extraction"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Caller endorsement remains unauthenticated until authorization added.",
+          "result": "PASS",
+          "evidence": [
+            "semantic_store/test_explicit_relation_extraction"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Tests include actor/beneficiary swaps and negation changes.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_executable_dsl_and_role_inversion"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/adapters.py",
+          "sha256": "92bb2975b63f22eb8b3d67a354b5dfb6d37674d01a1493811e1fee6798cb1696"
+        }
+      ]
+    },
+    {
+      "story_id": "US-020",
+      "title": "Reusable grammar registry and dependency DAG",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "DAG is acyclic and dependencies are typed.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_transitive_resolution"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Resolution identifies missing/incompatible modules before use.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_missing_dependency_and_wrong_module_type"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Signed release metadata covers transitive dependencies.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_transitive_resolution",
+            "test_runtime.test_signature_and_revocation"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Authorized rollback to a signed, compatible, non-revoked release is tested; minimum-version policy remains enforced.",
+          "result": "PASS",
+          "evidence": [
+            "test_device_authority.test_resume_atomic_activation_and_authorized_rollback_floor"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ]
+    },
+    {
+      "story_id": "US-023",
+      "title": "Executable finite ACTIVATE/VERIFY/FALLBACK",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Typed interpreter implements bounded, sandboxed operators with no `eval`/dynamic imports.",
+          "result": "PASS",
+          "evidence": [
+            "test_software_verification.test_finite_interpreter_language_rejects_code_and_bounds_work"
+          ],
+          "note": "Finite language sandbox: rejects code/import/callback/runtime options and sequences exceeding 32 steps. This is not an arbitrary-code process sandbox."
+        },
+        {
+          "number": 2,
+          "text": "Uses actual transformed output, not merely stated `preserves` lists.",
+          "result": "PASS",
+          "evidence": [
+            "test_preservation.test_actual_failed_candidate_uses_checked_fallback_once"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "VERIFY compares actual output to all anchored obligations; fallback must independently satisfy authorization, compatibility, preservation and resource limits. At most one fallback attempt; failure terminates in REFUSE without releasing output.",
+          "result": "PASS",
+          "evidence": [
+            "test_reviewed_workflow.test_signed_original_fallback_is_reverified_and_only_attempted_once",
+            "test_reviewed_workflow.test_negative_candidate_refuses_without_releasing_output"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Replay emits deterministic execution trace.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_replay_trace_is_identical_and_inputs_unchanged"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        }
+      ]
+    },
+    {
+      "story_id": "US-024",
+      "title": "Model and grammar compatibility manifest",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Manifest pins payload codec, grammar hash, model hash, runtime ABI and required modules.",
+          "result": "PASS",
+          "evidence": [
+            "test_streaming_boundaries.test_manifest_pins_codec_grammar_model_abi_and_modules_separately"
+          ],
+          "note": "Grammar is now pinned separately from the model, with an explicit required-module map."
+        },
+        {
+          "number": 2,
+          "text": "Missing, incompatible or unsigned module refuses/fallbacks.",
+          "result": "PASS",
+          "evidence": [
+            "test_streaming_boundaries.test_host_open_selects_fallback_for_missing_index_or_model",
+            "test_streaming_boundaries.test_host_open_selects_fallback_for_revocation_expiry_or_floor"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Old payloads are decoded only by verified-compatible decoders.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Incompatible upgrade cannot silently alter old content.",
+          "result": "PASS",
+          "evidence": [
+            "test_streaming_boundaries.test_release_from_another_decoder_or_grammar_cannot_play_old_content"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/streaming.py",
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
+        }
+      ]
+    },
+    {
+      "story_id": "US-026",
+      "title": "Deterministic finite reconstruction",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Structured/text source can be reconstructed byte-for-byte or with clearly specified canonical normalization.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_scalar_and_strided_decoders_are_byte_identical"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Residual-only errors cause REFUSE.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Fixed inputs/versions produce identical outputs and hashes.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_deterministic_payload"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Tests cover missing, modified and out-of-order segments.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/scene_codec.py",
+          "sha256": "0a72a9f566e310c454b1301c7760c1b6d136293acae2fc09cd05cd2ab8721ac7"
+        }
+      ]
+    },
+    {
+      "story_id": "US-030",
+      "title": "Shared grammar video encoder prototype",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Ingest actual frames and output a versioned decodable payload.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_actual_playable_decode_and_seek"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Decoder manifest pins shared model and modules.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_residual_missing_reordered_and_wrong_model_refuse"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "A complete decode demonstrably reconstructs playable clip.",
+          "result": "PASS",
+          "evidence": [
+            "test_scene_codec.test_actual_playable_decode_and_seek"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Encoding time, bytes, model size and fallback ratio measured. **Not accomplished by PR #69**.",
+          "result": "PASS",
+          "evidence": [
+            "test_software_verification.test_actual_encoder_measures_bytes_time_model_and_raw_fallback"
+          ],
+          "note": "encode() reports encode_ns, payload_bytes, model_bytes and fallback_ratio."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/scene_codec.py",
+          "sha256": "0a72a9f566e310c454b1301c7760c1b6d136293acae2fc09cd05cd2ab8721ac7"
+        }
+      ]
+    },
+    {
+      "story_id": "US-032",
+      "title": "Model amortization and catalog economics",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Account for grammar construction, encoding, residuals, model installation, updates, bandwidth, storage, decoding electricity and verification.",
+          "result": "PASS",
+          "evidence": [
+            "test_economic_uncertainty.test_all_workload_scopes_contribute_to_setup_and_total"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Analyze cold/new viewer, frequent viewer, smart TV and mobile cases.",
+          "result": "PASS",
+          "evidence": [
+            "test_economic_uncertainty.test_cli_runs_the_same_scenario_and_rejects_unsupported_options"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Break-even conditions plus uncertainty bounds presented.",
+          "result": "PASS",
+          "evidence": [
+            "test_economic_uncertainty.test_possible_and_guaranteed_thresholds_differ_under_ranges"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "If no crossover, report negative result.",
+          "result": "PASS",
+          "evidence": [
+            "test_economic_uncertainty.test_no_crossover_is_retained_when_even_best_marginal_is_nonpositive"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/economics.py",
+          "sha256": "54bb3a51fe1841ab68c77f5b3369312fa666ed68b62d2d016b0406b2bbc9ac65"
+        },
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
+          "sha256": "0c98315a33bc0dbaadcc221903730abd944c2a3a8d0b2929ff0d14e28cbfc8c6"
+        }
+      ]
+    },
+    {
+      "story_id": "US-033",
+      "title": "Streaming segment delivery and seek",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Segment index supports seek, pause/resume and bitrate changes.",
+          "result": "PASS",
+          "evidence": [
+            "test_streaming.test_signed_seek_pause_resume_variants_and_missing_segment_fallback"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Scene state dependencies are explicit.",
+          "result": "PASS",
+          "evidence": [
+            "test_streaming_boundaries.test_missing_duplicate_reordered_and_bad_dependency_indices_refuse"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Missing module/segment falls back without silent frame corruption.",
+          "result": "PASS",
+          "evidence": [
+            "test_streaming_boundaries.test_missing_and_malformed_frame_records_fallback_without_position_advance"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Measure startup latency, buffering and seek times against AV1 baseline.",
+          "result": "PASS",
+          "evidence": [
+            "test_playback_benchmark.test_actual_av1_and_signed_stream_startup_buffer_and_seek_measurements",
+            "test_playback_benchmark.test_observed_late_frame_produces_real_rebuffer_wait"
+          ],
+          "note": "Actual local bounded playback measures startup, queue-empty stalls and seeks for both signed reference segments and AV1. WAN and physical-device performance remain unmeasured."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/streaming.py",
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
+        },
+        {
+          "path": "docs/STREAMING-INDEX-BOUNDARIES.md",
+          "sha256": "3a707a749c331a2ecb0b561ff294fc6e3fedeacb811da6d8ddf6a26337faf6bf"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_streaming_boundaries.py",
+          "sha256": "bd6ad59579dba6f150d387ada2c79ef5fe75c87e1e9c82ed15a19e0604629cc3"
+        },
+        {
+          "path": "tools/activation_runtime/playback_benchmark.py",
+          "sha256": "c3486594a52412b680d397644deb0f1bcec2b5be291ccfe41e2ee719354b50ae"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_playback_benchmark.py",
+          "sha256": "efe57e54c27471df48d0bc9812b9432f51e598302aeb737744531d180eeb07de"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
+        }
+      ]
+    },
+    {
+      "story_id": "US-034",
+      "title": "Append-only conversation tree",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Stores source turn ID/hash, actor and timestamp.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_fork_synthesis_prune_reopen_and_restart"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Branches can fork/rejoin without cycles.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_rejects_missing_parent_and_invalid_test"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Replay deterministically rebuilds tree after restart.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_fork_synthesis_prune_reopen_and_restart"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "No inference-generated concept is treated as reviewer-approved.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_evidence_status_reflects_ledger_and_never_inherits"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/gardener.py",
+          "sha256": "021ffae072aaca48e3ede79077a34144ca770cdb6384d9926e8346ba9ce975c6"
+        }
+      ]
+    },
+    {
+      "story_id": "US-035",
+      "title": "Dialectical operations and reversible pruning",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "All transitions are append-only events.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_append_only_and_tamper_detection"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "PRUNE deactivates rather than deletes.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_fork_synthesis_prune_reopen_and_restart"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "SYNTHESIZE records dependencies but never inherits VALIDATED from parent.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_evidence_status_reflects_ledger_and_never_inherits"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "REOPEN restores reference context and prior counterexamples.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_reopen_restores_prior_counterexamples"
+          ],
+          "note": "REOPEN exposes reopened_context: what pruned the branch and every prior challenge."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/gardener.py",
+          "sha256": "021ffae072aaca48e3ede79077a34144ca770cdb6384d9926e8346ba9ce975c6"
+        }
+      ]
+    },
+    {
+      "story_id": "US-036",
+      "title": "Evidence-state separation and Research Ledger link",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Maps hypotheses to `tools/research_ledger` claims.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_claim_is_linked_to_existing_ledger"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "No VALIDATED promotion without independent verifier and evidence IDs.",
+          "result": "PASS",
+          "evidence": [
+            "test_ledger_validation.test_validated_requires_real_signature_bound_to_claim_and_evidence"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Dependency uncertainty propagates as unresolved.",
+          "result": "PASS",
+          "evidence": [
+            "test_postgres_validation.test_dependency_refutation_changes_effective_status_without_rewriting_history"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Tamper and hash-chain tests detect corruption within stated trust boundary.",
+          "result": "PASS",
+          "evidence": [
+            "test_runtime.test_append_only_and_tamper_detection"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/ledger_validation.py",
+          "sha256": "65fba4387c714944557b9e4718fdd5d266a2dafb8edd44556403304e6e91cd05"
+        },
+        {
+          "path": "tools/research_ledger/ledger.py",
+          "sha256": "a4bbe4986a238969e65494c0ac2e682793dbeb740d50e6da54af2da165d6e81c"
+        },
+        {
+          "path": "tools/activation_runtime/postgres_validation.py",
+          "sha256": "61a879cf73b95f6240c8994b20f7a30c06523d680e5d561f227143b8af101270"
+        },
+        {
+          "path": "tools/research_ledger/postgres.py",
+          "sha256": "993e84094f88c69c9d8f99d7a80123ce03e3d8c6d4eee2d942085ef13e4cd28f"
+        },
+        {
+          "path": "tools/research_ledger/postgresql.sql",
+          "sha256": "c9691d7d74560839bf957ab362a84dc4ac6b2f0c130f5b62eb14698e207158c1"
+        },
+        {
+          "path": "tools/research_ledger/migrate_sqlite_to_postgres.py",
+          "sha256": "294928c28de4468538e1bc2cb102e95c39c11bdf8011031ca9323365cad7f32e"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_postgres_validation.py",
+          "sha256": "583ed74876999eb6381de33213c412cb02766cf92bcc35bf275c9444d7a9f68e"
+        },
+        {
+          "path": "tools/research_ledger/tests/test_dependencies.py",
+          "sha256": "dae9898095ba61323fc788fbaabecf46914d89e104e45839d83dc42a0b6276dd"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_sqlite_validation_atomic.py",
+          "sha256": "2ec9f7826ae1005c38f60ff4d9aa100fc19f3ebfdfada62aaa5e32d21877d9e1"
+        }
+      ]
+    },
+    {
+      "story_id": "US-037",
+      "title": "Gardener proposal loop and review UI",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Bounded scheduled job operates only on authorized sources.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_schedule_refuses_unauthorized_and_unbounded_sources"
+          ],
+          "note": "service.start_proposal_loop is bounded and tenant-scoped."
+        },
+        {
+          "number": 2,
+          "text": "Produces candidate events with source anchors, confidence/calibration and suggested cost.",
+          "result": "PASS",
+          "evidence": [
+            "test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty"
+          ],
+          "note": "suggested_cost: events, branches affected, and median reviewer-reported time (None until history exists)."
+        },
+        {
+          "number": 3,
+          "text": "Structural edits are previewable and reversible, promotion requires review.",
+          "result": "PASS",
+          "evidence": [
+            "test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Reports false merges, branch churn, cost and utility; no autonomous truth claim.",
+          "result": "PASS",
+          "evidence": [
+            "test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/proposals.py",
+          "sha256": "c268d5eb0d9b6e761e9d9f10224a1291c2164cec0ac89154662b648c69905535"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "43228120302ec2e07be7378738f0cc05f62809cf8c08a1b2b90d79db7deca1c2"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "7dd6e17c4114faae580b342290f3946357e4b818707585cba43459df80734eb1"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "0c8e3fce3caa7b152c2ae76ad03707063686521223a1d0aa5eb6b136ac530f6c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "9a23b7712420955ae06907f69c6766d20ddf21e4d31a1cfb32d3a6caf0af4155"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        },
+        {
+          "path": "tools/activation_runtime/web/garden.js",
+          "sha256": "7da35e02f348ffe9f24970fc720d687727763226f111d0adcc3ddd6d856abcdf"
+        }
+      ]
+    },
+    {
+      "story_id": "US-038",
+      "title": "Isolated agent experiment harness",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Candidate agents run with scoped CPU/token/time and tool permissions.",
+          "result": "PASS",
+          "evidence": [
+            "test_agents.test_input_budgets_and_unknown_operators"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Every proposal includes parent grammar hash, patches and rationale.",
+          "result": "PASS",
+          "evidence": [
+            "test_agent_pins.test_every_role_has_patches_rationale_and_exact_evaluation_pin"
+          ],
+          "note": "All six roles return an explicit patch list, parent grammar hash and rationale; non-editing proposals use an empty list."
+        },
+        {
+          "number": 3,
+          "text": "Restricted execution sandbox prevents arbitrary host changes.",
+          "result": "PASS",
+          "evidence": [
+            "test_agents.test_actual_syscall_sandbox_denies_file_network_and_fork"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Evaluation always runs on pinned code/datasets.",
+          "result": "PASS",
+          "evidence": [
+            "test_agent_pins.test_worker_rejects_changed_dataset_and_each_stale_code_pin",
+            "test_agent_pins.test_pin_records_actual_source_bytes_and_exact_task_dataset"
+          ],
+          "note": "Worker recomputes code/schema/runtime and exact finite task-dataset pins before sandbox execution; parent verifies returned pin. This is not external corpus validation."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/agent_worker.py",
+          "sha256": "2ff684923759b205d9e6d57ed4ba377f1809e3344dc965312c8b655e59eb3b46"
+        },
+        {
+          "path": "tools/activation_runtime/process_sandbox.py",
+          "sha256": "a8f33009665288ed0615a4fe44b43d32c93b52db8037bf0cfe445adf4c0cebc4"
+        },
+        {
+          "path": "tools/activation_runtime/common.py",
+          "sha256": "a7e3a17d891a66d570647bee6f3b52784aebb5087e2b8d4f394cb8c560de758c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_agent_pins.py",
+          "sha256": "c911635e768492efa0a3e6409e540c691a22353ebde10ffc97112897f2f17fe4"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
+        },
+        {
+          "path": "tools/activation_runtime/roles/activation-optimizer.json",
+          "sha256": "05c74cd86643c2a671dee57be4c23c4984a6192f75bce4d530d270c8cef64323"
+        },
+        {
+          "path": "tools/activation_runtime/roles/counterexample.json",
+          "sha256": "fb6b751329e1beee2da7d152b8ed9abb59dffde22f5bb6d5b7cab1ad1847a3f8"
+        },
+        {
+          "path": "tools/activation_runtime/roles/decomposition.json",
+          "sha256": "d5caecd43278a0e1547de53bcac73e1468a816b4dccbe3e76784c320c7840a2a"
+        },
+        {
+          "path": "tools/activation_runtime/roles/ffrct-economist.json",
+          "sha256": "80c125145158d7b7f4ef5d6ed5002dbe0c8960ad95fd16eab1500c5f1373fdad"
+        },
+        {
+          "path": "tools/activation_runtime/roles/grammar-compiler.json",
+          "sha256": "36398089ed9b0ab025235f88bb21a8374acf97061cd046b707cf69dfbcfef43d"
+        },
+        {
+          "path": "tools/activation_runtime/roles/packspec-guardian.json",
+          "sha256": "ffbeb2bf2fe40d83684e8db10b623c2997c608607140bc9be903b02efbeb6d49"
+        }
+      ]
+    },
+    {
+      "story_id": "US-039",
+      "title": "Dedicated agent roles",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Each has a distinct versioned contract/schema.",
+          "result": "PASS",
+          "evidence": [
+            "test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Roles produce inspectable artifacts, not opaque prose.",
+          "result": "PASS",
+          "evidence": [
+            "test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Guardian can block but cannot invent verification evidence.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_guardian_blocks_loss_and_never_certifies_preservation"
+          ],
+          "note": "Guardian decision REQUIRES_INDEPENDENT_REVIEW blocks; it never produces verification evidence."
+        },
+        {
+          "number": 4,
+          "text": "Integration tests show disagreement and escalation, not forced consensus.",
+          "result": "PASS",
+          "evidence": [
+            "test_agents.test_six_real_parallel_roles_disagree_and_do_not_promote"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/roles/grammar-compiler.json",
+          "sha256": "36398089ed9b0ab025235f88bb21a8374acf97061cd046b707cf69dfbcfef43d"
+        }
+      ]
+    },
+    {
+      "story_id": "US-040",
+      "title": "Adversarial evolution and held-out gates",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Family-disjoint holdouts are hidden from proposing agents.",
+          "result": "PASS",
+          "evidence": [
+            "test_experiments.test_preregistration_precedes_holdout_and_proposers_denied"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Test actor/recipient reversal, negation, time, units, captions, residual tamper and incompatible model.",
+          "result": "PASS",
+          "evidence": [
+            "test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Any critical regression blocks promotion.",
+          "result": "PASS",
+          "evidence": [
+            "test_adversaries.test_all_distinctions_and_optimistic_evaluator_block"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "False-accept rate and missed-counterexample rate tracked.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_unknown_is_missed_counterexample_but_not_false_accept"
+          ],
+          "note": "adversaries.challenge reports false-accept and missed-counterexample rates."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/adversaries.py",
+          "sha256": "024a35f2da3a47abcf819a15cc1fa4f242e7767e055c3e45688dcf535b5ebcda"
+        },
+        {
+          "path": "tools/activation_runtime/experiments.py",
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_holdout_authority.py",
+          "sha256": "ebb440f6f2434a408a58e52500d37efb307506e4e6cd7901ca8230522d2e225a"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_experiments.py",
+          "sha256": "adfcf7fc297572017214970dbc77e376d4497ea23e20882d66b60e8c41014fec"
+        }
+      ]
+    },
+    {
+      "story_id": "US-042",
+      "title": "Pareto promotion and resource scheduler",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Rank by expected information/decision value against investigation cost.",
+          "result": "PASS",
+          "evidence": [
+            "test_agents.test_expected_work_scheduler_stops_at_budget",
+            "test_economic_uncertainty.test_exact_rank_does_not_turn_huge_ratios_into_an_infinite_tie"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Pareto frontier covers bytes, latency, energy, fidelity and total cost; reject dominated options unless justified.",
+          "result": "PASS",
+          "evidence": [
+            "test_economic_uncertainty.test_frontier_includes_total_cost_and_excludes_fidelity_or_unknown_energy"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Budget exhaustion stops runs predictably.",
+          "result": "PASS",
+          "evidence": [
+            "test_agents.test_expected_work_scheduler_stops_at_budget"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Promotion requires independent reviewer approval and signed immutable release.",
+          "result": "PASS",
+          "evidence": [
+            "test_release_authority.test_valid_signed_approval_is_bound_research_pilot_not_production_or_truth"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/economics.py",
+          "sha256": "54bb3a51fe1841ab68c77f5b3369312fa666ed68b62d2d016b0406b2bbc9ac65"
+        },
+        {
+          "path": "tools/activation_runtime/release.py",
+          "sha256": "b686ab43ae4775ad788e2ea8784e1ae9c66c1bb84303e7bf95aae3f84c3ad4eb"
+        },
+        {
+          "path": "tools/activation_runtime/authority.py",
+          "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_release_authority.py",
+          "sha256": "35f7d2c21b5a391b65a2c689769e26c197449e72795564760963772a033cf55c"
+        },
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
+          "sha256": "0c98315a33bc0dbaadcc221903730abd944c2a3a8d0b2929ff0d14e28cbfc8c6"
+        }
+      ]
+    },
+    {
+      "story_id": "US-043",
+      "title": "Tenant isolation and source authority",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Authenticated principal and tenant-scoped authorization per source and artifact.",
+          "result": "PASS",
+          "evidence": [
+            "test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Cross-tenant reads, guessed IDs and leaked residuals denied in tests.",
+          "result": "PASS",
+          "evidence": [
+            "test_service_sdk.test_cross_tenant_guessed_id_denied_and_scope_enforced",
+            "test_observation_service.test_cross_tenant_guessed_source_and_unsupported_options_refuse"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Reviewer and custodian identities cryptographically bound.",
+          "result": "PASS",
+          "evidence": [
+            "test_service_sdk.test_signed_review_independence_replay_and_binding"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Logs do not disclose source content outside authorized scope.",
+          "result": "PASS",
+          "evidence": [
+            "test_service_sdk.test_requests_and_failures_write_nothing_to_logs"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/authority.py",
+          "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "43228120302ec2e07be7378738f0cc05f62809cf8c08a1b2b90d79db7deca1c2"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "7dd6e17c4114faae580b342290f3946357e4b818707585cba43459df80734eb1"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "0c8e3fce3caa7b152c2ae76ad03707063686521223a1d0aa5eb6b136ac530f6c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "9a23b7712420955ae06907f69c6766d20ddf21e4d31a1cfb32d3a6caf0af4155"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        }
+      ]
+    },
+    {
+      "story_id": "US-044",
+      "title": "Signed artifact and anti-replay pipeline",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Key rotation and version policy documented.",
+          "result": "PASS",
+          "evidence": [
+            "test_software_verification.test_key_lifecycle_and_version_floor_are_documented"
+          ],
+          "note": "Verified signed-bundle minimum sequence/revocation documentation and completion-receipt rotation/compromise policy; runtime rollback behavior has separate tests."
+        },
+        {
+          "number": 2,
+          "text": "Signatures bind source, grammar, policy, model, decoder and relevant run IDs.",
+          "result": "PASS",
+          "evidence": [
+            "test_release_authority.test_each_source_runtime_target_and_version_change_invalidates_review"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Unauthorized replay/downgrade attacks produce refusal; explicit authorized rollback must respect compatibility, revocation and minimum-version policy.",
+          "result": "PASS",
+          "evidence": [
+            "test_release_authority.test_invalid_hashes_counts_and_downgrade_refuse_before_nonce_use",
+            "test_release_authority.test_replay_refuses_after_success"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Existing signed-bundle code reused, not silently substituted with raw hashes.",
+          "result": "PASS",
+          "evidence": [
+            "test_criterion_behaviors.test_authority_uses_canonical_bundle_signatures"
+          ],
+          "note": "authority.py reuses tools/packspec_compiler/signed_bundles.py."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/streaming.py",
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
+        },
+        {
+          "path": "tools/activation_runtime/release.py",
+          "sha256": "b686ab43ae4775ad788e2ea8784e1ae9c66c1bb84303e7bf95aae3f84c3ad4eb"
+        },
+        {
+          "path": "tools/activation_runtime/authority.py",
+          "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_release_authority.py",
+          "sha256": "35f7d2c21b5a391b65a2c689769e26c197449e72795564760963772a033cf55c"
+        }
+      ]
+    },
+    {
+      "story_id": "US-045",
+      "title": "SDK and CLI parity",
+      "verification_kind": "SOFTWARE",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "JSON/typed interfaces support validation, evaluate, trace and fallback.",
+          "result": "PASS",
+          "evidence": [
+            "test_service_sdk.test_all_sdk_and_cli_verbs_match_for_success_and_wording_loss_refusal"
+          ],
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Golden fixtures produce identical finite verdicts across languages.",
+          "result": "PASS",
+          "evidence": [
+            "test_service_sdk.test_python_typescript_actual_http_finite_verdict_parity"
+          ],
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Unsupported API options explicitly fail.",
+          "result": "PASS",
+          "evidence": [
+            "test_service_sdk.test_unsupported_options_and_cross_tenant_fallback_refuse_in_both_sdks_and_cli"
+          ],
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Examples demonstrate external PackSpec and source-backed receipts.",
+          "result": "PASS",
+          "evidence": [
+            "test_reviewed_workflow.test_python_typescript_and_cli_match_on_all_three_outcomes"
+          ],
+          "note": null
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/service.py",
+          "sha256": "bfc297db2b60f07527e77f2688854048882f15c9eba51c8a0b0e50bc743164f9"
+        },
+        {
+          "path": "sdk/python/qualityrag_activation/__init__.py",
+          "sha256": "778699b810218ec56778108795b879d603cf5c85531c50cbc99a1666e7111599"
+        },
+        {
+          "path": "sdk/typescript/src/activation.ts",
+          "sha256": "eb33b33902b60a6b96f49f0bd4b28a70d6404067b84a91426ce457d3559ed6ad"
+        },
+        {
+          "path": "sdk/typescript/src/index.ts",
+          "sha256": "ad37c10a90f97bb562af3b2d9ad9c69de864983edd3d1cc16a9a7a66342a73dd"
+        },
+        {
+          "path": "sdk/typescript/test/activation.test.mjs",
+          "sha256": "ecd77d13d2b6f28aa39756a30422d5f91ceaa8cf60e53f64846d785d9107d19a"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_service_sdk.py",
+          "sha256": "5082a9ab49fcaeab43e7045ea6b7682582acfd714d70dc7abb4de58cc9aa5074"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "43228120302ec2e07be7378738f0cc05f62809cf8c08a1b2b90d79db7deca1c2"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "7dd6e17c4114faae580b342290f3946357e4b818707585cba43459df80734eb1"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "0c8e3fce3caa7b152c2ae76ad03707063686521223a1d0aa5eb6b136ac530f6c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "9a23b7712420955ae06907f69c6766d20ddf21e4d31a1cfb32d3a6caf0af4155"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        },
+        {
+          "path": "tools/activation_runtime/mcp_server.py",
+          "sha256": "59169af1d5755265f5fe5c0ce7c535ed0996b7f7a165db5ac78a99e66f57a477"
+        }
+      ]
+    },
+    {
+      "story_id": "US-050",
+      "title": "Peer-review package and reproducible figures",
+      "verification_kind": "DOCUMENTATION",
+      "result": "PASS",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Paper includes exact existing grammar syntax, genuine PackSpec excerpts, versioned experimental proposals, and limitations.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        },
+        {
+          "number": 2,
+          "text": "All figures regenerated by committed scripts from receipts.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt",
+            "test_research_package.test_changed_receipts_change_figure_and_do_not_keep_false_claims"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        },
+        {
+          "number": 3,
+          "text": "Repository and PDFs contain a traceability matrix from each research claim to an experiment.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        },
+        {
+          "number": 4,
+          "text": "No \u201cvalidated compression improvement\u201d in abstract until independently established.",
+          "result": "PASS",
+          "evidence": [
+            "test_research_package.test_figures_and_pdf_regenerate_from_exact_receipt"
+          ],
+          "note": "Generated Markdown/PDF checked for grammar, source excerpt, versioned proposals, traceability and limitations. Figures/PDF reproduce exactly; changed receipts update conclusions. Independent peer review is not claimed."
+        }
+      ],
+      "implementation_files": [
+        {
+          "path": "tools/activation_runtime/research/build_report.py",
+          "sha256": "9153759327ea63f88a27ccd0dd3ccd777a17834c2b3cd09459137b0af6be0598"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
+        },
+        {
+          "path": "tools/activation_runtime/research/receipts/engineering-v1.json",
+          "sha256": "5e4ecb3f17ae0783aa3fc4a86cf230e36d2a8c3b2839020afb7c8b4e6805c278"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.png",
+          "sha256": "d84d9c5ae15edfc294b0b0e5a1dee7e4960d981bcc050aae2c37dff9448be4fd"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.svg",
+          "sha256": "26043af338e040fad94dd288cc9a12e800930cb34cb36a1f1f7255bfb245e8cb"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.md",
+          "sha256": "6320f566e4c05cdbacb180c30fc558dd7d0259cee9f30e6431b75bd8267d474c"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.pdf",
+          "sha256": "defa8ee5fb80bd1eb1fcc3da14a2adc8e5cfd1c2006e86e3592b6d65ed457a9c"
+        }
+      ]
+    }
+  ],
+  "remaining_stories": [
+    {
+      "story_id": "US-009",
+      "title": "Domain preservation profiles",
+      "requirements": [
+        {
+          "number": 3,
+          "text": "Independent reviewers score adversarial examples.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Criterion requires independent reviewers to score adversarial examples."
+        }
+      ]
+    },
+    {
+      "story_id": "US-021",
+      "title": "FF-RCT native-regime integration",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Original APX native interfaces integrated through authorized adapters.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Needs the private canonical FF-RCT interfaces."
+        },
+        {
+          "number": 2,
+          "text": "Cross-repo golden cases and negative cases pass.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Reference prototype remains explicitly labeled until parity proven.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": "Inventory boundary canonical_ff_rct_decoder=UNAVAILABLE, enforced by US-001's check."
+        },
+        {
+          "number": 4,
+          "text": "Compression and reconstruction cost evidence attached independently.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-022",
+      "title": "Activation grammar v0.1 baseline",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "PR #69 merged after required CI and review. IN_REVIEW or a blocking failure never satisfies completion.",
+          "kind": "MERGE",
+          "status": "NEEDS_INPUT",
+          "note": "PR #69 merge."
+        }
+      ]
+    },
+    {
+      "story_id": "US-025",
+      "title": "Sparse activation and resource controls",
+      "requirements": [
+        {
+          "number": 2,
+          "text": "CPU/GPU, RAM, latency and energy/cold-start measured.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "CPU/RAM/latency measured on host; GPU and energy need a physical device."
+        }
+      ]
+    },
+    {
+      "story_id": "US-027",
+      "title": "Device module updates and rollback",
+      "requirements": [
+        {
+          "number": 4,
+          "text": "Bandwidth, cache residency and update cost recorded.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "PARTIAL",
+          "note": "Local transfer bytes are reported; network bandwidth and on-device cache cost need a device."
+        }
+      ]
+    },
+    {
+      "story_id": "US-028",
+      "title": "Real audiovisual dataset and licensing",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "At least 100 licensed/owned short clips representing repeated and diverse settings.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "100 licensed clips."
+        },
+        {
+          "number": 2,
+          "text": "Separate training/development/held-out families with provenance and no leakage.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Leakage checks exist; the corpus does not."
+        },
+        {
+          "number": 3,
+          "text": "Audio, on-screen text, timing and scene dynamics annotated.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Dataset manifest reproducible and redistributability respected.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-029",
+      "title": "AV1 and learned-codec baselines",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Encode/decode scripts for AV1 and one reproducible neural codec where licensing permits.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "PARTIAL",
+          "note": "AV1 scripts run; the neural codec needs licensed pinned weights."
+        },
+        {
+          "number": 2,
+          "text": "Same resolution, frame rate and fidelity obligations.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 3,
+          "text": "Include full model/download/storage/energy/compute costs.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "Report bitrates, artifacts and statistical intervals; no cherry-picked clips.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-031",
+      "title": "Frame/semantic/exact fidelity evaluation",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Frame quality scored by reproducible metrics plus blinded human assessment.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Requires blinded human assessment."
+        },
+        {
+          "number": 2,
+          "text": "Subtitle text, signs, sequences and specified identities checked independently.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Requires independent checking."
+        },
+        {
+          "number": 4,
+          "text": "PackSpec failures block claims of quality equivalence.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": null
+        }
+      ]
+    },
+    {
+      "story_id": "US-041",
+      "title": "Co-evolving encoder/decoder candidates",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Run three arms: fixed pair, decoder-only evolution, paired evolution.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": "experiments.run_codec_arms runs fixed, decoder-only and paired arms."
+        },
+        {
+          "number": 2,
+          "text": "Exactly the same held-out content and PackSpec fidelity contract.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "No \u201ccompression advantage\u201d claimed if paired arm does not outperform a qualified baseline within uncertainty.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "A qualified learned/conventional baseline needs licensed weights and a corpus."
+        }
+      ]
+    },
+    {
+      "story_id": "US-046",
+      "title": "Offline mobile/TV feasibility pilot",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Two different device classes benchmarked with pinned versions.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 2,
+          "text": "Startup, memory, sustained throughput, thermal throttling, update traffic and power measured.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        },
+        {
+          "number": 4,
+          "text": "No production release until security, licensing and fidelity review.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Security, licensing and fidelity review before any release."
+        }
+      ]
+    },
+    {
+      "story_id": "US-047",
+      "title": "Independent acceptance ledger",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Evidence links to commits, CI runs, original source fingerprints, dataset splits and signed reviewers.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "PARTIAL",
+          "note": "The signed-reviewer path exists and CI verifies it; no real reviewer has signed yet."
+        }
+      ]
+    },
+    {
+      "story_id": "US-048",
+      "title": "Pre-registered controlled experiments",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "H1 storage bytes, H2 total cost, H3 activation speed, H4 preserved distinctions, H5 Gardener research continuity and H6 agent evolution benefit each have stated independent/dependent variables.",
+          "kind": "SOFTWARE",
+          "status": "IMPLEMENTED",
+          "note": "research/protocol.json defines H1-H6 with variables; experiments.py enforces the set."
+        },
+        {
+          "number": 2,
+          "text": "Compare AV1, learned codec, no-grammar ablation, fixed grammar, evolving grammar.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Learned-codec arm needs licensed weights; all arms need the corpus."
+        }
+      ]
+    },
+    {
+      "story_id": "US-049",
+      "title": "Four worked real-world demonstrations",
+      "requirements": [
+        {
+          "number": 4,
+          "text": "Actual short video: subtitle, frame/timing and residual tests; synthetic-only examples clearly labeled until real input works.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": "Runs on generated test video; an actual short video is still needed."
+        }
+      ]
+    },
+    {
+      "story_id": "US-051",
+      "title": "Release readiness and pilot stop conditions",
+      "requirements": [
+        {
+          "number": 1,
+          "text": "Complete security/privacy review, supported-device contracts, signed artifacts and error telemetry.",
+          "kind": "HUMAN_REVIEW",
+          "status": "NEEDS_INPUT",
+          "note": "Security/privacy review, device contracts and telemetry."
+        },
+        {
+          "number": 3,
+          "text": "Pilot compared to conventional codec for realistic network and client costs.",
+          "kind": "EXTERNAL_INPUT",
+          "status": "NEEDS_INPUT",
+          "note": null
+        }
+      ]
+    }
+  ],
+  "system_conformance": {
+    "required_outcome": "CONTINUOUS_RCT_GRAMMAR_AND_ACTIVATION_RESEARCH",
+    "component_counts_are_system_acceptance": false,
+    "implementation": "FIRST_BOUNDED_BYTE_EXACT_EVOLUTION_BACKEND",
+    "live_open_model_run": "NOT_CONFIGURED_OR_VERIFIED",
+    "long_horizon_grammar_improvement": "NOT_ESTABLISHED",
+    "semantic_codec_maturity": "NOT_ESTABLISHED",
+    "av1_floor": "UNCHANGED_PASSTHROUGH_WHEN_CANDIDATE_OR_RUNTIME_COST_IS_UNQUALIFIED",
+    "documentation": "docs/CONTINUOUS-RCT-GARDEN.md",
+    "test": "tools/activation_runtime/tests/test_evolution.py"
+  }
+}

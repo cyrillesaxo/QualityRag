@@ -1,0 +1,36 @@
+/* Training animation scenes, 1920x1080. Same palette as the console's dark theme. */
+:root{--bg:#0A0D12;--surface:rgba(20,25,34,.72);--line:rgba(255,255,255,.10);--line-2:rgba(255,255,255,.18);--ink:#EDEFF3;--ink-2:#C4CAD4;--muted:#8E97A5;
+  --accent:#57E0CC;--accent-soft:rgba(87,224,204,.12);--accent-line:rgba(87,224,204,.45);--warn:#F5C46B;--warn-soft:rgba(245,166,35,.14);--bad:#FF9A9A;--bad-soft:rgba(255,120,120,.12);--violet:#A99BFF;
+  --font:"Inter","Segoe UI",Roboto,"Helvetica Neue","DejaVu Sans",sans-serif;--mono:"JetBrains Mono","DejaVu Sans Mono",Menlo,monospace}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg)}
+.stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font)}
+.ambient{position:absolute;inset:0;background:radial-gradient(1100px 640px at 8% -8%,rgba(87,224,204,.16),transparent 62%),radial-gradient(900px 560px at 104% 106%,rgba(124,108,255,.14),transparent 60%)}
+.ambient::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.045) 1.2px,transparent 1.2px);background-size:28px 28px;-webkit-mask-image:linear-gradient(to bottom,#000,transparent 80%)}
+#scene{position:absolute;inset:0}
+.brandmark{position:absolute;left:64px;top:48px;display:flex;align-items:center;gap:12px;font-size:24px;font-weight:650;color:var(--ink-2)}
+.epmark{position:absolute;right:64px;top:52px;font:20px var(--mono);color:var(--muted)}
+.abs{position:absolute}
+.card{position:absolute;border-radius:18px;background:var(--surface);border:1.5px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 30px 60px -30px rgba(0,0,0,.8);backdrop-filter:blur(18px)}
+.kicker{font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mono{font-family:var(--mono)}
+.h1{font-size:104px;font-weight:700;letter-spacing:-.025em;line-height:1.02}
+.h2{font-size:54px;font-weight:650;letter-spacing:-.015em;line-height:1.15}
+.body{font-size:30px;line-height:1.45;color:var(--ink-2)}
+.chip{display:inline-flex;align-items:center;gap:10px;padding:10px 20px;border-radius:999px;border:1.5px solid var(--line-2);font-size:26px;font-weight:600;white-space:nowrap}
+.chip.ok{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.chip.warn{color:var(--warn);border-color:rgba(245,166,35,.5);background:var(--warn-soft)}
+.chip.bad{color:var(--bad);border-color:rgba(255,154,154,.5);background:var(--bad-soft)}
+.passage{width:520px;padding:20px 24px}
+.passage .meta{font:19px var(--mono);color:var(--muted);margin-bottom:8px}
+.passage .text{font-size:25px;line-height:1.4;color:var(--ink)}
+.mark{background:rgba(245,166,35,.28);color:#FFD58A;padding:0 6px;border-radius:5px}
+.tick{display:flex;align-items:center;gap:18px;font-size:30px;padding:14px 0;border-top:1.5px solid var(--line)}
+.tick:first-child{border-top:0}
+.tick .box{width:36px;height:36px;border-radius:10px;border:2px solid var(--line-2);display:flex;align-items:center;justify-content:center;flex:none}
+.tick .box svg{width:22px;height:22px}
+.term{width:1500px;left:210px;top:190px;padding:0;overflow:hidden}
+.term .bar{height:52px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1.5px solid var(--line);background:rgba(255,255,255,.03)}
+.term .dot{width:14px;height:14px;border-radius:999px;background:#3A4250}
+.term pre{margin:0;padding:28px 34px;font:27px/1.6 var(--mono);color:var(--ink-2);white-space:pre-wrap;min-height:560px}
+.term .p{color:var(--accent)}.term .o{color:var(--muted)}
+.cursor{display:inline-block;width:14px;height:30px;background:var(--accent);vertical-align:-5px;margin-left:2px}

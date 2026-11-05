@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/agents/grammar-compiler/v1.0",
+  "title": "grammar-compiler bounded research task",
+  "type": "object",
+  "properties": {
+    "max_ast_nodes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "candidate_model_sizes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 16
+      }
+    }
+  },
+  "additionalProperties": false
+}

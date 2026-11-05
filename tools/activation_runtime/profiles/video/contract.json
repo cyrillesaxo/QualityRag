@@ -1,0 +1,64 @@
+{
+  "author": "fixture-author",
+  "authorization": "REQUIRES_SIGNED_REVIEW",
+  "default_unspecified": "PRESERVE_IN_RESIDUAL",
+  "ir_sha256": "a56a3f2bbccc84ef5074c5e3c90e552ac8e41a4d7fb7d07e563f3ecd374a8ae7",
+  "obligations": [
+    {
+      "anchor": {
+        "key": "frame_sha256",
+        "kind": "json-key",
+        "value_sha256": "659184ac818227a8866a596f6d51a1b66ffc6b92db4a0c5dd18bd6cada012c38"
+      },
+      "field": "frame_sha256",
+      "ir_node_id": "field-frame_sha256",
+      "mode": "EXACT",
+      "omission_permitted": false,
+      "tolerance": null
+    },
+    {
+      "anchor": {
+        "key": "pts",
+        "kind": "json-key",
+        "value_sha256": "98089e6d36f78e9766c9ea34d5acb3611f3a92cd81c5eb102095d924ffc7d08b"
+      },
+      "field": "pts",
+      "ir_node_id": "field-pts",
+      "mode": "EXACT",
+      "omission_permitted": false,
+      "tolerance": null
+    },
+    {
+      "anchor": {
+        "key": "subtitle_text",
+        "kind": "json-key",
+        "value_sha256": "7b2ac8d7af2bb617f974f44fdcd30dd1b8a093104b910b81665f31d01bb240a8"
+      },
+      "field": "subtitle_text",
+      "ir_node_id": "field-subtitle_text",
+      "mode": "EXACT",
+      "omission_permitted": false,
+      "tolerance": null
+    },
+    {
+      "anchor": {
+        "key": "identity",
+        "kind": "json-key",
+        "value_sha256": "0f15dc23249e5ae41849d7f070b24f8aea5d052fe3d20972b004e8b9e07349ba"
+      },
+      "field": "identity",
+      "ir_node_id": "field-identity",
+      "mode": "UNKNOWN",
+      "omission_permitted": false,
+      "tolerance": null
+    }
+  ],
+  "policy_source_sha256": "ee40762bd73562c9aee9e3c771458b1d5577c7fb5c63e220a646604de1d47be2",
+  "reviewer": "independent-review-required",
+  "schema": "qualityrag.preservation-contract/v1",
+  "source_sha256": "52c320671f93a307c6548739859fc3ad0cc9b01dd3ade01ff2ca07c99e473d90",
+  "task": "video",
+  "tenant": "research",
+  "unspecified_fields": [],
+  "version": "1.0"
+}

@@ -1,0 +1,97 @@
+WEBVTT
+
+00:00:00.600 --> 00:00:03.246
+Welcome to QualityRag 101.
+
+00:00:03.496 --> 00:00:10.451
+In this first episode, you'll run QualityRag on your own machine and check your first answer, in about four minutes.
+
+00:00:11.700 --> 00:00:14.538
+Most retrieval systems work the same way.
+
+00:00:14.788 --> 00:00:20.805
+They search your documents, hand the top passages to a language model, and the model answers.
+
+00:00:21.055 --> 00:00:27.989
+It answers even when the passages don't really support it, like an old runbook that predates today's controls.
+
+00:00:29.033 --> 00:00:31.871
+QualityRag adds a check before the answer.
+
+00:00:32.121 --> 00:00:34.447
+Your policy lists what an answer needs.
+
+00:00:34.697 --> 00:00:42.570
+For each requirement, the check counts independent sources, and rejects evidence that is too old or contradicted.
+
+00:00:42.820 --> 00:00:47.706
+The result is one of three: supported, not enough evidence, or contradicted.
+
+00:00:48.767 --> 00:00:50.218
+Two details matter.
+
+00:00:50.468 --> 00:00:55.717
+Copies of the same document count once, so a mirrored handbook is still one source.
+
+00:00:55.967 --> 00:01:05.226
+And conditional words, like unless, or only, are highlighted. The check counts the passage, but it does not read the condition. A person should.
+
+00:01:06.267 --> 00:01:07.334
+Let's run it.
+
+00:01:07.584 --> 00:01:11.041
+Clone the repository, and install the requirements.
+
+00:01:11.291 --> 00:01:17.307
+The bootstrap command creates local keys, and a sign in token that lasts twenty four hours.
+
+00:01:17.557 --> 00:01:20.630
+Then start the console, and open it in your browser.
+
+00:01:21.567 --> 00:01:26.133
+Paste the token from browser token dot text, and open your workspace.
+
+00:01:26.383 --> 00:01:34.191
+Home shows what needs your attention. The engine panel below lists every part of the machinery, read live from the server.
+
+00:01:34.933 --> 00:01:42.507
+Open, check an answer. Sample data loads by itself, so you can try everything before bringing your own documents.
+
+00:01:42.757 --> 00:01:48.945
+The checklist shows the passages your search returned. The requirements show what the answer needs.
+
+00:01:49.195 --> 00:01:50.710
+Choose, check answer.
+
+00:01:50.960 --> 00:02:00.219
+The answer is supported. But read the line beside it: two requirements rely on conditional wording, and all three rest on a single source.
+
+00:02:00.967 --> 00:02:05.170
+Select a requirement, to see exactly which passages were counted.
+
+00:02:05.420 --> 00:02:11.607
+Here, the word unless is highlighted. The passage counts, but the condition needs a human reader.
+
+00:02:11.857 --> 00:02:17.682
+And for the recovery procedure, the mirrored copy of the handbook is counted once, not twice.
+
+00:02:18.433 --> 00:02:22.765
+Now untick the memo about the emergency exception, and check again.
+
+00:02:23.015 --> 00:02:28.818
+One requirement has lost its only source, so the result becomes, not enough evidence.
+
+00:02:29.068 --> 00:02:34.551
+That is the core idea. The result follows the evidence, not the model's confidence.
+
+00:02:35.300 --> 00:02:37.114
+Finally, open health.
+
+00:02:37.364 --> 00:02:44.021
+It lists what the check cannot see on its own, with a fix for each one. We'll work through them in episode two.
+
+00:02:44.867 --> 00:02:49.070
+You've installed QualityRag, signed in, and checked your first answer.
+
+00:02:49.320 --> 00:02:51.902
+Next time: fixing what health finds.

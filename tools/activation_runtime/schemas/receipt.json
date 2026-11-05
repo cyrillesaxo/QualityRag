@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/schemas/receipt/v1.0",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "qualityrag.finite-activation-receipt/v0.1"
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "artifact_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "policy_ir_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "finite_constraint_result": {
+      "enum": [
+        "SAT",
+        "UNSAT",
+        "UNKNOWN"
+      ]
+    },
+    "qualityrag_admission": {
+      "enum": [
+        "INCONCLUSIVE",
+        "REFUSE"
+      ]
+    },
+    "can_generate": {
+      "const": false
+    },
+    "action": {
+      "enum": [
+        "REFUSE",
+        "REQUIRES_REVIEW"
+      ]
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "research_output": {
+      "oneOf": [
+        {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 128,
+          "propertyNames": {
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "fallback": {
+      "type": "object",
+      "properties": {
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "released": {
+          "const": false
+        }
+      },
+      "required": [
+        "source_sha256",
+        "released"
+      ],
+      "additionalProperties": false
+    },
+    "gate": {
+      "type": "object"
+    },
+    "trace": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "source_sha256",
+    "artifact_sha256",
+    "policy_ir_sha256",
+    "finite_constraint_result",
+    "qualityrag_admission",
+    "can_generate",
+    "action",
+    "reason",
+    "research_output",
+    "fallback",
+    "gate",
+    "trace",
+    "limitations"
+  ],
+  "additionalProperties": true
+}

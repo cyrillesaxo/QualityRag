@@ -1,0 +1,43 @@
+WEBVTT
+
+00:00:00.700 --> 00:00:03.602
+My PDF tables are completely messed up.
+
+00:00:03.902 --> 00:00:05.353
+How would you even know?
+
+00:00:06.700 --> 00:00:13.207
+A fee table, as printed on page four: twenty-five euros per wire, waived above ten thousand.
+
+00:00:13.507 --> 00:00:17.903
+The parser flattens the table, and the condition lands in the wrong place.
+
+00:00:18.203 --> 00:00:22.406
+The model reads clean-looking text, and answers with full confidence.
+
+00:00:22.706 --> 00:00:26.120
+Nothing in the pipeline says the extraction was ever checked.
+
+00:00:27.467 --> 00:00:33.398
+QualityRag's rule is simple: an extraction nobody has checked is unknown, not support.
+
+00:00:33.698 --> 00:00:37.731
+The parsed cell is marked unknown, so the check is inconclusive.
+
+00:00:38.031 --> 00:00:42.106
+After a reviewer compares it with the page, the same cell can count.
+
+00:00:43.467 --> 00:00:52.129
+In the research track, Semantic Codex indexes documents with an anchor for every value: page, row, paragraph, or time.
+
+00:00:52.429 --> 00:01:00.664
+It says plainly when extraction is partial, and it does not do OCR yet. Checking table structure itself is still research.
+
+00:01:02.000 --> 00:01:03.665
+That's the honest boundary.
+
+00:01:03.965 --> 00:01:11.667
+QualityRag won't let an unchecked number pass as evidence. But it doesn't yet repair or validate the table itself.
+
+00:01:11.967 --> 00:01:14.719
+You've finished the first five Academy episodes.

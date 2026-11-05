@@ -1,0 +1,2784 @@
+{
+  "schema": "qualityrag.activation-capabilities/v1",
+  "stories": [
+    {
+      "story_id": "US-001",
+      "title": "Source and capability inventory",
+      "status": "DONE",
+      "engineering_status": "COMPLETE_VERIFIED_SOFTWARE_CRITERIA",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": "bba784e275fdf7dac5b8affd77267c5fb20d5038",
+      "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        },
+        {
+          "number": 2,
+          "text": "PR #69 remains IN_REVIEW until merged.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        },
+        {
+          "number": 3,
+          "text": "CI rejects a DONE claim with no link to passing test receipt.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        },
+        {
+          "number": 4,
+          "text": "Report explicitly lists unavailable video decoder and independent admission.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/audit.py",
+          "sha256": "7aba9b9c9d79dd2776d46a5a448c93945f30bf1b13c94d3d4cf213b56a6e11cb"
+        },
+        {
+          "path": "tools/activation_runtime/inventory_completion.py",
+          "sha256": "9a3a8339ddb0899c49061a06623c90d336c93a2f6f7e2ae6958bd60059134990"
+        },
+        {
+          "path": "docs/INVENTORY-ACCEPTANCE.md",
+          "sha256": "b6f7552a9cf6efe7bd29c5b5da4059faa00885fa16409c2bf434335c8803eced"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py",
+      "remaining": "No remaining US-001 software criterion. Independent domain validation is not established or claimed.",
+      "completion_envelope": null,
+      "independent_validation": "DOMAIN_VALIDATION_NOT_ESTABLISHED_OR_CLAIMED",
+      "completion_evidence": {
+        "kind": "GITHUB_VERIFIED_SOURCE_INVENTORY/v1",
+        "repository": "cyrillesaxo/QualityRag",
+        "implementation_commit": "bba784e275fdf7dac5b8affd77267c5fb20d5038",
+        "module_inventory_sha256": "1576d4e584350df02271ce11bd70e2d8f83f900d9d8d560f21b572d47f928a21",
+        "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
+        "workflow_run_id": 42019254033,
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42019254033"
+      },
+      "acceptance_history": [
+        {
+          "status": "DONE_AT_PRIOR_IMPLEMENTATION",
+          "completion_evidence": {
+            "kind": "GITHUB_VERIFIED_SOURCE_INVENTORY/v1",
+            "repository": "cyrillesaxo/QualityRag",
+            "implementation_commit": "a9255368f0f5cb5fd59fb4376f6975b2af75a3ff",
+            "module_inventory_sha256": "5d6ea0ef6deb711e9139f6a759fce6092493e3a986d4aff8f7762d821f294372",
+            "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
+            "workflow_run_id": 41973124257,
+            "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/41973124257"
+          }
+        }
+      ]
+    },
+    {
+      "story_id": "US-002",
+      "title": "Versioned schema catalog",
+      "status": "DONE",
+      "engineering_status": "COMPLETE_VERIFIED_SOFTWARE_CRITERIA",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
+      "acceptance_sha256": "f90090745a273d127eb6fb43b5c882106b906497fc4284094a63d871c3b1512c",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "JSON Schema and example fixtures for each envelope.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        },
+        {
+          "number": 2,
+          "text": "Schema identifiers include major/minor version.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        },
+        {
+          "number": 3,
+          "text": "Unknown operator, duplicate ID, invalid type, oversize payload and incompatible major version fail deterministically.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        },
+        {
+          "number": 4,
+          "text": "Round-trip serialization is deterministic.",
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/contracts.py",
+          "sha256": "0120d947b7a6916e72ed63785fe7a79531225e6fd02870acbf9ea49952d038d2"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/reviewed-activation.json",
+          "sha256": "c61c306bdf55b473cde049f4899bab17c3e1b1c1cad7b3a00cb1d7cae3edc3fe"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/reviewed-activation.json",
+          "sha256": "782cea1f2d7f6d8a4093fdffef52d18cf158941055e30a50a12c7a4d49f40103"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/observation-graph.json",
+          "sha256": "7b1c32425ca0ec307159176271e4092481e262dbc67ef128f9182f7f2cb1d6a7"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/observation-graph.json",
+          "sha256": "4765e39f4ce84828a5f6d2bc8e4ecfc24b5998974f157c60e857f5e061bae04f"
+        },
+        {
+          "path": "docs/SCHEMA-CATALOG-ACCEPTANCE.md",
+          "sha256": "871844c2f874c64741978cceb42c465c4d0b122577bfafe1cfc9dc3e78bf56ac"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/grammar.json",
+          "sha256": "f1a5720a60f7c68b8e1a94646c914a2a81a510328f5ac6300bbaae84b7640d30"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/operator-ast.json",
+          "sha256": "e9233313d402624e78bc781304e2753bd48e08748ac1452d503caa4f5cedd214"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/packspec.json",
+          "sha256": "0113f359471771d945495f43a0cc56e83489ab1dbe1b21bc3abeafbccd152a4c"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/payload.json",
+          "sha256": "63766a9f2cf21685dde6175cda10821a7d1364739c3fd0a53ca29c44590e0334"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/receipt.json",
+          "sha256": "7e7d44e6947b45b1659d8b995708f915475c10b845298438134b07e4d638e028"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/source.json",
+          "sha256": "ac56ed1ff0fbb53ba5f180d074b5cfd580795a2d517ba52260e1b114d19775e3"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/transform.json",
+          "sha256": "517305fd50ba3693c04668c0b13406945686fb126cdf563e079d5fbfb85b56b9"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/verdict.json",
+          "sha256": "92e38f739830ff356a55dacee87f7cf726b9b8639af60581c6df703df54b5cf5"
+        },
+        {
+          "path": "tools/activation_runtime/inventory_completion.py",
+          "sha256": "9a3a8339ddb0899c49061a06623c90d336c93a2f6f7e2ae6958bd60059134990"
+        },
+        {
+          "path": "tools/activation_runtime/schema_completion.py",
+          "sha256": "17a07ae55674cd6ae7f550a5f317163507191e7a96913fe387a320e47ac49a2f"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/grammar.json",
+          "sha256": "1f9fbb78a55e002f964d2e19b545e2149393c8fa79cd55cda4c294ccee02fa0d"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/operator-ast.json",
+          "sha256": "21065838b34d57e0dede6458b484e1a39eb9d9d62a0b14b2217e5e3c3443eb6d"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/packspec.json",
+          "sha256": "797956bf76a78780ab848123884b1da5e428a93618749c49c500cc9873bc676d"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/payload.json",
+          "sha256": "cbcc768deccb56f45a542ee22ea1deddef9a26e820a66b017548730169abebaa"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/receipt.json",
+          "sha256": "00c4231a6bd41e5bde27c6f100fcc7718b43a97bb04e81314e009fd7525b5a6b"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/source.json",
+          "sha256": "7592ce3ba4192dd47bc91666c13a8b504fe32cc10ffdf25cbca1f5e58915558c"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/transform.json",
+          "sha256": "de73533d2ee3e73b43eeed9aee3cc5e14761f9c95f1d7f3f8a9a0b7ada8a9ce5"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/verdict.json",
+          "sha256": "6b9433d4d1a3334c8d018aa3ed542cf0f54d6d0eb895d767c18c805de6811f0e"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_schema_catalog.py",
+          "sha256": "ef8f453ff8391210856e6878fa87012cfef8f905a22bb94fc1ad4568386f8bb9"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_contracts.py; tools/activation_runtime/tests/test_schema_catalog.py; python -m tools.activation_runtime.cli catalog",
+      "remaining": "No remaining US-002 software criterion. Independent domain validation is not established or claimed.",
+      "completion_envelope": null,
+      "independent_validation": "DOMAIN_VALIDATION_NOT_ESTABLISHED_OR_CLAIMED",
+      "completion_evidence": {
+        "kind": "GITHUB_VERIFIED_SCHEMA_CATALOG/v1",
+        "repository": "cyrillesaxo/QualityRag",
+        "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
+        "module_inventory_sha256": "c5931ed5189a34611406174b0bc1817c0de9d4178f1c683c7655cd20fe4a642e",
+        "acceptance_sha256": "f90090745a273d127eb6fb43b5c882106b906497fc4284094a63d871c3b1512c",
+        "workflow_run_id": 42011085254,
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42011085254",
+        "catalog_report_sha256": "55a8ff90b4d66032fda7cca48c02cdaa7e63bdab6d11c9cdcf37cc65f33f647c"
+      }
+    },
+    {
+      "story_id": "US-003",
+      "title": "Independently replayable research harness",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "e1f62d87fa95a19950b67f05a45973e0d61753b9a42e9bca60099d65e1820baf",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Pinned tool/runtime versions and fixed fixtures.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Command emits source/policy/grammar digests, exact arguments, stdout and machine-readable result.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Repeat yields identical structural verdicts.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Any unavailable dependency causes explicit SKIP/UNKNOWN, not synthetic PASS.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/run_research.py",
+          "sha256": "d7811f29040cc661daa3d924ca317a8d95716d6903f9e5fd36dfbd58b146166b"
+        },
+        {
+          "path": "tools/activation_runtime/worked_workflows.py",
+          "sha256": "65d17c58b2781612008cdc70917f3397168b730401856826f9a6687ab00c85ef"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_run_research.py; tools/activation_runtime/tests/test_demo_media.py",
+      "remaining": "Independent replay on the pinned reference environment.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-004",
+      "title": "Risk, prior art and novelty register",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "1a0fd3e9487444126adf401f6d9424fe3fdbd4b75bd6e5aab32623805731ed12",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Each claimed novelty links to a falsifiable comparator.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Prior-art citations have dates/versions.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "No generic \u201cfirst\u201d or \u201cbetter compression\u201d claim without experiment.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Negative results are retained.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/research/prior-art.md",
+          "sha256": "c6d60674d068e731dbe53b254f76b58e9862b7526b629a23fa422e0255c04fca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_research_package.py",
+      "remaining": "Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-005",
+      "title": "Purpose-scoped information obligations",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "313c2036c34b15198315b69e107c25fede74aa0ee35675966e32abb882d528d8",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Schema expresses mandatory fields, exact fields, allowable approximation and unanswered/unknown distinctions.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Every required field maps to immutable source anchors.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unspecified critical fields cannot silently be treated as disposable.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Contract identifies task, author, reviewer, version and authorization scope.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "remaining": "Domain-owner review of purpose and preservation obligations.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-006",
+      "title": "ConstraintIR-to-activation binding",
+      "status": "IN_REVIEW",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "ec1cb4a9bfa0504ead416231fec61139e70f8ea2154419a3591ed4dbab634611",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Use existing `tools/packspec_compiler` and `unified_gate.py`; do not create a second self-certifying admission engine.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Each mapped obligation references reviewed IR node IDs, source hash, omission permission and independent-review signature.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Deferred/unsupported semantics remain UNKNOWN.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Any mismatch REFUSEs use.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        },
+        {
+          "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
+          "sha256": "131e96b66161ae0f3b8fd8750e494e0404aa0c9805b4f5ca4fdc14d003c42abc"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_omission_authority.py",
+          "sha256": "bc8367c40d0c762fc0351c215b0b6352113fe33de064673043ba71f412da7638"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
+      "remaining": "Real authorized reviewer signature and qualified source/policy binding.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-007",
+      "title": "WitnessGraph and evidence independence",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "aa881b47bb4c5297c7ed947c12b8aedb96ceb373904374af736d5f49ee4ee94c",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Witness derivation graph records source roots and custody.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Shared roots collapse under independence calculation.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Contradictory, stale or missing witnesses cannot satisfy exact-information preservation.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/native_apx.py",
+          "sha256": "90e2d1d1df9a5b1529027d06b853594372775829264f04ea0888e3a5121a0e15"
+        },
+        {
+          "path": "tools/activation_runtime/witness_graph.py",
+          "sha256": "40bb27022b9c90edbc208736a0a16315ec59615c2075865a6b7f9e7fab884f28"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness.py",
+          "sha256": "c61a6fd19c417b9be2be4a0b96c21c0bf0959549e3e8e50542241f78f06a1fa9"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness_runner.mjs",
+          "sha256": "f7c5f12b6cebefc042825c2991852d16d848e258302f334b5035c3e00a62d945"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/packages/apx-evidence/src/index.ts",
+          "sha256": "49c690848c4dcb1022f815d5deb258ddd074317eb0cc3cebde40a99d069199ee"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/PROVENANCE.json",
+          "sha256": "07ac56e008ae8e1c71043f048452810fe3919d6057e5c1bdecd86a6a7a9764d3"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/canonical-witness-graph.json",
+          "sha256": "7814b546ef2791f01ab8f9eaad4d332470c801dd3a2df761ef5345313aa9b1a6"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_native_witness.py",
+          "sha256": "6d68d5b454c81ea6a58f1ed7ec771e20f5399c86cf9dbc754d097431b83ff781"
+        },
+        {
+          "path": "docs/CANONICAL-WITNESS-GRAPH.md",
+          "sha256": "74a489d1312aa201fb147cac95851fd0cf40bed9b755b926d8e3cf77ddd6ae8e"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_witness_graph.py; tools/activation_runtime/tests/test_native_apx.py; tools/activation_runtime/tests/test_native_witness.py",
+      "remaining": "Canonical grouping and custody-root adapter implemented; commit-bound CI verification pending. Source authenticity and real-world independence are not established.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-008",
+      "title": "Omission and residual audit",
+      "status": "IN_REVIEW",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "09885186d0fdca30cbd90377d9e003dd4b571b7d7bc3ad31563e42e8fe46c734",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Each candidate emits preserved, approximated, omitted, unknown and residual-required fields.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Every omission references a governing obligation and review disposition.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unauthorized omissions block activation.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Replaying against a changed PackSpec invalidates stale approvals.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        },
+        {
+          "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
+          "sha256": "131e96b66161ae0f3b8fd8750e494e0404aa0c9805b4f5ca4fdc14d003c42abc"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_omission_authority.py",
+          "sha256": "bc8367c40d0c762fc0351c215b0b6352113fe33de064673043ba71f412da7638"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
+      "remaining": "Real omission-review evidence before any optional distinction is discarded.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-009",
+      "title": "Domain preservation profiles",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "d4c93b1ae2d530400218cde1e82b3265623571cd3f350ce641a90ece045350c3",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "At least four source-anchored PackSpec fixtures, not one universal policy.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Clinical case distinguishes symptoms from diagnosis; legal case protects role bindings; video case protects text/timing.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Independent reviewers score adversarial examples.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Failing examples remain visible.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/fixture_catalog.py",
+          "sha256": "07259e5e4c6ccf0506d6f41a01d633246a463a457ec6701f365fa1bdc566cc54"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "remaining": "Independent domain reviewers and scored adversarial clinical/legal/video cases.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-010",
+      "title": "RCT typed grammar integration",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "5c5738c9605c2f7464c2d9878be429d4ef6a95d1656118b2a345d2b57530a9ff",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Reuse the existing module rather than rewriting it.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Typed endpoints checked on `PATH`; shared endpoint types checked on `AND`.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unique minimal candidate requirement and budget-driven UNKNOWN retained.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Source fact IDs retained through path derivation.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "4a833a2fa46dcb74c6391b16013bffd89f3f693f6acef8a32ad899d70585a3d5"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
+      "remaining": "Merged review and remote CI.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-011",
+      "title": "SAT/UNSAT/UNKNOWN semantics",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "505a6f89b07f7beb5539bf4dfae5eec508b219ec910035c96efe25a1eff90fa4",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "SAT only if every modeled obligation is satisfied.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "UNSAT includes minimal available counterexample and violated clause.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Missing data or exhausted search returns UNKNOWN.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Finite SAT never emits QualityRag ADMIT or can_generate=true by itself.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "remaining": "Merged review; finite SAT remains scoped and does not authorize semantic ADMIT.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-012",
+      "title": "Purpose-preserving regime transition",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "98ca32ccfc95bb06602e5bef301d31fa6a9b2117ecd0196155d4fd4e685633de",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Executes at least one source-anchored reversible mapping on non-video data.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Produces a transform trace and versioned source hash.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unknown role/negation/temporal cases refuse or preserve raw source.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Round-trip tested for required distinction equivalence; no invented labels.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        },
+        {
+          "path": "tools/activation_runtime/semantic_ir.py",
+          "sha256": "e389036fdc65ca924f01152a22ecdec90fae7a75beb5c5e9582b685e7178d5e1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_semantic_ir.py",
+          "sha256": "d0c9c95b3a517bf02bab626224e5ba2987f721b3dacc0ec30bef3842352a4577"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_observation_service.py",
+          "sha256": "6a273c5333f83813497967a9cc1a3ae524d7cde0d63700b9c0864b5ab080eae4"
+        },
+        {
+          "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
+          "sha256": "f6552c5739ccd1be134274e59f273fe59e0185f1d28cc5495c964572735b93b9"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py",
+      "remaining": "Independent review of the finite source-to-target mapping.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-013",
+      "title": "RCT candidate search with early stopping",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "7dac49983a57f8654b11bf849a5d8a3cdbe096acf788ccbd01dfb4bd149a04a8",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Explicit candidate count, depth, wall-clock/CPU and memory limits.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Deterministic selection for fixed search inputs.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Inconclusive search reports budget and discarded candidates.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Baseline \u201cstay in present regime\u201d is always considered.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/search.py",
+          "sha256": "209e260190f2d1c2259ea6a97e43a9ace22dff97ee585b23074208fbb7a8ca06"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py",
+      "remaining": "Merged review and supported-host sandbox confirmation.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-014",
+      "title": "Constraint compilation and reusable decisions",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "3371708a2a4c6fc8092af34a83413c8f5ab5d79ebf572e85cceacb6e6a85f363",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Compilation records input obligation fingerprints and compiler version.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Repeated equivalent queries reuse artifacts without changing verdicts.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Invalidated input/policy triggers recompile.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Actual compiled artifact bytes, construction time, cache hits and runtime costs measured.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pipeline.py",
+          "sha256": "4a833a2fa46dcb74c6391b16013bffd89f3f693f6acef8a32ad899d70585a3d5"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
+      "remaining": "Independent replay of compiler/cache invalidation and measured amortization beyond authored fixtures.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-015",
+      "title": "Finite equivalence proof and counterexamples",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "57a9ad9f5a77cd5bdfe23fa520d0ade40edbf9a6bfbb9bcd880dcd2645fc5891",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Compare relevant query results across source and transformed graph for all finite test pairs.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Include negative witnesses and role/order reversals.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Failure emits reproducible counterexample.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Result is scoped to finite graph and never generalized as universal meaning conservation.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "remaining": "Independent review of the declared finite query vocabulary and domain boundary.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-016",
+      "title": "Typed semantic intermediate representation",
+      "status": "BLOCKED",
+      "engineering_status": "SOURCE_GRAPH_TYPECHECKED_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "0b0a3108c0468cf3f71933a5e479cc9c5c64c90a270861dbc7ee3a0aa0b649f7",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Typed entities, roles, polarity, quantity/unit, temporal order, modality, provenance and unknowns are representable.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Invalid joins/roles rejected by type checker.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Source quote, byte/character anchors and hashes stored.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Canonical serialization round-trips.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/preservation.py",
+          "sha256": "e2d56a4a937a83a6177db360ddb1e5359c9dd0cbe0030f93cfffad27ecce7832"
+        },
+        {
+          "path": "tools/activation_runtime/semantic_ir.py",
+          "sha256": "e389036fdc65ca924f01152a22ecdec90fae7a75beb5c5e9582b685e7178d5e1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_semantic_ir.py",
+          "sha256": "d0c9c95b3a517bf02bab626224e5ba2987f721b3dacc0ec30bef3842352a4577"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_observation_service.py",
+          "sha256": "6a273c5333f83813497967a9cc1a3ae524d7cde0d63700b9c0864b5ab080eae4"
+        },
+        {
+          "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
+          "sha256": "f6552c5739ccd1be134274e59f273fe59e0185f1d28cc5495c964572735b93b9"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py",
+      "remaining": "Canonical K/B/C/T source/API parity and independent semantic annotation review remain unavailable.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-017",
+      "title": "Exact information and reversible source custody",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "bec553e8454675542baa34a94288b04ff84666c0b96c8e164ce1bb04cd665be7",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Raw-source immutable reference or lossless original bytes retained.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Every omission has a location and residual/refetch plan.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Content hash verification catches corruption.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Unavailable original causes an explicit fidelity limitation/REFUSE.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
+      "remaining": "Deployed persistent custody with trusted host authorization and source authority.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-018",
+      "title": "Source adapters (text, PDF, HTML, CSV/SQL)",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "d8bb718ca6827a470260990356a8a23fb8bc2abd656517c39ee8f800b233e788",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Two complete initial adapters (e.g., PDF and CSV), plus text fixture.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Text/tabular spans map back to original pages/rows.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unsupported structure is marked UNKNOWN, not silently dropped.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Unit/regression tests include duplicated headings and malformed input.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/adapters.py",
+          "sha256": "92bb2975b63f22eb8b3d67a354b5dfb6d37674d01a1493811e1fee6798cb1696"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "remaining": "Independent parser-boundary review on representative real documents.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-019",
+      "title": "Review-gated relation and role extraction",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "c583f6a46d573857bb5deaa7eaa77b4c95f43ab183c06929cc120b1af330bb6f",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Reuse existing v1.2 explicit `RELATE` and v1.3 bounded linguistic extractors.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Opposite polarity candidates quarantined.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Caller endorsement remains unauthenticated until authorization added.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Tests include actor/beneficiary swaps and negation changes.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/adapters.py",
+          "sha256": "92bb2975b63f22eb8b3d67a354b5dfb6d37674d01a1493811e1fee6798cb1696"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "remaining": "Actual authorized role-extraction reviewers; candidates remain quarantined.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-020",
+      "title": "Reusable grammar registry and dependency DAG",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "8ebba10c8142dcdc795ae8035d69645ce568e53a0005a778954a4d2597986f6a",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "DAG is acyclic and dependencies are typed.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Resolution identifies missing/incompatible modules before use.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Signed release metadata covers transitive dependencies.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Authorized rollback to a signed, compatible, non-revoked release is tested; minimum-version policy remains enforced.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/artifacts.py",
+          "sha256": "31b1d7ff682170960bc46ede6fc84624635fe75731eb44301e064d11d8ad19a0"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_device_authority.py",
+      "remaining": "Merged review and configured production signing/version policy.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-021",
+      "title": "FF-RCT native-regime integration",
+      "status": "BLOCKED",
+      "engineering_status": "AUTHORIZED_CANONICAL_SOURCE_REQUIRED",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "04fcac757fe6100936504c5277fc495de0446b015d38dab2b614d37289e3cd69",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Original APX native interfaces integrated through authorized adapters.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Cross-repo golden cases and negative cases pass.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Reference prototype remains explicitly labeled until parity proven.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Compression and reconstruction cost evidence attached independently.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/native_apx.py",
+          "sha256": "90e2d1d1df9a5b1529027d06b853594372775829264f04ea0888e3a5121a0e15"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_native_apx.py",
+      "remaining": "Original canonical FF-RCT reconstruction interface and independent parity/cost evidence not established by available sources.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-022",
+      "title": "Activation grammar v0.1 baseline",
+      "status": "BLOCKED",
+      "engineering_status": "EXISTING_OPEN_PR_DEPENDENCY",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "11aadb54a45b57c94aeb60852b6f43f8f5b2456c13e0c961f909b6d3b714c39b",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "PR #69 merged after required CI and review. IN_REVIEW or a blocking failure never satisfies completion.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Synthetic clinical/video fixtures and deterministic tests pass.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unsupported operators rejected.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "The baseline returns `INCONCLUSIVE` and `can_generate=false` without independent review. **Current status: IN_REVIEW**.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [],
+      "test_or_receipt": "PR #69 required CI",
+      "remaining": "PR #69 must be reviewed and merged after required CI. It is still open.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-023",
+      "title": "Executable finite ACTIVATE/VERIFY/FALLBACK",
+      "status": "IN_REVIEW",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "eb9c069247abf96f48a4f747e3be2e3ec1889f42b70ffa74de4a634761747ac4",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Typed interpreter implements bounded, sandboxed operators with no `eval`/dynamic imports.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Uses actual transformed output, not merely stated `preserves` lists.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "VERIFY compares actual output to all anchored obligations; fallback must independently satisfy authorization, compatibility, preservation and resource limits. At most one fallback attempt; failure terminates in REFUSE without releasing output.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Replay emits deterministic execution trace.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/interpreter.py",
+          "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
+      "remaining": "Merged review; the interpreter is finite and deliberately cannot certify domain truth.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-024",
+      "title": "Model and grammar compatibility manifest",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "5735e8e4d01df2c9c33aa23a3f265b6580afdac7519ed6e8a16052df263e28b0",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Manifest pins payload codec, grammar hash, model hash, runtime ABI and required modules.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Missing, incompatible or unsigned module refuses/fallbacks.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Old payloads are decoded only by verified-compatible decoders.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Incompatible upgrade cannot silently alter old content.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/streaming.py",
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py",
+      "remaining": "Actual release-signing authority and supported-runtime approval.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-025",
+      "title": "Sparse activation and resource controls",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "d370910d35757f2125020321dd69f0b03ad1f4ed01838ddeaab749e72ccf592a",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Module selection emits rationale and module list.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "CPU/GPU, RAM, latency and energy/cold-start measured.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "No exceeding declared hard budgets without explicit error/fallback.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Compare sparse vs full activation at equivalent fidelity.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/device.py",
+          "sha256": "69deb26a4dfc6281aa3195aeb1c04ccfa575257fafcf3ce45d1efac9dc543076"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_device_authority.py",
+      "remaining": "Physical-device GPU/energy and cold/sustained sparse-versus-full measurements.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-026",
+      "title": "Deterministic finite reconstruction",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "7ab1d34e85da6ef079d469611f6a6cfda1ce5ff2f7916660cadef07987f0db5a",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Structured/text source can be reconstructed byte-for-byte or with clearly specified canonical normalization.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Residual-only errors cause REFUSE.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Fixed inputs/versions produce identical outputs and hashes.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Tests cover missing, modified and out-of-order segments.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/scene_codec.py",
+          "sha256": "0a72a9f566e310c454b1301c7760c1b6d136293acae2fc09cd05cd2ab8721ac7"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_scene_codec.py",
+      "remaining": "Independent review of the supported normalized RGB/PCM32/timestamp profile.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-027",
+      "title": "Device module updates and rollback",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "7b6c107e2d217537d7d9011c47609a6a33a67895c6170369215d9d4bc8b69683",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Atomic signed module update, version pinning and checksum verification.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Interrupted download resumes or reverts safely.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "A/B old/new runtime reconstructs pinned golden content identically for exact obligations.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Bandwidth, cache residency and update cost recorded.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/device.py",
+          "sha256": "69deb26a4dfc6281aa3195aeb1c04ccfa575257fafcf3ce45d1efac9dc543076"
+        },
+        {
+          "path": "docs/DEVICE-UPDATE-RECOVERY.md",
+          "sha256": "02477c28ca05a3c343b44f21376768fd8559da0ccee381e5d9cf550a26c585ce"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_device_recovery.py",
+          "sha256": "df937081e719f9114748ebc8d5b063d00785a620653011c4b6cde9e03098f47d"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_device_authority.py; tools/activation_runtime/tests/test_device_recovery.py",
+      "remaining": "Supported-device old/new-runtime A/B and interrupted update/rollback measurements.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-028",
+      "title": "Real audiovisual dataset and licensing",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "482a3a42f5cf82131ae1f3464dde7fcc3321b71e5939170f4c19f667cfd90700",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "At least 100 licensed/owned short clips representing repeated and diverse settings.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Separate training/development/held-out families with provenance and no leakage.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Audio, on-screen text, timing and scene dynamics annotated.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Dataset manifest reproducible and redistributability respected.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/experiments.py",
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_experiments.py",
+      "remaining": "An authorized representative 100-clip annotated corpus with family-disjoint splits.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-029",
+      "title": "AV1 and learned-codec baselines",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "8ce356ccba4339d5d615025f973699660e4568bdb182ab524ae506d925dd3876",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Encode/decode scripts for AV1 and one reproducible neural codec where licensing permits.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Same resolution, frame rate and fidelity obligations.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Include full model/download/storage/energy/compute costs.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Report bitrates, artifacts and statistical intervals; no cherry-picked clips.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/neural_baseline.py",
+          "sha256": "f44d19a059f982eb97c234172f8b22ebfc1d98d440c13eed183b4f6d254b6f51"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_adversaries.py",
+      "remaining": "Licensed hash-pinned neural checkpoint, dependencies and an actually qualified fidelity-matched run.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-030",
+      "title": "Shared grammar video encoder prototype",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "4fafa16048b4fffe663cbe48d4e60eff2e442c1b5e019349717270ae8ecb777c",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Ingest actual frames and output a versioned decodable payload.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Decoder manifest pins shared model and modules.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "A complete decode demonstrably reconstructs playable clip.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Encoding time, bytes, model size and fallback ratio measured. **Not accomplished by PR #69**.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/scene_codec.py",
+          "sha256": "0a72a9f566e310c454b1301c7760c1b6d136293acae2fc09cd05cd2ab8721ac7"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_scene_codec.py",
+      "remaining": "Research review of the actual palette/residual reference; this is not learned semantic understanding or FF-RCT.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-031",
+      "title": "Frame/semantic/exact fidelity evaluation",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "62382af08cbb3b6d740a3774a943607a59dd66198701d16e1ecc59543042caae",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Frame quality scored by reproducible metrics plus blinded human assessment.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Subtitle text, signs, sequences and specified identities checked independently.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Audio synchronization and missing-frame violations reported.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "PackSpec failures block claims of quality equivalence.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/scene_codec.py",
+          "sha256": "0a72a9f566e310c454b1301c7760c1b6d136293acae2fc09cd05cd2ab8721ac7"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_scene_codec.py",
+      "remaining": "Blinded independent text/identity/audio/timing assessments on a representative real corpus.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-032",
+      "title": "Model amortization and catalog economics",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "4dd413710142b8bbb7a490bdd5748d92127bf33523f9054f9a0e5264e6b579d3",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Account for grammar construction, encoding, residuals, model installation, updates, bandwidth, storage, decoding electricity and verification.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Analyze cold/new viewer, frequent viewer, smart TV and mobile cases.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Break-even conditions plus uncertainty bounds presented.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "If no crossover, report negative result.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/economics.py",
+          "sha256": "54bb3a51fe1841ab68c77f5b3369312fa666ed68b62d2d016b0406b2bbc9ac65"
+        },
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "3f2cc0f0a6b76e4f1189ae766d7422ccc25611e5235ba325bc5e04b81ccb3bdd"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
+          "sha256": "0c98315a33bc0dbaadcc221903730abd944c2a3a8d0b2929ff0d14e28cbfc8c6"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py; tools/activation_runtime/tests/test_economic_uncertainty.py",
+      "remaining": "Measured full lifecycle inputs and uncertainty by real catalog/viewer/device cohort.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-033",
+      "title": "Streaming segment delivery and seek",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "9cd42166b9a0414212d838fe73cdf727e87fe3372a5809405b22585f64215cc4",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Segment index supports seek, pause/resume and bitrate changes.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Scene state dependencies are explicit.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Missing module/segment falls back without silent frame corruption.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Measure startup latency, buffering and seek times against AV1 baseline.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/streaming.py",
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
+        },
+        {
+          "path": "docs/STREAMING-INDEX-BOUNDARIES.md",
+          "sha256": "3a707a749c331a2ecb0b561ff294fc6e3fedeacb811da6d8ddf6a26337faf6bf"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_streaming_boundaries.py",
+          "sha256": "bd6ad59579dba6f150d387ada2c79ef5fe75c87e1e9c82ed15a19e0604629cc3"
+        },
+        {
+          "path": "tools/activation_runtime/playback_benchmark.py",
+          "sha256": "c3486594a52412b680d397644deb0f1bcec2b5be291ccfe41e2ee719354b50ae"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_playback_benchmark.py",
+          "sha256": "efe57e54c27471df48d0bc9812b9432f51e598302aeb737744531d180eeb07de"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_streaming.py; tools/activation_runtime/tests/test_streaming_boundaries.py; tools/activation_runtime/tests/test_playback_benchmark.py",
+      "remaining": "Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-034",
+      "title": "Append-only conversation tree",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "8c32bdb4b9388c146fc175fa54566befeb9221f805579f29f1ec287a4f322253",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Stores source turn ID/hash, actor and timestamp.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Branches can fork/rejoin without cycles.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Replay deterministically rebuilds tree after restart.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "No inference-generated concept is treated as reviewer-approved.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/gardener.py",
+          "sha256": "3ae9096398e60587b1a447b96b6698805ecfd9b926ceeea9f99c9ccc41937330"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_garden_query.py",
+      "remaining": "Merged review and independent restart/custody replay.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-035",
+      "title": "Dialectical operations and reversible pruning",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "1ed71a18648b5c026b2c2f2384b7b5fd5b0eb01c47343bbc1a4f45c7a2b9d6fd",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "All transitions are append-only events.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "PRUNE deactivates rather than deletes.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "SYNTHESIZE records dependencies but never inherits VALIDATED from parent.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "REOPEN restores reference context and prior counterexamples.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/gardener.py",
+          "sha256": "3ae9096398e60587b1a447b96b6698805ecfd9b926ceeea9f99c9ccc41937330"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
+      "remaining": "Merged review and independently observed research-continuity behavior.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-036",
+      "title": "Evidence-state separation and Research Ledger link",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "fc2e32c94cf01f0626f01ad044e36c2d7f98d94d778ebb3d74966f2a855c3495",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Maps hypotheses to `tools/research_ledger` claims.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "No VALIDATED promotion without independent verifier and evidence IDs.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Dependency uncertainty propagates as unresolved.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Tamper and hash-chain tests detect corruption within stated trust boundary.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/ledger_validation.py",
+          "sha256": "65fba4387c714944557b9e4718fdd5d266a2dafb8edd44556403304e6e91cd05"
+        },
+        {
+          "path": "tools/research_ledger/ledger.py",
+          "sha256": "a4bbe4986a238969e65494c0ac2e682793dbeb740d50e6da54af2da165d6e81c"
+        },
+        {
+          "path": "tools/activation_runtime/postgres_validation.py",
+          "sha256": "61a879cf73b95f6240c8994b20f7a30c06523d680e5d561f227143b8af101270"
+        },
+        {
+          "path": "tools/research_ledger/postgres.py",
+          "sha256": "993e84094f88c69c9d8f99d7a80123ce03e3d8c6d4eee2d942085ef13e4cd28f"
+        },
+        {
+          "path": "tools/research_ledger/postgresql.sql",
+          "sha256": "c9691d7d74560839bf957ab362a84dc4ac6b2f0c130f5b62eb14698e207158c1"
+        },
+        {
+          "path": "tools/research_ledger/migrate_sqlite_to_postgres.py",
+          "sha256": "294928c28de4468538e1bc2cb102e95c39c11bdf8011031ca9323365cad7f32e"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_postgres_validation.py",
+          "sha256": "583ed74876999eb6381de33213c412cb02766cf92bcc35bf275c9444d7a9f68e"
+        },
+        {
+          "path": "tools/research_ledger/tests/test_dependencies.py",
+          "sha256": "dae9898095ba61323fc788fbaabecf46914d89e104e45839d83dc42a0b6276dd"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_sqlite_validation_atomic.py",
+          "sha256": "2ec9f7826ae1005c38f60ff4d9aa100fc19f3ebfdfada62aaa5e32d21877d9e1"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_ledger_validation.py; tools/activation_runtime/tests/test_sqlite_validation_atomic.py; tools/activation_runtime/tests/test_postgres_validation.py; tools/research_ledger/tests/test_dependencies.py",
+      "remaining": "Real independently authorized scope-bounded validation/evidence and deployment review; SQLite and PostgreSQL signed validation are implemented.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-037",
+      "title": "Gardener proposal loop and review UI",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "b74f66b08e150650bc9f7a66a5dfbf24929a82b5b5efdb925f2254461f87bc35",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Bounded scheduled job operates only on authorized sources.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Produces candidate events with source anchors, confidence/calibration and suggested cost.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Structural edits are previewable and reversible, promotion requires review.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Reports false merges, branch churn, cost and utility; no autonomous truth claim.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/proposals.py",
+          "sha256": "c268d5eb0d9b6e761e9d9f10224a1291c2164cec0ac89154662b648c69905535"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "7a27990a5c3d532d56beab5924616ffdd3dfd4aac2d842aaa43223d709501b47"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "0c3d25a9aed83a6dce127ad8bd26a0a0c51a764dc51743bb0af5de4f390b2aa0"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "e854b2744d2812a0f3d1dd197d6f480cc9a7b6f9ff5c7b9a603a85bef09559a7"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "522dd9f2a178d32b91863e8d95e9ee95e9b5433421137b5ebde9d3c51964ddde"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        },
+        {
+          "path": "tools/activation_runtime/web/garden.js",
+          "sha256": "7da35e02f348ffe9f24970fc720d687727763226f111d0adcc3ddd6d856abcdf"
+        },
+        {
+          "path": "tools/activation_runtime/evolution.py",
+          "sha256": "9528e36436c9e3b041c863f1f3f1e8a78f83d2ca41c424d9dda25425670a0ec9"
+        },
+        {
+          "path": "tools/activation_runtime/evolution_worker.py",
+          "sha256": "025049d5f6fcab536c3a57689ab7d90ca72899cb62c09a8f1cb678b58b9282c1"
+        },
+        {
+          "path": "tools/activation_runtime/evolution_program.py",
+          "sha256": "1820f2cc3343686561cec17654919f06e7139db801dcb72994f68cde5b0040b4"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_evolution.py",
+          "sha256": "d3047b51ee2488d5b7e58ffb20bae136ead6d694cfef84fb03394d1653259299"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_garden_web.py; tools/activation_runtime/tests/test_evolution.py",
+      "remaining": "Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-038",
+      "title": "Isolated agent experiment harness",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "079f8411051ea82bdda7e70a48c4d41d485a2dac857beb6956f6745f0c83261c",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Candidate agents run with scoped CPU/token/time and tool permissions.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Every proposal includes parent grammar hash, patches and rationale.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Restricted execution sandbox prevents arbitrary host changes.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Evaluation always runs on pinned code/datasets.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/agent_worker.py",
+          "sha256": "2ff684923759b205d9e6d57ed4ba377f1809e3344dc965312c8b655e59eb3b46"
+        },
+        {
+          "path": "tools/activation_runtime/process_sandbox.py",
+          "sha256": "a8f33009665288ed0615a4fe44b43d32c93b52db8037bf0cfe445adf4c0cebc4"
+        },
+        {
+          "path": "tools/activation_runtime/common.py",
+          "sha256": "a7e3a17d891a66d570647bee6f3b52784aebb5087e2b8d4f394cb8c560de758c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_agent_pins.py",
+          "sha256": "c911635e768492efa0a3e6409e540c691a22353ebde10ffc97112897f2f17fe4"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
+        },
+        {
+          "path": "tools/activation_runtime/roles/activation-optimizer.json",
+          "sha256": "05c74cd86643c2a671dee57be4c23c4984a6192f75bce4d530d270c8cef64323"
+        },
+        {
+          "path": "tools/activation_runtime/roles/counterexample.json",
+          "sha256": "fb6b751329e1beee2da7d152b8ed9abb59dffde22f5bb6d5b7cab1ad1847a3f8"
+        },
+        {
+          "path": "tools/activation_runtime/roles/decomposition.json",
+          "sha256": "d5caecd43278a0e1547de53bcac73e1468a816b4dccbe3e76784c320c7840a2a"
+        },
+        {
+          "path": "tools/activation_runtime/roles/ffrct-economist.json",
+          "sha256": "80c125145158d7b7f4ef5d6ed5002dbe0c8960ad95fd16eab1500c5f1373fdad"
+        },
+        {
+          "path": "tools/activation_runtime/roles/grammar-compiler.json",
+          "sha256": "36398089ed9b0ab025235f88bb21a8374acf97061cd046b707cf69dfbcfef43d"
+        },
+        {
+          "path": "tools/activation_runtime/roles/packspec-guardian.json",
+          "sha256": "ffbeb2bf2fe40d83684e8db10b623c2997c608607140bc9be903b02efbeb6d49"
+        },
+        {
+          "path": "tools/activation_runtime/evolution.py",
+          "sha256": "9528e36436c9e3b041c863f1f3f1e8a78f83d2ca41c424d9dda25425670a0ec9"
+        },
+        {
+          "path": "tools/activation_runtime/evolution_worker.py",
+          "sha256": "025049d5f6fcab536c3a57689ab7d90ca72899cb62c09a8f1cb678b58b9282c1"
+        },
+        {
+          "path": "tools/activation_runtime/evolution_program.py",
+          "sha256": "1820f2cc3343686561cec17654919f06e7139db801dcb72994f68cde5b0040b4"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_evolution.py",
+          "sha256": "d3047b51ee2488d5b7e58ffb20bae136ead6d694cfef84fb03394d1653259299"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_agents.py; tools/activation_runtime/tests/test_agent_pins.py; tools/activation_runtime/tests/test_evolution.py",
+      "remaining": "Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-039",
+      "title": "Dedicated agent roles",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "851af3e9235f77756f736b508e602dd4eccdea987984f476a608a4e5bd2dc120",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Each has a distinct versioned contract/schema.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Roles produce inspectable artifacts, not opaque prose.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Guardian can block but cannot invent verification evidence.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Integration tests show disagreement and escalation, not forced consensus.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/roles/grammar-compiler.json",
+          "sha256": "36398089ed9b0ab025235f88bb21a8374acf97061cd046b707cf69dfbcfef43d"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_agents.py",
+      "remaining": "Merged review of six distinct role contracts and disagreement/escalation behavior.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-040",
+      "title": "Adversarial evolution and held-out gates",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "bd61b52e0ade628850cf04974c5680c27312f655bd7523ecbbb29cc2550d1968",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Family-disjoint holdouts are hidden from proposing agents.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Test actor/recipient reversal, negation, time, units, captions, residual tamper and incompatible model.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Any critical regression blocks promotion.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "False-accept rate and missed-counterexample rate tracked.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/adversaries.py",
+          "sha256": "024a35f2da3a47abcf819a15cc1fa4f242e7767e055c3e45688dcf535b5ebcda"
+        },
+        {
+          "path": "tools/activation_runtime/experiments.py",
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_holdout_authority.py",
+          "sha256": "ebb440f6f2434a408a58e52500d37efb307506e4e6cd7901ca8230522d2e225a"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_experiments.py",
+          "sha256": "adfcf7fc297572017214970dbc77e376d4497ea23e20882d66b60e8c41014fec"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_holdout_authority.py; tools/activation_runtime/tests/test_experiments.py",
+      "remaining": "Independently adjudicated family-hidden real cases; authored finite false-accept counts do not generalize.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-041",
+      "title": "Co-evolving encoder/decoder candidates",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "03081b97b7711fe0a0327739e88e6f66d031b90ee224832e273a4e46beda00a0",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Run three arms: fixed pair, decoder-only evolution, paired evolution.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Exactly the same held-out content and PackSpec fidelity contract.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Count all additional training/search compute.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "No \u201ccompression advantage\u201d claimed if paired arm does not outperform a qualified baseline within uncertainty.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/experiments.py",
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
+        },
+        {
+          "path": "tools/activation_runtime/evolution.py",
+          "sha256": "9528e36436c9e3b041c863f1f3f1e8a78f83d2ca41c424d9dda25425670a0ec9"
+        },
+        {
+          "path": "tools/activation_runtime/evolution_worker.py",
+          "sha256": "025049d5f6fcab536c3a57689ab7d90ca72899cb62c09a8f1cb678b58b9282c1"
+        },
+        {
+          "path": "tools/activation_runtime/evolution_program.py",
+          "sha256": "1820f2cc3343686561cec17654919f06e7139db801dcb72994f68cde5b0040b4"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_evolution.py",
+          "sha256": "d3047b51ee2488d5b7e58ffb20bae136ead6d694cfef84fb03394d1653259299"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/research/receipts/engineering-v1.json; tools/activation_runtime/tests/test_evolution.py",
+      "remaining": "Representative hidden corpus and qualified learned/conventional baselines including all search/training costs.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-042",
+      "title": "Pareto promotion and resource scheduler",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "5399c3b969b74278295b3bbb7bb5b319a6bbba8ac58be50903227a0f78d2e22f",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Rank by expected information/decision value against investigation cost.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Pareto frontier covers bytes, latency, energy, fidelity and total cost; reject dominated options unless justified.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Budget exhaustion stops runs predictably.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Promotion requires independent reviewer approval and signed immutable release.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/economics.py",
+          "sha256": "54bb3a51fe1841ab68c77f5b3369312fa666ed68b62d2d016b0406b2bbc9ac65"
+        },
+        {
+          "path": "tools/activation_runtime/release.py",
+          "sha256": "b686ab43ae4775ad788e2ea8784e1ae9c66c1bb84303e7bf95aae3f84c3ad4eb"
+        },
+        {
+          "path": "tools/activation_runtime/authority.py",
+          "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_release_authority.py",
+          "sha256": "35f7d2c21b5a391b65a2c689769e26c197449e72795564760963772a033cf55c"
+        },
+        {
+          "path": "tools/activation_runtime/agents.py",
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "3f2cc0f0a6b76e4f1189ae766d7422ccc25611e5235ba325bc5e04b81ccb3bdd"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
+          "sha256": "0c98315a33bc0dbaadcc221903730abd944c2a3a8d0b2929ff0d14e28cbfc8c6"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py; tools/activation_runtime/tests/test_economic_uncertainty.py",
+      "remaining": "Measured energy/total-cost frontier plus actual independent signed promotion authority.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-043",
+      "title": "Tenant isolation and source authority",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "e483ae00b888f054cd7962d66874ab5bd74e53d912220a7e9e6d6acb05c5b7a9",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Authenticated principal and tenant-scoped authorization per source and artifact.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Cross-tenant reads, guessed IDs and leaked residuals denied in tests.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Reviewer and custodian identities cryptographically bound.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Logs do not disclose source content outside authorized scope.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/authority.py",
+          "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "7a27990a5c3d532d56beab5924616ffdd3dfd4aac2d842aaa43223d709501b47"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "0c3d25a9aed83a6dce127ad8bd26a0a0c51a764dc51743bb0af5de4f390b2aa0"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "e854b2744d2812a0f3d1dd197d6f480cc9a7b6f9ff5c7b9a603a85bef09559a7"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "522dd9f2a178d32b91863e8d95e9ee95e9b5433421137b5ebde9d3c51964ddde"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; tools/activation_runtime/tests/test_browser.py",
+      "remaining": "Configured real tenant principals, reviewer/custodian authority and deployment privacy review.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-044",
+      "title": "Signed artifact and anti-replay pipeline",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "c95ca9ab969292849adfb8ffe20ae0f416a7aaf5002ab58f1f33a97ad9eaa389",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Key rotation and version policy documented.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Signatures bind source, grammar, policy, model, decoder and relevant run IDs.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unauthorized replay/downgrade attacks produce refusal; explicit authorized rollback must respect compatibility, revocation and minimum-version policy.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Existing signed-bundle code reused, not silently substituted with raw hashes.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/streaming.py",
+          "sha256": "0f05bce0675f8e4a66931c48cfb914a1e429df5a62e14855e236f12db7c63590"
+        },
+        {
+          "path": "tools/activation_runtime/release.py",
+          "sha256": "b686ab43ae4775ad788e2ea8784e1ae9c66c1bb84303e7bf95aae3f84c3ad4eb"
+        },
+        {
+          "path": "tools/activation_runtime/authority.py",
+          "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_release_authority.py",
+          "sha256": "35f7d2c21b5a391b65a2c689769e26c197449e72795564760963772a033cf55c"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py",
+      "remaining": "Real release/reviewer trust maps, durable deployment and independent replay/revocation review.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-045",
+      "title": "SDK and CLI parity",
+      "status": "IN_REVIEW",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "ad215e31ef82f570fb432b8326ef0c6a533ed408d1228c748a539f9c71f0c73e",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "JSON/typed interfaces support validation, evaluate, trace and fallback.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Golden fixtures produce identical finite verdicts across languages.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Unsupported API options explicitly fail.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Examples demonstrate external PackSpec and source-backed receipts.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/service.py",
+          "sha256": "e428247707810d238b5bc975e8b68907e12894b1be6b0df54db7dd3c6e4d6c93"
+        },
+        {
+          "path": "sdk/python/qualityrag_activation/__init__.py",
+          "sha256": "a233c4200af8bdcf3c9c951e772398b9de023cf48aab625469ecf4449b63c2ae"
+        },
+        {
+          "path": "sdk/typescript/src/activation.ts",
+          "sha256": "4077eb929ae53eaf4004f3172ec444210b06c1c6dcd8164399459cb18625913c"
+        },
+        {
+          "path": "sdk/typescript/src/index.ts",
+          "sha256": "ad37c10a90f97bb562af3b2d9ad9c69de864983edd3d1cc16a9a7a66342a73dd"
+        },
+        {
+          "path": "sdk/typescript/test/activation.test.mjs",
+          "sha256": "ecd77d13d2b6f28aa39756a30422d5f91ceaa8cf60e53f64846d785d9107d19a"
+        },
+        {
+          "path": "tools/activation_runtime/cli.py",
+          "sha256": "3f2cc0f0a6b76e4f1189ae766d7422ccc25611e5235ba325bc5e04b81ccb3bdd"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_service_sdk.py",
+          "sha256": "b0afc02ccfa59cbb99237c51501e39c2daf6030765f870362957743fa9458ed1"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "9151245ed16e045755838ed45d1b4f65772d47166854fd9ad2a893c71e788ca3"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "28571260670a876aaeb7bd3a8837d2c8faca3ff46ee8766445380b22c0dc686e"
+        },
+        {
+          "path": "tools/activation_runtime/web/index.html",
+          "sha256": "7a27990a5c3d532d56beab5924616ffdd3dfd4aac2d842aaa43223d709501b47"
+        },
+        {
+          "path": "tools/activation_runtime/web/app.js",
+          "sha256": "0c3d25a9aed83a6dce127ad8bd26a0a0c51a764dc51743bb0af5de4f390b2aa0"
+        },
+        {
+          "path": "tools/activation_runtime/web/style.css",
+          "sha256": "e854b2744d2812a0f3d1dd197d6f480cc9a7b6f9ff5c7b9a603a85bef09559a7"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_browser.py",
+          "sha256": "522dd9f2a178d32b91863e8d95e9ee95e9b5433421137b5ebde9d3c51964ddde"
+        },
+        {
+          "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
+          "sha256": "7af80cfbacb085a9e9410e8c35344b39f28c8daad84ad302b57f0f32e805677e"
+        },
+        {
+          "path": "tools/activation_runtime/mcp_server.py",
+          "sha256": "c0084f515a85a7efd28cc57874760de4fc676ac4c2b165bf38603176cc9ba838"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_gardener_agents.py",
+      "remaining": "Merged review and release/package acceptance; Python/TypeScript/CLI golden parity covers all four operations and refusal behavior.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-046",
+      "title": "Offline mobile/TV feasibility pilot",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "4e3b5988ad8ef13ada9afd2a3e9ec7da42045e702912d11f81fe213c63147825",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Two different device classes benchmarked with pinned versions.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Startup, memory, sustained throughput, thermal throttling, update traffic and power measured.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Failed or unsupported decoder triggers conventional baseline playback.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "No production release until security, licensing and fidelity review.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/pilot.py",
+          "sha256": "aa96b05fc14b0a4b422ea0fafe5e01fc328adc1e635880a53eaa9ac02f5dcda2"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_search_pilot.py",
+      "remaining": "Two actual mobile/TV device classes with thermal, sustained-power and update-traffic instrumentation.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-047",
+      "title": "Independent acceptance ledger",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "d6c042ac01189955cbd1f1d87060f00ea45dec09ed77357d50c239df36c4efa8",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Evidence links to commits, CI runs, original source fingerprints, dataset splits and signed reviewers.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Missing evidence stays UNVERIFIED/INCONCLUSIVE.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "A test result does not imply product performance.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Negative findings and uncertainty preserved.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/audit.py",
+          "sha256": "7aba9b9c9d79dd2776d46a5a448c93945f30bf1b13c94d3d4cf213b56a6e11cb"
+        },
+        {
+          "path": "tools/activation_runtime/delivery.py",
+          "sha256": "e4be6d5e9459522da10e33480ea991c85e8116cc2d08eeeda62dee4a2c55e700"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
+      "remaining": "Passing commit-bound CI, merged review and real signed per-story completion receipts.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-048",
+      "title": "Pre-registered controlled experiments",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "107dc5147c892c57b13dee7307ca4b02c26df03410fe4de232fdd05f1f83e364",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "H1 storage bytes, H2 total cost, H3 activation speed, H4 preserved distinctions, H5 Gardener research continuity and H6 agent evolution benefit each have stated independent/dependent variables.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Compare AV1, learned codec, no-grammar ablation, fixed grammar, evolving grammar.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Define sample size rationale, paired statistical methods and confidence intervals before testing.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Raw scripts and failure cases reproducible.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/experiments.py",
+          "sha256": "bf063172a3351997f61c774309ff5e81c251236f7791c0d2a968ad6621d9cbe1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_holdout_authority.py",
+          "sha256": "ebb440f6f2434a408a58e52500d37efb307506e4e6cd7901ca8230522d2e225a"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_experiments.py",
+          "sha256": "adfcf7fc297572017214970dbc77e376d4497ea23e20882d66b60e8c41014fec"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_holdout_authority.py; tools/activation_runtime/tests/test_experiments.py",
+      "remaining": "Actual final protocol registration bound to a real corpus/sample plan before opening its holdout.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-049",
+      "title": "Four worked real-world demonstrations",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "f3ab45b73d1deb197ec89c8f99a5f84c6a6f392d2dfbe148e523d469f3eff29a",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Child-to-clinician: preserves symptoms while blocking unsupported diagnosis.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Nursing instruction: NOT/EXCEPT and units cannot disappear.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Contract: role reversal/negation test REFUSEs.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Actual short video: subtitle, frame/timing and residual tests; synthetic-only examples clearly labeled until real input works.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/run_research.py",
+          "sha256": "d7811f29040cc661daa3d924ca317a8d95716d6903f9e5fd36dfbd58b146166b"
+        },
+        {
+          "path": "tools/activation_runtime/worked_workflows.py",
+          "sha256": "65d17c58b2781612008cdc70917f3397168b730401856826f9a6687ab00c85ef"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_scene_codec.py",
+      "remaining": "Real independently reviewed clinical/nursing/legal inputs; current examples are clearly authored fixtures plus actual encoded video.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-050",
+      "title": "Peer-review package and reproducible figures",
+      "status": "IN_REVIEW",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "ebda8a8970d7a4c57f488319d305857070135b87b246a6be5d905ecece1deb13",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Paper includes exact existing grammar syntax, genuine PackSpec excerpts, versioned experimental proposals, and limitations.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "All figures regenerated by committed scripts from receipts.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Repository and PDFs contain a traceability matrix from each research claim to an experiment.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "No \u201cvalidated compression improvement\u201d in abstract until independently established.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/research/build_report.py",
+          "sha256": "9153759327ea63f88a27ccd0dd3ccd777a17834c2b3cd09459137b0af6be0598"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_research_package.py",
+          "sha256": "ac0d9454115766ef07c474922a65396efa683f6176aa593b9818f0d1514fa3cb"
+        },
+        {
+          "path": "tools/activation_runtime/research/receipts/engineering-v1.json",
+          "sha256": "5e4ecb3f17ae0783aa3fc4a86cf230e36d2a8c3b2839020afb7c8b4e6805c278"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.png",
+          "sha256": "d84d9c5ae15edfc294b0b0e5a1dee7e4960d981bcc050aae2c37dff9448be4fd"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/codec-bytes.svg",
+          "sha256": "26043af338e040fad94dd288cc9a12e800930cb34cb36a1f1f7255bfb245e8cb"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.md",
+          "sha256": "6320f566e4c05cdbacb180c30fc558dd7d0259cee9f30e6431b75bd8267d474c"
+        },
+        {
+          "path": "tools/activation_runtime/research/paper/report.pdf",
+          "sha256": "defa8ee5fb80bd1eb1fcc3da14a2adc8e5cfd1c2006e86e3592b6d65ed457a9c"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_research_package.py",
+      "remaining": "Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    },
+    {
+      "story_id": "US-051",
+      "title": "Release readiness and pilot stop conditions",
+      "status": "BLOCKED",
+      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "branch": "docs/activation-research-fr-v01",
+      "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
+      "implementation_commit": null,
+      "acceptance_sha256": "2c635c2f226fdca9511cdb523eb98fe369c068204014b1fd176524dc12169396",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "Complete security/privacy review, supported-device contracts, signed artifacts and error telemetry.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 2,
+          "text": "Hard thresholds for fidelity and no silent critical-field loss.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 3,
+          "text": "Pilot compared to conventional codec for realistic network and client costs.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        },
+        {
+          "number": 4,
+          "text": "Publish failure or no-crossover results; release not automatic.",
+          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+        }
+      ],
+      "modules": [
+        {
+          "path": "tools/activation_runtime/release.py",
+          "sha256": "b686ab43ae4775ad788e2ea8784e1ae9c66c1bb84303e7bf95aae3f84c3ad4eb"
+        },
+        {
+          "path": "tools/activation_runtime/authority.py",
+          "sha256": "5d61c428e58202c5b93157c12bf2fe070e79e6eeb0d277473e5fb01c0c0207ff"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_release_authority.py",
+          "sha256": "35f7d2c21b5a391b65a2c689769e26c197449e72795564760963772a033cf55c"
+        }
+      ],
+      "test_or_receipt": "tools/activation_runtime/tests/test_experiments.py",
+      "remaining": "Independent security/privacy/licensing/fidelity review, supported devices and measured pilot economics.",
+      "completion_envelope": null,
+      "independent_validation": "NOT_ESTABLISHED"
+    }
+  ],
+  "completion_rule": "DONE requires a trusted independent signed completion receipt bound to exact criteria, module hashes, merged commit and passing CI.",
+  "implementation_boundaries": {
+    "canonical_ff_rct_decoder": "UNAVAILABLE",
+    "independent_domain_admission": "NOT_ESTABLISHED",
+    "reference_scene_decoder": "AVAILABLE_RESEARCH_REFERENCE"
+  },
+  "system_conformance": {
+    "required_outcome": "CONTINUOUS_RCT_GRAMMAR_AND_ACTIVATION_RESEARCH",
+    "component_counts_are_system_acceptance": false,
+    "implementation": "FIRST_BOUNDED_BYTE_EXACT_EVOLUTION_BACKEND",
+    "live_open_model_run": "NOT_CONFIGURED_OR_VERIFIED",
+    "long_horizon_grammar_improvement": "NOT_ESTABLISHED",
+    "semantic_codec_maturity": "NOT_ESTABLISHED",
+    "av1_floor": "UNCHANGED_PASSTHROUGH_WHEN_CANDIDATE_OR_RUNTIME_COST_IS_UNQUALIFIED",
+    "documentation": "docs/CONTINUOUS-RCT-GARDEN.md",
+    "test": "tools/activation_runtime/tests/test_evolution.py"
+  }
+}

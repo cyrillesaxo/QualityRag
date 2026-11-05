@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/schemas/payload/v1.0",
+  "type": "object",
+  "minProperties": 1,
+  "maxProperties": 128,
+  "propertyNames": {
+    "minLength": 1,
+    "maxLength": 512
+  },
+  "additionalProperties": {
+    "type": [
+      "string",
+      "integer",
+      "number",
+      "boolean",
+      "null"
+    ]
+  }
+}

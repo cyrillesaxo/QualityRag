@@ -33,6 +33,8 @@ def import_sqlite(sqlite_path: Path, conn, *, dry_run:bool=False):
     try:
         integrity=verify_integrity(src)
         if not integrity["consistent"]:raise LedgerError("Source ledger hash integrity failed")
+        if src.execute("SELECT 1 FROM research_events WHERE assessment='VALIDATED' LIMIT 1").fetchone():
+            raise LedgerError("VALIDATED migration requires destination-bound signed review; automatic transfer is refused")
         source_counts={name:src.execute("SELECT COUNT(*) FROM "+name).fetchone()[0] for name,_,_ in TABLES}
         # No partial import: all rows are compared first in a single DB transaction.
         inserted=0

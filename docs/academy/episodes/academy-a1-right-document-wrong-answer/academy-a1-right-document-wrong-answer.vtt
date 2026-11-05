@@ -1,0 +1,46 @@
+WEBVTT
+
+00:00:00.700 --> 00:00:02.450
+It found the right document
+
+00:00:02.750 --> 00:00:04.329
+but gave the wrong answer.
+
+00:00:05.667 --> 00:00:11.171
+The question: can on-call restore the EU payments gateway after a screening failure?
+
+00:00:11.471 --> 00:00:16.293
+Search returns four relevant passages, and the model answers: yes.
+
+00:00:16.593 --> 00:00:25.575
+But the rule that governs this case was never retrieved. Restoration needs compliance sign-off, unless an emergency exception applies.
+
+00:00:25.875 --> 00:00:29.289
+Every passage was relevant. The answer was still wrong.
+
+00:00:30.633 --> 00:00:35.306
+QualityRag asks a different question first: what does this answer need?
+
+00:00:35.606 --> 00:00:43.073
+With the passages search returned, the check is inconclusive. Two of the three requirements have no evidence at all.
+
+00:00:43.373 --> 00:00:47.342
+Fetch the annex and the regional memo, and the same check admits.
+
+00:00:48.600 --> 00:00:53.614
+In the console, select a requirement to see exactly which passage was counted.
+
+00:00:53.914 --> 00:01:00.421
+Conditional words like unless are highlighted. The passage counts, but a person must read the condition.
+
+00:01:01.767 --> 00:01:02.983
+So what changed?
+
+00:01:03.283 --> 00:01:08.532
+QualityRag checked every requirement, showed what counted, and flagged the condition.
+
+00:01:08.832 --> 00:01:15.361
+It did not find the annex for you, and it does not decide whether the exception applies. A person does.
+
+00:01:15.661 --> 00:01:19.117
+Next: what happens when the evidence simply isn't there.

@@ -1,0 +1,76 @@
+name: Activation runtime research
+on: [push, pull_request]
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+jobs:
+  bounded-activation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: qr_test
+          POSTGRES_PASSWORD: qr_test_local_only
+          POSTGRES_DB: qualityrag_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qr_test -d qualityrag_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      QUALITYRAG_TEST_DATABASE_URL: postgresql://qr_test:qr_test_local_only@127.0.0.1:5432/qualityrag_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install bounded media dependencies
+        timeout-minutes: 3
+        run: |
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 -o DPkg::Lock::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 -o DPkg::Lock::Timeout=30 install -y ffmpeg libseccomp2
+      - name: Install locked Python dependencies
+        timeout-minutes: 3
+        run: python -m pip install --timeout 30 --retries 2 -r tools/activation_runtime/research/requirements.lock.txt playwright==1.56.0
+      - name: Install locked Chromium runtime
+        timeout-minutes: 3
+        run: python -m playwright install --with-deps chromium
+      - run: npm ci && npm test
+        working-directory: sdk/typescript
+      - run: python -m unittest discover -s tools/packspec_compiler -p 'test_finite_activation.py' -v
+      - run: python -m unittest discover -s tools/activation_runtime/tests -p 'test_*.py' -v
+        env:
+          QUALITYRAG_APX_ROOT: ${{ github.workspace }}/tools/activation_runtime/vendor/apx
+          QUALITYRAG_BROWSER_TESTS: '1'
+          QUALITYRAG_BROWSER_SCREENSHOT: /tmp/review-workspace-mobile.png
+          QUALITYRAG_OBSERVATION_SCREENSHOT: /tmp/observation-workspace-mobile.png
+      - run: python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py' -v
+      - run: python -m unittest discover -s tools/research_ledger/tests -p 'test_*.py' -v
+      - run: python -m tools.activation_runtime.cli catalog > /tmp/schema-catalog.json
+      - run: python -m tools.activation_runtime.audit
+      - run: python -m tools.activation_runtime.cli observations --source tools/activation_runtime/fixtures/observation-source.txt --request tools/activation_runtime/fixtures/observation-request.json > /tmp/source-observation.json
+      - run: python -m tools.activation_runtime.delivery --out /tmp/story-delivery
+      - run: python -m tools.activation_runtime.demo --out /tmp/activation-demo
+      - run: python -m tools.activation_runtime.worked_workflows --out /tmp/reviewed-workflows
+      - run: python -m tools.activation_runtime.run_research --out /tmp/activation-research
+      - uses: actions/upload-artifact@v4
+        with:
+          name: finite-activation-receipts
+          path: |
+            /tmp/activation-demo
+            /tmp/reviewed-workflows
+            /tmp/story-delivery
+            /tmp/source-observation.json
+            /tmp/schema-catalog.json
+            /tmp/review-workspace-mobile.png
+            /tmp/observation-workspace-mobile.png
+            /tmp/activation-research/receipt.json

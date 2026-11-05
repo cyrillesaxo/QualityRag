@@ -1,0 +1,92 @@
+{
+  "observations": [
+    {
+      "observation_id": "eva",
+      "quote_start": 0,
+      "quote_end": 48,
+      "kind": "ENTITY",
+      "value": "eva",
+      "roles": {},
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED"
+    },
+    {
+      "observation_id": "bob",
+      "quote_start": 0,
+      "quote_end": 48,
+      "kind": "ENTITY",
+      "value": "bob",
+      "roles": {},
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED"
+    },
+    {
+      "observation_id": "check",
+      "quote_start": 0,
+      "quote_end": 48,
+      "kind": "EVENT",
+      "value": "check",
+      "roles": {
+        "actor": "eva"
+      },
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED"
+    },
+    {
+      "observation_id": "give",
+      "quote_start": 0,
+      "quote_end": 48,
+      "kind": "EVENT",
+      "value": "give",
+      "roles": {
+        "actor": "eva",
+        "recipient": "bob"
+      },
+      "polarity": "NEGATIVE",
+      "quantity": 5,
+      "unit": "mg",
+      "temporal_order": [
+        "check"
+      ],
+      "modality": "PROHIBITED"
+    },
+    {
+      "observation_id": "knows",
+      "quote_start": 0,
+      "quote_end": 48,
+      "kind": "RELATION",
+      "value": "knows",
+      "roles": {
+        "subject": "eva",
+        "object": "bob"
+      },
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED"
+    },
+    {
+      "observation_id": "unresolved",
+      "quote_start": 0,
+      "quote_end": 48,
+      "kind": "UNKNOWN",
+      "value": null,
+      "roles": {},
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED"
+    }
+  ]
+}

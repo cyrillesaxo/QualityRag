@@ -34,3 +34,7 @@ export function evaluate(pack:PackSpec, evidence:Evidence[], asOf:string = new D
   const verdict:Verdict=findings.some(x=>x.verdict==="REFUSE")?"REFUSE":findings.some(x=>x.verdict==="INCONCLUSIVE")?"INCONCLUSIVE":"ADMIT";
   return {schema:"qualityrag.result/v0.1",pack_id:pack.id,pack_version:pack.version,verdict,findings};
 }
+
+
+export {ActivationClient} from "./activation.js";
+export type {SignedEnvelope,FiniteReceipt,ValidationResult,FallbackResult} from "./activation.js";

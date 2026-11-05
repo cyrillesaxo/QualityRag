@@ -43,6 +43,20 @@ CREATE TABLE IF NOT EXISTS research.claim_links (
 );
 CREATE INDEX IF NOT EXISTS research_claims_by_project ON research.claims(project);
 
+-- A signed validation receipt and its event commit or roll back together.
+-- The deferred foreign key permits nonce reservation before event insertion.
+CREATE TABLE IF NOT EXISTS research.validation_receipts (
+  service text NOT NULL,
+  tenant text NOT NULL,
+  nonce text NOT NULL,
+  event_id text NOT NULL UNIQUE REFERENCES research.assessment_events(event_id)
+    DEFERRABLE INITIALLY DEFERRED,
+  reviewer text NOT NULL,
+  context_sha256 char(64) NOT NULL,
+  review_envelope jsonb NOT NULL,
+  PRIMARY KEY(service,tenant,nonce)
+);
+
 -- PostgreSQL protection against accidental mutations; owners or privileged
 -- DBAs can still change schema/functions. Production requires a dedicated
 -- restricted writer service role, audit logs, backups and external attestation.
@@ -55,7 +69,7 @@ $$;
 DO $$
 DECLARE tbl text;
 BEGIN
-  FOREACH tbl IN ARRAY ARRAY['claims','evidence','assessment_events','claim_links'] LOOP
+  FOREACH tbl IN ARRAY ARRAY['claims','evidence','assessment_events','claim_links','validation_receipts'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
       JOIN pg_namespace n ON n.oid=c.relnamespace
       WHERE n.nspname='research' AND c.relname=tbl
