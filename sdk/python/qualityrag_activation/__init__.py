@@ -100,7 +100,7 @@ class Client:
         self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
-        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome","gardener/query"}:
+        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome","gardener/query","policy/example","policy/test","policy/advise","policy/replay"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
@@ -130,6 +130,22 @@ class Client:
               "source_ref":source_ref,"statement":statement,"parents":list(parents or [])}
         if evidence_ids is not None:body["evidence_ids"]=list(evidence_ids)
         return self.request("gardener/event",body)
+    def policy_example(self)->dict[str,object]:return self.request("policy/example",{})
+    def policy_test(self,*,pack:dict,documents:list,retrieved:list[str],question:str|None=None,as_of:str|None=None)->dict[str,object]:
+        """Run the gate on retrieved chunks and explain which spans it counted. Read scope; writes nothing."""
+        body={"pack":pack,"documents":documents,"retrieved":list(retrieved)}
+        if question:body["question"]=question
+        if as_of:body["as_of"]=as_of
+        return self.request("policy/test",body)
+    def policy_advise(self,*,pack:dict|None=None,test:dict|None=None,benchmark:dict|None=None,far_limit:float|None=None)->dict[str,object]:
+        """Governance findings: trust store, single-origin requirements, qualified spans, calibration, open challenges."""
+        body={k:v for k,v in {"pack":pack,"test":test,"benchmark":benchmark,"far_limit":far_limit}.items() if v is not None}
+        return self.request("policy/advise",body)
+    def policy_replay(self,*,base:dict,branch:dict,cases:list,as_of:str|None=None)->dict[str,object]:
+        """Re-evaluate recorded cases under two packs; every changed verdict and its effect."""
+        body={"base":base,"branch":branch,"cases":cases}
+        if as_of:body["as_of"]=as_of
+        return self.request("policy/replay",body)
     def garden_outcome(self,*,proposal_id:str,verdict:str,useful:bool,elapsed_ms:int,false_merge:bool)->dict[str,object]:
         return self.request("gardener/outcome",{"proposal_id":proposal_id,"verdict":verdict,"useful":useful,
                                                 "elapsed_ms":elapsed_ms,"false_merge":false_merge})

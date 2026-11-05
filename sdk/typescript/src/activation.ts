@@ -33,7 +33,7 @@ export class ActivationClient {
     this.bearer=base64(new TextEncoder().encode(wireJson(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
   }
   async request(route:string,payload:Record<string,unknown>):Promise<any>{
-    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome','gardener/query'].includes(route))throw Error('Unsupported SDK route');
+    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome','gardener/query','policy/example','policy/test','policy/advise','policy/replay'].includes(route))throw Error('Unsupported SDK route');
     const response=await fetch(this.baseUrl+'/api/'+route,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+this.bearer},
       body:wireJson(payload),redirect:'error',signal:AbortSignal.timeout(10000)});
@@ -54,6 +54,13 @@ export class ActivationClient {
   fallback(source_sha256:string):Promise<FallbackResult>{return this.request('fallback',{source_sha256});}
   upload(raw:Uint8Array){return this.request('source',{base64:base64(raw)});}
   /** Semantic Gardener. The server sets actor and time from the token; prune/reopen/synthesize need review scope. */
+  policyExample():Promise<Record<string,unknown>>{return this.request('policy/example',{});}
+  /** Run the gate on retrieved chunks and explain which spans it counted. Read scope; writes nothing. */
+  policyTest(body:{pack:Record<string,unknown>;documents:unknown[];retrieved:string[];question?:string;as_of?:string}):Promise<Record<string,unknown>>{return this.request('policy/test',body as Record<string,unknown>);}
+  /** Governance findings. Suggestions only: none changes a verdict. */
+  policyAdvise(body:{pack?:Record<string,unknown>;test?:Record<string,unknown>;benchmark?:Record<string,unknown>;far_limit?:number}={}):Promise<Record<string,unknown>>{return this.request('policy/advise',body as Record<string,unknown>);}
+  /** Re-evaluate recorded cases under two packs. */
+  policyReplay(body:{base:Record<string,unknown>;branch:Record<string,unknown>;cases:unknown[];as_of?:string}):Promise<Record<string,unknown>>{return this.request('policy/replay',body as Record<string,unknown>);}
   gardenState():Promise<Record<string,unknown>>{return this.request('gardener/state',{});}
   gardenQuery(filters:GardenQuery={}):Promise<GardenQueryResult>{return this.request('gardener/query',filters as Record<string,unknown>);}
   gardenSuggestions():Promise<Record<string,unknown>>{return this.request('gardener/proposals',{});}

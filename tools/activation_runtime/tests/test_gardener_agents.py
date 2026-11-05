@@ -95,7 +95,8 @@ class GardenerAgentTests(unittest.TestCase):
         self.assertEqual(len(out), 11)  # the notification gets no reply
         self.assertEqual(by_id[1]["result"]["serverInfo"]["name"], "qualityrag-gardener")
         names = [t["name"] for t in by_id[2]["result"]["tools"]]
-        self.assertEqual(names, ["garden_query", "garden_suggestions", "garden_propose", "garden_challenge", "garden_test"])
+        self.assertEqual(names, ["garden_query", "garden_suggestions", "policy_test", "policy_advise", "policy_replay",
+                                 "garden_propose", "garden_challenge", "garden_test"])
         for i in (3, 4, 5):
             self.assertFalse(by_id[i]["result"]["isError"], by_id[i])
         self.assertEqual(by_id[4]["result"]["structuredContent"]["independent_validation"], "NOT_ESTABLISHED")
@@ -108,6 +109,24 @@ class GardenerAgentTests(unittest.TestCase):
         state = Client(self.endpoint, self.reader).garden_state()
         self.assertEqual({state["events"][e]["actor"] for e in state["order"]}, {"agent-7"})  # actor comes from the token
         self.assertEqual(state["branches"]["llm-labeler"]["parents"], ["gate"])
+
+    def test_mcp_read_only_agent_tests_advises_and_replays_policy(self):
+        ex = Client(self.endpoint, self.reader).policy_example()
+        test_args = {k: ex[k] for k in ("pack", "documents", "retrieved", "question", "as_of")}
+        out = self.mcp(self.reader, [
+            self.call(1, "policy_test", test_args),
+            self.call(2, "policy_replay", {"base": ex["pack"], "branch": ex["branch_pack"], "cases": ex["cases"], "as_of": ex["as_of"]}),
+            self.call(3, "policy_test", {**test_args, "labeler": "llm"}),
+        ])
+        by_id = {m["id"]: m for m in out}
+        test = by_id[1]["result"]["structuredContent"]
+        self.assertEqual(test["verdict"], "ADMIT")
+        self.assertEqual(test["summary"]["qualified_requirements"], 2)
+        self.assertEqual(by_id[2]["result"]["structuredContent"]["flipped"], 1)
+        self.assertTrue(by_id[3]["result"]["isError"])  # unknown argument
+        advice = self.mcp(self.reader, [self.call(4, "policy_advise", {"pack": ex["pack"], "test": test})])[0]
+        ids = [f["id"] for f in advice["result"]["structuredContent"]["findings"]]
+        self.assertIn("evidence.qualified-support", ids)
 
     def test_mcp_read_only_agent_is_refused(self):
         out = self.mcp(self.reader, [self.call(1, "garden_propose", {"branch": "b", "statement": "s", "source_text": "x"})])

@@ -242,3 +242,57 @@ class GardenTreeBrowserTests(unittest.TestCase):
                     self.assertEqual(errors,[])
                     browser.close()
             finally:http.shutdown();http.server_close()
+
+
+@unittest.skipUnless(os.environ.get("QUALITYRAG_BROWSER_TESTS")=="1" and importlib.util.find_spec("playwright"),
+                     "Real browser suite requires opt-in and installed Chromium")
+class GovernanceBrowserTests(unittest.TestCase):
+    def test_policy_tester_advisor_and_replay(self):
+        from playwright.sync_api import sync_playwright
+        with tempfile.TemporaryDirectory() as temp:
+            key=Ed25519PrivateKey.generate()
+            token=issue_access(subject="dev",tenant="demo",scopes=["read"],
+                key=key,key_id="issuer",issued_at="2026-11-04T00:00:00Z",expires_at="2026-11-05T00:00:00Z")
+            encoded=base64.urlsafe_b64encode(canonical(token)).decode().rstrip("=")
+            app=Application(temp,access_keys={"issuer":key.public_key()},release_keys={},clock=lambda:"2026-11-04T12:00:00Z")
+            http=server(app);thread=Thread(target=http.serve_forever,daemon=True);thread.start()
+            try:
+                with sync_playwright() as runtime:
+                    executable=os.environ.get("QUALITYRAG_BROWSER_EXECUTABLE")
+                    browser=runtime.chromium.launch(headless=True,args=["--no-sandbox"],**({"executable_path":executable} if executable else {}))
+                    page=browser.new_page(viewport={"width":1280,"height":1000})
+                    errors=[];page.on("pageerror",lambda error:errors.append(str(error)))
+                    page.on("response",lambda r:errors.append(r.status_text+" "+r.url) if r.status>=400 and not r.url.endswith("/favicon.ico") else None)
+                    page.goto("http://127.0.0.1:"+str(http.server_port))
+                    page.get_by_label("Access token").fill(encoded)
+                    page.get_by_role("button",name="Open workspace").click()
+                    page.locator("#workspace").wait_for()
+                    # Policy tester on the real example.
+                    page.get_by_role("button",name="Load EU payments example").click()
+                    page.locator("#gov-docs-label").filter(has_text="6 documents").wait_for()
+                    page.get_by_role("button",name="Run gate").click()
+                    page.locator(".gov-verdict-word").filter(has_text="ADMIT").wait_for()
+                    self.assertEqual(page.locator(".gov-req").count(),3)
+                    page.locator(".gov-span").filter(has_text="Same origin as ops-7.3").wait_for()
+                    page.locator(".gov-req").filter(has_text="eu-screening-control").click()
+                    self.assertEqual(page.locator(".gov-span-text mark").all_inner_texts(),["unless"])
+                    # Advisor uses the tested pack and evidence.
+                    page.get_by_role("tab",name="Advisor").click()
+                    page.get_by_role("button",name="Run advisor").click()
+                    page.locator(".gov-finding").first.wait_for()
+                    titles=page.locator(".gov-finding .gov-title").all_inner_texts()
+                    self.assertIn("2 supporting span(s) admitted with a qualifier",titles)
+                    page.get_by_role("button",name="Warnings · 2").click()
+                    self.assertEqual(page.locator(".gov-finding").count(),2)
+                    page.locator(".gov-finding summary").first.click()
+                    page.locator(".gov-finding pre").filter(has_text="approval-reference-recorded").wait_for()
+                    # Branch replay: the example branch needs two origins for recovery-procedure.
+                    page.get_by_role("tab",name="Branch replay").click()
+                    page.get_by_role("button",name="Replay branch").click()
+                    page.locator(".gov-diff .add").filter(has_text="min_independent_sources: 2").wait_for()
+                    page.locator(".gov-table td").filter(has_text="INCONCLUSIVE").wait_for()
+                    page.set_viewport_size({"width":390,"height":844})
+                    self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"),390)
+                    self.assertEqual(errors,[])
+                    browser.close()
+            finally:http.shutdown();http.server_close()

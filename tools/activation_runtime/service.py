@@ -142,6 +142,29 @@ class Application:
         if route=="gardener/proposals":
             if body:raise ValueError("Unsupported proposal options")
             return suggest(self.garden_path(principal))
+        if route.startswith("policy/"):
+            from . import governance
+            as_of=body.get("as_of") or self.clock()
+            if route=="policy/example":
+                if body:raise ValueError("Unsupported example options")
+                return governance.example()
+            if route=="policy/test":
+                if not {"pack","documents","retrieved"}<=set(body)<={"pack","documents","retrieved","question","as_of"}:
+                    raise ValueError("Unsupported policy test options")
+                return governance.policy_test(body["pack"],body["documents"],body["retrieved"],as_of=as_of,question=body.get("question"))
+            if route=="policy/advise":
+                if not set(body)<={"pack","test","benchmark","far_limit"}:raise ValueError("Unsupported advisor options")
+                garden=Gardener(self.garden_path(principal))
+                try:state=garden.replay()
+                finally:garden.close()
+                limit=body.get("far_limit",0.10)
+                if not isinstance(limit,(int,float)) or isinstance(limit,bool) or not 0<=limit<=1:raise ValueError("far_limit")
+                return governance.advise(pack=body.get("pack"),test=body.get("test"),garden=state,
+                                         benchmark=body.get("benchmark"),far_limit=limit)
+            if route=="policy/replay":
+                if not {"base","branch","cases"}<=set(body)<={"base","branch","cases","as_of"}:
+                    raise ValueError("Unsupported replay options")
+                return governance.replay(body["base"],body["branch"],body["cases"],as_of=as_of)
         if route=="status":
             if body:raise ValueError("Unsupported status options")
             return {"tenant":principal.tenant,"principal":principal.subject,"scopes":sorted(principal.scopes),
@@ -179,7 +202,7 @@ def handler(application):
             self.send_header("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'")
             self.end_headers();self.wfile.write(raw)
         def do_GET(self):
-            assets={"/":"index.html","/app.js":"app.js","/garden.js":"garden.js","/style.css":"style.css"}
+            assets={"/":"index.html","/app.js":"app.js","/garden.js":"garden.js","/governance.js":"governance.js","/style.css":"style.css"}
             if self.path not in assets:self.reply(404,b'{"error":"NOT_FOUND"}');return
             path=WEB/assets[self.path]
             mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8"}

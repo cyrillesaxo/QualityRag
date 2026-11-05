@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag Research Review</title><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QualityRag Research Review</title><link rel="stylesheet" href="/style.css"><script src="/garden.js" defer></script><script src="/app.js" defer></script><script src="/governance.js" defer></script></head>
 <body><header><a href="/" aria-label="QualityRag home">QualityRag</a><span>Research review</span></header><main>
 <h1>Keep the evidence in view.</h1><p>Review research branches, inspect proposed changes, and preserve their source history.</p>
 <form id="connect"><label for="token">Access token</label><input id="token" type="password" autocomplete="off" required placeholder="Paste a signed access token"><button type="submit">Open workspace</button></form>
@@ -16,6 +16,32 @@
 <div class="obs-history"><label for="garden-time">Replay history</label><input type="range" id="garden-time" min="0" max="0" value="0"><span id="garden-time-label">No events yet</span></div>
 <p id="garden-result" class="obs-result" role="status"></p>
 <details class="obs-feed-wrap"><summary>Growth feed</summary><ol id="garden-feed" class="obs-feed"></ol></details>
+</section>
+<section id="governance" class="observatory gov" aria-labelledby="gov-title">
+<div class="obs-head"><div><p class="obs-kicker">Governance</p><h2 id="gov-title">Policies</h2></div>
+<div role="tablist" aria-label="Governance tools" class="gov-tabs"><button type="button" role="tab" id="gov-tab-test" aria-controls="gov-test" aria-selected="true">Policy tester</button><button type="button" role="tab" id="gov-tab-advise" aria-controls="gov-advise" aria-selected="false" tabindex="-1">Advisor</button><button type="button" role="tab" id="gov-tab-replay" aria-controls="gov-replay" aria-selected="false" tabindex="-1">Branch replay</button></div></div>
+<div id="gov-test" role="tabpanel" aria-labelledby="gov-tab-test">
+<p class="obs-empty">Run the gate on retrieved chunks and see exactly which spans it counts. Nothing is written to the ledger.</p>
+<form id="gov-test-form" class="obs-form gov-form">
+<label for="gov-question">Question</label><input id="gov-question" type="text" maxlength="2000">
+<div class="gov-row"><div><label for="gov-pack">PackSpec (JSON)</label><textarea id="gov-pack" rows="8" spellcheck="false" required></textarea></div>
+<div><label for="gov-docs">Documents (JSON file: list of documents with origin and chunks)</label><input id="gov-docs" type="file" accept=".json"><p id="gov-docs-label" class="obs-meta">No documents loaded.</p>
+<label for="gov-retrieved">Retrieved chunk IDs, in order</label><textarea id="gov-retrieved" rows="3" spellcheck="false" required></textarea></div></div>
+<div class="gov-actions"><button type="button" class="ghost" id="gov-example">Load EU payments example</button><button type="submit">Run gate</button></div></form>
+<div id="gov-test-result" hidden></div></div>
+<div id="gov-advise" role="tabpanel" aria-labelledby="gov-tab-advise" hidden>
+<p class="obs-empty">Checks what the gate does not: reviewer trust, single-origin requirements, qualifiers inside supporting spans, calibration and open Gardener challenges. Findings are suggestions, not decisions.</p>
+<form id="gov-advise-form" class="obs-form gov-form"><div class="gov-row"><div><label for="gov-bench">Benchmark report (optional JSON: false_admission_rate, answer_rate, n)</label><input id="gov-bench" type="file" accept=".json"></div>
+<div><label for="gov-far">False-admission limit</label><input id="gov-far" type="number" min="0" max="1" step="0.01" value="0.10"></div></div>
+<div class="gov-actions"><button type="submit">Run advisor</button></div></form>
+<div id="gov-advise-result" hidden></div></div>
+<div id="gov-replay" role="tabpanel" aria-labelledby="gov-tab-replay" hidden>
+<p class="obs-empty">Re-evaluate recorded cases under the current pack and a branch, and see every verdict that changes. Retrieval and labeling are not re-run.</p>
+<form id="gov-replay-form" class="obs-form gov-form"><div class="gov-row"><div><label for="gov-branch">Branch PackSpec (JSON)</label><textarea id="gov-branch" rows="8" spellcheck="false" required></textarea></div>
+<div><label for="gov-cases">Recorded cases (JSON file: id, evidence, optional expect_admit)</label><input id="gov-cases" type="file" accept=".json"><p id="gov-cases-label" class="obs-meta">No cases loaded.</p></div></div>
+<div class="gov-actions"><button type="submit">Replay branch</button></div></form>
+<div id="gov-replay-result" hidden></div></div>
+<p id="gov-status" class="obs-result" role="status"></p>
 </section>
 <details id="new-branch"><summary>Add a research branch</summary>
 <form id="propose"><label for="branch-name">Branch name</label><input id="branch-name" required maxlength="100" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" placeholder="research-hypothesis">

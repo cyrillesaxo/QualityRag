@@ -48,3 +48,53 @@ input[type=checkbox]{width:20px;min-height:20px;vertical-align:middle}.proposal 
 @keyframes garden-grow{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.observatory .grow{animation:none}}
 @media(max-width:640px){.observatory{padding:14px;border-radius:12px}.obs-history{grid-template-columns:1fr}.obs-actions{grid-template-columns:1fr}#garden-query{display:grid;grid-template-columns:1fr;justify-content:stretch}#garden-query input{width:100%}#garden-svg{width:720px;max-width:none}#garden-inspector{max-width:none}}
+
+.gov-tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--o-line)}
+.observatory .gov-tabs button{background:transparent;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--o-muted)}
+.observatory .gov-tabs button[aria-selected=true]{color:var(--o-text);border-bottom-color:var(--o-cyan)}
+.gov [role=tabpanel]{margin-top:16px}.gov [role=tabpanel][hidden]{display:none}
+.gov-form{margin:12px 0 4px}.gov-row{display:flex;flex-wrap:wrap;gap:16px}.gov-row>div{flex:1 1 320px;min-width:0;display:grid;gap:8px;align-content:start}
+.gov-form textarea{font:13px/1.5 ui-monospace,monospace}.gov-form input[type=file]{color:var(--o-muted);border-style:dashed}
+.gov-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+#gov-test-result,#gov-advise-result,#gov-replay-result{display:flex;flex-direction:column;gap:16px;margin-top:16px}
+#gov-test-result[hidden],#gov-advise-result[hidden],#gov-replay-result[hidden]{display:none}
+.mono{font-family:ui-monospace,monospace}
+.gov-verdict{display:flex;flex-wrap:wrap;gap:20px;align-items:center;padding:18px;border-radius:12px;border:1px solid var(--o-line);background:var(--o-panel)}
+.gov-verdict.v-ADMIT{border-color:#57E0CC55}.gov-verdict.v-REFUSE{border-color:#FF9A9A66}.gov-verdict.v-INCONCLUSIVE{border-color:#F5A62366}
+.gov-verdict>div:first-child{display:flex;flex-direction:column;gap:2px}
+.gov-verdict-word{font-size:32px;letter-spacing:.04em}.v-ADMIT{color:#9BF2E4}.v-REFUSE{color:#FF9A9A}.v-INCONCLUSIVE{color:#F5C46B}
+.gov-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;min-width:0}.gov-verdict .gov-stats{flex:1 1 480px}
+.gov-stat{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:10px;background:var(--o-bg);border:1px solid var(--o-line)}
+.gov-stat-value{font-size:22px;font-weight:650}.gov-stat-label{font-size:12px;color:#A9B6C8}
+.gov-stat.warn .gov-stat-value,.gov-note.warn,.mono.warn{color:#F5C46B}.gov-stat.bad .gov-stat-value{color:#FF9A9A}.gov-stat.ok .gov-stat-value,.gov-note.ok,.mono.ok{color:#9BF2E4}
+.gov-fine{flex:1 1 100%;margin:0;font-size:13px;color:#A9B6C8;max-width:none}.gov-fine.bad{color:#FFC2C2}.gov-fine.ok{color:#9BF2E4}
+.gov-split{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}.gov-split>*{min-width:0}
+.gov-reqs{flex:1 1 320px;display:flex;flex-direction:column;gap:8px}
+.observatory button.gov-req{text-align:left;white-space:normal;display:flex;flex-direction:column;gap:6px;padding:12px 14px;background:var(--o-panel);color:var(--o-text);border:1px solid var(--o-line);font-weight:400}
+.observatory button.gov-req.selected{border-color:var(--o-cyan);background:#57E0CC12}
+.gov-req-head{display:flex;justify-content:space-between;gap:10px;width:100%;font-size:14px}
+.gov-req-flag{font-size:13px;color:#A9B6C8}.gov-req.flagged .gov-req-flag{color:#F5C46B}
+.gov-unlinked{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px dashed #2A3647;border-radius:10px}
+.gov-spans{flex:2 1 460px;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:12px;background:var(--o-panel);border:1px solid var(--o-line)}
+.gov-spans-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:baseline}.gov-spans-head h3{margin:0;font-size:17px}
+.gov-span{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:10px;background:var(--o-bg);border:1px solid var(--o-line)}
+.gov-span-text{margin:0;font-size:15px;line-height:1.55;max-width:none}
+.gov-span-text mark{background:#F5A62333;color:#FFD58A;padding:1px 4px;border-radius:4px}
+.gov-note{font-size:12px}.gov-note.muted{color:var(--o-muted)}
+.observatory pre.gov-code{margin:0;background:#05070C;color:#C9D3E0;border:1px solid var(--o-line);white-space:pre;overflow-x:auto;max-height:none}
+.gov-diff span{display:block}.gov-diff .del{color:#FF9A9A;background:#FF9A9A14}.gov-diff .add{color:#9BF2E4;background:#57E0CC14}
+.gov-filters{display:flex;flex-wrap:wrap;gap:6px}
+.observatory button.gov-pill{background:transparent;color:var(--o-text);border:1px solid #2A3647;border-radius:999px;font-weight:400}
+.observatory button.gov-pill.selected{border-color:var(--o-cyan);background:#57E0CC1F}
+.gov-findings{display:flex;flex-direction:column;gap:8px}
+.gov-finding{border:1px solid var(--o-line);border-radius:12px;background:var(--o-panel)}
+.gov-finding summary{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 16px}
+.gov-sev{font:11px ui-monospace,monospace;letter-spacing:.08em;padding:3px 8px;border-radius:6px;border:1px solid currentColor}
+.sev-ERROR .gov-sev{color:#FF9A9A}.sev-WARN .gov-sev{color:#F5C46B}.sev-INFO .gov-sev{color:#A9B6C8}
+.sev-ERROR[open]{border-color:#FF9A9A66}.sev-WARN[open]{border-color:#F5A62366}
+.gov-area{font-size:12px;color:var(--o-muted);min-width:96px}.gov-title{flex:1 1 300px;min-width:0;font-weight:600}
+.gov-finding-body{display:flex;flex-wrap:wrap;gap:16px;padding:0 16px 16px}.gov-finding-body>div{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.gov-finding-body p{margin:0 0 8px;color:#C9D3E0;font-size:14px}
+.gov-rates{flex:1 1 320px;display:flex;flex-direction:column;gap:10px}.gov-rate{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:14px}
+.observatory .gov-table-wrap{border-color:var(--o-line)}.gov-table th,.gov-table td{border-color:var(--o-line);font-size:14px}
+@media(max-width:640px){.gov-table td::before{content:attr(data-label)!important;color:var(--o-muted)}.gov-verdict-word{font-size:26px}}

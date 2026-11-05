@@ -47,7 +47,7 @@ The response lists branch summaries (statement, parents, children, status, open 
 
 ## AI agents (MCP)
 
-`tools/activation_runtime/mcp_server.py` is a stdio MCP server with five tools:
+`tools/activation_runtime/mcp_server.py` is a stdio MCP server with five Gardener tools (plus three read-only policy tools, see [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md)):
 
 - `garden_query`
 - `garden_suggestions`
@@ -105,3 +105,7 @@ python -m tools.activation_runtime.cli garden watch --endpoint http://127.0.0.1:
 - Replay rebuilds structure (branches, prunes, challenges) at any moment, but evidence status is shown as it is now. The ledger is not replayed.
 - Every append replays the whole chain, and suggestions scan at most 2,000 events. That is fine for a project, not yet for years of history.
 - Live growth polls every 4 seconds; there is no push channel.
+
+## Governance tools
+
+The same console has a **Governance** panel with a policy tester, an advisor and policy-branch replay. Open Gardener challenges appear as Advisor findings. See [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md).

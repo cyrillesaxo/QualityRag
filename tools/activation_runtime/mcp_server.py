@@ -1,7 +1,8 @@
 """MCP server (stdio) exposing the Semantic Gardener to AI agents.
 
 An agent can read the research tree, query it, follow its growth, and append source-anchored
-PROPOSE / CHALLENGE / TEST events. It calls the same authenticated HTTP API as the console, so
+PROPOSE / CHALLENGE / TEST events. It can also test a policy against retrieved chunks, ask the
+governance advisor for findings, and replay a policy branch over recorded cases (read only). It calls the same authenticated HTTP API as the console, so
 the signed token decides what it may do: give agents a read+write token. PRUNE, REOPEN and
 SYNTHESIZE need review scope and are deliberately not exposed as tools; no agent can mark a
 claim validated. Configure with environment variables:
@@ -26,7 +27,7 @@ if SDK not in sys.path:
     sys.path.insert(0, SDK)
 
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "qualityrag-gardener", "version": "0.1.0"}
+SERVER_INFO = {"name": "qualityrag-gardener", "version": "0.2.0"}
 INSTRUCTIONS = ("The Semantic Gardener is an append-only research tree. Branches are hypotheses; events are "
                 "PROPOSE, CHALLENGE, TEST, SYNTHESIZE, PRUNE and REOPEN. Query before you add: avoid duplicates, "
                 "anchor every event to a source, and record objections as CHALLENGE rather than editing anything. "
@@ -48,6 +49,27 @@ TOOLS = [
     {"name": "garden_suggestions",
      "description": "The Gardener's current review suggestions (possible duplicates, unresolved challenges) with suggested cost. Suggestions are not decisions.",
      "inputSchema": {"type": "object", "additionalProperties": False, "properties": {}},
+     "annotations": {"readOnlyHint": True}},
+    {"name": "policy_test",
+     "description": "Run the QualityRag gate on retrieved chunks and explain every counted and uncounted span: distinct origins, collapsed copies, qualifiers the gate does not evaluate. Writes nothing. ADMIT is metadata gate satisfaction, not authorization to act.",
+     "inputSchema": {"type": "object", "additionalProperties": False, "required": ["pack", "documents", "retrieved"], "properties": {
+         "pack": {"type": "object", "description": "PackSpec: id, version, requirements"},
+         "documents": {"type": "array", "description": "Documents with id, origin and chunks (id, text, requirement_id, status)"},
+         "retrieved": {"type": "array", "items": {"type": "string"}, "description": "Retrieved chunk IDs, in order"},
+         "question": {"type": "string", "maxLength": 2000}, "as_of": {"type": "string"}}},
+     "annotations": {"readOnlyHint": True}},
+    {"name": "policy_advise",
+     "description": "Governance findings the gate does not check: reviewer trust store, single-origin requirements, evidence without max age, qualified supporting spans (pass a policy_test result), calibration (pass a benchmark report) and open Gardener challenges. Suggestions, not decisions.",
+     "inputSchema": {"type": "object", "additionalProperties": False, "properties": {
+         "pack": {"type": "object"}, "test": {"type": "object", "description": "A policy_test result for the same pack"},
+         "benchmark": {"type": "object", "description": "false_admission_rate, answer_rate, n, optional labeler and dataset"},
+         "far_limit": {"type": "number", "minimum": 0, "maximum": 1}}},
+     "annotations": {"readOnlyHint": True}},
+    {"name": "policy_replay",
+     "description": "Re-evaluate recorded cases under a base pack and a branch pack and report every verdict that changed. Cases with expect_admit labels give false admissions removed, correct answers lost and both rates. Does not re-run retrieval or promote anything.",
+     "inputSchema": {"type": "object", "additionalProperties": False, "required": ["base", "branch", "cases"], "properties": {
+         "base": {"type": "object"}, "branch": {"type": "object"},
+         "cases": {"type": "array", "description": "{id, evidence: [witness rows], expect_admit?: bool, question?}"}, "as_of": {"type": "string"}}},
      "annotations": {"readOnlyHint": True}},
     {"name": "garden_propose",
      "description": "Add a hypothesis as a new branch, optionally forked from parent branches. Query first to avoid duplicates.",
@@ -100,6 +122,12 @@ class Gardener:
             return self.client.garden_query(**args)
         if name == "garden_suggestions":
             return self.client.garden_suggestions()
+        if name == "policy_test":
+            return self.client.policy_test(**args)
+        if name == "policy_advise":
+            return self.client.policy_advise(**args)
+        if name == "policy_replay":
+            return self.client.policy_replay(**args)
         if name == "garden_propose":
             parents = args.get("parents", [])
             return self._event("PROPOSE", args, branch=args["branch"], parents=parents,
