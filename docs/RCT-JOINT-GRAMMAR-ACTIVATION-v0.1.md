@@ -139,9 +139,12 @@ inject its own predicate path. An independent SQLite reference query
 checks all feasible subjects, not only the positive examples.
 
 Activation signals are derived from the workload frequency distribution:
-on-demand, frequency-aware prefetch, or all-subject prefetch. Each policy
-records activation, representation, query, verification and reference
-reconstruction costs. The Garden returns candidate measurements, never an
+on-demand, frequency-aware prefetch, or all-subject prefetch. Each is
+paired with two compiled representation forms: direct graph traversal and
+materialized multi-hop composition. This produces six experiments per
+training-selected operator, rather than merely six labels on identical code.
+Every candidate records representation, activation, query, verification and
+reference reconstruction costs. The Garden returns candidate measurements, never an
 admitted champion or an authorized policy change.
 
 ### Validate the new experiment
@@ -163,3 +166,19 @@ In particular, `UNIQUE_TRAINING_HYPOTHESIS` means only that one
 predeclared operator **fits the observed training examples**. It does not
 establish semantic truth, k4 transfer, independent witness channels,
 or superiority to a native graph/SQL engine.
+
+### Execute the co-evolution demo
+
+```bash
+python tools/semantic_store/rct_garden_demo.py --trials 3 --output /tmp/garden-research.json
+```
+
+This demo first selects the three-hop composition operator from **training
+examples only**, with a negative control. The evaluation source and revised
+source remain separate. It then pairs the learned candidate with two actual
+representation implementations (direct and materialized) and three activation
+strategies. Results are research candidates, not a new system capability claim.
+
+If training examples are ambiguous, the operator is **not** selected; the
+investigation yields a request for discriminating probes. The current
+implementation does not yet automatically generate or execute those probes.
