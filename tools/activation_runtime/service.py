@@ -79,6 +79,11 @@ class Application:
             return activate_signed(raw,body["artifact"],signed_manifest=body["signed_manifest"],
                 trusted_keys=self.release_keys,store=store,tenant=principal.tenant,
                 minimum_sequence=self.minimum_sequence,ir=body["policy_ir"],witnesses=[],as_of=self.clock())
+        if route=="observations":
+            if set(body) not in ({"source_sha256","observations"},{"source_sha256","observations","rename"}):
+                raise ValueError("Unsupported observation options")
+            from .semantic_ir import evaluate
+            return evaluate(store.get(body["source_sha256"]),{key:value for key,value in body.items() if key!="source_sha256"})
         if route=="activate-plan":
             if set(body)!={"source_sha256","artifact","signed_manifest","policy_ir","contract","signed_review","allow_fallback"}:
                 raise ValueError("Unsupported reviewed activation options")

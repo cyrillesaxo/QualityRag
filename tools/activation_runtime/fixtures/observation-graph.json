@@ -1,0 +1,230 @@
+{
+  "schema": "qualityrag.source-observation-graph/v1",
+  "source": {
+    "sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20",
+    "bytes": 49,
+    "encoding": "UTF-8",
+    "residual": "RETAIN_FULL_ORIGINAL"
+  },
+  "nodes": [
+    {
+      "schema": "qualityrag.semantic-observation/v1",
+      "id": "bob",
+      "kind": "ENTITY",
+      "value": "bob",
+      "roles": {},
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED",
+      "source": {
+        "sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20",
+        "char_start": 0,
+        "char_end": 48,
+        "byte_start": 0,
+        "byte_end": 49,
+        "quote": "\u00c9va tells Bob: do NOT give 5 mg before checking.",
+        "quote_sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20"
+      },
+      "domain_validity": "UNKNOWN"
+    },
+    {
+      "schema": "qualityrag.semantic-observation/v1",
+      "id": "check",
+      "kind": "EVENT",
+      "value": "check",
+      "roles": {
+        "actor": "eva"
+      },
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED",
+      "source": {
+        "sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20",
+        "char_start": 0,
+        "char_end": 48,
+        "byte_start": 0,
+        "byte_end": 49,
+        "quote": "\u00c9va tells Bob: do NOT give 5 mg before checking.",
+        "quote_sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20"
+      },
+      "domain_validity": "UNKNOWN"
+    },
+    {
+      "schema": "qualityrag.semantic-observation/v1",
+      "id": "eva",
+      "kind": "ENTITY",
+      "value": "eva",
+      "roles": {},
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED",
+      "source": {
+        "sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20",
+        "char_start": 0,
+        "char_end": 48,
+        "byte_start": 0,
+        "byte_end": 49,
+        "quote": "\u00c9va tells Bob: do NOT give 5 mg before checking.",
+        "quote_sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20"
+      },
+      "domain_validity": "UNKNOWN"
+    },
+    {
+      "schema": "qualityrag.semantic-observation/v1",
+      "id": "give",
+      "kind": "EVENT",
+      "value": "give",
+      "roles": {
+        "actor": "eva",
+        "recipient": "bob"
+      },
+      "polarity": "NEGATIVE",
+      "quantity": 5,
+      "unit": "mg",
+      "temporal_order": [
+        "check"
+      ],
+      "modality": "PROHIBITED",
+      "source": {
+        "sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20",
+        "char_start": 0,
+        "char_end": 48,
+        "byte_start": 0,
+        "byte_end": 49,
+        "quote": "\u00c9va tells Bob: do NOT give 5 mg before checking.",
+        "quote_sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20"
+      },
+      "domain_validity": "UNKNOWN"
+    },
+    {
+      "schema": "qualityrag.semantic-observation/v1",
+      "id": "knows",
+      "kind": "RELATION",
+      "value": "knows",
+      "roles": {
+        "subject": "eva",
+        "object": "bob"
+      },
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED",
+      "source": {
+        "sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20",
+        "char_start": 0,
+        "char_end": 48,
+        "byte_start": 0,
+        "byte_end": 49,
+        "quote": "\u00c9va tells Bob: do NOT give 5 mg before checking.",
+        "quote_sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20"
+      },
+      "domain_validity": "UNKNOWN"
+    },
+    {
+      "schema": "qualityrag.semantic-observation/v1",
+      "id": "unresolved",
+      "kind": "UNKNOWN",
+      "value": null,
+      "roles": {},
+      "polarity": "UNKNOWN",
+      "quantity": null,
+      "unit": null,
+      "temporal_order": [],
+      "modality": "OBSERVED",
+      "source": {
+        "sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20",
+        "char_start": 0,
+        "char_end": 48,
+        "byte_start": 0,
+        "byte_end": 49,
+        "quote": "\u00c9va tells Bob: do NOT give 5 mg before checking.",
+        "quote_sha256": "9920f1d9fdbe116cdf4790e2c36b2b2f5445baac0ea984d3760e72d0c750af20"
+      },
+      "domain_validity": "UNKNOWN"
+    }
+  ],
+  "joins": [
+    {
+      "owner": "check",
+      "role": "actor",
+      "target": "eva",
+      "target_kind": "ENTITY"
+    },
+    {
+      "owner": "give",
+      "role": "actor",
+      "target": "eva",
+      "target_kind": "ENTITY"
+    },
+    {
+      "owner": "give",
+      "role": "recipient",
+      "target": "bob",
+      "target_kind": "ENTITY"
+    },
+    {
+      "owner": "knows",
+      "role": "object",
+      "target": "bob",
+      "target_kind": "ENTITY"
+    },
+    {
+      "owner": "knows",
+      "role": "subject",
+      "target": "eva",
+      "target_kind": "ENTITY"
+    }
+  ],
+  "temporal_edges": [
+    {
+      "before": "check",
+      "after": "give"
+    }
+  ],
+  "unknowns": [
+    {
+      "observation_id": "bob",
+      "aspects": [
+        "polarity"
+      ]
+    },
+    {
+      "observation_id": "check",
+      "aspects": [
+        "polarity"
+      ]
+    },
+    {
+      "observation_id": "eva",
+      "aspects": [
+        "polarity"
+      ]
+    },
+    {
+      "observation_id": "knows",
+      "aspects": [
+        "polarity"
+      ]
+    },
+    {
+      "observation_id": "unresolved",
+      "aspects": [
+        "kind",
+        "polarity",
+        "value"
+      ]
+    }
+  ],
+  "type_status": "WELL_TYPED",
+  "domain_validity": "UNKNOWN",
+  "canonical_apx_parity": "NOT_ESTABLISHED",
+  "can_generate": false,
+  "ast_sha256": "5e16b5061c052c46405303be7f41c191a6ea28342e456142ab38130421e8893a"
+}

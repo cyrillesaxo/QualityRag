@@ -20,7 +20,7 @@ test('activation endpoints accept explicit loopback and HTTPS path prefixes',()=
 
 test('activation serialization refuses values JSON would silently change',async()=>{
   const client=new ActivationClient('http://127.0.0.1:9',token);
-  for(const value of [undefined,NaN,Infinity,()=>true,Symbol('fixture'),1n]){
+  for(const value of [undefined,NaN,Infinity,()=>true,Symbol('fixture'),1n,Number.MAX_SAFE_INTEGER+1]){
     await assert.rejects(client.request('status',{extra:value}),/Unsupported JSON value/);
   }
   assert.throws(()=>new ActivationClient('http://127.0.0.1:9',{...token,extra:undefined}),/Unsupported JSON value/);
@@ -29,4 +29,14 @@ test('activation serialization refuses values JSON would silently change',async(
 test('activation SDK refuses unsupported routes before sending',async()=>{
   const client=new ActivationClient('http://127.0.0.1:9',token);
   await assert.rejects(client.request('execute-arbitrary',{}),/Unsupported SDK route/);
+});
+
+
+test('activation SDK refuses unsafe response integers instead of silently rounding',async()=>{
+  const original=globalThis.fetch;
+  try {
+    globalThis.fetch=async()=>new Response('{"quantity":9007199254740993}',{status:200});
+    const client=new ActivationClient('http://127.0.0.1:9',token);
+    await assert.rejects(client.request('status',{}),/Unsupported JSON number/);
+  } finally {globalThis.fetch=original;}
 });

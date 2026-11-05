@@ -9,7 +9,7 @@ from pathlib import Path
 from .common import canonical
 
 CATALOG = Path(__file__).with_name("schemas")
-NAMES = frozenset({"grammar", "source", "payload", "transform", "packspec", "verdict", "receipt", "operator-ast", "reviewed-activation"})
+NAMES = frozenset({"grammar", "source", "payload", "transform", "packspec", "verdict", "receipt", "operator-ast", "reviewed-activation", "observation-graph"})
 
 
 def validate(name, value):

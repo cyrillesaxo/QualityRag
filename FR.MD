@@ -826,3 +826,27 @@ separates delivered software from pending acceptance and retains each exact
 remaining requirement and runnable evidence path. It does not self-approve a
 criterion. Both commands run in CI and their outputs are uploaded for review.
 API, configuration and examples: `docs/REVIEWED-ACTIVATION-WORKFLOW.md`.
+
+
+## 24. Typed source-observation graph and reversible graph transition
+
+US-016 now composes the existing source-anchored observations into a bounded
+versioned graph, with actual entity-role reference checks, binary relation typing,
+event dependency resolution and cycle refusal. Revalidation reconstructs the
+full graph, source anchors, unknown inventory and fingerprint from original bytes.
+A total bijective ID transition updates every role and temporal reference and
+round-trips to the original AST hash. This adds a typed non-video transition for
+US-012, not merely a field-preservation declaration.
+
+Authenticated API, Python, TypeScript and CLI support graph construction and
+optional transition over tenant-scoped source custody. Invalid joins and source
+corruption refuse. TypeScript rejects unsafe integer requests/responses instead
+of silently rounding source quantities. A versioned schema and complete authored
+source/draft/AST fixtures are committed. See `docs/SOURCE-OBSERVATION-GRAPH.md`.
+
+This is a structurally checked QualityRag reference graph; domain truth and
+canonical APX K/B/C/T/12G or FF-RCT parity are not established. Source annotations
+remain unreviewed, unsupported information remains UNKNOWN, and the complete
+original remains required as residual/refetch data. US-016 remains blocked on its
+independent semantic/canonical acceptance requirements; code presence alone does
+not close that requirement or authorize generation.

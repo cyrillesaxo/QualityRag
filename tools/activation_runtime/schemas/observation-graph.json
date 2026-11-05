@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualityrag.local/schemas/observation-graph/v1.0",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "qualityrag.source-observation-graph/v1"
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        },
+        "encoding": {
+          "const": "UTF-8"
+        },
+        "residual": {
+          "const": "RETAIN_FULL_ORIGINAL"
+        }
+      },
+      "required": [
+        "sha256",
+        "bytes",
+        "encoding",
+        "residual"
+      ],
+      "additionalProperties": false
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "const": "qualityrag.semantic-observation/v1"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "kind": {
+            "enum": [
+              "ENTITY",
+              "RELATION",
+              "EVENT",
+              "UNKNOWN"
+            ]
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "integer",
+              "boolean",
+              "null"
+            ]
+          },
+          "roles": {
+            "type": "object",
+            "propertyNames": {
+              "enum": [
+                "actor",
+                "recipient",
+                "beneficiary",
+                "subject",
+                "object"
+              ]
+            },
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+            }
+          },
+          "polarity": {
+            "enum": [
+              "POSITIVE",
+              "NEGATIVE",
+              "UNKNOWN"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "number",
+              "integer",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64
+          },
+          "modality": {
+            "enum": [
+              "OBSERVED",
+              "REQUIRED",
+              "PERMITTED",
+              "PROHIBITED",
+              "UNKNOWN"
+            ]
+          },
+          "temporal_order": {
+            "type": "array",
+            "maxItems": 32,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+            }
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "char_start": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65536
+              },
+              "char_end": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65536
+              },
+              "byte_start": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65536
+              },
+              "byte_end": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65536
+              },
+              "quote": {
+                "type": "string",
+                "maxLength": 65536
+              },
+              "quote_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "sha256",
+              "char_start",
+              "char_end",
+              "byte_start",
+              "byte_end",
+              "quote",
+              "quote_sha256"
+            ],
+            "additionalProperties": false
+          },
+          "domain_validity": {
+            "const": "UNKNOWN"
+          }
+        },
+        "required": [
+          "schema",
+          "id",
+          "kind",
+          "value",
+          "roles",
+          "polarity",
+          "quantity",
+          "unit",
+          "modality",
+          "temporal_order",
+          "source",
+          "domain_validity"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "joins": {
+      "type": "array",
+      "maxItems": 640,
+      "items": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "role": {
+            "enum": [
+              "actor",
+              "recipient",
+              "beneficiary",
+              "subject",
+              "object"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "target_kind": {
+            "const": "ENTITY"
+          }
+        },
+        "required": [
+          "owner",
+          "role",
+          "target",
+          "target_kind"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "temporal_edges": {
+      "type": "array",
+      "maxItems": 8192,
+      "items": {
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "after": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          }
+        },
+        "required": [
+          "before",
+          "after"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "aspects": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "kind",
+                "polarity",
+                "modality",
+                "value"
+              ]
+            }
+          }
+        },
+        "required": [
+          "observation_id",
+          "aspects"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "type_status": {
+      "const": "WELL_TYPED"
+    },
+    "domain_validity": {
+      "const": "UNKNOWN"
+    },
+    "canonical_apx_parity": {
+      "const": "NOT_ESTABLISHED"
+    },
+    "can_generate": {
+      "const": false
+    },
+    "ast_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema",
+    "source",
+    "nodes",
+    "joins",
+    "temporal_edges",
+    "unknowns",
+    "type_status",
+    "domain_validity",
+    "canonical_apx_parity",
+    "can_generate",
+    "ast_sha256"
+  ],
+  "additionalProperties": false
+}

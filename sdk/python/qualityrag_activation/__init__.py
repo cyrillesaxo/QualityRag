@@ -52,6 +52,17 @@ class ReviewedActivationResult(TypedDict):
     evidence_boundary: str
 
 
+class ObservationGraphResult(TypedDict):
+    schema: Literal["qualityrag.observation-result/v1"]
+    ast: dict[str,object]
+    transition: dict[str,object]|None
+    source_sha256: str
+    type_status: Literal["WELL_TYPED"]
+    domain_validity: Literal["UNKNOWN"]
+    canonical_apx_parity: Literal["NOT_ESTABLISHED"]
+    can_generate: Literal[False]
+
+
 class FallbackResult(TypedDict):
     source_sha256: str
     base64: str
@@ -89,7 +100,7 @@ class Client:
         self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
-        if route not in {"validate","evaluate","activate-plan","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome"}:
+        if route not in {"validate","evaluate","activate-plan","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
@@ -99,6 +110,7 @@ class Client:
     def validate(self,schema:str,value:object)->ValidationResult:return self.request("validate",{"schema":schema,"value":value})
     def evaluate(self,**payload)->FiniteReceipt:return self.request("evaluate",payload)
     def activate_plan(self,**payload)->ReviewedActivationResult:return self.request("activate-plan",payload)
+    def observations(self,**payload)->ObservationGraphResult:return self.request("observations",payload)
     def trace(self,**payload)->list[str]:return self.evaluate(**payload)["trace"]
     def fallback(self,source_sha256:str)->FallbackResult:return self.request("fallback",{"source_sha256":source_sha256})
     def upload(self,raw):return self.request("source",{"base64":base64.b64encode(raw).decode()})

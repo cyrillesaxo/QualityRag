@@ -146,3 +146,15 @@ runnable evidence and each remaining acceptance requirement. It is an audited
 source inventory, not automatic acceptance. Once signed completion receipts are
 present, provide the host's public-key map with `--completion-keys keys.json` and
 its evaluation time with `--as-of <ISO-timestamp>` to verify DONE entries.
+
+
+## Typed source observations
+
+Use `python -m tools.activation_runtime.cli observations --source
+<UTF-8-file> --request <observation-drafts.json>` to construct a bounded graph or
+apply its optional total ID rename. The authenticated observations endpoint and
+both SDKs support the same operation. Role endpoints and temporal dependencies
+are checked against actual declared node kinds; anchors are revalidated against
+the original bytes. Unknown annotation meaning remains unknown. This is not a
+claim of canonical APX K/B/C/T/12G parity. See
+[the source-observation graph guide](../../docs/SOURCE-OBSERVATION-GRAPH.md).

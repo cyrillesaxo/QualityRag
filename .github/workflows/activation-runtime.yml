@@ -49,6 +49,7 @@ jobs:
       - run: python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py' -v
       - run: python -m unittest discover -s tools/research_ledger/tests -p 'test_*.py' -v
       - run: python -m tools.activation_runtime.audit
+      - run: python -m tools.activation_runtime.cli observations --source tools/activation_runtime/fixtures/observation-source.txt --request tools/activation_runtime/fixtures/observation-request.json > /tmp/source-observation.json
       - run: python -m tools.activation_runtime.delivery --out /tmp/story-delivery
       - run: python -m tools.activation_runtime.demo --out /tmp/activation-demo
       - run: python -m tools.activation_runtime.worked_workflows --out /tmp/reviewed-workflows
@@ -60,4 +61,5 @@ jobs:
             /tmp/activation-demo
             /tmp/reviewed-workflows
             /tmp/story-delivery
+            /tmp/source-observation.json
             /tmp/activation-research/receipt.json

@@ -21,7 +21,7 @@ evidence; independent review, real measurements and external sources are not inf
 | US-013 — RCT candidate search with early stopping | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Merged review and supported-host sandbox confirmation. |
 | US-014 — Constraint compilation and reusable decisions | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent replay of compiler/cache invalidation and measured amortization beyond authored fixtures. |
 | US-015 — Finite equivalence proof and counterexamples | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent review of the declared finite query vocabulary and domain boundary. |
-| US-016 — Typed semantic intermediate representation | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Canonical K/B/C/T source/API parity and independent semantic annotation review remain unavailable. |
+| US-016 — Typed semantic intermediate representation | SOURCE_GRAPH_TYPECHECKED_REFERENCE | BLOCKED | Canonical K/B/C/T source/API parity and independent semantic annotation review remain unavailable. |
 | US-017 — Exact information and reversible source custody | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Deployed persistent custody with trusted host authorization and source authority. |
 | US-018 — Source adapters (text, PDF, HTML, CSV/SQL) | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent parser-boundary review on representative real documents. |
 | US-019 — Review-gated relation and role extraction | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Actual authorized role-extraction reviewers; candidates remain quarantined. |
@@ -181,7 +181,7 @@ Remaining: Merged review; finite SAT remains scoped and does not authorize seman
 
 ## US-012 — Purpose-preserving regime transition
 
-Runnable evidence: tools/activation_runtime/tests/test_preservation.py
+Runnable evidence: tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py
 
 1. Executes at least one source-anchored reversible mapping on non-video data. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Produces a transform trace and versioned source hash. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
@@ -225,7 +225,7 @@ Remaining: Independent review of the declared finite query vocabulary and domain
 
 ## US-016 — Typed semantic intermediate representation
 
-Runnable evidence: tools/activation_runtime/tests/test_preservation.py
+Runnable evidence: tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py
 
 1. Typed entities, roles, polarity, quantity/unit, temporal order, modality, provenance and unknowns are representable. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Invalid joins/roles rejected by type checker. — PENDING_INDEPENDENT_COMPLETION_RECEIPT

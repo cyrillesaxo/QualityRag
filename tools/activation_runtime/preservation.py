@@ -151,6 +151,7 @@ def observation(raw, *, observation_id, quote_start, quote_end, kind, value, rol
                 polarity, quantity, unit, temporal_order, modality):
     """Typed exact UTF-8 character and byte anchors; no free-form role inference."""
     identity(observation_id)
+    if not isinstance(raw,bytes) or not 0<len(raw)<=65536:raise ValueError("Bounded UTF-8 observation source required")
     text=raw.decode("utf-8")
     if (type(quote_start) is not int or type(quote_end) is not int
             or not 0 <= quote_start < quote_end <= len(text)):
@@ -161,7 +162,7 @@ def observation(raw, *, observation_id, quote_start, quote_end, kind, value, rol
         raise ValueError("Invalid typed role")
     for role in roles.values():
         identity(role)
-    if quantity is not None and (type(quantity) not in (float,int) or not math.isfinite(quantity) or not isinstance(unit,str) or not unit):
+    if quantity is not None and (type(quantity) not in (float,int) or (type(quantity) is float and not math.isfinite(quantity)) or not isinstance(unit,str) or not 1<=len(unit)<=64):
         raise ValueError("Quantity requires finite value and explicit unit")
     if quantity is None and unit is not None:
         raise ValueError("Unit without quantity")

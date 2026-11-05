@@ -24,6 +24,7 @@ def main(argv=None):
     p=sub.add_parser("activate-plan");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("trace");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("fallback");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--source-sha256",required=True)
+    p=sub.add_parser("observations");p.add_argument("--source",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("economics");p.add_argument("--request",required=True)
     p=sub.add_parser("train-scene");p.add_argument("--source",action="append",required=True);p.add_argument("--out",required=True)
     p=sub.add_parser("encode-scene");p.add_argument("--source",required=True);p.add_argument("--model",required=True);p.add_argument("--out",required=True)
@@ -41,6 +42,10 @@ def main(argv=None):
         elif args.command=="activate-plan":result=client.activate_plan(**read(args.request))
         elif args.command=="trace":result=client.trace(**read(args.request))
         else:result=client.evaluate(**read(args.request))
+    elif args.command=="observations":
+        from .semantic_ir import evaluate
+        with Path(args.source).open("rb") as stream:raw=stream.read(65537)
+        result=evaluate(raw,read(args.request))
     elif args.command=="economics":
         from .economics import catalog_uncertainty
         specification=read(args.request)

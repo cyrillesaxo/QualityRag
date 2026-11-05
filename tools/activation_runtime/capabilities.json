@@ -77,7 +77,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/contracts.py",
-          "sha256": "cc8a51b251d3b8d40f6dd710c0f76a4b863a9113ddda2573a2f28b0cc96a9c6f"
+          "sha256": "221c97486615d1918e987d69e0e0431fd06415de3de9dd403bae9eaab6a0ace9"
         },
         {
           "path": "tools/activation_runtime/schemas/reviewed-activation.json",
@@ -86,6 +86,14 @@
         {
           "path": "tools/activation_runtime/fixtures/reviewed-activation.json",
           "sha256": "782cea1f2d7f6d8a4093fdffef52d18cf158941055e30a50a12c7a4d49f40103"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/observation-graph.json",
+          "sha256": "7b1c32425ca0ec307159176271e4092481e262dbc67ef128f9182f7f2cb1d6a7"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/observation-graph.json",
+          "sha256": "4765e39f4ce84828a5f6d2bc8e4ecfc24b5998974f157c60e857f5e061bae04f"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_contracts.py",
@@ -215,7 +223,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
+          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
@@ -257,7 +265,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
+          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
         },
         {
           "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
@@ -361,7 +369,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
+          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
         },
         {
           "path": "docs/PRESERVATION-OMISSION-AUTHORITY.md",
@@ -550,9 +558,25 @@
         {
           "path": "tools/activation_runtime/interpreter.py",
           "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        },
+        {
+          "path": "tools/activation_runtime/semantic_ir.py",
+          "sha256": "e389036fdc65ca924f01152a22ecdec90fae7a75beb5c5e9582b685e7178d5e1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_semantic_ir.py",
+          "sha256": "d0c9c95b3a517bf02bab626224e5ba2987f721b3dacc0ec30bef3842352a4577"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_observation_service.py",
+          "sha256": "6a273c5333f83813497967a9cc1a3ae524d7cde0d63700b9c0864b5ab080eae4"
+        },
+        {
+          "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
+          "sha256": "370fad97fa65757a4a50d9183cb8f51bc41ca89ab03a3fddeaf361e68c7a348d"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py",
       "remaining": "Independent review of the finite source-to-target mapping.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -687,7 +711,7 @@
       "story_id": "US-016",
       "title": "Typed semantic intermediate representation",
       "status": "BLOCKED",
-      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "engineering_status": "SOURCE_GRAPH_TYPECHECKED_REFERENCE",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
       "implementation_commit": null,
@@ -717,10 +741,26 @@
       "modules": [
         {
           "path": "tools/activation_runtime/preservation.py",
-          "sha256": "be3f039102acc35992fce3dd09735e4632c066c498b164bb1fbdf38a3b087a0b"
+          "sha256": "56a8270b7c29f60a82e3596fa9ead1d5ca85a39f26d2e1a8a52b55d3cafe2798"
+        },
+        {
+          "path": "tools/activation_runtime/semantic_ir.py",
+          "sha256": "e389036fdc65ca924f01152a22ecdec90fae7a75beb5c5e9582b685e7178d5e1"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_semantic_ir.py",
+          "sha256": "d0c9c95b3a517bf02bab626224e5ba2987f721b3dacc0ec30bef3842352a4577"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_observation_service.py",
+          "sha256": "6a273c5333f83813497967a9cc1a3ae524d7cde0d63700b9c0864b5ab080eae4"
+        },
+        {
+          "path": "docs/SOURCE-OBSERVATION-GRAPH.md",
+          "sha256": "370fad97fa65757a4a50d9183cb8f51bc41ca89ab03a3fddeaf361e68c7a348d"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_semantic_ir.py; tools/activation_runtime/tests/test_observation_service.py",
       "remaining": "Canonical K/B/C/T source/API parity and independent semantic annotation review remain unavailable.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1412,7 +1452,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "ae2d1f0282477663838a4897de532a97b3f11c6f61480ab27d84a57e7e260d79"
+          "sha256": "071acc3b8ddb220c234de6abf6a817aa54d28b2bea90786b347bbfb1d55661d9"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1908,7 +1948,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "ae2d1f0282477663838a4897de532a97b3f11c6f61480ab27d84a57e7e260d79"
+          "sha256": "071acc3b8ddb220c234de6abf6a817aa54d28b2bea90786b347bbfb1d55661d9"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -2050,15 +2090,15 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "c57882a692ab5e7455d21d16ae5d83ec3aca77e55be1254696d727406590d772"
+          "sha256": "d6eb57c0f0ad83265bf67d57b44461f9e71c307492dbc4cd6bf144882ff80f6c"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
-          "sha256": "500abf8adec7c7d411d015f84680f9609d04af73bee5873f794fd56745058268"
+          "sha256": "f20375c15ee07c4be3611dfcfc0eadf666d4981072400ce224ff2c67aafe5ad0"
         },
         {
           "path": "sdk/typescript/src/activation.ts",
-          "sha256": "005f0a39011a2d2b43a8256478d3a02779ada67a8030cedd5d5ff365e443147a"
+          "sha256": "b58a9f0e50c463bfc166318d42432e70cb97ca2f1cfaf4dc7d6d6f55d0fedeb5"
         },
         {
           "path": "sdk/typescript/src/index.ts",
@@ -2066,11 +2106,11 @@
         },
         {
           "path": "sdk/typescript/test/activation.test.mjs",
-          "sha256": "0a6370fc391b6e75b9910e63f7d8d46b175c144405741ca9d5b07ff34529ad9e"
+          "sha256": "6566746c44633a51a8eee5bd517e1eec6445ecb7c9fe9c6853315d1c97e678c0"
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "ae2d1f0282477663838a4897de532a97b3f11c6f61480ab27d84a57e7e260d79"
+          "sha256": "071acc3b8ddb220c234de6abf6a817aa54d28b2bea90786b347bbfb1d55661d9"
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
