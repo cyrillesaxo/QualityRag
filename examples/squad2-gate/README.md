@@ -18,7 +18,7 @@ Ground truth is about the **retrieved context**, because that is all the gate ca
 
 ```bash
 PYTHONPATH=sdk/python python examples/squad2-gate/run_benchmark.py --n 1000           # downloads + caches the dev set
-PYTHONPATH=sdk/python python examples/squad2-gate/run_benchmark.py --n 200 --llm      # adds the LLM labeler (needs `anthropic` + ANTHROPIC_API_KEY)
+PYTHONPATH=sdk/python python examples/squad2-gate/run_benchmark.py --n 200 --llm      # adds the two LLM rows below (needs `anthropic` + ANTHROPIC_API_KEY)
 PYTHONPATH=sdk/python python -m unittest discover -s examples/squad2-gate -p 'test_*.py'   # CI fixture, no download
 ```
 
@@ -45,7 +45,19 @@ With k = 3, the pattern is the same: at threshold 0.6 the answer rate is 0.745 a
 - **The lexical labeler does catch retrieval misses** (wrong paragraph retrieved) much better than adversarial questions. Those questions were written to share wording with the paragraph, so word overlap cannot separate them.
 - **Spans are useful even when the verdict is wrong.** When lexical labeling admits an answerable question, the cited sentence contains the gold answer 93% of the time at 0.6. Admissions are traceable.
 
-The next comparison that matters is a semantic labeler (the `--llm` path, or an NLI model) on the same sample. It should be judged against two baselines: the oracle above and a plain "answer, or say you don't know" LLM with no gate. The LLM labeler fails closed: a SUPPORTS label counts only if its quote is an exact substring of the passage.
+## The comparison that decides it: `--llm`
+
+`--llm` adds two rows that use the same model on the same retrieved passages:
+
+- **gate + llm labeler**: the model only labels each passage (SUPPORTS / CONTRADICTS / UNKNOWN plus an exact quote), and the QualityRag gate makes the answer-or-abstain decision. A label whose quote is not an exact substring of the passage is discarded (fail closed).
+- **llm-self-abstain (no gate)**: the model is told to answer from the passages or reply UNANSWERABLE. This is what most teams already do. `answer_match_rate` reports how often its admitted answers match a gold answer.
+
+How to read the result:
+
+- QualityRag earns its place if, at a similar answer rate, **gate + llm labeler** shows a clearly lower false-admission rate than **self-abstain**. Adversarial unanswerable questions are where the two should differ most. The extra traceability (a verified quote behind every ADMIT) then comes on top.
+- If the two rows are about the same, the gate adds audit structure but no safety on this task, and the pitch has to rest on traceability and multi-source policy rather than on reducing false admissions.
+
+At n = 200 and k = 1 the run makes about 400 model calls. Responses are cached in `~/.cache/qualityrag/llm-cache.jsonl`, keyed by model and prompt, so reruns and threshold changes cost nothing. Use `--model` to pick the model (default `$QUALITYRAG_LLM_MODEL` or `claude-sonnet-5-5`). The JSON report records the model, cache hits and API calls.
 
 ## Limits
 

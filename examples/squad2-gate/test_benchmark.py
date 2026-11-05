@@ -41,9 +41,64 @@ class BenchmarkTest(unittest.TestCase):
                 return '{"status": "SUPPORTS", "quote": "abolished in 1988"}'
             return '{"status": "UNKNOWN", "quote": ""}'
         rows = {r["labeler"]: r for r in rb.run(self.squad, 10, 0, 1, [], llm_complete=complete)["rows"]}
-        self.assertEqual(rows["llm"]["false_admission_rate"], 0.0)
-        self.assertEqual(rows["llm"]["answer_rate"], 1.0)
-        self.assertEqual(rows["llm"]["span_hit_rate"], 1.0)
+        gated = rows["gate + llm labeler"]
+        self.assertEqual(gated["false_admission_rate"], 0.0)
+        self.assertEqual(gated["answer_rate"], 1.0)
+        self.assertEqual(gated["span_hit_rate"], 1.0)
+        self.assertIn("llm-self-abstain (no gate)", rows)  # stub never answers in self-abstain format
+        self.assertEqual(rows["llm-self-abstain (no gate)"]["false_admission_rate"], 0.0)
+
+    def test_self_abstain_baseline(self):
+        items = rb.sample(self.squad, 10, 0)
+
+        def overconfident(prompt):
+            # answers everything, correctly when it can: the failure mode the gate is meant to catch
+            if "Who designed" in prompt:
+                return '{"answer": "Lena Varga"}'
+            if "abolished?" in prompt:
+                return '{"answer": "in 1988"}'
+            return '{"answer": "1950"}'
+        row = rb.self_abstain(items, 1, overconfident)
+        self.assertEqual(row["answer_rate"], 1.0)
+        self.assertEqual(row["false_admission_rate"], 1.0)
+        self.assertEqual(row["answer_match_rate"], 1.0)
+
+        def careful(prompt):
+            return '{"answer": "UNANSWERABLE"}' if ("demolished" in prompt or "introduced" in prompt) else '{"answer": "x"}'
+        row = rb.self_abstain(items, 1, careful)
+        self.assertEqual(row["false_admission_rate"], 0.0)
+
+        def broken(prompt):
+            raise RuntimeError("quota")
+        self.assertEqual(rb.self_abstain(items, 1, broken)["answer_rate"], 0.0)
+
+    def test_answer_matching(self):
+        self.assertTrue(rb.answer_matches("It was Lena Varga.", ["Lena Varga"]))
+        self.assertTrue(rb.answer_matches("1988", ["in 1988"]))
+        self.assertFalse(rb.answer_matches("", ["1988"]))
+        self.assertFalse(rb.answer_matches("1987", ["1988"]))
+
+    def test_cached_completer(self):
+        import tempfile
+        calls = []
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "c.jsonl"
+            first = rb.CachedCompleter(lambda p: calls.append(p) or f"r:{p}", path, "m")
+            self.assertEqual(first("a"), "r:a")
+            self.assertEqual(first("a"), "r:a")
+            second = rb.CachedCompleter(lambda p: calls.append(p) or "new", path, "m")
+            self.assertEqual(second("a"), "r:a")
+            other_model = rb.CachedCompleter(lambda p: calls.append(p) or "other", path, "m2")
+            self.assertEqual(other_model("a"), "other")
+            self.assertEqual(calls, ["a", "a"])
+            self.assertEqual((second.hits, second.misses), (1, 0))
+
+            def boom(p):
+                raise TimeoutError
+            failing = rb.CachedCompleter(boom, path, "m3")
+            with self.assertRaises(TimeoutError):
+                failing("a")
+            self.assertEqual(len(path.read_text().splitlines()), 2)
 
     def test_render_table(self):
         table = rb.render(rb.run(self.squad, 10, 0, 1, [0.6])["rows"])
