@@ -1,0 +1,37 @@
+name: Garden Console ↔ Engine Integration
+on:
+  pull_request:
+    paths:
+      - 'apps/studio/**'
+      - 'tools/semantic_store/rct_garden_*.py'
+      - 'tools/semantic_store/tests/test_rct_garden_*.py'
+      - 'tools/research_ledger/**'
+      - 'scripts/test-garden-console-connection.sh'
+      - '.github/workflows/garden-console-connection.yml'
+  push:
+    paths:
+      - 'apps/studio/**'
+      - 'tools/semantic_store/rct_garden_*.py'
+      - 'tools/research_ledger/**'
+      - 'scripts/test-garden-console-connection.sh'
+      - '.github/workflows/garden-console-connection.yml'
+permissions:
+  contents: read
+jobs:
+  studio-proxy-engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Studio build dependencies
+        run: npm --prefix apps/studio install --no-audit --no-fund
+      - name: Typecheck and build real Studio console
+        run: npm --prefix apps/studio run build
+      - name: Start both services and verify authenticated Vite -> engine calls
+        run: bash scripts/test-garden-console-connection.sh
