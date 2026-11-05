@@ -6,6 +6,18 @@ QualityRag evaluates a versioned **PackSpec** against retrieved evidence **befor
 
 **Status:** Experimental v0.1. Local, deterministic policy evaluator; not a proof of source authenticity, truth, regulatory compliance, or production readiness. No LLM is required for evaluation.
 
+
+## How QualityRAG works (animated)
+
+![Animated QualityRAG walkthrough showing question retrieval, PackSpec obligations, duplicate-origin evidence, INCONCLUSIVE abstention, new independent evidence, ADMIT, and a source-linked answer. The final frame labels Semantic Garden research as experimental.](docs/assets/qualityrag-how-it-works.gif)
+
+**The key difference from ordinary RAG:** documents retrieved from the same origin do not automatically count as independent corroboration. QualityRAG checks the **versioned PackSpec** against the supplied evidence metadata *before* the application decides whether to generate an answer. Insufficient evidence results in **INCONCLUSIVE**, not an invented confident answer. **ADMIT** means the supplied inputs pass the declared checks; it does **not** prove that their sources are truthful.
+
+The final animation frame shows the **separate, experimental Semantic Garden** research loop for grammar and activation ideas. This is not a capability of the stable evidence-gate SDK, and research results are not promoted automatically.
+
+[Read the walkthrough and regenerate the GIF](docs/README-ANIMATION.md)
+
+
 ## PackSpec configuration choices
 
 Keep your policy **inside the application**, supply it as a **JSON property or mounted file**, or manage versions centrally through **QualityRag Studio**. All approaches use the same evidence evaluator; the Java SDK includes an explicit, fail-closed source selector.
