@@ -4,32 +4,32 @@
     {
       "story_id": "US-001",
       "title": "Source and capability inventory",
-      "status": "IN_REVIEW",
-      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "status": "DONE",
+      "engineering_status": "COMPLETE_SOURCE_INVENTORY_VERIFIED_CI",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
-      "implementation_commit": null,
+      "implementation_commit": "a9255368f0f5cb5fd59fb4376f6975b2af75a3ff",
       "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
       "criteria": [
         {
           "number": 1,
           "text": "Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 2,
           "text": "PR #69 remains IN_REVIEW until merged.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 3,
           "text": "CI rejects a DONE claim with no link to passing test receipt.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 4,
           "text": "Report explicitly lists unavailable video decoder and independent admission.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         }
       ],
       "modules": [
@@ -47,9 +47,18 @@
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py",
-      "remaining": "Merged review and a passing commit-bound remote CI receipt.",
+      "remaining": "No remaining US-001 software criterion. Independent domain admission is not established or claimed.",
       "completion_envelope": null,
-      "independent_validation": "NOT_ESTABLISHED"
+      "independent_validation": "DOMAIN_VALIDATION_NOT_ESTABLISHED_OR_CLAIMED",
+      "completion_evidence": {
+        "kind": "GITHUB_VERIFIED_SOURCE_INVENTORY/v1",
+        "repository": "cyrillesaxo/QualityRag",
+        "implementation_commit": "a9255368f0f5cb5fd59fb4376f6975b2af75a3ff",
+        "module_inventory_sha256": "5d6ea0ef6deb711e9139f6a759fce6092493e3a986d4aff8f7762d821f294372",
+        "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
+        "workflow_run_id": 41973124257,
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/41973124257"
+      }
     },
     {
       "story_id": "US-002",

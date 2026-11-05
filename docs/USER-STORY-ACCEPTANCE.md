@@ -6,7 +6,7 @@ evidence; independent review, real measurements and external sources are not inf
 
 | Story | Software status | Acceptance status | Remaining acceptance requirement |
 |---|---|---|---|
-| US-001 — Source and capability inventory | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Merged review and a passing commit-bound remote CI receipt. |
+| US-001 — Source and capability inventory | COMPLETE_SOURCE_INVENTORY_VERIFIED_CI | DONE | No remaining US-001 software criterion. Independent domain admission is not established or claimed. |
 | US-002 — Versioned schema catalog | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Merged review; no schema shape check is independent semantic validation. |
 | US-003 — Independently replayable research harness | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent replay on the pinned reference environment. |
 | US-004 — Risk, prior art and novelty register | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent novelty assessment; no priority or superiority claim is made. |
@@ -62,12 +62,12 @@ evidence; independent review, real measurements and external sources are not inf
 
 Runnable evidence: tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py
 
-1. Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
-2. PR #69 remains IN_REVIEW until merged. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
-3. CI rejects a DONE claim with no link to passing test receipt. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
-4. Report explicitly lists unavailable video decoder and independent admission. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
+1. Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations. — MET_OBSERVED_SOURCE_AND_CI
+2. PR #69 remains IN_REVIEW until merged. — MET_OBSERVED_SOURCE_AND_CI
+3. CI rejects a DONE claim with no link to passing test receipt. — MET_OBSERVED_SOURCE_AND_CI
+4. Report explicitly lists unavailable video decoder and independent admission. — MET_OBSERVED_SOURCE_AND_CI
 
-Remaining: Merged review and a passing commit-bound remote CI receipt.
+Remaining: No remaining US-001 software criterion. Independent domain admission is not established or claimed.
 
 ## US-002 — Versioned schema catalog
 

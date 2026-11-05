@@ -1,11 +1,20 @@
 # FR.MD — QualityRag Semantic Codex, RCT, PackSpec & Activation Grammar
 
 > **Document:** Functional requirements, implementation plan, user stories and acceptance criteria  
-> **Version:** 0.3 · **Date:** 2026-11-04 · **Owner:** APX / QualityRag research program  
+> **Version:** 0.4 · **Date:** 2026-11-05 · **Owner:** APX / QualityRag research program  
 > **Status:** Planning baseline; no story is complete merely because it appears here.  
 > **Source of truth:** This backlog plus linked PRs, source files, independent test receipts and reviewer decisions.  
 > **Research lineage:** Cyrille Eloundou · [apx.guide](https://apx.guide/)  
 > **Repository:** [cyrillesaxo/QualityRag](https://github.com/cyrillesaxo/QualityRag)
+
+## Current acceptance snapshot
+
+**1 DONE · 36 IN_REVIEW · 14 BLOCKED · 50 open.** US-001 source-inventory
+software acceptance is bound to immutable implementation commit
+`a9255368f0f5cb5fd59fb4376f6975b2af75a3ff` and observed passing
+[CI run 41973124257](https://github.com/cyrillesaxo/QualityRag/actions/runs/41973124257).
+Its closure does not assert independent domain validation or satisfy another
+story's review/merge requirement. Earlier delivery-section counts are historical.
 
 ## 0. The product and the falsifiable thesis
 
@@ -552,7 +561,7 @@ listed below. It does not mean all software or research acceptance is satisfied.
 
 | Story | Status | Remaining acceptance |
 |---|---|---|
-| US-001 | IN_REVIEW | Merged review and a passing commit-bound remote CI receipt. |
+| US-001 | DONE | Verified source-inventory software acceptance; no domain validation is claimed. |
 | US-002 | IN_REVIEW | Merged review; no schema shape check is independent semantic validation. |
 | US-003 | IN_REVIEW | Independent replay on the pinned reference environment. |
 | US-004 | IN_REVIEW | Independent novelty assessment; no priority or superiority claim is made. |
@@ -893,3 +902,21 @@ uses read-only GitHub access and refuses unavailable external evidence. See
 `docs/INVENTORY-ACCEPTANCE.md`. US-001 remains IN_REVIEW while the implementation
 is first tested; a later inventory commit may bind an actually observed passing
 run and record its objective software acceptance.
+
+
+## 27. US-001 completed against observed source and CI
+
+All four US-001 criteria are recorded MET_OBSERVED_SOURCE_AND_CI. The inventory
+lists implementation modules, branch/base revisions, statuses, runnable evidence
+and limitations; its verifier implementation is pinned to the passing commit.
+Live CI checks reject local-only closure labels, forged/stale run bindings,
+skipped/missing tests and mismatched source. PR #69 remains IN_REVIEW and US-022
+is not closed. Canonical FF-RCT decoder availability and independent domain
+admission remain explicitly unavailable/not established; the reference scene
+implementation is separately identified as available research software.
+
+No independent signature, merge approval, domain finding or performance result
+was invented. The completion record points to actual push run 41973124257 at
+commit a9255368f0f5cb5fd59fb4376f6975b2af75a3ff, whose 326 focused tests and all
+23 workflows passed. The following inventory commit must pass CI again, executing
+the live GitHub source/CI verifier with read-only host credentials.
