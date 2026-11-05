@@ -67,6 +67,9 @@ Keep your policy **inside the application**, supply it as a **JSON property or m
 
 ## Try it
 
+New here? Watch **[QualityRag 101, episode 1: Getting started](docs/training/README.md)**, a three-minute animated walkthrough of installing, signing in, and checking your first answer.
+
+
 Python (from repository root):
 
 ```sh
