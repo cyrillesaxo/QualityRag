@@ -147,6 +147,27 @@ class GardenLifecycleTests(unittest.TestCase):
         self.assertFalse(result["replayed"])
         self.assertEqual(progress(self.db)["counts"]["total"], 1)
 
+    def test_command_line_demo_runs_and_persists_linked_replay(self):
+        import json
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            proc = subprocess.run([
+                sys.executable, str(HERE / "rct_garden_lifecycle_demo.py"),
+                "--db", str(root / "garden.sqlite"),
+                "--receipt", str(root / "receipt.json"),
+                "--uri", URI,
+            ], check=True, capture_output=True, text=True, timeout=30)
+            result = json.loads(proc.stdout)
+            self.assertEqual(result["replay_status"],
+                             "REPLAYED_AS_UNVERIFIED_RESEARCH")
+            self.assertEqual(result["ledger_claim_count"], 2)
+            self.assertTrue(result["ledger_integrity"])
+            self.assertEqual(result["qualityrag_admission"], "INCONCLUSIVE")
+            self.assertFalse(result["promotion_authorized"])
+            self.assertTrue((root / "receipt.json").exists())
+
     def test_broken_ledger_integrity_rejected(self):
         # Direct edits are blocked by the existing immutable triggers.
         with self.assertRaises(sqlite3.DatabaseError):
