@@ -66,7 +66,18 @@ function Studio(){
       result.qualityrag_admission!=='INCONCLUSIVE'||
       result.promotion_authorized!==false)throw new Error('Unrecognized or unsafe engine result');
    setGardenReceipt(result as typeof gardenReceipt);
-   setGardenStatus('Engine executed: '+String(result.status)+'. Research only; no policy admission.');
+   if(result.ledger_persisted===true){
+    const latest=await gardenRequest('/garden/projection');
+    if(latest.schema!=='rct.semantic-gardener-projection/v0.1'||
+       latest.ledger_integrity!=='CONSISTENT'||
+       !Array.isArray(latest.branches)||!Array.isArray(latest.events)||
+       !Array.isArray(latest.relations))throw new Error('Research ledger refresh failed after execution');
+    setGardenBranches(latest.branches as typeof gardenBranches);
+    setGardenEvents(latest.events as typeof gardenEvents);
+    setGardenRelations(latest.relations as typeof gardenRelations);
+   }
+   setGardenStatus('Engine executed: '+String(result.status)+
+     '. Research only; '+(result.ledger_persisted?'ledger updated.':'not persisted.'));
   }catch(e){setGardenStatus('Garden run failed: '+String(e))}
   finally{setGardenBusy(false)}
  }
@@ -279,6 +290,7 @@ function Studio(){
      <button onClick={investigateGarden} disabled={gardenBusy||!gardenDraft.trim()}>Execute on connected Garden engine</button>
      {gardenReceipt&&<div role="status"><p><strong>Engine verdict:</strong> {gardenReceipt.status} · External observations: {gardenReceipt.external_probe_count}</p>
        <p>Policy admission: {gardenReceipt.qualityrag_admission} · Persisted: {gardenReceipt.ledger_persisted?'yes':'no'}{gardenReceipt.ledger_reason?' ('+gardenReceipt.ledger_reason+')':''}</p>
+       {('ledger_claim_id' in gardenReceipt)&&<p>Recorded research claim: <code>{String(gardenReceipt.ledger_claim_id)}</code></p>}
        <p>Evaluated grammar/activation pairs: {gardenReceipt.investigation?.experiment?.results?.length??0}</p>
       </div>}
     </>}
