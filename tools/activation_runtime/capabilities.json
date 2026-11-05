@@ -1879,7 +1879,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "c048ce10369a491d8f015919f588ad91fdf69f2de0ae3cecb4486a3c141ad66c"
+          "sha256": "d109e738287fc2ee647161569a90dee5d0f19819d1fd995b7f568070e499ed81"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -1887,7 +1887,7 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "64a4ea8edc3056e374e318f618c4be47b0f2aa849deb9f1c137cd196cba4bcab"
+          "sha256": "096b64446a04308ade0ede76476a56aa0d6cde254287f87afe20d6d6bf2f7428"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
@@ -2235,7 +2235,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "c048ce10369a491d8f015919f588ad91fdf69f2de0ae3cecb4486a3c141ad66c"
+          "sha256": "d109e738287fc2ee647161569a90dee5d0f19819d1fd995b7f568070e499ed81"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2243,7 +2243,7 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "64a4ea8edc3056e374e318f618c4be47b0f2aa849deb9f1c137cd196cba4bcab"
+          "sha256": "096b64446a04308ade0ede76476a56aa0d6cde254287f87afe20d6d6bf2f7428"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
@@ -2387,7 +2387,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "c048ce10369a491d8f015919f588ad91fdf69f2de0ae3cecb4486a3c141ad66c"
+          "sha256": "d109e738287fc2ee647161569a90dee5d0f19819d1fd995b7f568070e499ed81"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2395,7 +2395,7 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "64a4ea8edc3056e374e318f618c4be47b0f2aa849deb9f1c137cd196cba4bcab"
+          "sha256": "096b64446a04308ade0ede76476a56aa0d6cde254287f87afe20d6d6bf2f7428"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",

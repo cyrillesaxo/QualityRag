@@ -229,3 +229,7 @@ button.gov-pill.selected{border-color:var(--o-cyan);background:var(--accent-soft
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(max-width:640px){.theme-select{padding:4px 4px;font-size:12px}}
 .brand svg{color:var(--accent)}
+.switch-short{display:none}
+.topbar>*{flex-shrink:0}.topbar .topbar-gap{flex-shrink:1;min-width:0}
+@media(max-width:480px){.brand-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .switch-long{display:none}.switch-short{display:inline}}
