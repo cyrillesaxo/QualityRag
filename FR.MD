@@ -14,7 +14,7 @@ and US-002 versioned schema catalog are complete against their stated software
 criteria, pinned to implementation commit
 `a924177641957092f08507e6fc33d303dc42555c` and passing
 [CI run 42011085254](https://github.com/cyrillesaxo/QualityRag/actions/runs/42011085254).
-US-001's evidence is renewed for the changed auditor. No domain/scientific
+US-001's evidence was renewed again on 2026-11-05 to commit `bba784e275fdf7dac5b8affd77267c5fb20d5038` and passing [CI run 42019254033](https://github.com/cyrillesaxo/QualityRag/actions/runs/42019254033), after the auditor began loading the reviewer trust store. No domain/scientific
 acceptance or another story's review/merge prerequisite is inferred. Earlier
 section counts describe their historical delivery points.
 

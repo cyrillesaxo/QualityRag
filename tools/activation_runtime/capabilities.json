@@ -4,11 +4,11 @@
     {
       "story_id": "US-001",
       "title": "Source and capability inventory",
-      "status": "IN_REVIEW",
+      "status": "DONE",
       "engineering_status": "COMPLETE_VERIFIED_SOFTWARE_CRITERIA",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
-      "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
+      "implementation_commit": "bba784e275fdf7dac5b8affd77267c5fb20d5038",
       "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
       "criteria": [
         {
@@ -53,11 +53,11 @@
       "completion_evidence": {
         "kind": "GITHUB_VERIFIED_SOURCE_INVENTORY/v1",
         "repository": "cyrillesaxo/QualityRag",
-        "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
-        "module_inventory_sha256": "7b5af9dc683ef442adcf983543e6329ae79bf40ce884fbc7ea6f6ce5d332a589",
+        "implementation_commit": "bba784e275fdf7dac5b8affd77267c5fb20d5038",
+        "module_inventory_sha256": "1576d4e584350df02271ce11bd70e2d8f83f900d9d8d560f21b572d47f928a21",
         "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
-        "workflow_run_id": 42011085254,
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42011085254"
+        "workflow_run_id": 42019254033,
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42019254033"
       },
       "acceptance_history": [
         {

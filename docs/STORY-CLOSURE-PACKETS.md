@@ -4,11 +4,10 @@
 
 What each open FR.MD story needs to reach DONE, and who can provide it. This page changes no status. DONE still requires a completion receipt signed by an independent reviewer and verified by `audit.py`.
 
-Inventory: 14 BLOCKED, 1 DONE, 36 IN_REVIEW. Open: 50.
+Inventory: 14 BLOCKED, 2 DONE, 35 IN_REVIEW. Open: 49.
 
 | Category | Stories |
 |---|---|
-| Objective evidence renewal in progress (1) | US-001 |
 | Merge after review (5) | US-010, US-011, US-022, US-023, US-039 |
 | Merge plus one recorded check (6) | US-013, US-020, US-034, US-035, US-045, US-047 |
 | Independent qualified review (15) | US-003, US-004, US-005, US-006, US-008, US-012, US-014, US-015, US-018, US-019, US-026, US-030, US-038, US-040, US-050 |
@@ -46,22 +45,6 @@ python -m tools.activation_runtime.story_completion attach --story US-0XX --impl
 - the receipt is bound to the story's acceptance text and module hashes, so any later change to those modules invalidates it and the story must be re-reviewed.
 
 Residual risk: someone holding a *retired* key could still sign a receipt dated between a run's completion and the retirement time. If a retired key may be in other hands, mark it `compromised`.
-
-## Objective evidence renewal in progress
-
-Steps:
-
-1. This commit changes a module the story pins, so its live-GitHub CI evidence must point at a newer commit.
-2. The next commit restores DONE with `completion_evidence` bound to this commit's passing push run.
-
-Who signs: No reviewer: objective source/CI acceptance verified by `inventory_completion.py`.
-
-### US-001 · Source and capability inventory (IN_REVIEW)
-
-- **Blocking:** No remaining US-001 software criterion. Independent domain validation is not established or claimed.
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_runtime.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_inventory_completion.py'`
-- **Modules bound into the receipt:** 3 file(s)
-- **Notes:** Renewing because `audit.py` now loads the reviewer trust store and verifies receipts historically.
 
 ## Merge after review
 

@@ -20,13 +20,6 @@ CAPABILITIES = ROOT / "tools/activation_runtime/capabilities.json"
 DOC = ROOT / "docs/STORY-CLOSURE-PACKETS.md"
 
 CATEGORIES = {
-    "RENEWAL": {
-        "title": "Objective evidence renewal in progress",
-        "stories": ["US-001"],
-        "steps": ["This commit changes a module the story pins, so its live-GitHub CI evidence must point at a newer commit.",
-                  "The next commit restores DONE with `completion_evidence` bound to this commit's passing push run."],
-        "signer": "No reviewer: objective source/CI acceptance verified by `inventory_completion.py`.",
-    },
     "MERGE": {
         "title": "Merge after review",
         "stories": ["US-010", "US-011", "US-022", "US-023", "US-039"],
@@ -81,7 +74,6 @@ NOTES = {
     "US-034": "Extra check: independent restart replay — kill the service mid-run, restart, and confirm `gardener/state` replays identically.",
     "US-035": "Extra check: a reviewer exercises PROPOSE/CHALLENGE/TEST/SYNTHESIZE/PRUNE/REOPEN through the UI or API (TEST via `evidence_ids` since commit 51f3e0e) and records continuity.",
     "US-045": "Extra check: package/release acceptance of the Python and TypeScript clients (published or tagged artefacts).",
-    "US-001": "Renewing because `audit.py` now loads the reviewer trust store and verifies receipts historically.",
     "US-047": "The CI audit now loads `reviewer-trust.json` and re-verifies signed receipts against GitHub evidence. Extra check: at least one real signed per-story receipt passes CI.",
     "US-003": "Reviewer: someone outside the project replays `run_research.py` on the pinned environment lock.",
     "US-004": "Reviewer: a codec/knowledge-compilation researcher assessing `research/prior-art.md`; no priority claim is made.",
