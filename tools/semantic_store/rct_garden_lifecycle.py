@@ -59,7 +59,8 @@ def _event(db, *, claim_id, event_id, assessment, reason, evidence_id, actor):
                   actor=actor, evidence_ids=[evidence_id])
 
 
-def register_cycle(db, receipt, *, sources, evidence_uri, actor, project="QualityRag"):
+def register_cycle(db, receipt, *, sources, evidence_uri, actor, project="QualityRag",
+                   receipt_content_sha256=None):
     """Record one source-bound experimental investigation, never validation.
 
     Receipt hashes and source identities come from the caller and are not
@@ -74,6 +75,10 @@ def register_cycle(db, receipt, *, sources, evidence_uri, actor, project="Qualit
     }
     if any(sources.get(k) != sha for k, sha in expected.items()):
         raise ValueError("Source manifest must bind exact train/source/revised digests")
+    if receipt_content_sha256 is not None and (
+            not isinstance(receipt_content_sha256, str) or
+            not _HASH.fullmatch(receipt_content_sha256)):
+        raise ValueError("Invalid receipt file SHA-256")
     key = fp[:24]
     cid = "garden.cycle." + key
     eid = "garden.cycle-evidence." + key
@@ -85,7 +90,7 @@ def register_cycle(db, receipt, *, sources, evidence_uri, actor, project="Qualit
                     "not a certified semantic or production improvement.")
     evidence(db, evidence_id=eid, kind="MEASUREMENT", uri=evidence_uri,
              description="Research-only experiment receipt; not independently authenticated",
-             content_sha256=fp,
+             content_sha256=receipt_content_sha256,
              metadata={"receipt_schema": EXPERIMENT_SCHEMA,
                        "source_manifest": sources,
                        "experiment_fingerprint": fp})
