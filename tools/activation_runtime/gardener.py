@@ -147,7 +147,7 @@ class Gardener:
         return self.replay()
 
 
-QUERY_KEYS = {"text", "evidence_status", "open_challenge", "active", "lineage_of", "since", "limit"}
+QUERY_KEYS = {"text", "evidence_status", "open_challenge", "active", "lineage_of", "depends_on", "since", "limit"}
 
 
 def _open_challenge(state, info):
@@ -157,10 +157,13 @@ def _open_challenge(state, info):
 
 
 def query(state, *, text=None, evidence_status=None, open_challenge=None, active=None,
-          lineage_of=None, since=0, limit=200):
+          lineage_of=None, depends_on=None, since=0, limit=200):
     """Read-only query over a replayed garden.
 
     Filters combine with AND. ``lineage_of`` keeps a branch with its ancestors and descendants.
+    ``depends_on`` (an evidence ID or a source SHA-256) keeps the branches whose events cite it,
+    plus every descendant: the set to re-check when that witness changes. Each row then says
+    whether it depends directly or through an ancestor.
     ``since`` returns the events appended after that sequence number, so a client can follow
     the tree as it grows without reloading it. Nothing here validates a claim.
     """
@@ -193,12 +196,26 @@ def query(state, *, text=None, evidence_status=None, open_challenge=None, active
                 if child not in down:
                     down.add(child); stack.append(child)
         keep |= down
+    impacted = None
+    if depends_on is not None:
+        if not isinstance(depends_on, str) or not 0 < len(depends_on) <= 200:
+            raise ValueError("depends_on must be an evidence ID or source SHA-256")
+        direct = {name for name, info in branches.items()
+                  if any(depends_on in state["events"][e].get("evidence_ids", []) or
+                         state["events"][e]["source_sha256"] == depends_on for e in info["events"])}
+        impacted, stack = {n: "direct" for n in direct}, list(direct)
+        while stack:
+            for child in children[stack.pop()]:
+                if child not in impacted:
+                    impacted[child] = "inherited"; stack.append(child)
     needle = text.casefold().strip() if text else None
     rows = []
     for name, info in branches.items():
         history = [state["events"][eid] for eid in info["events"]]
         opened = _open_challenge(state, info)
         if keep is not None and name not in keep:
+            continue
+        if impacted is not None and name not in impacted:
             continue
         if evidence_status is not None and info["evidence_status"] != evidence_status:
             continue
@@ -214,7 +231,8 @@ def query(state, *, text=None, evidence_status=None, open_challenge=None, active
                      "children": sorted(children[name]), "open_challenge": opened,
                      "events": len(history), "created_sequence": first["sequence"],
                      "last_sequence": history[-1]["sequence"], "source_ref": first["source_ref"],
-                     "source_sha256": first["source_sha256"]})
+                     "source_sha256": first["source_sha256"],
+                     **({"dependency": impacted[name]} if impacted is not None else {})})
     rows.sort(key=lambda r: r["created_sequence"])
     new_events = [state["events"][eid] for eid in state["order"][since:since + 500]]
     return {"schema": "qualityrag.gardener-query/v1", "branches": rows[:limit], "total": len(rows),

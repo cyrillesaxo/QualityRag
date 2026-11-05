@@ -179,6 +179,11 @@ class ServiceRouteTests(unittest.TestCase):
         self.assertIn("pack.single-origin", [f["id"] for f in advice["findings"]])
         replay = self.app.dispatch("policy/replay", {"base": ex["pack"], "branch": ex["branch_pack"], "cases": ex["cases"]}, a)
         self.assertEqual(replay["flipped"], 1)
+        sib = ex["siblings_example"]
+        result = self.app.dispatch("policy/siblings", {k: sib[k] for k in ("function", "contracts", "candidates", "as_of")}, a)
+        self.assertEqual(result["contracts"]["join"]["sibling_pairs"], 21)
+        with self.assertRaises(ValueError):
+            self.app.dispatch("policy/siblings", {"function": "F", "contracts": {}, "candidates": [], "merge": True}, a)
 
     def test_unknown_options_and_no_token(self):
         a = self.auth(["read"])

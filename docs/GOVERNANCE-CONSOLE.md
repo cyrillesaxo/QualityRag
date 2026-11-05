@@ -1,8 +1,8 @@
-# Policy tester, Advisor and branch replay
+# Policy tester, Advisor, branch replay and functional siblings
 
-The **Governance** panel in the QualityRag console has three tools that sit on the v0.1 deterministic gate (`qualityrag.compiler.evaluate_compiled`). None of them changes a verdict, the ledger or the Gardener. `ADMIT` remains metadata gate satisfaction, not authorization to act.
+The **Governance** panel in the QualityRag console has four tools that sit on the v0.1 deterministic gate (`qualityrag.compiler.evaluate_compiled`). None of them changes a verdict, the ledger or the Gardener. `ADMIT` remains metadata gate satisfaction, not authorization to act.
 
-All three need only `read` scope. People use them in the console. Developers and agents use the same API through the Python and TypeScript SDKs and the MCP server.
+All four need only `read` scope. People use them in the console. Developers and agents use the same API through the Python and TypeScript SDKs and the MCP server.
 
 ## Policy tester
 
@@ -56,6 +56,36 @@ The example branch raises `recovery-procedure` to two origins. The fully retriev
 
 `POST /api/policy/replay` takes `base`, `branch`, `cases` (each `{id, evidence: [witness rows], expect_admit?, question?}`, up to 5,000), and optional `as_of`.
 
+## Functional siblings
+
+This tab implements the relations proposed in *Functional-Sibling Discovery and Regime Convergence* (working paper v4, 5 Nov 2026), §2.1, §2.2 and §5, on top of the gate:
+
+| Relation | Computed as |
+|---|---|
+| Feasible(s, F, C) | The gate's verdict on candidate s's evidence against contract C: SAT (ADMIT), UNSAT (REFUSE: contradicting evidence) or UNKNOWN (INCONCLUSIVE), never a forced binary |
+| FunctionalSibling(a, b \| F, C) | a and b both SAT under C |
+| D(F, C) | The SAT subset of the candidates supplied: a discovered set, not the complete one |
+| Regime boundary | A candidate whose status changes between two contracts, with the requirements that decided it |
+| Probe | An UNKNOWN requirement: the evidence to collect next |
+
+For a function and a set of named contracts (PackSpecs), it returns:
+
+- the candidate × contract matrix;
+- sibling groups per contract;
+- every regime boundary;
+- the probe list;
+- a coverage statement.
+
+Siblinghood is relative to its contract and never equivalence, so nothing is merged. Copies still count as one origin, so two copies of one source do not make a candidate SAT under a two-origin contract.
+
+**Load joining example (paper §4)** restates the paper's thought experiment as data: seven fasteners, and the contracts "join" and "join and separate repeatedly without damage". All seven are siblings under "join". Under the separation contract, only the rivet is UNSAT, because the paper contradicts it explicitly. The other six stay UNKNOWN: the paper says many adhesives and welds fail, but not all, and gives no positive evidence for the rest. Those six are the probes. The example is illustrative, not measured: every evidence row cites the paper and shares one origin.
+
+`POST /api/policy/siblings` takes `function`, `contracts` (name → PackSpec), `candidates` (each `{id, evidence: [witness rows], label?, mechanism_family?, branch?}`) and optional `as_of`.
+
+## Re-checking after a witness changes
+
+`gardener/query` takes `depends_on`: an evidence ID or a source SHA-256. It returns the branches whose events cite it, marked `direct`, and every descendant, marked `inherited`. That is the set to re-check when the witness changes, and nothing else. The same filter is available in the CLI (`garden query --depends-on`), the SDKs and the MCP tool `garden_query`.
+
 ## From code
 
 ```python
@@ -65,6 +95,9 @@ ex = qr.policy_example()
 test = qr.policy_test(pack=ex["pack"], documents=ex["documents"], retrieved=ex["retrieved"])
 advice = qr.policy_advise(pack=ex["pack"], test=test)
 diff = qr.policy_replay(base=ex["pack"], branch=ex["branch_pack"], cases=ex["cases"])
+sib = ex["siblings_example"]
+siblings = qr.policy_siblings(function=sib["function"], contracts=sib["contracts"], candidates=sib["candidates"])
+stale = qr.garden_query(depends_on="squad-run-1")   # branches to re-check
 ```
 
 ```ts
@@ -73,7 +106,7 @@ const test = await qr.policyTest({ pack, documents, retrieved });
 const advice = await qr.policyAdvise({ pack, test });
 ```
 
-The MCP server (`tools/activation_runtime/mcp_server.py`) exposes them as the read-only tools `policy_test`, `policy_advise` and `policy_replay`, beside the Gardener tools. An agent can test a pack, read the findings and replay a stricter branch before it proposes the change in the Gardener.
+The MCP server (`tools/activation_runtime/mcp_server.py`) exposes them as the read-only tools `policy_test`, `policy_advise`, `policy_replay` and `functional_siblings`, beside the Gardener tools. An agent can test a pack, read the findings and replay a stricter branch before it proposes the change in the Gardener.
 
 ## Limits
 
@@ -81,4 +114,5 @@ The MCP server (`tools/activation_runtime/mcp_server.py`) exposes them as the re
 - **Qualifiers.** Detection is a fixed word list. It flags spans for a person to read and does not decide what a condition means.
 - **Replay.** It re-evaluates recorded evidence only; it does not re-run retrieval.
 - **Promotion.** Signed three-role promotion of a policy branch is designed (see the QualityRag Console canvas) but not built. The console says so.
+- **Functional siblings.** Candidates and their evidence are supplied, not generated. The thesaurus-grammar traversal that proposes candidates (paper §3), and the B1–B5 ablation experiment (§8.2), are not built. A boundary shows where status changes for these candidates; it is not evidence of a hidden cause (§5.1).
 - **Request size.** Requests are capped at 512 KB. Larger corpora go through the SDK in batches.

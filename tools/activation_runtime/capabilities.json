@@ -1609,7 +1609,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
+          "sha256": "9e928994aa33676e0f27a505791fda15f55f5efeac0e6bf603aa7c551bab560c"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1717,7 +1717,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "021ffae072aaca48e3ede79077a34144ca770cdb6384d9926e8346ba9ce975c6"
+          "sha256": "3ae9096398e60587b1a447b96b6698805ecfd9b926ceeea9f99c9ccc41937330"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_garden_query.py",
@@ -1759,7 +1759,7 @@
       "modules": [
         {
           "path": "tools/activation_runtime/gardener.py",
-          "sha256": "021ffae072aaca48e3ede79077a34144ca770cdb6384d9926e8346ba9ce975c6"
+          "sha256": "3ae9096398e60587b1a447b96b6698805ecfd9b926ceeea9f99c9ccc41937330"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -1879,7 +1879,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "c74ad22ec6919e74bb9ed9b24b116b79467c2c906d9ddd53d97fe48cb6bf1911"
+          "sha256": "1ab46c16b41cd69ba51773bbacdb4c290113267d7c79ac299915965f059bf077"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -1887,11 +1887,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "eb3ebeeca0cdc116c1b87b9e737b2f93ad9c870bc238c4e1a3fe591dfe0bfb1d"
+          "sha256": "1dfa2b9748a55edbe91c79abd5f705d65be030aeab5053c87e87b8c5e31ea22a"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "be09a36d0adb2fa347e75b3a6bde06af908c67dbc5254eb010280d200eedd73a"
+          "sha256": "10a03cc130fef5ead6e391a0710b34e08154fdca9b98f441395996484241bee1"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2185,7 +2185,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
+          "sha256": "9e928994aa33676e0f27a505791fda15f55f5efeac0e6bf603aa7c551bab560c"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -2235,7 +2235,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "c74ad22ec6919e74bb9ed9b24b116b79467c2c906d9ddd53d97fe48cb6bf1911"
+          "sha256": "1ab46c16b41cd69ba51773bbacdb4c290113267d7c79ac299915965f059bf077"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2243,11 +2243,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "eb3ebeeca0cdc116c1b87b9e737b2f93ad9c870bc238c4e1a3fe591dfe0bfb1d"
+          "sha256": "1dfa2b9748a55edbe91c79abd5f705d65be030aeab5053c87e87b8c5e31ea22a"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "be09a36d0adb2fa347e75b3a6bde06af908c67dbc5254eb010280d200eedd73a"
+          "sha256": "10a03cc130fef5ead6e391a0710b34e08154fdca9b98f441395996484241bee1"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2347,15 +2347,15 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "0f04d5de74967dacbc7f44212e20b82871c00df566da2d8fc9ec1c34a6557612"
+          "sha256": "c5b1390c541cdf8d75aa91d0490f0f7b19cc5ad64570464ab5fbdc8afb1ba3a2"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
-          "sha256": "64bfc857839964dbc5fdaece72bf823fdb3d1029655b44fd3533bdd771a68d97"
+          "sha256": "6d4a2a6e49b005bad10d848838f046339d6b9b43cc2a0caca19f6a17360e7e58"
         },
         {
           "path": "sdk/typescript/src/activation.ts",
-          "sha256": "c30a093187cece1a6b553468c929f6bc1612c6c62efab4a97194842bf1b14b50"
+          "sha256": "29b8b47d59d42a51f22bf2cd8a85e27de7eb0475bc778b2185ea4f527d98f58a"
         },
         {
           "path": "sdk/typescript/src/index.ts",
@@ -2367,7 +2367,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "9e7ae32741a4e8bf20eb6c2a2cfac848a79fad02d0ee3e088a8ac76da416dba8"
+          "sha256": "9e928994aa33676e0f27a505791fda15f55f5efeac0e6bf603aa7c551bab560c"
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
@@ -2387,7 +2387,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "c74ad22ec6919e74bb9ed9b24b116b79467c2c906d9ddd53d97fe48cb6bf1911"
+          "sha256": "1ab46c16b41cd69ba51773bbacdb4c290113267d7c79ac299915965f059bf077"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2395,11 +2395,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "eb3ebeeca0cdc116c1b87b9e737b2f93ad9c870bc238c4e1a3fe591dfe0bfb1d"
+          "sha256": "1dfa2b9748a55edbe91c79abd5f705d65be030aeab5053c87e87b8c5e31ea22a"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "be09a36d0adb2fa347e75b3a6bde06af908c67dbc5254eb010280d200eedd73a"
+          "sha256": "10a03cc130fef5ead6e391a0710b34e08154fdca9b98f441395996484241bee1"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2407,7 +2407,7 @@
         },
         {
           "path": "tools/activation_runtime/mcp_server.py",
-          "sha256": "9f1eb50b0a3fbae4e339e08602e01a1b1c3e7d26943403553f1a53669d28412f"
+          "sha256": "c0084f515a85a7efd28cc57874760de4fc676ac4c2b165bf38603176cc9ba838"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_gardener_agents.py",

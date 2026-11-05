@@ -33,7 +33,7 @@ def main(argv=None):
     p=sub.add_parser("garden",help="query and grow the Semantic Gardener research tree")
     p.add_argument("action",choices=["state","query","suggestions","event","watch"])
     p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True)
-    p.add_argument("--text");p.add_argument("--evidence-status");p.add_argument("--lineage-of")
+    p.add_argument("--text");p.add_argument("--evidence-status");p.add_argument("--lineage-of");p.add_argument("--depends-on")
     p.add_argument("--open-challenge",action="store_true");p.add_argument("--active-only",action="store_true")
     p.add_argument("--since",type=int,default=0);p.add_argument("--limit",type=int,default=200)
     p.add_argument("--request",help="event JSON for the event action")
@@ -63,7 +63,7 @@ def main(argv=None):
         if sdk not in sys.path:sys.path.insert(0,sdk)
         from qualityrag_activation import Client
         client=Client(args.endpoint,read(args.token))
-        filters={k:v for k,v in {"text":args.text,"evidence_status":args.evidence_status,"lineage_of":args.lineage_of,
+        filters={k:v for k,v in {"text":args.text,"evidence_status":args.evidence_status,"lineage_of":args.lineage_of,"depends_on":args.depends_on,
                  "open_challenge":True if args.open_challenge else None,"active":True if args.active_only else None,
                  "limit":args.limit}.items() if v is not None}
         if args.action=="state":result=client.garden_state()

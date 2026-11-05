@@ -100,7 +100,7 @@ class Client:
         self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
-        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome","gardener/query","policy/example","policy/test","policy/advise","policy/replay"}:
+        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/proposals","gardener/event","gardener/outcome","gardener/query","policy/example","policy/test","policy/advise","policy/replay","policy/siblings"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
@@ -121,7 +121,7 @@ class Client:
     # propose, challenge and test, while prune, reopen and synthesize need review scope.
     def garden_state(self)->dict[str,object]:return self.request("gardener/state",{})
     def garden_query(self,**filters)->dict[str,object]:
-        """Filters: text, evidence_status, open_challenge, active, lineage_of, since, limit."""
+        """Filters: text, evidence_status, open_challenge, active, lineage_of, depends_on, since, limit."""
         return self.request("gardener/query",filters)
     def garden_suggestions(self)->dict[str,object]:return self.request("gardener/proposals",{})
     def garden_event(self,*,event_id:str,operation:str,branch:str,source_sha256:str,source_ref:str,
@@ -146,6 +146,11 @@ class Client:
         body={"base":base,"branch":branch,"cases":cases}
         if as_of:body["as_of"]=as_of
         return self.request("policy/replay",body)
+    def policy_siblings(self,*,function:str,contracts:dict,candidates:list,as_of:str|None=None)->dict[str,object]:
+        """Feasible(s,F,C) per contract as SAT/UNSAT/UNKNOWN, functional siblings, regime boundaries, probes."""
+        body={"function":function,"contracts":contracts,"candidates":candidates}
+        if as_of:body["as_of"]=as_of
+        return self.request("policy/siblings",body)
     def garden_outcome(self,*,proposal_id:str,verdict:str,useful:bool,elapsed_ms:int,false_merge:bool)->dict[str,object]:
         return self.request("gardener/outcome",{"proposal_id":proposal_id,"verdict":verdict,"useful":useful,
                                                 "elapsed_ms":elapsed_ms,"false_merge":false_merge})

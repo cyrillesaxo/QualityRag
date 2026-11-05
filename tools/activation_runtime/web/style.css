@@ -98,3 +98,7 @@ input[type=checkbox]{width:20px;min-height:20px;vertical-align:middle}.proposal 
 .gov-rates{flex:1 1 320px;display:flex;flex-direction:column;gap:10px}.gov-rate{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:14px}
 .observatory .gov-table-wrap{border-color:var(--o-line)}.gov-table th,.gov-table td{border-color:var(--o-line);font-size:14px}
 @media(max-width:640px){.gov-table td::before{content:attr(data-label)!important;color:var(--o-muted)}.gov-verdict-word{font-size:26px}}
+.gov-cell{font:12px ui-monospace,monospace;padding:2px 8px;border-radius:6px;border:1px solid currentColor}
+.s-SAT{color:#9BF2E4}.s-UNSAT{color:#FF9A9A}.s-UNKNOWN{color:#F5C46B}
+.gov-probes{margin:8px 0 0;padding:0 16px 16px 34px;display:flex;flex-direction:column;gap:4px;font-size:13px;color:#C9D3E0}
+#gov-sib-result{display:flex;flex-direction:column;gap:16px;margin-top:16px}#gov-sib-result[hidden]{display:none}

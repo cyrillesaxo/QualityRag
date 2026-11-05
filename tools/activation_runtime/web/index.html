@@ -19,7 +19,7 @@
 </section>
 <section id="governance" class="observatory gov" aria-labelledby="gov-title">
 <div class="obs-head"><div><p class="obs-kicker">Governance</p><h2 id="gov-title">Policies</h2></div>
-<div role="tablist" aria-label="Governance tools" class="gov-tabs"><button type="button" role="tab" id="gov-tab-test" aria-controls="gov-test" aria-selected="true">Policy tester</button><button type="button" role="tab" id="gov-tab-advise" aria-controls="gov-advise" aria-selected="false" tabindex="-1">Advisor</button><button type="button" role="tab" id="gov-tab-replay" aria-controls="gov-replay" aria-selected="false" tabindex="-1">Branch replay</button></div></div>
+<div role="tablist" aria-label="Governance tools" class="gov-tabs"><button type="button" role="tab" id="gov-tab-test" aria-controls="gov-test" aria-selected="true">Policy tester</button><button type="button" role="tab" id="gov-tab-advise" aria-controls="gov-advise" aria-selected="false" tabindex="-1">Advisor</button><button type="button" role="tab" id="gov-tab-replay" aria-controls="gov-replay" aria-selected="false" tabindex="-1">Branch replay</button><button type="button" role="tab" id="gov-tab-siblings" aria-controls="gov-siblings" aria-selected="false" tabindex="-1">Functional siblings</button></div></div>
 <div id="gov-test" role="tabpanel" aria-labelledby="gov-tab-test">
 <p class="obs-empty">Run the gate on retrieved chunks and see exactly which spans it counts. Nothing is written to the ledger.</p>
 <form id="gov-test-form" class="obs-form gov-form">
@@ -41,6 +41,13 @@
 <div><label for="gov-cases">Recorded cases (JSON file: id, evidence, optional expect_admit)</label><input id="gov-cases" type="file" accept=".json"><p id="gov-cases-label" class="obs-meta">No cases loaded.</p></div></div>
 <div class="gov-actions"><button type="submit">Replay branch</button></div></form>
 <div id="gov-replay-result" hidden></div></div>
+<div id="gov-siblings" role="tabpanel" aria-labelledby="gov-tab-siblings" hidden>
+<p class="obs-empty">For one function, check candidate mechanisms against each contract through the gate. SAT, UNSAT or UNKNOWN per contract; siblings hold only under their contract and are never equivalence.</p>
+<form id="gov-sib-form" class="obs-form gov-form"><label for="gov-sib-function">Function</label><input id="gov-sib-function" type="text" maxlength="200" required placeholder="JOIN_COMPONENTS">
+<div class="gov-row"><div><label for="gov-sib-contracts">Contracts (JSON object: name → PackSpec)</label><textarea id="gov-sib-contracts" rows="8" spellcheck="false" required></textarea></div>
+<div><label for="gov-sib-cands">Candidates (JSON file: id, evidence, optional mechanism_family)</label><input id="gov-sib-cands" type="file" accept=".json"><p id="gov-sib-label" class="obs-meta">No candidates loaded.</p></div></div>
+<div class="gov-actions"><button type="button" class="ghost" id="gov-sib-example">Load joining example (paper §4)</button><button type="submit">Check feasibility</button></div></form>
+<div id="gov-sib-result" hidden></div></div>
 <p id="gov-status" class="obs-result" role="status"></p>
 </section>
 <details id="new-branch"><summary>Add a research branch</summary>

@@ -43,6 +43,7 @@ TOOLS = [
      "description": "Search the research tree. Filters combine with AND. Use `since` with the last head_sequence you saw to get only new events (watch it grow).",
      "inputSchema": {"type": "object", "additionalProperties": False, "properties": {
          "text": {"type": "string", "maxLength": 200}, "evidence_status": {"type": "string"},
+         "depends_on": {"type": "string", "maxLength": 200, "description": "Evidence ID or source SHA-256: branches that cite it, plus descendants (what to re-check when it changes)"},
          "open_challenge": {"type": "boolean"}, "active": {"type": "boolean"}, "lineage_of": {"type": "string"},
          "since": {"type": "integer", "minimum": 0}, "limit": {"type": "integer", "minimum": 1, "maximum": 500}}},
      "annotations": {"readOnlyHint": True}},
@@ -70,6 +71,13 @@ TOOLS = [
      "inputSchema": {"type": "object", "additionalProperties": False, "required": ["base", "branch", "cases"], "properties": {
          "base": {"type": "object"}, "branch": {"type": "object"},
          "cases": {"type": "array", "description": "{id, evidence: [witness rows], expect_admit?: bool, question?}"}, "as_of": {"type": "string"}}},
+     "annotations": {"readOnlyHint": True}},
+    {"name": "functional_siblings",
+     "description": "For a function F, evaluate candidate mechanisms against one or more contracts (PackSpecs) through the gate: SAT, UNSAT or UNKNOWN per contract, FunctionalSibling(a,b | F,C) groups, regime boundaries where a candidate's status changes between contracts, and the probes (missing evidence) that would decide UNKNOWN cells. Siblinghood is contract-relative and never equivalence; the feasible set is a discovered subset, not the complete one.",
+     "inputSchema": {"type": "object", "additionalProperties": False, "required": ["function", "contracts", "candidates"], "properties": {
+         "function": {"type": "string", "maxLength": 200}, "contracts": {"type": "object", "description": "name -> PackSpec"},
+         "candidates": {"type": "array", "description": "{id, evidence: [witness rows], label?, mechanism_family?, branch?}"},
+         "as_of": {"type": "string"}}},
      "annotations": {"readOnlyHint": True}},
     {"name": "garden_propose",
      "description": "Add a hypothesis as a new branch, optionally forked from parent branches. Query first to avoid duplicates.",
@@ -128,6 +136,8 @@ class Gardener:
             return self.client.policy_advise(**args)
         if name == "policy_replay":
             return self.client.policy_replay(**args)
+        if name == "functional_siblings":
+            return self.client.policy_siblings(**args)
         if name == "garden_propose":
             parents = args.get("parents", [])
             return self._event("PROPOSE", args, branch=args["branch"], parents=parents,

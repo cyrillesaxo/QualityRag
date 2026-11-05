@@ -1,12 +1,12 @@
 'use strict';
 // Governance tab: policy tester, advisor and branch replay. Uses api(), byId(), textEl() and
 // sessionEpoch from app.js. DOM APIs only (CSP: no inline styles, no innerHTML).
-const gov={docs:null,cases:null,test:null,pack:null,selected:null,filter:'all',example:null};
+const gov={docs:null,cases:null,test:null,pack:null,selected:null,filter:'all',example:null,cands:null,sib:null};
 
 function governanceReset(){
-  Object.assign(gov,{docs:null,cases:null,test:null,pack:null,selected:null,filter:'all',example:null});
-  for(const id of ['gov-test-result','gov-advise-result','gov-replay-result']){const n=byId(id);n.replaceChildren();n.hidden=true;}
-  byId('gov-status').textContent='';byId('gov-docs-label').textContent='No documents loaded.';byId('gov-cases-label').textContent='No cases loaded.';
+  Object.assign(gov,{docs:null,cases:null,test:null,pack:null,selected:null,filter:'all',example:null,cands:null,sib:null});
+  for(const id of ['gov-test-result','gov-advise-result','gov-replay-result','gov-sib-result']){const n=byId(id);n.replaceChildren();n.hidden=true;}
+  byId('gov-status').textContent='';byId('gov-docs-label').textContent='No documents loaded.';byId('gov-cases-label').textContent='No cases loaded.';byId('gov-sib-label').textContent='No candidates loaded.';
 }
 function govEl(tag,cls,...children){const n=document.createElement(tag);if(cls)n.className=cls;for(const c of children)n.append(c);return n;}
 function govStatus(text){byId('gov-status').textContent=text;}
@@ -20,7 +20,7 @@ function govIds(text){return text.split(/[\s,]+/).map(s=>s.trim()).filter(Boolea
 function pct(x){return x===null||x===undefined?'—':(x*100).toFixed(1)+'%';}
 
 // Tabs (keyboard: arrow keys move between tabs).
-const govTabs=['test','advise','replay'];
+const govTabs=['test','advise','replay','siblings'];
 function govShow(name){
   for(const t of govTabs){const tab=byId('gov-tab-'+t),on=t===name;tab.setAttribute('aria-selected',String(on));tab.tabIndex=on?0:-1;byId('gov-'+t).hidden=!on;}
 }
@@ -221,4 +221,67 @@ function govRenderReplay(r){
         rate('Answer rate (higher is better)',r.base.answer_rate,r.branch.answer_rate,'higher'))),
     govEl('div','table-wrap gov-table-wrap',table),
     textEl('p','Promotion is not done here. A branch is promoted through a signed review once the Advisor reports no errors.','gov-fine'));
+}
+
+// Functional siblings
+byId('gov-sib-example').addEventListener('click',async()=>{
+  const epoch=sessionEpoch;
+  try{
+    const ex=(await api('policy/example',{},epoch)).siblings_example;
+    gov.sib=ex;gov.cands=ex.candidates;
+    byId('gov-sib-function').value=ex.function;byId('gov-sib-contracts').value=JSON.stringify(ex.contracts,null,2);
+    byId('gov-sib-label').textContent=ex.candidates.length+' candidates · illustrative, from '+ex.source;
+    govStatus(ex.note);
+  }catch(error){if(epoch===sessionEpoch)govStatus(error.message);}
+});
+byId('gov-sib-cands').addEventListener('change',async()=>{
+  try{const c=await govFile(byId('gov-sib-cands'),'Candidates file');if(!Array.isArray(c))throw Error('Candidates file must be a JSON list.');
+    gov.cands=c;gov.sib=null;byId('gov-sib-label').textContent=c.length+' candidates loaded from '+byId('gov-sib-cands').files[0].name;}
+  catch(error){govStatus(error.message);}
+});
+byId('gov-sib-form').addEventListener('submit',async event=>{
+  event.preventDefault();const epoch=sessionEpoch;
+  try{
+    if(!gov.cands)throw Error('Load candidates first, or load the joining example.');
+    const body={function:byId('gov-sib-function').value.trim(),contracts:govJson(byId('gov-sib-contracts').value,'Contracts'),candidates:gov.cands};
+    if(gov.sib&&gov.cands===gov.sib.candidates)body.as_of=gov.sib.as_of;
+    govStatus('Checking feasibility…');
+    const r=await api('policy/siblings',body,epoch);
+    govRenderSiblings(r);govStatus(r.coverage.statement);
+  }catch(error){if(epoch===sessionEpoch)govStatus(error.message);}
+});
+function govRenderSiblings(r){
+  const box=byId('gov-sib-result');box.replaceChildren();box.hidden=false;
+  const names=Object.keys(r.contracts);
+  const stats=govEl('div','gov-stats');
+  for(const n of names){const c=r.contracts[n];
+    stats.append(govStat(c.feasible.length+' · '+c.rejected.length+' · '+c.unknown.length,n+': SAT · UNSAT · UNKNOWN'));}
+  stats.append(govStat(r.regime_boundaries.length,'status changes between contracts',r.regime_boundaries.length?'warn':''));
+  const table=govEl('table','gov-table gov-matrix');
+  const heads=['Candidate','Family',...names];
+  table.append(govEl('thead','',govEl('tr','',...heads.map(h=>textEl('th',h)))));
+  const tb=govEl('tbody','');
+  for(const row of r.matrix){
+    const cells=[textEl('td',row.candidate,'mono'),textEl('td',row.mechanism_family||'—')];
+    for(const n of names){const c=row.contracts[n];
+      const missing=c.requirements.filter(q=>q.status!=='SAT').map(q=>q.requirement_id);
+      const td=govEl('td','',textEl('span',c.status,'gov-cell s-'+c.status));
+      if(missing.length)td.append(textEl('span',' '+missing.join(', '),'obs-meta'));
+      cells.push(td);}
+    cells.forEach((c,i)=>c.dataset.label=heads[i]);tb.append(govEl('tr','',...cells));
+  }
+  table.append(tb);
+  const sib=govEl('div','gov-rates',textEl('span','Functional siblings','obs-kicker'));
+  for(const n of names){const c=r.contracts[n];
+    sib.append(textEl('p',c.siblings.length?c.relation+': '+c.siblings.join(', ')+' ('+c.sibling_pairs+' pairs)':c.relation+': no pair is SAT under this contract.','gov-fine'));}
+  const bounds=govEl('div','gov-rates',textEl('span','Regime boundaries','obs-kicker'));
+  if(!r.regime_boundaries.length)bounds.append(textEl('p','No candidate changes status between these contracts.','gov-fine'));
+  for(const b of r.regime_boundaries)bounds.append(textEl('p',b.candidate+': '+b.from+' under '+b.from_contract+' → '+b.to+' under '+b.to_contract+(b.deciding_requirements.length?' · decided by '+b.deciding_requirements.join(', '):''),'gov-fine '+(b.to==='UNSAT'?'bad':'')));
+  const probes=govEl('details','gov-finding',govEl('summary','',textEl('span','PROBES','gov-sev'),textEl('span',r.probes.length+' unknown requirement'+(r.probes.length===1?'':'s')+' to test next','gov-title')));
+  const list=govEl('ul','gov-probes');
+  for(const p of r.probes)list.append(textEl('li',p.candidate+' · '+p.contract+' · '+p.requirement_id+(p.missing_sources?' · needs '+p.missing_sources+' more origin'+(p.missing_sources===1?'':'s'):'')+(p.reasons.length?' · '+p.reasons.join(', '):'')));
+  probes.append(list);
+  const guards=govEl('ul','gov-probes');for(const g of r.guards)guards.append(textEl('li',g));
+  box.append(stats,govEl('div','table-wrap gov-table-wrap',table),govEl('div','gov-split',sib,bounds),probes,
+    govEl('div','',textEl('span','Guards','obs-kicker'),guards));
 }

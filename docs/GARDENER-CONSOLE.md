@@ -40,6 +40,7 @@ The **Research tree** panel at the top of the workspace shows:
 | `open_challenge` | `true`: a `CHALLENGE` not yet followed by a `TEST` |
 | `active` | `false` for pruned branches |
 | `lineage_of` | Keep this branch with its ancestors and descendants |
+| `depends_on` | Evidence ID or source SHA-256: branches that cite it (`direct`) and their descendants (`inherited`), i.e. what to re-check when it changes |
 | `since` | Return the events appended after this sequence number |
 | `limit` | 1–500 branches (default 200) |
 
@@ -47,7 +48,7 @@ The response lists branch summaries (statement, parents, children, status, open 
 
 ## AI agents (MCP)
 
-`tools/activation_runtime/mcp_server.py` is a stdio MCP server with five Gardener tools (plus three read-only policy tools, see [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md)):
+`tools/activation_runtime/mcp_server.py` is a stdio MCP server with five Gardener tools (plus four read-only policy tools, see [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md)):
 
 - `garden_query`
 - `garden_suggestions`
@@ -108,4 +109,4 @@ python -m tools.activation_runtime.cli garden watch --endpoint http://127.0.0.1:
 
 ## Governance tools
 
-The same console has a **Governance** panel with a policy tester, an advisor and policy-branch replay. Open Gardener challenges appear as Advisor findings. See [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md).
+The same console has a **Governance** panel with a policy tester, an advisor, policy-branch replay and functional-sibling feasibility. Open Gardener challenges appear as Advisor findings. See [GOVERNANCE-CONSOLE.md](GOVERNANCE-CONSOLE.md).

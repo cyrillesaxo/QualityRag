@@ -147,7 +147,13 @@ class Application:
             as_of=body.get("as_of") or self.clock()
             if route=="policy/example":
                 if body:raise ValueError("Unsupported example options")
-                return governance.example()
+                from . import siblings
+                return {**governance.example(),"siblings_example":siblings.example()}
+            if route=="policy/siblings":
+                from . import siblings
+                if not {"function","contracts","candidates"}<=set(body)<={"function","contracts","candidates","as_of"}:
+                    raise ValueError("Unsupported sibling options")
+                return siblings.feasibility(body["function"],body["contracts"],body["candidates"],as_of=as_of)
             if route=="policy/test":
                 if not {"pack","documents","retrieved"}<=set(body)<={"pack","documents","retrieved","question","as_of"}:
                     raise ValueError("Unsupported policy test options")

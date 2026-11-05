@@ -7,8 +7,8 @@ export type ValidationResult={valid:true;semantic_admission:'INCONCLUSIVE'};
 export type FallbackResult={source_sha256:string;base64:string;fallback:'AUTHORIZED_ORIGINAL_BYTES'};
 export type GardenOperation='PROPOSE'|'CHALLENGE'|'TEST'|'SYNTHESIZE'|'PRUNE'|'REOPEN';
 export type GardenEvent={event_id:string;operation:GardenOperation;branch:string;source_sha256:string;source_ref:string;statement:string;parents:string[];evidence_ids?:string[]};
-export type GardenQuery={text?:string;evidence_status?:string;open_challenge?:boolean;active?:boolean;lineage_of?:string;since?:number;limit?:number};
-export type GardenBranchSummary={branch:string;statement:string;active:boolean;evidence_status:string;parents:string[];children:string[];open_challenge:boolean;events:number;created_sequence:number;last_sequence:number;source_ref:string;source_sha256:string};
+export type GardenQuery={text?:string;evidence_status?:string;open_challenge?:boolean;active?:boolean;lineage_of?:string;depends_on?:string;since?:number;limit?:number};
+export type GardenBranchSummary={branch:string;statement:string;active:boolean;evidence_status:string;parents:string[];children:string[];open_challenge:boolean;events:number;created_sequence:number;last_sequence:number;source_ref:string;source_sha256:string;dependency?:'direct'|'inherited'};
 export type GardenQueryResult={schema:'qualityrag.gardener-query/v1';branches:GardenBranchSummary[];total:number;truncated:boolean;events:Record<string,unknown>[];since:number;head_sequence:number;events_truncated:boolean;independent_validation:'NOT_ESTABLISHED'};
 function base64(bytes:Uint8Array):string {return btoa(Array.from(bytes,value=>String.fromCharCode(value)).join(""));}
 function endpoint(value:string):string {
@@ -33,7 +33,7 @@ export class ActivationClient {
     this.bearer=base64(new TextEncoder().encode(wireJson(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
   }
   async request(route:string,payload:Record<string,unknown>):Promise<any>{
-    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome','gardener/query','policy/example','policy/test','policy/advise','policy/replay'].includes(route))throw Error('Unsupported SDK route');
+    if(!['validate','evaluate','activate-plan','reviewed-run','observations','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome','gardener/query','policy/example','policy/test','policy/advise','policy/replay','policy/siblings'].includes(route))throw Error('Unsupported SDK route');
     const response=await fetch(this.baseUrl+'/api/'+route,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+this.bearer},
       body:wireJson(payload),redirect:'error',signal:AbortSignal.timeout(10000)});
@@ -61,6 +61,8 @@ export class ActivationClient {
   policyAdvise(body:{pack?:Record<string,unknown>;test?:Record<string,unknown>;benchmark?:Record<string,unknown>;far_limit?:number}={}):Promise<Record<string,unknown>>{return this.request('policy/advise',body as Record<string,unknown>);}
   /** Re-evaluate recorded cases under two packs. */
   policyReplay(body:{base:Record<string,unknown>;branch:Record<string,unknown>;cases:unknown[];as_of?:string}):Promise<Record<string,unknown>>{return this.request('policy/replay',body as Record<string,unknown>);}
+  /** Feasible(s,F,C) per contract (SAT/UNSAT/UNKNOWN), functional siblings, regime boundaries and probes. */
+  policySiblings(body:{function:string;contracts:Record<string,Record<string,unknown>>;candidates:unknown[];as_of?:string}):Promise<Record<string,unknown>>{return this.request('policy/siblings',body as Record<string,unknown>);}
   gardenState():Promise<Record<string,unknown>>{return this.request('gardener/state',{});}
   gardenQuery(filters:GardenQuery={}):Promise<GardenQueryResult>{return this.request('gardener/query',filters as Record<string,unknown>);}
   gardenSuggestions():Promise<Record<string,unknown>>{return this.request('gardener/proposals',{});}
