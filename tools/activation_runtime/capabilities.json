@@ -4,32 +4,32 @@
     {
       "story_id": "US-001",
       "title": "Source and capability inventory",
-      "status": "IN_REVIEW",
-      "engineering_status": "REVERIFYING_UPDATED_INVENTORY_GATE",
+      "status": "DONE",
+      "engineering_status": "COMPLETE_VERIFIED_SOFTWARE_CRITERIA",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
-      "implementation_commit": null,
+      "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
       "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
       "criteria": [
         {
           "number": 1,
           "text": "Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations.",
-          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 2,
           "text": "PR #69 remains IN_REVIEW until merged.",
-          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 3,
           "text": "CI rejects a DONE claim with no link to passing test receipt.",
-          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 4,
           "text": "Report explicitly lists unavailable video decoder and independent admission.",
-          "acceptance": "PENDING_CURRENT_SOURCE_CI_REVERIFICATION"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         }
       ],
       "modules": [
@@ -47,10 +47,18 @@
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py",
-      "remaining": "Renewing source/CI evidence for the updated inventory auditor; prior accepted revision is retained in history.",
+      "remaining": "No remaining US-001 software criterion. Independent domain validation is not established or claimed.",
       "completion_envelope": null,
       "independent_validation": "DOMAIN_VALIDATION_NOT_ESTABLISHED_OR_CLAIMED",
-      "completion_evidence": null,
+      "completion_evidence": {
+        "kind": "GITHUB_VERIFIED_SOURCE_INVENTORY/v1",
+        "repository": "cyrillesaxo/QualityRag",
+        "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
+        "module_inventory_sha256": "7b5af9dc683ef442adcf983543e6329ae79bf40ce884fbc7ea6f6ce5d332a589",
+        "acceptance_sha256": "3344248536e011a41b6be23e383c8b828feb36f6cd6acc0b657cc5831388103a",
+        "workflow_run_id": 42011085254,
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42011085254"
+      },
       "acceptance_history": [
         {
           "status": "DONE_AT_PRIOR_IMPLEMENTATION",
@@ -69,32 +77,32 @@
     {
       "story_id": "US-002",
       "title": "Versioned schema catalog",
-      "status": "IN_REVIEW",
-      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "status": "DONE",
+      "engineering_status": "COMPLETE_VERIFIED_SOFTWARE_CRITERIA",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
-      "implementation_commit": null,
+      "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
       "acceptance_sha256": "f90090745a273d127eb6fb43b5c882106b906497fc4284094a63d871c3b1512c",
       "criteria": [
         {
           "number": 1,
           "text": "JSON Schema and example fixtures for each envelope.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 2,
           "text": "Schema identifiers include major/minor version.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 3,
           "text": "Unknown operator, duplicate ID, invalid type, oversize payload and incompatible major version fail deterministically.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         },
         {
           "number": 4,
           "text": "Round-trip serialization is deterministic.",
-          "acceptance": "PENDING_INDEPENDENT_COMPLETION_RECEIPT"
+          "acceptance": "MET_OBSERVED_SOURCE_AND_CI"
         }
       ],
       "modules": [
@@ -200,9 +208,19 @@
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_contracts.py; tools/activation_runtime/tests/test_schema_catalog.py; python -m tools.activation_runtime.cli catalog",
-      "remaining": "Awaiting observed source/CI catalog acceptance. Shape validation does not establish domain truth.",
+      "remaining": "No remaining US-002 software criterion. Independent domain validation is not established or claimed.",
       "completion_envelope": null,
-      "independent_validation": "NOT_ESTABLISHED"
+      "independent_validation": "DOMAIN_VALIDATION_NOT_ESTABLISHED_OR_CLAIMED",
+      "completion_evidence": {
+        "kind": "GITHUB_VERIFIED_SCHEMA_CATALOG/v1",
+        "repository": "cyrillesaxo/QualityRag",
+        "implementation_commit": "a924177641957092f08507e6fc33d303dc42555c",
+        "module_inventory_sha256": "c5931ed5189a34611406174b0bc1817c0de9d4178f1c683c7655cd20fe4a642e",
+        "acceptance_sha256": "f90090745a273d127eb6fb43b5c882106b906497fc4284094a63d871c3b1512c",
+        "workflow_run_id": 42011085254,
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42011085254",
+        "catalog_report_sha256": "55a8ff90b4d66032fda7cca48c02cdaa7e63bdab6d11c9cdcf37cc65f33f647c"
+      }
     },
     {
       "story_id": "US-003",

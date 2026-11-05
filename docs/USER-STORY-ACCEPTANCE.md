@@ -6,8 +6,8 @@ evidence; independent review, real measurements and external sources are not inf
 
 | Story | Software status | Acceptance status | Remaining acceptance requirement |
 |---|---|---|---|
-| US-001 — Source and capability inventory | REVERIFYING_UPDATED_INVENTORY_GATE | IN_REVIEW | Renewing source/CI evidence for the updated inventory auditor; prior accepted revision is retained in history. |
-| US-002 — Versioned schema catalog | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Awaiting observed source/CI catalog acceptance. Shape validation does not establish domain truth. |
+| US-001 — Source and capability inventory | COMPLETE_VERIFIED_SOFTWARE_CRITERIA | DONE | No remaining US-001 software criterion. Independent domain validation is not established or claimed. |
+| US-002 — Versioned schema catalog | COMPLETE_VERIFIED_SOFTWARE_CRITERIA | DONE | No remaining US-002 software criterion. Independent domain validation is not established or claimed. |
 | US-003 — Independently replayable research harness | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent replay on the pinned reference environment. |
 | US-004 — Risk, prior art and novelty register | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent novelty assessment; no priority or superiority claim is made. |
 | US-005 — Purpose-scoped information obligations | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Domain-owner review of purpose and preservation obligations. |
@@ -62,23 +62,23 @@ evidence; independent review, real measurements and external sources are not inf
 
 Runnable evidence: tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_inventory_completion.py
 
-1. Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations. — PENDING_CURRENT_SOURCE_CI_REVERIFICATION
-2. PR #69 remains IN_REVIEW until merged. — PENDING_CURRENT_SOURCE_CI_REVERIFICATION
-3. CI rejects a DONE claim with no link to passing test receipt. — PENDING_CURRENT_SOURCE_CI_REVERIFICATION
-4. Report explicitly lists unavailable video decoder and independent admission. — PENDING_CURRENT_SOURCE_CI_REVERIFICATION
+1. Machine-readable `capabilities.json` lists module, branch/commit, status, test and known limitations. — MET_OBSERVED_SOURCE_AND_CI
+2. PR #69 remains IN_REVIEW until merged. — MET_OBSERVED_SOURCE_AND_CI
+3. CI rejects a DONE claim with no link to passing test receipt. — MET_OBSERVED_SOURCE_AND_CI
+4. Report explicitly lists unavailable video decoder and independent admission. — MET_OBSERVED_SOURCE_AND_CI
 
-Remaining: Renewing source/CI evidence for the updated inventory auditor; prior accepted revision is retained in history.
+Remaining: No remaining US-001 software criterion. Independent domain validation is not established or claimed.
 
 ## US-002 — Versioned schema catalog
 
 Runnable evidence: tools/activation_runtime/tests/test_contracts.py; tools/activation_runtime/tests/test_schema_catalog.py; python -m tools.activation_runtime.cli catalog
 
-1. JSON Schema and example fixtures for each envelope. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
-2. Schema identifiers include major/minor version. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
-3. Unknown operator, duplicate ID, invalid type, oversize payload and incompatible major version fail deterministically. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
-4. Round-trip serialization is deterministic. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
+1. JSON Schema and example fixtures for each envelope. — MET_OBSERVED_SOURCE_AND_CI
+2. Schema identifiers include major/minor version. — MET_OBSERVED_SOURCE_AND_CI
+3. Unknown operator, duplicate ID, invalid type, oversize payload and incompatible major version fail deterministically. — MET_OBSERVED_SOURCE_AND_CI
+4. Round-trip serialization is deterministic. — MET_OBSERVED_SOURCE_AND_CI
 
-Remaining: Awaiting observed source/CI catalog acceptance. Shape validation does not establish domain truth.
+Remaining: No remaining US-002 software criterion. Independent domain validation is not established or claimed.
 
 ## US-003 — Independently replayable research harness
 

@@ -1,19 +1,22 @@
 # FR.MD — QualityRag Semantic Codex, RCT, PackSpec & Activation Grammar
 
 > **Document:** Functional requirements, implementation plan, user stories and acceptance criteria  
-> **Version:** 0.4 · **Date:** 2026-11-05 · **Owner:** APX / QualityRag research program  
+> **Version:** 0.5 · **Date:** 2026-11-05 · **Owner:** APX / QualityRag research program  
 > **Status:** Planning baseline; no story is complete merely because it appears here.  
 > **Source of truth:** This backlog plus linked PRs, source files, independent test receipts and reviewer decisions.  
 > **Research lineage:** Cyrille Eloundou · [apx.guide](https://apx.guide/)  
 > **Repository:** [cyrillesaxo/QualityRag](https://github.com/cyrillesaxo/QualityRag)
 
-## Current acceptance verification
+## Current acceptance snapshot
 
-US-002 catalog acceptance is being verified. The shared auditor changes require
-renewing US-001's evidence against the updated implementation; its earlier accepted
-source/CI point remains in history. Both current entries remain IN_REVIEW until
-new passing source/CI evidence is bound and checked. No scientific acceptance is
-inferred from this software verification.
+**2 DONE · 35 IN_REVIEW · 14 BLOCKED · 49 open.** US-001 source inventory
+and US-002 versioned schema catalog are complete against their stated software
+criteria, pinned to implementation commit
+`a924177641957092f08507e6fc33d303dc42555c` and passing
+[CI run 42011085254](https://github.com/cyrillesaxo/QualityRag/actions/runs/42011085254).
+US-001's evidence is renewed for the changed auditor. No domain/scientific
+acceptance or another story's review/merge prerequisite is inferred. Earlier
+section counts describe their historical delivery points.
 
 ## 0. The product and the falsifiable thesis
 
@@ -560,8 +563,8 @@ listed below. It does not mean all software or research acceptance is satisfied.
 
 | Story | Status | Remaining acceptance |
 |---|---|---|
-| US-001 | IN_REVIEW | Renewing acceptance evidence for the updated shared auditor. |
-| US-002 | IN_REVIEW | Merged review; no schema shape check is independent semantic validation. |
+| US-001 | DONE | Verified source inventory; evidence renewed for the updated auditor. |
+| US-002 | DONE | Verified ten-entry versioned catalog, fixtures, rejection witnesses and canonical round-trip. |
 | US-003 | IN_REVIEW | Independent replay on the pinned reference environment. |
 | US-004 | IN_REVIEW | Independent novelty assessment; no priority or superiority claim is made. |
 | US-005 | IN_REVIEW | Domain-owner review of purpose and preservation obligations. |
@@ -935,3 +938,20 @@ immutable source bytes. Because this extends the shared auditor, US-001's eviden
 is being renewed alongside US-002 rather than silently carried across changed
 code. Other research stories keep their explicit independent-review gates. See
 `docs/SCHEMA-CATALOG-ACCEPTANCE.md`; no criterion text or fingerprint is changed.
+
+
+## 29. US-002 completed and US-001 evidence renewed
+
+US-002's four criteria are MET_OBSERVED_SOURCE_AND_CI. All ten schema/example
+pairs validate under pinned local v1.x identifiers, invalid operator/duplicate ID/
+type/size/major-version probes refuse deterministically, and canonical fixtures
+round-trip. External schema references and base-URI changes are blocked. The
+report and all catalog inputs/implementations are hash-bound to the observed
+passing push run 42011085254 at a924177641957092f08507e6fc33d303dc42555c.
+
+US-001's source/CI evidence is renewed at the same tested implementation, while
+its earlier accepted source point remains in history. The implementation run
+passed 337 focused tests and all 23 workflows. A follow-up completion-metadata
+commit must pass CI with live GitHub verification of both closure records. This
+accepts software criteria only; research/domain review and other explicit gates
+remain unchanged. The current ledger has 2 DONE, 35 IN_REVIEW and 14 BLOCKED.
