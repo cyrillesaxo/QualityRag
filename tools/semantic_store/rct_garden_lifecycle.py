@@ -16,7 +16,7 @@ from rct_garden_coevolution import SCHEMA as EXPERIMENT_SCHEMA
 _LEDGER_DIR = Path(__file__).resolve().parents[1] / "research_ledger"
 if str(_LEDGER_DIR) not in sys.path:
     sys.path.insert(0, str(_LEDGER_DIR))
-from ledger import claim, evidence, assess, verify_integrity, LedgerError  # noqa: E402
+from ledger import claim, evidence, assess, link, verify_integrity, LedgerError  # noqa: E402
 
 SCHEMA = "rct.garden-lifecycle/v0.1"
 _HASH = re.compile(r"^[0-9a-f]{64}$")
@@ -173,3 +173,71 @@ def reopen_on_revision(db, claim_id, *, observed_sources, evidence_uri, actor):
         raise ValueError("Ledger integrity check failed")
     return {**report, "event_appended": True, "event_id": event_id,
             "replay_required": True, "promotion_authorized": False}
+
+
+
+def replay_after_revision(db, previous_claim_id, *, training, examples,
+                          source, revised_source, workload, actor,
+                          observation_uri, receipt_uri, trials=2,
+                          max_proposals=24):
+    """Re-run bounded research after observed source revision; retain ancestry.
+
+    Inputs are source objects supplied by the caller. A reopened result cannot
+    be admitted, and an ambiguous re-induction creates no new research claim.
+    """
+    from rct_garden_coevolution import run_investigation
+    from store import digest as source_digest
+
+    current = {
+        "training": source_digest(training),
+        "source": source_digest(source),
+        "revised": source_digest(revised_source),
+    }
+    plan = inspect_revisions(db, previous_claim_id,
+                             observed_sources=current)
+    if not plan["invalidated"]:
+        return {
+            "schema": SCHEMA, "status": "NO_CHANGED_DEPENDENCIES",
+            "previous_claim_id": previous_claim_id,
+            "replayed": False, "promotion_authorized": False,
+        }
+    # Re-run the actual investigation. No externally supplied result may be
+    # substituted for the model/grammar-derived experiment.
+    result = run_investigation(
+        training, examples, source, revised_source, workload,
+        trials=trials, max_proposals=max_proposals)
+    opened = reopen_on_revision(
+        db, previous_claim_id, observed_sources=current,
+        evidence_uri=observation_uri, actor=actor)
+    if result["experiment"] is None:
+        return {
+            "schema": SCHEMA, "status": result["status"],
+            "previous_claim_id": previous_claim_id,
+            "replayed": True, "new_claim_id": None,
+            "reopen_event_id": opened["event_id"],
+            "next_step": "GENERATE_DISCRIMINATING_PROBE",
+            "promotion_authorized": False,
+            "qualityrag_admission": "INCONCLUSIVE",
+        }
+    fresh = register_cycle(
+        db, result["experiment"], sources=current,
+        evidence_uri=receipt_uri, actor=actor)
+    if fresh["claim_id"] == previous_claim_id:
+        raise ValueError("Replayed investigation did not create a new version")
+    trace_id = "garden.replay-link." + digest({
+        "old": previous_claim_id, "new": fresh["claim_id"]})[:24]
+    # QUALIFIES expresses historical relation, not an unearned assertion of
+    # semantic equivalence or replacement authority.
+    link(db, link_id=trace_id, from_claim=fresh["claim_id"],
+         to_claim=previous_claim_id, relation="QUALIFIES")
+    if not verify_integrity(db)["consistent"]:
+        raise ValueError("Replay ledger integrity failure")
+    return {
+        "schema": SCHEMA, "status": "REPLAYED_AS_UNVERIFIED_RESEARCH",
+        "previous_claim_id": previous_claim_id,
+        "new_claim_id": fresh["claim_id"],
+        "reopen_event_id": opened["event_id"],
+        "replayed": True, "new_experiment_sha256": fresh["experiment_sha256"],
+        "qualityrag_admission": "INCONCLUSIVE",
+        "promotion_authorized": False,
+    }
