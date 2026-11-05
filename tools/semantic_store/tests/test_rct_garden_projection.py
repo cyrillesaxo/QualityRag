@@ -74,6 +74,42 @@ class GardenProjectionTests(unittest.TestCase):
         self.assertEqual(len([e for e in p["events"]
                               if e["branch_id"] == branch["id"]]), 3)
 
+    def test_json_export_cli_does_not_modify_existing_ledger(self):
+        import json
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            disk = sqlite3.connect(root / "research.sqlite")
+            try:
+                initialize(disk)
+                claim(disk, claim_id="garden.disk.fixture", project="QualityRag",
+                      kind="HYPOTHESIS", statement="Read-only projection")
+            finally:
+                disk.close()
+            proc = subprocess.run(
+                [sys.executable, str(P / "rct_garden_projection_cli.py"),
+                 "--db", str(root / "research.sqlite"),
+                 "--output", str(root / "garden.json")],
+                check=True, capture_output=True, text=True, timeout=20)
+            payload = json.loads((root / "garden.json").read_text())
+            self.assertEqual(payload["summary"]["branches"], 1)
+            self.assertEqual(json.loads(proc.stdout)["qualityrag_admission"],
+                             "INCONCLUSIVE")
+            self.assertFalse(payload["promotion_authorized"])
+
+    def test_missing_db_is_not_created_by_export(self):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "nonexistent.sqlite"
+            proc = subprocess.run(
+                [sys.executable, str(P / "rct_garden_projection_cli.py"),
+                 "--db", str(path), "--output", str(Path(temp) / "out.json")],
+                capture_output=True, text=True, timeout=20)
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertFalse(path.exists())
+
     def test_event_chain_integrity_is_a_precondition(self):
         self.db.execute("DROP TRIGGER forbid_research_events_update")
         self.db.execute("UPDATE research_events SET reason='tampered'"
