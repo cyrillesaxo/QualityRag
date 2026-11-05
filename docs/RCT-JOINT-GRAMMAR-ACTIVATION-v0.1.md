@@ -85,3 +85,37 @@ tests, compilation and the native transport/fail-closed regressions.
    against direct SQL, incremental SQL and appropriate codec/model baselines.
 6. Add reviewed, versioned promotion and demotion, replay on dependency change,
    and rollback without destroying research lineage.
+
+
+## Running the executable comparison
+
+\`\`\`bash
+python tools/semantic_store/rct_joint_demo.py --trials 3 --output /tmp/joint-search-receipt.json
+\`\`\`
+
+The demonstration constructs separate training/source snapshots, mutates an
+original relation, verifies full source reconstruction on both versions,
+runs the six grammar/activation configurations, and prints measured research
+costs and a Pareto set. It uses synthetic, deliberately small graphs.
+
+## Research memory integration (existing ledger)
+
+\`rct_joint_ledger.append_joint_research(db, receipt, evidence_uri=..., actor=...)\`
+stores the receipt's experiment assertion and hash in
+\`tools/research_ledger/ledger.py\` using its existing append-only claim,
+measurement and assessment primitives. It refuses altered fingerprints,
+missing/incomplete candidates or any attempt to replace \`INCONCLUSIVE\`
+with an admission. These events do not promote production policies.
+
+The adapter currently calls several existing ledger write functions
+sequentially. A process crash between them can leave a partial local
+research record; atomic transaction semantics and recovery require a
+separate canonical ledger API revision before production use.
+
+## Further gap: integration with the visual Semantic Gardener
+
+The current repository scan did not locate a verified implementation path
+for the visual Garden event UI shown in the conversation. This PR adds
+measured semantic-store experiments and ledger receipts, **not** a live
+connection to that UI. The UI's actual repository/API must be verified
+before integrating interactive branch/replay/promotion actions.
