@@ -35,7 +35,9 @@ class GardenHTTPTests(unittest.TestCase):
                    claim_id="garden.test.hypothesis", assessment="INCONCLUSIVE",
                    reason="Test-only observation is insufficient",
                    actor="fixture", evidence_ids=["garden.test.evidence"])
-        handler, self.connection = create_app(self.db_path, TOKEN)
+        self.receipts = Path(self.temp.name) / "receipts"
+        self.receipts.mkdir()
+        handler, self.connection = create_app(self.db_path, TOKEN, receipt_dir=self.receipts)
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
         self.port = self.server.server_address[1]
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -108,9 +110,18 @@ class GardenHTTPTests(unittest.TestCase):
         self.assertEqual(len(result["investigation"]["experiment"]["results"]), 6)
         self.assertEqual(result["qualityrag_admission"], "INCONCLUSIVE")
         self.assertFalse(result["promotion_authorized"])
-        self.assertFalse(result["ledger_persisted"])
-        # A successful experiment cannot be silently written as verified.
-        self.assertEqual(self.call("GET", "/garden/projection")[1]["summary"]["branches"], 1)
+        self.assertTrue(result["ledger_persisted"])
+        self.assertEqual(result["ledger_integrity"], "CONSISTENT")
+        self.assertTrue(result["ledger_claim_id"].startswith("garden.cycle."))
+        evidence_path = self.receipts / (result["receipt_fingerprint"] + ".json")
+        self.assertEqual(json.loads(evidence_path.read_text())["fingerprint"],
+                         result["receipt_fingerprint"])
+        # A persisted experiment is still INCONCLUSIVE, never admitted.
+        projection = self.call("GET", "/garden/projection")[1]
+        self.assertEqual(projection["summary"]["branches"], 2)
+        new_claim = next(x for x in projection["branches"]
+                         if x["id"] == result["ledger_claim_id"])
+        self.assertEqual(new_claim["assessment"], "INCONCLUSIVE")
 
     def test_invalid_budget_and_missing_auth_fail(self):
         code, _ = self.call("POST", "/garden/investigate", {"trials": 2},
