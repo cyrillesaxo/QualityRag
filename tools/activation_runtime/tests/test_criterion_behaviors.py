@@ -126,3 +126,72 @@ class CriterionBehaviorTests(unittest.TestCase):
         optimistic = challenge(lambda a,b: "SAT", cases)
         self.assertEqual(optimistic["false_accept_rate"], 1)
         self.assertEqual(optimistic["missed_counterexample_rate"], 1)
+
+    def test_candidates_reuse_both_canonical_extractors(self):
+        from unittest.mock import patch
+        from tools.activation_runtime.adapters import extract_candidates
+        import explicit_relation_extraction as explicit
+        import linguistic_relation_extraction as linguistic
+        principal = "test"
+        documents = [{"id":"a","text":"RELATE a RELATES_TO b"}, {"id":"b","text":"A nurse must act."}]
+        authorize = lambda *args, **kwargs: True
+        with patch.object(explicit, "extract_declared_relations", wraps=explicit.extract_declared_relations) as e, \
+             patch.object(linguistic, "extract_linguistic_relations", wraps=linguistic.extract_linguistic_relations) as l:
+            result = extract_candidates(documents, principal=principal, authorize_source=authorize)
+        e.assert_called_once_with(documents, principal=principal, authorize_source=authorize)
+        l.assert_called_once_with(documents, principal=principal, authorize_source=authorize)
+        self.assertEqual(result["review_state"], "QUARANTINED_UNTIL_AUTHENTICATED_REVIEW")
+        self.assertFalse(result["can_generate"])
+
+    def test_authority_uses_canonical_bundle_signatures(self):
+        from tools.activation_runtime import authority
+        import signed_bundles
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        self.assertIs(authority.sign, signed_bundles.sign)
+        self.assertIs(authority.verify, signed_bundles.verify)
+        key = Ed25519PrivateKey.generate()
+        body = {"value":"original", "issued_at":"2026-11-04T00:00:00Z",
+                "expires_at":"2026-11-05T00:00:00Z"}
+        envelope = authority.sign(body, key, key_id="test", schema=authority.ATTEST_SCHEMA)
+        altered = copy.deepcopy(envelope)
+        # A correctly structured body with a stale signature must never verify.
+        authority.verify(envelope, {"test":key.public_key()}, schema=authority.ATTEST_SCHEMA)
+        altered["payload"]["value"] = "tampered"
+        with self.assertRaises(Exception):
+            authority.verify(altered, {"test":key.public_key()},
+                             schema=authority.ATTEST_SCHEMA)
+
+    def test_schedule_refuses_unauthorized_and_unbounded_sources(self):
+        import tempfile
+        from tools.activation_runtime.authority import Principal
+        from tools.activation_runtime.service import Application
+        with tempfile.TemporaryDirectory() as root:
+            app = Application(root, access_keys={}, release_keys={})
+            no_read = Principal("author", "tenant", frozenset({"write"}))
+            for principals in ([no_read], [object()], [no_read] * 33):
+                with self.subTest(principals=principals), self.assertRaises(PermissionError):
+                    app.start_proposal_loop(principals)
+            for interval in (0, 3601, True):
+                with self.subTest(interval=interval), self.assertRaises(ValueError):
+                    app.start_proposal_loop([], interval_seconds=interval)
+            self.assertEqual(app.proposal_cache, {})
+            from threading import Event
+            from unittest.mock import patch
+            from tools.activation_runtime.proposals import suggest
+            allowed = Principal("reader", "allowed", frozenset({"read"}))
+            observed = Event()
+            paths = []
+            def observe(path):
+                paths.append(path)
+                result = suggest(path)
+                observed.set()
+                return result
+            with patch("tools.activation_runtime.service.suggest", side_effect=observe):
+                stop, thread = app.start_proposal_loop([allowed], interval_seconds=1)
+                try:
+                    self.assertTrue(observed.wait(2), "authorized source was never polled")
+                finally:
+                    stop.set(); thread.join(2)
+            self.assertFalse(thread.is_alive())
+            self.assertEqual(paths, [app.garden_path(allowed)])
+            self.assertEqual(set(app.proposal_cache), {"allowed"})

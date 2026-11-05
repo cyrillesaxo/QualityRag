@@ -565,8 +565,10 @@
       {
         "n": 1,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_candidates_reuse_both_canonical_extractors"
+        ],
         "note": "adapters.py calls the existing v1.2 and v1.3 extractors."
       },
       {
@@ -1153,8 +1155,10 @@
       {
         "n": 1,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_schedule_refuses_unauthorized_and_unbounded_sources"
+        ],
         "note": "service.start_proposal_loop is bounded and tenant-scoped."
       },
       {
@@ -1417,8 +1421,10 @@
       {
         "n": 4,
         "kind": "SOFTWARE",
-        "status": "IMPLEMENTED",
-        "evidence": [],
+        "status": "TESTED",
+        "evidence": [
+          "test_criterion_behaviors.test_authority_uses_canonical_bundle_signatures"
+        ],
         "note": "authority.py reuses tools/packspec_compiler/signed_bundles.py."
       }
     ],

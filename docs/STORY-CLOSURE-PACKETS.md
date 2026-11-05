@@ -22,7 +22,7 @@ Criteria by kind and status:
 | EXTERNAL_INPUT | 0 | 0 | 18 | 3 | 0 |
 | HUMAN_REVIEW | 0 | 0 | 5 | 0 | 0 |
 | MERGE | 0 | 0 | 1 | 0 | 0 |
-| SOFTWARE | 0 | 14 | 0 | 0 | 147 |
+| SOFTWARE | 0 | 11 | 0 | 0 | 150 |
 
 ## Signing
 
@@ -459,7 +459,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 | Reuse existing v1.2 explicit `RELATE` and v1.3 bounded linguistic extractors. | SOFTWARE | IMPLEMENTED | adapters.py calls the existing v1.2 and v1.3 extractors. |
+| 1 | Reuse existing v1.2 explicit `RELATE` and v1.3 bounded linguistic extractors. | SOFTWARE | TESTED | `test_criterion_behaviors.test_candidates_reuse_both_canonical_extractors`; adapters.py calls the existing v1.2 and v1.3 extractors. |
 | 2 | Opposite polarity candidates quarantined. | SOFTWARE | TESTED | `semantic_store/test_linguistic_relation_extraction` |
 | 3 | Caller endorsement remains unauthenticated until authorization added. | SOFTWARE | TESTED | `semantic_store/test_explicit_relation_extraction` |
 | 4 | Tests include actor/beneficiary swaps and negation changes. | SOFTWARE | TESTED | `test_preservation.test_executable_dsl_and_role_inversion` |
@@ -602,7 +602,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 | # | Criterion | Kind | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 | Bounded scheduled job operates only on authorized sources. | SOFTWARE | IMPLEMENTED | service.start_proposal_loop is bounded and tenant-scoped. |
+| 1 | Bounded scheduled job operates only on authorized sources. | SOFTWARE | TESTED | `test_criterion_behaviors.test_schedule_refuses_unauthorized_and_unbounded_sources`; service.start_proposal_loop is bounded and tenant-scoped. |
 | 2 | Produces candidate events with source anchors, confidence/calibration and suggested cost. | SOFTWARE | TESTED | `test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty`; suggested_cost: events, branches affected, and median reviewer-reported time (None until history exists). |
 | 3 | Structural edits are previewable and reversible, promotion requires review. | SOFTWARE | TESTED | `test_browser.test_connect_search_preview_prune_reopen_and_mobile_layout` |
 | 4 | Reports false merges, branch churn, cost and utility; no autonomous truth claim. | SOFTWARE | TESTED | `test_proposals.test_source_bound_suggestions_feedback_metrics_and_uncertainty` |
@@ -684,7 +684,7 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 | 1 | Key rotation and version policy documented. | DOCUMENT | IMPLEMENTED | Key rotation is described in tools/packspec_compiler/SIGNED-BUNDLES.md. |
 | 2 | Signatures bind source, grammar, policy, model, decoder and relevant run IDs. | SOFTWARE | TESTED | `test_release_authority.test_each_source_runtime_target_and_version_change_invalidates_review` |
 | 3 | Unauthorized replay/downgrade attacks produce refusal; explicit authorized rollback must respect compatibility, revocation and minimum-version policy. | SOFTWARE | TESTED | `test_release_authority.test_invalid_hashes_counts_and_downgrade_refuse_before_nonce_use`, `test_release_authority.test_replay_refuses_after_success` |
-| 4 | Existing signed-bundle code reused, not silently substituted with raw hashes. | SOFTWARE | IMPLEMENTED | authority.py reuses tools/packspec_compiler/signed_bundles.py. |
+| 4 | Existing signed-bundle code reused, not silently substituted with raw hashes. | SOFTWARE | TESTED | `test_criterion_behaviors.test_authority_uses_canonical_bundle_signatures`; authority.py reuses tools/packspec_compiler/signed_bundles.py. |
 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_service_sdk.py'`
 - **Inventory blocking text:** Real release/reviewer trust maps, durable deployment and independent replay/revocation review.
