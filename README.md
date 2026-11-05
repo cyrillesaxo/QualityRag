@@ -6,6 +6,15 @@ QualityRag evaluates a versioned **PackSpec** against retrieved evidence **befor
 
 **Status:** Experimental v0.1. Local, deterministic policy evaluator; not a proof of source authenticity, truth, regulatory compliance, or production readiness. No LLM is required for evaluation.
 
+## See the difference
+
+| Traditional RAG | QualityRAG |
+| --- | --- |
+| ![Traditional RAG: chunk, embed, retrieve, assemble a prompt and generate an answer](docs/assets/traditional-rag.gif) | ![QualityRAG: source structuring, evidence governance and the Semantic Garden research loop](docs/assets/qualityrag-how-it-works.gif) |
+| Retrieves relevant passages and generates an answer from the selected context. | Evaluates the PackSpec's declared evidence requirements before admitting an answer; missing or conflicting evidence can prevent admission. |
+
+The traditional RAG animation depicts a representative baseline **without an explicit completeness contract**; RAG implementations can add their own guardrails. The QualityRAG animation illustrates the broader architecture, including the Semantic Garden's intended continuous grammar and activation research loop. It is not evidence that the full autonomous loop, semantic accuracy or compression superiority has been validated. Admission concerns declared requirements and supplied evidence metadata, not a guarantee of truth.
+
 ## PackSpec configuration choices
 
 Keep your policy **inside the application**, supply it as a **JSON property or mounted file**, or manage versions centrally through **QualityRag Studio**. All approaches use the same evidence evaluator; the Java SDK includes an explicit, fail-closed source selector.
