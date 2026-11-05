@@ -136,6 +136,64 @@
       b.items.forEach((n,i)=>{show(n,seg(t,m[0]+0.3+i*0.6,0.5));n.querySelector('svg').style.opacity=seg(t,m[0]+0.6+i*0.6,0.3);});
       show(b.next,seg(t,m[1],0.7));
     }},
+    // ---- homepage cut ----
+    hook:{build(){
+      const b={};
+      b.h1=el('abs h2','Your RAG found the document.',{left:'110px',top:'230px'});
+      b.h2=el('abs h2','But it missed the condition.',{left:'110px',top:'306px',color:'#F5C46B'});
+      b.doc=el('card passage','<div class="meta">annex-d-187 · eu-control-annex · Appendix D, p. 187</div><div class="text">Restoration <span class="mk">requires compliance sign-off</span> <span class="mk">unless</span> the documented emergency exception applies.</div>',{left:'110px',top:'480px',width:'860px',padding:'28px 32px'});
+      b.doc.querySelector('.text').style.fontSize='32px';
+      b.found=el('abs chip ok','Retrieved',{left:'110px',top:'700px'});
+      b.ans=el('card','<div class="kicker">Answer</div><div class="body" style="color:#EDEFF3;margin-top:10px;font-size:36px">Yes. Restart the gateway.</div>',{left:'1110px',top:'480px',width:'700px',padding:'28px 32px'});
+      b.miss=el('abs chip bad','Sign-off requirement ignored',{left:'1110px',top:'700px'});
+      const s=svgLayer();b.w=wire(s,'M970 560 L1110 560');
+      return b;
+    },draw(b,t,m){
+      show(b.h1,seg(t,m[0],0.5));show(b.doc,seg(t,m[0]+0.3,0.6));show(b.found,seg(t,m[0]+1.0,0.4),0);
+      grow(b.w,seg(t,m[0]+1.2,0.4));show(b.ans,seg(t,m[0]+1.5,0.5));
+      const c=seg(t,m[1],0.5);show(b.h2,c);
+      b.doc.querySelectorAll('.mk').forEach((k,i)=>{const p=seg(t,m[1]+0.4+i*0.5,0.4);k.style.background='rgba(245,166,35,'+(0.30*p)+')';k.style.color=p>0.5?'#FFD58A':'';k.style.borderRadius='5px';k.style.padding='0 4px';});
+      show(b.miss,seg(t,m[1]+1.3,0.4),0);b.ans.style.borderColor=seg(t,m[1]+1.3,0.4)>0.5?'rgba(255,154,154,.7)':'';
+    }},
+
+    versus:{build(){
+      const b={};
+      b.lk=el('abs kicker','Conventional RAG',{left:'110px',top:'290px'});
+      b.l=el('card','<div class="body" style="color:#EDEFF3;font-size:34px">Yes. Restart the gateway once upstream connectivity stabilizes.</div>',{left:'110px',top:'340px',width:'700px',padding:'30px 34px'});
+      b.lc=el('abs chip','Answers anyway',{left:'110px',top:'530px'});
+      b.rk=el('abs kicker','QualityRag',{left:'960px',top:'290px',color:'#57E0CC'});
+      const reqs=[['recovery procedure','Supported','ok'],['EU screening control','Supported · “unless” flagged','warn'],['approval or exception','0 of 1 independent sources','bad']];
+      b.reqs=reqs.map((r,i)=>el('card','<div style="display:flex;justify-content:space-between;align-items:center;gap:20px"><span class="body" style="color:#EDEFF3">'+r[0]+'</span><span class="chip '+r[2]+'" style="font-size:22px;padding:8px 16px">'+r[1]+'</span></div>',{left:'960px',top:(340+i*112)+'px',width:'850px',padding:'22px 28px'}));
+      b.v=el('abs chip warn','Not enough evidence',{left:'960px',top:'710px',fontSize:'34px',padding:'16px 30px'});
+      return b;
+    },draw(b,t,m){
+      show(b.lk,seg(t,m[0],0.4));show(b.l,seg(t,m[0]+0.2,0.5));show(b.lc,seg(t,m[0]+1.0,0.4),0);
+      show(b.rk,seg(t,m[1],0.4));b.reqs.forEach((r,i)=>show(r,seg(t,m[1]+0.4+i*0.5,0.5)));
+      const v=seg(t,m[2]+0.6,0.5);show(b.v,v,0);b.v.style.boxShadow='0 0 0 '+(6*v)+'px rgba(245,166,35,.2)';
+    }},
+
+    why:{build(){
+      const b={};
+      const tiles=[['Independent sources','Copies of one document count once.'],['Freshness','Evidence older than the policy allows is rejected.'],['Conditions','“unless” and “only” are flagged for a person.']];
+      b.t=tiles.map((x,i)=>el('card','<div class="h2" style="font-size:40px">'+x[0]+'</div><div class="body" style="margin-top:14px">'+x[1]+'</div>',{left:(110+i*580)+'px',top:'300px',width:'540px',height:'260px',padding:'34px 36px'}));
+      b.n=el('abs h2','Not the model’s confidence.',{left:'0',width:'1920px',textAlign:'center',top:'680px',color:'#57E0CC'});
+      return b;
+    },draw(b,t,m){
+      b.t.forEach((x,i)=>show(x,seg(t,m[0]+i*1.1,0.5)));show(b.n,seg(t,m[0]+3.6,0.6));
+    }},
+
+    cta:{build(){
+      const b={};
+      b.logo=el('abs',tree(120),{left:'900px',top:'170px'});
+      b.h=el('abs h1','QualityRag',{left:'0',width:'1920px',top:'320px',textAlign:'center'});
+      b.s=el('abs body','Beyond relevant chunks. Toward evidence-governed answers.',{left:'0',width:'1920px',top:'450px',textAlign:'center',fontSize:'38px'});
+      b.gh=el('card','<div class="kicker">Open source</div><div class="mono" style="font-size:30px;margin-top:10px;color:#EDEFF3">github.com/cyrillesaxo/QualityRag</div>',{left:'260px',top:'620px',width:'680px',padding:'28px 34px'});
+      b.pl=el('card','<div class="kicker" style="color:#57E0CC">RAG reliability pilot</div><div class="mono" style="font-size:30px;margin-top:10px;color:#EDEFF3">DODO LLC · dodollc.net</div>',{left:'980px',top:'620px',width:'680px',padding:'28px 34px',borderColor:'rgba(87,224,204,.45)'});
+      return b;
+    },draw(b,t,m){
+      b.logo.querySelector('.draw').style.strokeDashoffset=String(1-ease(t/1.4));
+      show(b.h,seg(t,m[0],0.6));show(b.s,seg(t,m[0]+0.8,0.6));show(b.gh,seg(t,m[1],0.5));show(b.pl,seg(t,m[1]+1.2,0.5));
+    }},
   };
 
   window.render=function(name,t,marks,episode){

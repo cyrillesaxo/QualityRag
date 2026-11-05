@@ -1,0 +1,43 @@
+1
+00:00:00,300 --> 00:00:02,797
+Your RAG found the right document.
+
+2
+00:00:02,997 --> 00:00:05,557
+But it missed the condition that changes the answer.
+
+3
+00:00:06,300 --> 00:00:08,690
+A conventional pipeline answers anyway.
+
+4
+00:00:08,890 --> 00:00:11,600
+QualityRag checks every requirement first.
+
+5
+00:00:11,800 --> 00:00:16,515
+Here, the approval has no independent source, so the answer is not supported.
+
+6
+00:00:17,267 --> 00:00:23,369
+In the console, with every passage retrieved, the answer is supported, and the conditions are flagged.
+
+7
+00:00:23,569 --> 00:00:26,364
+Remove the one memo that covers the exception.
+
+8
+00:00:26,564 --> 00:00:29,082
+Now the result is: not enough evidence.
+
+9
+00:00:30,033 --> 00:00:35,986
+Independent sources, freshness, and conditions decide the result. Not the model's confidence.
+
+10
+00:00:37,133 --> 00:00:41,614
+QualityRag. Beyond relevant chunks, toward evidence-governed answers.
+
+11
+00:00:41,814 --> 00:00:46,508
+It's open source, and DODO LLC runs pilots on your own documents.

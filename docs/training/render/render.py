@@ -63,8 +63,9 @@ def timeline(script, voice_dir, cache):
     gap = voice["sentence_gap"]
     out = []
     for scene in script["scenes"]:
-        lines = scene["say"] if scene["kind"] == "animation" else [s["say"] for s in scene["steps"]]
-        clips = [tts(line, voice, cache, voice_dir) for line in lines]
+        raw = scene["say"] if scene["kind"] == "animation" else [s["say"] for s in scene["steps"]]
+        lines = [r["text"] if isinstance(r, dict) else r for r in raw]  # captions show text, the voice reads speak
+        clips = [tts(r["speak"] if isinstance(r, dict) else r, voice, cache, voice_dir) for r in raw]
         t, marks, cues = scene["pad"][0], [], []
         for line, clip in zip(lines, clips):
             marks.append(t)
@@ -225,6 +226,11 @@ class Console:
             self.click(memo); self.wait(500)
             self.click(p.get_by_role("button", name="Check answer"))
             p.locator(".gov-verdict-word").filter(has_text="Not enough evidence").wait_for(); self.smooth("#gov-test-result", "start")
+        elif name == "untick_memo_in_place":
+            # change the evidence without scrolling away from the result
+            p.evaluate("""()=>{const l=[...document.querySelectorAll('#gov-passages label')].find(x=>x.textContent.includes('memo-exception'));
+              l.querySelector('input').click();[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Check answer').click();}""")
+            p.locator(".gov-verdict-word").filter(has_text="Not enough evidence").wait_for()
         elif name == "point_inconclusive":
             self.callout(".gov-verdict-main", "Not enough evidence", 4200)
         elif name == "hold":
@@ -238,6 +244,8 @@ class Console:
 
     def film(self, item, dest):
         steps = item["scene"]["steps"]
+        for name in item["scene"].get("prep", []):  # off camera
+            self.do(name)
         self.frames = []
         first = self.page.screenshot(type="jpeg", quality=92)
         self.cdp.send("Page.startScreencast", {"format": "jpeg", "quality": 92, "maxWidth": W, "maxHeight": H, "everyNthFrame": 1})
@@ -269,9 +277,11 @@ class Console:
                 nxt = entries[i + 1][0] if i + 1 < len(entries) else item["dur"] + 1
                 f.write(f"file '{name}'\nduration {max(1 / FPS, nxt - t):.4f}\n")
             f.write(f"file '{entries[-1][1]}'\n")
+        z = item["scene"].get("zoom")  # {"x", "y", "w"} in output pixels; height keeps 16:9
+        crop = f"scale={W}:{H}:flags=lanczos,crop={z['w']}:{round(z['w'] * 9 / 16)}:{z['x']}:{z['y']}," if z else ""
         tmp = dest.with_name(dest.stem + ".part.mp4")
         run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listing),
-             "-vf", f"scale={W}:{H}:flags=lanczos,fps={FPS},tpad=stop_mode=clone:stop_duration=5", *X264, "-t", f"{item['dur']:.4f}", str(tmp)])
+             "-vf", crop + f"scale={W}:{H}:flags=lanczos,fps={FPS},tpad=stop_mode=clone:stop_duration=5", *X264, "-t", f"{item['dur']:.4f}", str(tmp)])
         tmp.rename(dest)
         shutil.rmtree(tmpdir)
 
@@ -326,6 +336,8 @@ def main(argv=None):
         browser = pw.chromium.launch(args=["--no-sandbox"])
         anim = browser.new_page(viewport={"width": W, "height": H})
         anim.goto((HERE / "scenes.html").as_uri()); anim.wait_for_timeout(300)
+        if script.get("brand"):
+            anim.evaluate("b=>document.querySelector('.brandmark span').textContent=b", script["brand"])
         if a.stills is not None:
             byid = {i["scene"]["id"]: i for i in items}
             for spec in a.stills:

@@ -13,6 +13,15 @@ This is a short animated course, made for people who are new to QualityRag. No p
 
 The episodes are meant to be watched in order, and each one builds on the one before.
 
+## Homepage cut (48 seconds)
+
+[![QualityRag homepage cut](homepage-45s/poster.jpg)](homepage-45s/qualityrag-homepage-45s.mp4)
+
+This is a short, customer-facing version for a landing page. It opens on the failure: *your RAG found the document, but missed the condition*. It then compares a conventional answer with QualityRag's per-requirement check, and shows the real console zoomed in as the result drops from *supported* to *not enough evidence*. It ends with GitHub and the DODO LLC reliability pilot.
+
+- [With captions](homepage-45s/qualityrag-homepage-45s.mp4): for autoplay-muted embeds.
+- [Without captions](homepage-45s/qualityrag-homepage-45s-nocaptions.mp4): for players that load [VTT](homepage-45s/qualityrag-homepage-45s.vtt) or [SRT](homepage-45s/qualityrag-homepage-45s.srt) captions.
+
 ## Episode 1 · Getting started (about 3 minutes)
 
 [![Episode 1: Getting started](episode-01-getting-started/poster.jpg)](episode-01-getting-started/episode-01-getting-started.mp4)

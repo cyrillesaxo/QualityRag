@@ -1,0 +1,29 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "qualityrag-homepage-45s",
+  "title": "QualityRag · Evidence-governed answers",
+  "brand": "QualityRag",
+  "voice": {"engine": "kokoro-v1.0", "voice": "af_bella", "lang": "en-us", "speed": 1.06, "sentence_gap": 0.35},
+  "scenes": [
+    {"id": "hook", "kind": "animation", "pad": [0.3, 0.6], "say": [
+      "Your RAG found the right document.",
+      "But it missed the condition that changes the answer."]},
+    {"id": "versus", "kind": "animation", "pad": [0.3, 0.6], "say": [
+      "A conventional pipeline answers anyway.",
+      "QualityRag checks every requirement first.",
+      "Here, the approval has no independent source, so the answer is not supported."]},
+    {"id": "proof", "kind": "console", "pad": [0.3, 0.8],
+     "prep": ["signin", "open_ask", "run_check"],
+     "zoom": {"x": 390, "y": 70, "w": 1500},
+     "steps": [
+      {"say": "In the console, with every passage retrieved, the answer is supported, and the conditions are flagged.", "do": "point_headline"},
+      {"say": "Remove the one memo that covers the exception.", "do": "untick_memo_in_place"},
+      {"say": "Now the result is: not enough evidence.", "do": "point_inconclusive"}]},
+    {"id": "why", "kind": "animation", "pad": [0.3, 1.0], "say": [
+      "Independent sources, freshness, and conditions decide the result. Not the model's confidence."]},
+    {"id": "cta", "kind": "animation", "pad": [0.3, 1.4], "say": [
+      "QualityRag. Beyond relevant chunks, toward evidence-governed answers.",
+      {"text": "It's open source, and DODO LLC runs pilots on your own documents.",
+       "speak": "It's open source, and Dodo L L C runs pilots on your own documents."}]}
+  ]
+}
