@@ -799,3 +799,30 @@ rounding errors and large-integer float overflow. See
 `docs/PRESERVATION-OMISSION-AUTHORITY.md` for API migration and receipt boundaries.
 Real independent reviewer authority and domain omission evidence remain required.
 The inventory remains 37 IN_REVIEW, 14 BLOCKED, 0 DONE.
+
+
+## 23. Integrated reviewed activation and complete worked paths
+
+US-006/008/023/045 now have one authenticated `activate-plan` operation connecting
+source/artifact custody, signed release compatibility, checked external PackSpec,
+host-mapped independent contract review, actual bounded interpreter execution,
+canonical finite/unified gating, output audit and independently rechecked original
+fallback. Python, TypeScript and CLI expose the same workflow. Unknown options,
+tenant transplants, stale source/policy, invalid/revoked authority and persisted
+review replay refuse. A canonical exact-runtime failure cannot be overridden by
+a permissive numeric tolerance. Successful execution still does not grant domain
+admission or production release.
+
+`python -m tools.activation_runtime.worked_workflows --out <fresh-directory>`
+produces four distinct domain PackSpecs and twelve complete preserved/refused/
+fallback paths, with full inputs, signed requests, traces and receipts. They are
+explicit authored engineering examples with ephemeral test authorities, not real
+independent clinical/legal evidence. The existing actual audiovisual research
+runner remains separate and retains its negative AV1 comparison.
+
+`python -m tools.activation_runtime.delivery --out <fresh-directory>` produces a
+criterion-level JSON/Markdown packet for all 51 stories and 204 criteria. It
+separates delivered software from pending acceptance and retains each exact
+remaining requirement and runnable evidence path. It does not self-approve a
+criterion. Both commands run in CI and their outputs are uploaded for review.
+API, configuration and examples: `docs/REVIEWED-ACTIVATION-WORKFLOW.md`.

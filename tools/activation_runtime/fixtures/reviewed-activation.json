@@ -1,0 +1,237 @@
+{
+  "action": "REQUIRES_REVIEW",
+  "artifact_sha256": "c7aca6e1b38232ad2645f8e23d0be9cf01d22016e791a0d5ea849f21238309d4",
+  "can_generate": false,
+  "candidate_audit": {
+    "approximated": [],
+    "can_generate": false,
+    "finite_constraint_result": "SAT",
+    "omission_review": null,
+    "omitted": [],
+    "policy_ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+    "preserved": [
+      "actor",
+      "instruction",
+      "quantity",
+      "unit"
+    ],
+    "qualityrag_admission": "INCONCLUSIVE",
+    "residual_required": [],
+    "schema": "qualityrag.omission-audit/v1",
+    "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+    "unknown": [],
+    "violations": []
+  },
+  "canonical_candidate": {
+    "action": "REQUIRES_REVIEW",
+    "artifact_sha256": "c7aca6e1b38232ad2645f8e23d0be9cf01d22016e791a0d5ea849f21238309d4",
+    "can_generate": false,
+    "compatibility": {
+      "manifest": {
+        "artifact_sha256": "c7aca6e1b38232ad2645f8e23d0be9cf01d22016e791a0d5ea849f21238309d4",
+        "dependencies": [],
+        "policy_ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+        "runtime": "flat-json-rename/v1",
+        "schema": "qualityrag.activation-manifest/v1",
+        "sequence": 1,
+        "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "tenant": "research"
+      },
+      "manifest_sha256": "3f23258df39bbdc1a9de30e71877eacd966178da455154879eefcabe9cfd56dc",
+      "resolved_modules": [],
+      "semantic_admission": "INCONCLUSIVE"
+    },
+    "fallback": {
+      "released": false,
+      "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a"
+    },
+    "finite_constraint_result": "SAT",
+    "gate": {
+      "attestation": "MISSING_OR_FAILED_HOST_ATTESTATION",
+      "can_generate": false,
+      "checks_verdict": "INCONCLUSIVE",
+      "coverage": {
+        "declared_nodes": 4,
+        "evidence_nodes": 4,
+        "semantic_nodes": 0
+      },
+      "evidence": {
+        "findings": [
+          {
+            "independent_sources": 0,
+            "reasons": [
+              "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+            ],
+            "requirement_id": "field-instruction",
+            "verdict": "INCONCLUSIVE"
+          },
+          {
+            "independent_sources": 0,
+            "reasons": [
+              "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+            ],
+            "requirement_id": "field-quantity",
+            "verdict": "INCONCLUSIVE"
+          },
+          {
+            "independent_sources": 0,
+            "reasons": [
+              "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+            ],
+            "requirement_id": "field-unit",
+            "verdict": "INCONCLUSIVE"
+          },
+          {
+            "independent_sources": 0,
+            "reasons": [
+              "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+            ],
+            "requirement_id": "field-actor",
+            "verdict": "INCONCLUSIVE"
+          }
+        ],
+        "pack_id": "unified-16f5e8cfdfbaaceb",
+        "pack_version": "1",
+        "schema": "qualityrag.result/v0.1",
+        "verdict": "INCONCLUSIVE"
+      },
+      "ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+      "limitations": "Host attestation is application-supplied; no source completeness or document truth is proven",
+      "schema": "qualityrag.unified-decision/v1",
+      "semantics": {
+        "findings": [],
+        "reason": "NO_SEMANTIC_NODES",
+        "verdict": "NOT_APPLICABLE"
+      },
+      "source_sha256": "16f5e8cfdfbaacebf63109a26db407c6293d0896396cc0549b0607ecb9b95fa8",
+      "verdict": "INCONCLUSIVE"
+    },
+    "limitations": "Finite exact field equivalence only; no signed compatibility, semantic admission or video decoding.",
+    "policy_ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+    "qualityrag_admission": "INCONCLUSIVE",
+    "reason": null,
+    "research_output": {
+      "actor": "learner",
+      "instruction": "The exam asks which action is NOT permitted.",
+      "quantity": 1,
+      "unit": "mg"
+    },
+    "schema": "qualityrag.finite-activation-receipt/v0.1",
+    "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+    "trace": [
+      "COMPATIBILITY_CHECKED",
+      "TRANSITION_EXECUTED",
+      "ALL_SOURCE_FIELDS_VERIFIED"
+    ]
+  },
+  "compatibility": {
+    "manifest": {
+      "artifact_sha256": "c7aca6e1b38232ad2645f8e23d0be9cf01d22016e791a0d5ea849f21238309d4",
+      "dependencies": [],
+      "policy_ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+      "runtime": "flat-json-rename/v1",
+      "schema": "qualityrag.activation-manifest/v1",
+      "sequence": 1,
+      "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+      "tenant": "research"
+    },
+    "manifest_sha256": "3f23258df39bbdc1a9de30e71877eacd966178da455154879eefcabe9cfd56dc",
+    "resolved_modules": [],
+    "semantic_admission": "INCONCLUSIVE"
+  },
+  "contract_sha256": "f6d223af541fb0a3c91f506b277aee435dd301374ce7f92a3c34d17a46e996ef",
+  "evidence_boundary": "Authenticated finite execution; independent domain truth and production release are not established",
+  "execution": {
+    "action": "REQUIRES_REVIEW",
+    "can_generate": false,
+    "checks": [
+      {
+        "approximated": [],
+        "can_generate": false,
+        "finite_constraint_result": "SAT",
+        "omission_review": null,
+        "omitted": [],
+        "policy_ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+        "preserved": [
+          "actor",
+          "instruction",
+          "quantity",
+          "unit"
+        ],
+        "qualityrag_admission": "INCONCLUSIVE",
+        "residual_required": [],
+        "schema": "qualityrag.omission-audit/v1",
+        "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "unknown": [],
+        "violations": []
+      }
+    ],
+    "fallback_used": false,
+    "finite_constraint_result": "SAT",
+    "output": {
+      "actor": "learner",
+      "instruction": "The exam asks which action is NOT permitted.",
+      "quantity": 1,
+      "unit": "mg"
+    },
+    "qualityrag_admission": "INCONCLUSIVE",
+    "trace": [
+      {
+        "after_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "before_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "operator": "PRESERVE",
+        "step": 0
+      },
+      {
+        "after_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "before_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "operator": "TRANSITION",
+        "step": 1
+      },
+      {
+        "after_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "before_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "operator": "ACTIVATE",
+        "step": 2
+      },
+      {
+        "after_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "before_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+        "operator": "VERIFY",
+        "step": 3
+      }
+    ]
+  },
+  "fallback_authority": "DISABLED",
+  "finite_constraint_result": "SAT",
+  "output": {
+    "actor": "learner",
+    "instruction": "The exam asks which action is NOT permitted.",
+    "quantity": 1,
+    "unit": "mg"
+  },
+  "preservation_review": {
+    "can_generate": false,
+    "context": {
+      "contract_sha256": "f6d223af541fb0a3c91f506b277aee435dd301374ce7f92a3c34d17a46e996ef",
+      "policy_ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6",
+      "policy_source_sha256": "16f5e8cfdfbaacebf63109a26db407c6293d0896396cc0549b0607ecb9b95fa8",
+      "purpose": "PRESERVATION_CONTRACT_REVIEW",
+      "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a"
+    },
+    "domain_admission": "INCONCLUSIVE",
+    "review": {
+      "boundary": "Signature authenticates the configured reviewer, not universal semantic truth",
+      "context_sha256": "9493affadd585b8885c2e9f272a122103a071dc95acb986f00a6ae22938386ae",
+      "review": "HOST_AUTHORIZED_APPROVAL",
+      "review_key_id": "example-reviewer",
+      "reviewer": "independent-review-required"
+    },
+    "schema": "qualityrag.reviewed-preservation-binding/v1"
+  },
+  "qualityrag_admission": "INCONCLUSIVE",
+  "schema": "qualityrag.reviewed-activation/v1",
+  "source_sha256": "d9101763440bc4dad24d432102593d9459dcdb16a3335e1064312bd50538355a",
+  "tenant": "research",
+  "policy_ir_sha256": "4ab89de35cf1c7bd8eca67c3fe7a2d35cb97c34d31520c91855dc26842290ba6"
+}

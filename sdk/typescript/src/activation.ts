@@ -1,6 +1,7 @@
 /** Wire SDK for Node 24+. The server remains the canonical decision engine. */
 export type SignedEnvelope={schema:string;canonical:string;key_id:string;payload:Record<string,unknown>;signature:string};
 export type FiniteReceipt={finite_constraint_result:'SAT'|'UNSAT'|'UNKNOWN';qualityrag_admission:'INCONCLUSIVE'|'REFUSE';can_generate:false;trace:string[];[key:string]:unknown};
+export type ReviewedActivationResult={schema:'qualityrag.reviewed-activation/v1';tenant:string;source_sha256:string;artifact_sha256:string;contract_sha256:string;policy_ir_sha256:string;action:'REQUIRES_REVIEW'|'REFUSE'|'FALLBACK';finite_constraint_result:'SAT'|'UNSAT'|'UNKNOWN';output:Record<string,string|number|boolean|null>|null;qualityrag_admission:'INCONCLUSIVE';can_generate:false;execution:Record<string,unknown>;candidate_audit:Record<string,unknown>;preservation_review:Record<string,unknown>;compatibility:Record<string,unknown>;canonical_candidate:FiniteReceipt;fallback_authority:'DISABLED'|'SAME_SIGNED_SOURCE_AND_REVIEWED_CONTRACT';evidence_boundary:string};
 export type ValidationResult={valid:true;semantic_admission:'INCONCLUSIVE'};
 export type FallbackResult={source_sha256:string;base64:string;fallback:'AUTHORIZED_ORIGINAL_BYTES'};
 function base64(bytes:Uint8Array):string {return btoa(Array.from(bytes,value=>String.fromCharCode(value)).join(""));}
@@ -26,7 +27,7 @@ export class ActivationClient {
     this.bearer=base64(new TextEncoder().encode(wireJson(token))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
   }
   async request(route:string,payload:Record<string,unknown>):Promise<any>{
-    if(!['validate','evaluate','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome'].includes(route))throw Error('Unsupported SDK route');
+    if(!['validate','evaluate','activate-plan','fallback','source','status','gardener/state','gardener/proposals','gardener/event','gardener/outcome'].includes(route))throw Error('Unsupported SDK route');
     const response=await fetch(this.baseUrl+'/api/'+route,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+this.bearer},
       body:wireJson(payload),redirect:'error',signal:AbortSignal.timeout(10000)});
@@ -36,6 +37,7 @@ export class ActivationClient {
   }
   validate(schema:string,value:unknown):Promise<ValidationResult>{return this.request('validate',{schema,value});}
   evaluate(input:Record<string,unknown>):Promise<FiniteReceipt>{return this.request('evaluate',input);}
+  activatePlan(input:Record<string,unknown>):Promise<ReviewedActivationResult>{return this.request('activate-plan',input);}
   async trace(input:Record<string,unknown>):Promise<string[]>{return (await this.evaluate(input)).trace;}
   fallback(source_sha256:string):Promise<FallbackResult>{return this.request('fallback',{source_sha256});}
   upload(raw:Uint8Array){return this.request('source',{base64:base64(raw)});}

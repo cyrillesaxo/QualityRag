@@ -49,11 +49,15 @@ jobs:
       - run: python -m unittest discover -s tools/packspec_compiler/tests -p 'test_*.py' -v
       - run: python -m unittest discover -s tools/research_ledger/tests -p 'test_*.py' -v
       - run: python -m tools.activation_runtime.audit
+      - run: python -m tools.activation_runtime.delivery --out /tmp/story-delivery
       - run: python -m tools.activation_runtime.demo --out /tmp/activation-demo
+      - run: python -m tools.activation_runtime.worked_workflows --out /tmp/reviewed-workflows
       - run: python -m tools.activation_runtime.run_research --out /tmp/activation-research
       - uses: actions/upload-artifact@v4
         with:
           name: finite-activation-receipts
           path: |
             /tmp/activation-demo
+            /tmp/reviewed-workflows
+            /tmp/story-delivery
             /tmp/activation-research/receipt.json

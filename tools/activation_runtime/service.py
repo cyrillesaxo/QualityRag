@@ -25,13 +25,14 @@ WEB=Path(__file__).with_name("web")
 
 
 class Application:
-    def __init__(self,root,*,access_keys,release_keys,minimum_sequence=1,clock=None):
+    def __init__(self,root,*,access_keys,release_keys,minimum_sequence=1,clock=None,preservation_authorities=None):
         self.root=Path(root)
         self.root.mkdir(parents=True,exist_ok=True)
         self.access_keys=access_keys;self.release_keys=release_keys
         self.minimum_sequence=minimum_sequence
         self.clock=clock or (lambda:datetime.now(timezone.utc).isoformat())
         self.proposal_cache={}
+        self.preservation_authorities=preservation_authorities or {}
 
     def principal(self,authorization,scope):
         if not isinstance(authorization,str) or not authorization.startswith("Bearer "):
@@ -78,6 +79,23 @@ class Application:
             return activate_signed(raw,body["artifact"],signed_manifest=body["signed_manifest"],
                 trusted_keys=self.release_keys,store=store,tenant=principal.tenant,
                 minimum_sequence=self.minimum_sequence,ir=body["policy_ir"],witnesses=[],as_of=self.clock())
+        if route=="activate-plan":
+            if set(body)!={"source_sha256","artifact","signed_manifest","policy_ir","contract","signed_review","allow_fallback"}:
+                raise ValueError("Unsupported reviewed activation options")
+            authorities=self.preservation_authorities.get(principal.tenant)
+            if not isinstance(authorities,dict):raise PermissionError("Tenant preservation authority unavailable")
+            if not isinstance(body["contract"],dict):raise ValueError("Preservation contract required")
+            author_key=authorities.get("authors",{}).get(body["contract"].get("author"))
+            if author_key is None:raise PermissionError("Host author identity unavailable")
+            from .reviewed_activation import execute
+            from .authority import SQLiteNonceStore
+            directory=self.root/"review-nonces";directory.mkdir(parents=True,exist_ok=True)
+            return execute(store.get(body["source_sha256"]),body["artifact"],store=store,tenant=principal.tenant,
+                signed_manifest=body["signed_manifest"],release_keys=self.release_keys,minimum_sequence=self.minimum_sequence,
+                policy_ir=body["policy_ir"],contract=body["contract"],signed_review=body["signed_review"],
+                reviewer_keys=authorities.get("review",{}),reviewer_subjects=authorities.get("subjects",{}),
+                author_public_key=author_key,nonce_store=SQLiteNonceStore(directory/(principal.tenant+".sqlite")),
+                as_of=self.clock(),allow_fallback=body["allow_fallback"])
         if route=="gardener/event":
             if set(body)!={"event_id","operation","branch","source_sha256","source_ref","statement","parents"}:
                 raise ValueError("Unsupported event options")

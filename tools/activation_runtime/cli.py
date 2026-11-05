@@ -21,6 +21,7 @@ def main(argv=None):
     sub=parser.add_subparsers(dest="command",required=True)
     p=sub.add_parser("validate");p.add_argument("schema");p.add_argument("file")
     p=sub.add_parser("evaluate");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
+    p=sub.add_parser("activate-plan");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("trace");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--request",required=True)
     p=sub.add_parser("fallback");p.add_argument("--endpoint",required=True);p.add_argument("--token",required=True);p.add_argument("--source-sha256",required=True)
     p=sub.add_parser("economics");p.add_argument("--request",required=True)
@@ -31,12 +32,13 @@ def main(argv=None):
     args=parser.parse_args(argv)
     if args.command=="validate":
         validate(args.schema,read(args.file));result={"valid":True,"semantic_admission":"INCONCLUSIVE"}
-    elif args.command in {"evaluate","trace","fallback"}:
+    elif args.command in {"evaluate","activate-plan","trace","fallback"}:
         sdk=str(Path(__file__).resolve().parents[2]/"sdk"/"python")
         if sdk not in sys.path:sys.path.insert(0,sdk)
         from qualityrag_activation import Client
         client=Client(args.endpoint,read(args.token))
         if args.command=="fallback":result=client.fallback(args.source_sha256)
+        elif args.command=="activate-plan":result=client.activate_plan(**read(args.request))
         elif args.command=="trace":result=client.trace(**read(args.request))
         else:result=client.evaluate(**read(args.request))
     elif args.command=="economics":
@@ -55,8 +57,12 @@ def main(argv=None):
         import base64
         config=read(args.keys)
         keys=lambda name:{kid:Ed25519PublicKey.from_public_bytes(base64.b64decode(v,validate=True)) for kid,v in config[name].items()}
+        authorities={}
+        for tenant,row in config.get("preservation",{}).items():
+            decode_keys=lambda values:{kid:Ed25519PublicKey.from_public_bytes(base64.b64decode(value,validate=True)) for kid,value in values.items()}
+            authorities[tenant]={"review":decode_keys(row["review"]),"subjects":row["subjects"],"authors":decode_keys(row["authors"])}
         app=Application(args.root,access_keys=keys("access"),release_keys=keys("release"),
-                        minimum_sequence=config["minimum_sequence"])
+                        minimum_sequence=config["minimum_sequence"],preservation_authorities=authorities)
         from .authority import Principal
         principals=[Principal(row["subject"],row["tenant"],frozenset(row["scopes"])) for row in config.get("proposal_principals",[])]
         stop,thread=app.start_proposal_loop(principals,interval_seconds=config.get("proposal_interval_seconds",60))

@@ -126,3 +126,23 @@ The supplied evidence does not contain a representative independently reviewed
 independent clinical/legal adjudication or canonical FF-RCT reconstruction.
 Those remain explicit acceptance gates. No parent story becomes DONE merely
 because its software is committed or its authored tests pass.
+
+
+## Complete reviewed workflow and story review packet
+
+Run `python -m tools.activation_runtime.worked_workflows --out /tmp/reviewed-workflows`
+for twelve complete success/refusal/fallback examples across four separate domain
+PackSpecs. Inputs, signed requests, actual interpreter traces and receipts are
+saved together. These use authored test authorities, not independent domain review.
+
+The authenticated `/api/activate-plan` endpoint and Python `activate_plan`,
+TypeScript `activatePlan` and CLI `activate-plan` clients support the same reviewed
+finite workflow with host-configured per-tenant author/reviewer authority.
+See [the configuration and integration guide](../../docs/REVIEWED-ACTIVATION-WORKFLOW.md).
+
+Run `python -m tools.activation_runtime.delivery --out /tmp/story-delivery` to
+produce a JSON/Markdown packet listing all 51 stories and 204 exact criteria,
+runnable evidence and each remaining acceptance requirement. It is an audited
+source inventory, not automatic acceptance. Once signed completion receipts are
+present, provide the host's public-key map with `--completion-keys keys.json` and
+its evaluation time with `--as-of <ISO-timestamp>` to verify DONE entries.

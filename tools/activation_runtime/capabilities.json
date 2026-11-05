@@ -77,7 +77,15 @@
       "modules": [
         {
           "path": "tools/activation_runtime/contracts.py",
-          "sha256": "fb62698e40ec12d84044f10d6db6fdd6907ddf92d8235b89b84f6cf5e8b88adb"
+          "sha256": "cc8a51b251d3b8d40f6dd710c0f76a4b863a9113ddda2573a2f28b0cc96a9c6f"
+        },
+        {
+          "path": "tools/activation_runtime/schemas/reviewed-activation.json",
+          "sha256": "c61c306bdf55b473cde049f4899bab17c3e1b1c1cad7b3a00cb1d7cae3edc3fe"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/reviewed-activation.json",
+          "sha256": "782cea1f2d7f6d8a4093fdffef52d18cf158941055e30a50a12c7a4d49f40103"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_contracts.py",
@@ -120,6 +128,10 @@
         {
           "path": "tools/activation_runtime/run_research.py",
           "sha256": "ef516a400343f8de7719cb92a67ff49180f0a2b01088c71c274f6e73592ac6c0"
+        },
+        {
+          "path": "tools/activation_runtime/worked_workflows.py",
+          "sha256": "65d17c58b2781612008cdc70917f3397168b730401856826f9a6687ab00c85ef"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_demo_media.py",
@@ -215,7 +227,7 @@
       "story_id": "US-006",
       "title": "ConstraintIR-to-activation binding",
       "status": "IN_REVIEW",
-      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
       "implementation_commit": null,
@@ -254,9 +266,21 @@
         {
           "path": "tools/activation_runtime/tests/test_omission_authority.py",
           "sha256": "9e364cbf0549176c49b10adc9f1db0415e265c4a90c6bbcf8c0ba26381bbc8f4"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
       "remaining": "Real authorized reviewer signature and qualified source/policy binding.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -307,7 +331,7 @@
       "story_id": "US-008",
       "title": "Omission and residual audit",
       "status": "IN_REVIEW",
-      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
       "implementation_commit": null,
@@ -346,9 +370,21 @@
         {
           "path": "tools/activation_runtime/tests/test_omission_authority.py",
           "sha256": "9e364cbf0549176c49b10adc9f1db0415e265c4a90c6bbcf8c0ba26381bbc8f4"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_omission_authority.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
       "remaining": "Real omission-review evidence before any optional distinction is discarded.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -940,7 +976,7 @@
       "story_id": "US-023",
       "title": "Executable finite ACTIVATE/VERIFY/FALLBACK",
       "status": "IN_REVIEW",
-      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
       "implementation_commit": null,
@@ -971,9 +1007,21 @@
         {
           "path": "tools/activation_runtime/interpreter.py",
           "sha256": "d277ee1388edd50dbb0042da3d57cd30200e62958a96a16a4e98b1e7eca753c6"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py",
+      "test_or_receipt": "tools/activation_runtime/tests/test_preservation.py; tools/activation_runtime/tests/test_reviewed_workflow.py",
       "remaining": "Merged review; the interpreter is finite and deliberately cannot certify domain truth.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -1364,7 +1412,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "bb8bb8d6344db9e93270afc8677e2c7cd8af02d8a5cb349a5fc9b5da35cc7f96"
+          "sha256": "ae2d1f0282477663838a4897de532a97b3f11c6f61480ab27d84a57e7e260d79"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1860,7 +1908,7 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "bb8bb8d6344db9e93270afc8677e2c7cd8af02d8a5cb349a5fc9b5da35cc7f96"
+          "sha256": "ae2d1f0282477663838a4897de532a97b3f11c6f61480ab27d84a57e7e260d79"
         },
         {
           "path": "tools/activation_runtime/tests/test_economic_uncertainty.py",
@@ -1972,7 +2020,7 @@
       "story_id": "US-045",
       "title": "SDK and CLI parity",
       "status": "IN_REVIEW",
-      "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
+      "engineering_status": "INTEGRATED_REVIEWED_FINITE_WORKFLOW",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
       "implementation_commit": null,
@@ -2002,15 +2050,15 @@
       "modules": [
         {
           "path": "tools/activation_runtime/service.py",
-          "sha256": "01fdb9da5d6287258591f744712ff3f3ccd404c2a53535f04d91174e91a650ec"
+          "sha256": "c57882a692ab5e7455d21d16ae5d83ec3aca77e55be1254696d727406590d772"
         },
         {
           "path": "sdk/python/qualityrag_activation/__init__.py",
-          "sha256": "5c70042dfcf0c9c8b6887d618c795f4e15b31a0803bf73171f95cce44c2a50a1"
+          "sha256": "500abf8adec7c7d411d015f84680f9609d04af73bee5873f794fd56745058268"
         },
         {
           "path": "sdk/typescript/src/activation.ts",
-          "sha256": "fbfbe8d052ea170c6b6960a4730ceda8f664e9fc77475c42b854bdba9cbe8125"
+          "sha256": "005f0a39011a2d2b43a8256478d3a02779ada67a8030cedd5d5ff365e443147a"
         },
         {
           "path": "sdk/typescript/src/index.ts",
@@ -2022,14 +2070,26 @@
         },
         {
           "path": "tools/activation_runtime/cli.py",
-          "sha256": "bb8bb8d6344db9e93270afc8677e2c7cd8af02d8a5cb349a5fc9b5da35cc7f96"
+          "sha256": "ae2d1f0282477663838a4897de532a97b3f11c6f61480ab27d84a57e7e260d79"
         },
         {
           "path": "tools/activation_runtime/tests/test_service_sdk.py",
           "sha256": "7199be29ee97f2d8cd60fd7cadbf6c718c1ee5e4941f28717e548f5b5839ee44"
+        },
+        {
+          "path": "tools/activation_runtime/reviewed_activation.py",
+          "sha256": "07e80751e58821d60f527b1f74fdc7f2ee4a929d58224247fd8312cff8a0e4ca"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_reviewed_workflow.py",
+          "sha256": "939dfaa0edb3002e5a8c73730309c53d29afcc270d1deb5dda37f783401da891"
+        },
+        {
+          "path": "docs/REVIEWED-ACTIVATION-WORKFLOW.md",
+          "sha256": "2a2769ba88a35144bdf2ba3b3361089d4d84b84194c348391136877cb4236ad0"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs",
+      "test_or_receipt": "tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py",
       "remaining": "Merged review and release/package acceptance; Python/TypeScript/CLI golden parity covers all four operations and refusal behavior.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
@@ -2111,6 +2171,10 @@
         {
           "path": "tools/activation_runtime/audit.py",
           "sha256": "0d5d25cbe5c6bb93cd4265dd788542539fb06800d4e261fb48aff6ca13690a86"
+        },
+        {
+          "path": "tools/activation_runtime/delivery.py",
+          "sha256": "56b2c54e22ddd6c43431c7c9ae0c30f285cfa3c73f88e0044c04bc3cdd8eb328"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_runtime.py",
@@ -2203,6 +2267,10 @@
         {
           "path": "tools/activation_runtime/run_research.py",
           "sha256": "ef516a400343f8de7719cb92a67ff49180f0a2b01088c71c274f6e73592ac6c0"
+        },
+        {
+          "path": "tools/activation_runtime/worked_workflows.py",
+          "sha256": "65d17c58b2781612008cdc70917f3397168b730401856826f9a6687ab00c85ef"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_scene_codec.py",
