@@ -78,7 +78,12 @@ Expected `connected: true` and `ledger_integrity: CONSISTENT`.
 
 A successful experiment returns `EVALUATED_UNVERIFIED`,
 `ledger_persisted: true`, a `ledger_claim_id`, and
-`qualityrag_admission: INCONCLUSIVE`. If a receipt directory is not configured,
+`qualityrag_admission: INCONCLUSIVE`. The receipt includes two
+distinct SHA-256 values: `receipt_fingerprint` (canonical experiment
+identity, excluding its fingerprint field) and `receipt_file_sha256`
+(the exact SHA-256 of the persisted JSON artifact). The research ledger
+stores the **file hash** as evidence content SHA and separately retains the
+experiment fingerprint in metadata. Neither is a source-truth guarantee. If a receipt directory is not configured,
 the controller may evaluate but reports `ledger_persisted: false`; it never
 pretends that an unpersisted run is recorded.
 
