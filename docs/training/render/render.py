@@ -88,6 +88,35 @@ def level(audio, target_db=-18.0, peak_db=-1.5):
     return audio * gain
 
 
+def mix_score(voice, items, seed=11):
+    """A synthesized, unobtrusive film score: low drone, scene impacts and risers, ducked under the voice."""
+    n, t = len(voice), np.arange(len(voice)) / SR
+    rng = np.random.default_rng(seed)
+    lfo = 0.65 + 0.35 * np.sin(2 * np.pi * 0.05 * t)
+    drone = sum(a * np.sin(2 * np.pi * f * t + p) for f, a, p in
+                [(55, 1.0, 0), (55.3, 0.6, 1), (82.41, 0.55, 2), (110, 0.35, 3), (164.8, 0.18, 4), (220.4, 0.08, 5)]) * lfo
+    noise = rng.standard_normal(n)
+    k = int(SR * 0.004); air = np.convolve(noise, np.ones(k) / k, mode="same") * 0.6
+    music = drone * 0.25 + air * 0.25
+    starts = np.cumsum([0] + [i["dur"] for i in items[:-1]])
+    for s in starts[1:]:
+        i0 = int(s * SR); L = int(SR * 1.6); tt = np.arange(L) / SR
+        boom = np.sin(2 * np.pi * (35 * tt + 30 * (1 - np.exp(-tt * 4)) / 4)) * np.exp(-tt * 2.6)
+        music[i0:i0 + L] += 0.9 * boom[:max(0, min(L, n - i0))]
+        R = int(SR * 1.4); j0 = max(0, i0 - R)
+        env = np.linspace(0, 1, i0 - j0) ** 2
+        hiss = np.diff(rng.standard_normal(i0 - j0 + 1))
+        music[j0:i0] += 0.10 * env * hiss
+    fade = np.minimum(1, np.minimum(t / 2.5, (t[-1] - t) / 3.0))
+    music *= fade
+    e = np.abs(voice); a = int(SR * 0.25)
+    env = np.convolve(e, np.ones(a) / a, mode="same"); env /= max(env.max(), 1e-9)
+    music *= 1 - 0.55 * np.clip(env * 3, 0, 1)
+    music *= 10 ** (-28 / 20) / max(float(np.sqrt(np.mean(music ** 2))), 1e-9)
+    out = voice + music
+    return out * min(1.0, 10 ** (-1.0 / 20) / max(float(np.abs(out).max()), 1e-9))
+
+
 def write_wav(path, audio):
     pcm = (np.clip(audio, -1, 1) * 32767).astype(np.int16)
     with wave.open(str(path), "wb") as w:
@@ -114,7 +143,7 @@ def animation_scene(page, item, dest, episode):
 
     def frames():
         for i in range(n):
-            page.evaluate("([n,t,m,e])=>render(n,t,m,e)", [name, i / FPS, item["marks"], episode])
+            page.evaluate("([n,t,m,e,d])=>render(n,t,m,e,d)", [name, i / FPS, item["marks"], episode, item["dur"]])
             yield page.screenshot(type="jpeg", quality=92)
     encode_frames(frames(), item["dur"], dest)
 
@@ -250,6 +279,21 @@ class Console:
         else:
             raise KeyError(name)
 
+    cine = False
+
+    def overlay(self, item):
+        """Film overlay for console shots in cinematic episodes: letterbox, HUD labels and fades."""
+        if not self.cine:
+            return ""
+        font = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+        tf = item["scene"].get("tf", ["", ""])
+        lab = lambda txt, x, y: (f",drawtext=fontfile={font}:text='{txt}':fontcolor=0x57E0CC@0.78:fontsize=17:x={x}:y={y}")
+        d = item["dur"]
+        return ("," + "drawbox=x=0:y=0:w=iw:h=96:color=black:t=fill,drawbox=x=0:y=ih-96:w=iw:h=96:color=black:t=fill"
+                + lab("QUALITYRAG // EVIDENCE ENGINE", 96, 38) + lab(f"TF {tf[0]} · {tf[1].upper()}", "w-tw-96", 38)
+                + lab("● LIVE CONSOLE", "w-tw-96", "h-58")
+                + f",fade=t=in:st=0:d=0.35,fade=t=out:st={max(0, d - 0.35):.3f}:d=0.35")
+
     def film(self, item, dest):
         steps = item["scene"]["steps"]
         for name in item["scene"].get("prep", []):  # off camera
@@ -289,7 +333,7 @@ class Console:
         crop = f"scale={W}:{H}:flags=lanczos,crop={z['w']}:{round(z['w'] * 9 / 16)}:{z['x']}:{z['y']}," if z else ""
         tmp = dest.with_name(dest.stem + ".part.mp4")
         run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listing),
-             "-vf", crop + f"scale={W}:{H}:flags=lanczos,fps={FPS},tpad=stop_mode=clone:stop_duration=5", *X264, "-t", f"{item['dur']:.4f}", str(tmp)])
+             "-vf", crop + f"scale={W}:{H}:flags=lanczos,fps={FPS},tpad=stop_mode=clone:stop_duration=5" + self.overlay(item), *X264, "-t", f"{item['dur']:.4f}", str(tmp)])
         tmp.rename(dest)
         shutil.rmtree(tmpdir)
 
@@ -344,13 +388,15 @@ def main(argv=None):
         browser = pw.chromium.launch(args=["--no-sandbox"])
         anim = browser.new_page(viewport={"width": W, "height": H})
         anim.goto((HERE / "scenes.html").as_uri()); anim.wait_for_timeout(300)
+        if script.get("theme") == "cine":
+            anim.evaluate("()=>document.getElementById('stage').classList.add('cine')")
         if script.get("brand"):
             anim.evaluate("b=>document.querySelector('.brandmark span').textContent=b", script["brand"])
         if a.stills is not None:
             byid = {i["scene"]["id"]: i for i in items}
             for spec in a.stills:
                 name, t = spec.split(":"); it = byid[name]
-                anim.evaluate("([n,t,m,e])=>render(n,t,m,e)", [name, float(t), it["marks"], episode_label])
+                anim.evaluate("([n,t,m,e,d])=>render(n,t,m,e,d)", [name, float(t), it["marks"], episode_label, it["dur"]])
                 anim.screenshot(path=str(out / f"still-{name}-{t}.png")); print("  still", name, t)
             browser.close(); return
         console = None
@@ -364,6 +410,7 @@ def main(argv=None):
                 else:
                     if console is None:
                         console = Console(browser, out)
+                        console.cine = script.get("theme") == "cine"
                     console.film(it, dest)
                 print("  rendered", sid)
         finally:
@@ -375,7 +422,10 @@ def main(argv=None):
         for it in items:
             f.write(f"file 'scene-{it['scene']['id']}.mp4'\n")
     run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(out / "scenes.txt"), "-c", "copy", str(out / "video.mp4")])
-    write_wav(out / "narration.wav", level(np.concatenate([i["audio"] for i in items])))
+    voice_track = level(np.concatenate([i["audio"] for i in items]))
+    if script.get("score"):
+        voice_track = mix_score(voice_track, items)
+    write_wav(out / "narration.wav", voice_track)
     run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(out / "video.mp4"), "-i", str(out / "narration.wav"), "-map", "0:v", "-map", "1:a",
          "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", str(out / f"{stem}-nocaptions.mp4")])
     captions(items, out, stem)

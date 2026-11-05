@@ -196,10 +196,14 @@
     }},
   };
 
-  window.render=function(name,t,marks,episode){
+  // Shared with additional scene packs (cine.js) loaded after this file.
+  window.QR={root,el,show,seg,ease,clamp,svgLayer,wire,grow,tree,CHECK,scenes};
+
+  window.render=function(name,t,marks,episode,dur){
     if(episode)document.getElementById('epmark').textContent=episode;
     if(!built||built.name!==name){root.replaceChildren();built={name,b:scenes[name].build()};}
     scenes[name].draw(built.b,t,marks);
+    if(window.QR.after)window.QR.after(name,t,marks,dur);
     return true;
   };
   window.sceneNames=Object.keys(scenes);

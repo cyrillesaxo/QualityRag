@@ -1,0 +1,123 @@
+1
+00:00:00,800 --> 00:00:02,742
+Eighty-five thousand documents.
+
+2
+00:00:03,092 --> 00:00:04,202
+One question.
+
+3
+00:00:04,552 --> 00:00:06,921
+And an answer that sounds completely certain.
+
+4
+00:00:08,267 --> 00:00:09,974
+Meet the deceptive witness.
+
+5
+00:00:10,324 --> 00:00:12,991
+Evidence that looks like support, but isn't.
+
+6
+00:00:13,341 --> 00:00:17,395
+Two citations agree, until you trace them back to one original.
+
+7
+00:00:17,745 --> 00:00:22,567
+An incident report describes the past. It does not authorize the present.
+
+8
+00:00:22,917 --> 00:00:28,166
+And a runbook from twenty twenty-four still speaks with a confidence it no longer has.
+
+9
+00:00:29,700 --> 00:00:31,983
+QualityRag answers with a contract.
+
+10
+00:00:32,333 --> 00:00:41,017
+A PackSpec declares what any answer must prove: each requirement, how many independent sources, and how fresh they must be.
+
+11
+00:00:41,367 --> 00:00:45,549
+It is versioned, and the same contract runs in ten languages.
+
+12
+00:00:45,899 --> 00:00:49,654
+No language model decides whether the evidence is enough.
+
+13
+00:00:51,200 --> 00:00:53,718
+Every check ends in one of three verdicts.
+
+14
+00:00:54,068 --> 00:00:54,858
+Admit.
+
+15
+00:00:55,208 --> 00:00:56,339
+Inconclusive.
+
+16
+00:00:56,689 --> 00:00:57,629
+Refuse.
+
+17
+00:00:57,979 --> 00:01:02,374
+When proof is missing, the answer is withheld, and the gap is named.
+
+18
+00:01:02,724 --> 00:01:07,311
+And admit means the declared checks passed. Not that the source is true.
+
+19
+00:01:08,767 --> 00:01:13,418
+This is not a mockup. It is the live engine, checking a real policy.
+
+20
+00:01:13,768 --> 00:01:16,649
+Remove one memo, and the verdict changes.
+
+21
+00:01:16,999 --> 00:01:19,517
+Not enough evidence. The gap is named.
+
+22
+00:01:20,867 --> 00:01:24,451
+But a contract is only as good as the knowledge behind it.
+
+23
+00:01:24,801 --> 00:01:29,858
+So QualityRag grows a Semantic Garden: an append-only research tree.
+
+24
+00:01:30,208 --> 00:01:35,094
+People and AI agents propose, challenge, test, and synthesize.
+
+25
+00:01:35,444 --> 00:01:37,066
+Nothing is ever deleted.
+
+26
+00:01:37,416 --> 00:01:41,214
+A pruned branch can be reopened, when new evidence arrives.
+
+27
+00:01:42,967 --> 00:01:48,919
+Candidates compete with the champion on fresh, held-out families, under the same PackSpec.
+
+28
+00:01:49,269 --> 00:01:54,411
+The winner is promoted. The other is kept, because a counterexample is knowledge.
+
+29
+00:01:54,761 --> 00:02:01,311
+That is the loop: find failure, investigate, propose, test, retain, and promote, or reopen.
+
+30
+00:02:03,767 --> 00:02:05,431
+Evidence before answers.
+
+31
+00:02:05,781 --> 00:02:09,387
+QualityRag. Start with the Academy, or read the code.
