@@ -27,7 +27,7 @@ class GardenInvestigationTests(unittest.TestCase):
                                    workload, trials=2)
         self.assertEqual(result["status"], "CANDIDATES_EVALUATED")
         self.assertEqual(result["experiment"]["evaluated_operator"]["predicate_path"], PATH)
-        self.assertEqual(len(result["experiment"]["results"]), 3)
+        self.assertEqual(len(result["experiment"]["results"]), 6)
         self.assertFalse(result["promotion_authorized"])
         self.assertEqual(result["qualityrag_admission"], "INCONCLUSIVE")
 
