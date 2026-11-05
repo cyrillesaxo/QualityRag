@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Codec grammar research experiment receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "study",
+    "evidence_status",
+    "input_sha256",
+    "grammar_version",
+    "baseline",
+    "candidate",
+    "preservation",
+    "result"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "qualityrag.codec-grammar-receipt/v0.1"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "study": {
+      "enum": [
+        "PH01",
+        "PH02",
+        "transfer",
+        "ablation",
+        "real-video",
+        "independent-replication"
+      ]
+    },
+    "evidence_status": {
+      "enum": [
+        "historical-reported",
+        "primary-record",
+        "independently-reproduced"
+      ]
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "input_id": {
+      "type": "string"
+    },
+    "input_license": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "split": {
+      "enum": [
+        "development",
+        "validation",
+        "sealed-holdout",
+        "real-video"
+      ]
+    },
+    "grammar_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "grammar_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "candidate_ast_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "seed": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "search_budget": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "baseline": {
+      "$ref": "#/$defs/arm"
+    },
+    "candidate": {
+      "$ref": "#/$defs/arm"
+    },
+    "preservation": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "gate_decision"
+      ],
+      "properties": {
+        "contract_id": {
+          "type": "string"
+        },
+        "gate_decision": {
+          "enum": [
+            "ADMIT",
+            "REFUSE",
+            "INCONCLUSIVE"
+          ]
+        },
+        "decoder_pass": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "details": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "result": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "win_definition"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "win",
+            "loss",
+            "tie",
+            "fallback",
+            "error",
+            "inconclusive"
+          ]
+        },
+        "win_definition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "paired_difference": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "failure_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "environment": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "source_receipt_url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "recorded_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "reviewer": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "$defs": {
+    "arm": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "output_bytes",
+        "encode_ms",
+        "decode_ms"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "command": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "binary_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "output_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "encode_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "decode_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "decoder_install_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "quality_metrics": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "errors": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
