@@ -1,6 +1,6 @@
 # Joint grammar + activation scan and first repair (research v0.1)
 
-**Scope:** QualityRag \`tools/semantic_store\`. This is a bounded integration
+**Scope:** QualityRag `tools/semantic_store`. This is a bounded integration
 slice for the Semantic Garden's co-evolution hypothesis, **not** the finished
 autonomous Garden, an FF-RCT implementation, or an authorized PackSpec gate.
 
@@ -8,21 +8,21 @@ autonomous Garden, an FF-RCT implementation, or an authorized PackSpec gate.
 
 | Area | Verified existing implementation | Gap | This change |
 | --- | --- | --- | --- |
-| Typed grammar | \`rct_synthesis.py\`, \`rct_typed_grammar.py\` | Candidate grammar and activation optimized independently | Compare grammar/activation pairs |
+| Typed grammar | `rct_synthesis.py`, `rct_typed_grammar.py` | Candidate grammar and activation optimized independently | Compare grammar/activation pairs |
 | Activation | Purpose lenses and precomputed indexes | No explicit selectable activation regime or source-bound activation signals | LAZY, EAGER_WORKLOAD, EAGER_ALL with source-version signals |
-| Fidelity | \`rct_reference_frame.py\` | Optimization benchmarks did not jointly verify reconstruction with each activation policy | Exact canonical reconstruction in both phases |
-| Cross-regime evaluation | \`rct_lifecycle.py\` | No paired 2D grammar × activation cost matrix | Six paired candidate strategies |
+| Fidelity | `rct_reference_frame.py` | Optimization benchmarks did not jointly verify reconstruction with each activation policy | Exact canonical reconstruction in both phases |
+| Cross-regime evaluation | `rct_lifecycle.py` | No paired 2D grammar × activation cost matrix | Six paired candidate strategies |
 | Verification | Existing finite graph checks | Risk of checking only activated positive examples | Independent SQL comparison over all feasible subjects |
 | Update lifecycle | One-source-mutation tests | Potential to reuse stale caches or active indexes after revisions | Rebuild per source SHA and verify changed answer digest |
-| Research selection | Candidate and lifecycle comparisons | Risk of promoting a single noisy winner | Pareto research candidates only; champion remains \`null\` |
-| Assurance | Experimental custody, PackSpec, D15, native APX adapters | No full authenticated or canonical FF-RCT co-evolution gate | Remains explicitly \`INCONCLUSIVE\` |
+| Research selection | Candidate and lifecycle comparisons | Risk of promoting a single noisy winner | Pareto research candidates only; champion remains `null` |
+| Assurance | Experimental custody, PackSpec, D15, native APX adapters | No full authenticated or canonical FF-RCT co-evolution gate | Remains explicitly `INCONCLUSIVE` |
 
 ## Operation
 
-\`evaluate_joint_search(training, source, updated_source, workload, trials=3)\`
+`evaluate_joint_search(training, source, updated_source, workload, trials=3)`
 
 1. Compile the bounded predicate pair from **separate training data** using
-   the already existing \`propose_compositions\`.
+   the already existing `propose_compositions`.
 2. Compare direct fact grammar and a preprogrammed two-hop composed grammar.
 3. Compare lazy activation, eagerly activated workload subjects, and global
    eager activation for each grammar.
@@ -41,11 +41,11 @@ those irrelevant to the activated query.
 
 ### Reproduce
 
-\`\`\`bash
+```bash
 python -m unittest discover -s tools/semantic_store/tests -p 'test_rct_joint_optimizer.py' -v
-\`\`\`
+```
 
-The existing \`apx-semantic-store.yml\` PR workflow also runs all Semantic Store
+The existing `apx-semantic-store.yml` PR workflow also runs all Semantic Store
 tests, compilation and the native transport/fail-closed regressions.
 
 ## Scientific limits (material)
@@ -54,7 +54,7 @@ tests, compilation and the native transport/fail-closed regressions.
   not autonomously invent any new operator here.
 - The three activation policies are static and the query signals are supplied.
   No learned activation policy or self-directed experiment loop yet.
-- \`rct_reference_frame.py\` is a zlib-based reversible **reference codec**,
+- `rct_reference_frame.py` is a zlib-based reversible **reference codec**,
   **not native FF-RCT**; source fidelity alone does not establish
   preservation of purpose-relative semantics.
 - The comparison is Python candidate implementations against an independent
@@ -66,7 +66,7 @@ tests, compilation and the native transport/fail-closed regressions.
   custody, document truth, policy authority or epistemic channel independence.
 - No canonical authenticated k/b/c/τ, FF-RCT, FFI, HCR/RCOC, WBC, D15, CUS,
   TERM, or QualityRag PackSpec admission is attached. All candidates remain
-  \`INCONCLUSIVE\` and \`can_generate=false\`.
+  `INCONCLUSIVE` and `can_generate=false`.
 - Timing noise, synthetic data and small samples prohibit general claims of
   superiority. Compare negative controls and realistic workloads before
   considering a learned or promoted policy.
@@ -89,9 +89,9 @@ tests, compilation and the native transport/fail-closed regressions.
 
 ## Running the executable comparison
 
-\`\`\`bash
+```bash
 python tools/semantic_store/rct_joint_demo.py --trials 3 --output /tmp/joint-search-receipt.json
-\`\`\`
+```
 
 The demonstration constructs separate training/source snapshots, mutates an
 original relation, verifies full source reconstruction on both versions,
@@ -100,11 +100,11 @@ costs and a Pareto set. It uses synthetic, deliberately small graphs.
 
 ## Research memory integration (existing ledger)
 
-\`rct_joint_ledger.append_joint_research(db, receipt, evidence_uri=..., actor=...)\`
+`rct_joint_ledger.append_joint_research(db, receipt, evidence_uri=..., actor=...)`
 stores the receipt's experiment assertion and hash in
-\`tools/research_ledger/ledger.py\` using its existing append-only claim,
+`tools/research_ledger/ledger.py` using its existing append-only claim,
 measurement and assessment primitives. It refuses altered fingerprints,
-missing/incomplete candidates or any attempt to replace \`INCONCLUSIVE\`
+missing/incomplete candidates or any attempt to replace `INCONCLUSIVE`
 with an admission. These events do not promote production policies.
 
 The adapter currently calls several existing ledger write functions
