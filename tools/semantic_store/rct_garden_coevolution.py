@@ -25,6 +25,7 @@ MAX_SUBJECTS = 120
 MAX_PROPOSALS = 24
 MAX_PATH_LENGTH = 4
 ACTIVATIONS = ("ON_DEMAND", "FREQUENCY_AWARE", "ALL")
+GRAMMARS = ("DIRECT_TRAVERSAL", "MATERIALIZED_COMPOSITION")
 REGIME = "FINITE_TYPED_GRAPH_ONLY"
 
 
@@ -149,7 +150,7 @@ def _activation_proposals(workload, valid_subjects):
     ]
 
 
-def _phase(source, path, workload, activation):
+def _phase(source, path, workload, activation, grammar):
     facts = _facts(source)
     all_subjects = sorted(set(f["subject"] for f in facts) | set(f["object"] for f in facts))
     if len(all_subjects) > MAX_SUBJECTS:
@@ -165,30 +166,46 @@ def _phase(source, path, workload, activation):
     oracle_ns = perf_counter_ns() - start
     start = perf_counter_ns()
     adjacency = _outgoing(facts)
+    if grammar == "DIRECT_TRAVERSAL":
+        representation = adjacency
+        def lookup(subject):
+            return _execute_path(representation, path, subject)
+    elif grammar == "MATERIALIZED_COMPOSITION":
+        representation = {subject: _execute_path(adjacency, path, subject)
+                          for subject in all_subjects}
+        def lookup(subject):
+            return representation.get(subject, ())
+    else:
+        raise ValueError("Unknown representation grammar")
     build_ns = perf_counter_ns() - start
     cache = {}
     start = perf_counter_ns()
     for subject in activation["prefetch_subjects"]:
-        cache[subject] = _execute_path(adjacency, path, subject)
+        cache[subject] = lookup(subject)
     activation_ns = perf_counter_ns() - start
     start = perf_counter_ns()
     produced = {}
     for subject in workload["subjects"]:
         if subject not in cache:
-            cache[subject] = _execute_path(adjacency, path, subject)
+            cache[subject] = lookup(subject)
         produced[subject] = cache[subject]
     lookup_ns = perf_counter_ns() - start
     start = perf_counter_ns()
     mismatches = [
         subject for subject in all_subjects
-        if _execute_path(adjacency, path, subject) != gold[subject]
+        if lookup(subject) != gold[subject]
     ]
     verifier_ns = perf_counter_ns() - start
     if mismatches or any(produced[s] != gold[s] for s in produced):
         raise ValueError("Finite source/target relation mismatch")
+    active_representation = (
+        {k: [[x["id"], x["predicate"], x["object"]] for x in edges]
+         for k, edges in sorted(representation.items())}
+        if grammar == "DIRECT_TRAVERSAL"
+        else {k: list(v) for k, v in sorted(representation.items())}
+    )
     active_bytes = len(canonical_bytes({
-        "adjacency": {k: [[x["id"], x["predicate"], x["object"]] for x in edges]
-                      for k, edges in sorted(adjacency.items())},
+        "grammar": grammar, "representation": active_representation,
         "cache": cache,
     }))
     return {
@@ -260,29 +277,31 @@ def run_research_cycle(training, source, revised_source, workload, *,
         raise ValueError("Too many evaluation subjects")
     activation_options = _activation_proposals(workload, all_subjects)
     results = []
-    for activation in activation_options:
-        measurements = []
-        for _ in range(trials):
-            before = _phase(source, desired, workload, activation)
-            after = _phase(revised_source, desired, workload, activation)
-            measurements.append({
-                "before": before, "after": after,
-                "total_ns": before["total_ns"] + after["total_ns"],
-                "peak_serialized_bytes": max(before["serialized_bytes"],
-                                             after["serialized_bytes"]),
+    for grammar in GRAMMARS:
+        for activation in activation_options:
+            measurements = []
+            for _ in range(trials):
+                before = _phase(source, desired, workload, activation, grammar)
+                after = _phase(revised_source, desired, workload, activation, grammar)
+                measurements.append({
+                    "before": before, "after": after,
+                    "total_ns": before["total_ns"] + after["total_ns"],
+                    "peak_serialized_bytes": max(before["serialized_bytes"],
+                                                 after["serialized_bytes"]),
+                })
+            results.append({
+                "operator_fingerprint": candidate["fingerprint"],
+                "operator_predicate_path": desired,
+                "grammar": grammar,
+                "activation": activation,
+                "median_total_ns": median(x["total_ns"] for x in measurements),
+                "median_peak_serialized_bytes": median(x["peak_serialized_bytes"]
+                                                        for x in measurements),
+                "measurements": measurements,
+                "status": "EXPERIMENTAL_CANDIDATE",
+                "qualityrag_admission": "INCONCLUSIVE",
+                "promotion_authorized": False,
             })
-        results.append({
-            "operator_fingerprint": candidate["fingerprint"],
-            "operator_predicate_path": desired,
-            "activation": activation,
-            "median_total_ns": median(x["total_ns"] for x in measurements),
-            "median_peak_serialized_bytes": median(x["peak_serialized_bytes"]
-                                                    for x in measurements),
-            "measurements": measurements,
-            "status": "EXPERIMENTAL_CANDIDATE",
-            "qualityrag_admission": "INCONCLUSIVE",
-            "promotion_authorized": False,
-        })
     nondominated = []
     for i, result in enumerate(results):
         if not any(
