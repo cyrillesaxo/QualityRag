@@ -421,7 +421,7 @@
     {
       "story_id": "US-007",
       "title": "WitnessGraph and evidence independence",
-      "status": "BLOCKED",
+      "status": "IN_REVIEW",
       "engineering_status": "IMPLEMENTED_RESEARCH_REFERENCE",
       "branch": "docs/activation-research-fr-v01",
       "base_commit": "c7fa4325c4a23486cecf7968f25c0c5ff54e8906",
@@ -456,11 +456,39 @@
         },
         {
           "path": "tools/activation_runtime/witness_graph.py",
-          "sha256": "97e060bfc2992d950fc196f6d76735431f2740caf89a76bde43d54abca95bd02"
+          "sha256": "40bb27022b9c90edbc208736a0a16315ec59615c2075865a6b7f9e7fab884f28"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness.py",
+          "sha256": "c61a6fd19c417b9be2be4a0b96c21c0bf0959549e3e8e50542241f78f06a1fa9"
+        },
+        {
+          "path": "tools/activation_runtime/native_witness_runner.mjs",
+          "sha256": "f7c5f12b6cebefc042825c2991852d16d848e258302f334b5035c3e00a62d945"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/packages/apx-evidence/src/index.ts",
+          "sha256": "49c690848c4dcb1022f815d5deb258ddd074317eb0cc3cebde40a99d069199ee"
+        },
+        {
+          "path": "tools/activation_runtime/vendor/apx/PROVENANCE.json",
+          "sha256": "07ac56e008ae8e1c71043f048452810fe3919d6057e5c1bdecd86a6a7a9764d3"
+        },
+        {
+          "path": "tools/activation_runtime/fixtures/canonical-witness-graph.json",
+          "sha256": "7814b546ef2791f01ab8f9eaad4d332470c801dd3a2df761ef5345313aa9b1a6"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_native_witness.py",
+          "sha256": "6d68d5b454c81ea6a58f1ed7ec771e20f5399c86cf9dbc754d097431b83ff781"
+        },
+        {
+          "path": "docs/CANONICAL-WITNESS-GRAPH.md",
+          "sha256": "74a489d1312aa201fb147cac95851fd0cf40bed9b755b926d8e3cf77ddd6ae8e"
         }
       ],
-      "test_or_receipt": "tools/activation_runtime/tests/test_witness_graph.py; tools/activation_runtime/tests/test_native_apx.py",
-      "remaining": "Independent real-source ancestry/custody evidence; origin labels alone are insufficient.",
+      "test_or_receipt": "tools/activation_runtime/tests/test_witness_graph.py; tools/activation_runtime/tests/test_native_apx.py; tools/activation_runtime/tests/test_native_witness.py",
+      "remaining": "Canonical grouping and custody-root adapter implemented; commit-bound CI verification pending. Source authenticity and real-world independence are not established.",
       "completion_envelope": null,
       "independent_validation": "NOT_ESTABLISHED"
     },

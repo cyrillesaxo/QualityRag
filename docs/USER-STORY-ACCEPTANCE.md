@@ -9,10 +9,10 @@ evidence; independent review, real measurements and external sources are not inf
 | US-001 — Source and capability inventory | COMPLETE_VERIFIED_SOFTWARE_CRITERIA | DONE | No remaining US-001 software criterion. Independent domain validation is not established or claimed. |
 | US-002 — Versioned schema catalog | COMPLETE_VERIFIED_SOFTWARE_CRITERIA | DONE | No remaining US-002 software criterion. Independent domain validation is not established or claimed. |
 | US-003 — Independently replayable research harness | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent replay on the pinned reference environment. |
-| US-004 — Risk, prior art and novelty register | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent novelty assessment; no priority or superiority claim is made. |
+| US-004 — Risk, prior art and novelty register | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established. |
 | US-005 — Purpose-scoped information obligations | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Domain-owner review of purpose and preservation obligations. |
 | US-006 — ConstraintIR-to-activation binding | INTEGRATED_REVIEWED_FINITE_WORKFLOW | IN_REVIEW | Real authorized reviewer signature and qualified source/policy binding. |
-| US-007 — WitnessGraph and evidence independence | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Independent real-source ancestry/custody evidence; origin labels alone are insufficient. |
+| US-007 — WitnessGraph and evidence independence | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Canonical grouping and custody-root adapter implemented; commit-bound CI verification pending. Source authenticity and real-world independence are not established. |
 | US-008 — Omission and residual audit | INTEGRATED_REVIEWED_FINITE_WORKFLOW | IN_REVIEW | Real omission-review evidence before any optional distinction is discarded. |
 | US-009 — Domain preservation profiles | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Independent domain reviewers and scored adversarial clinical/legal/video cases. |
 | US-010 — RCT typed grammar integration | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Merged review and remote CI. |
@@ -38,12 +38,12 @@ evidence; independent review, real measurements and external sources are not inf
 | US-030 — Shared grammar video encoder prototype | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Research review of the actual palette/residual reference; this is not learned semantic understanding or FF-RCT. |
 | US-031 — Frame/semantic/exact fidelity evaluation | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Blinded independent text/identity/audio/timing assessments on a representative real corpus. |
 | US-032 — Model amortization and catalog economics | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Measured full lifecycle inputs and uncertainty by real catalog/viewer/device cohort. |
-| US-033 — Streaming segment delivery and seek | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Network/device startup, buffering and seek measurements against conventional playback. |
+| US-033 — Streaming segment delivery and seek | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established. |
 | US-034 — Append-only conversation tree | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Merged review and independent restart/custody replay. |
 | US-035 — Dialectical operations and reversible pruning | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Merged review and independently observed research-continuity behavior. |
 | US-036 — Evidence-state separation and Research Ledger link | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Real independently authorized scope-bounded validation/evidence and deployment review; SQLite and PostgreSQL signed validation are implemented. |
 | US-037 — Gardener proposal loop and review UI | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Real user feedback and calibrated utility/false-merge measurements; recorded metrics are reviewer-reported. |
-| US-038 — Isolated agent experiment harness | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim. |
+| US-038 — Isolated agent experiment harness | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established. |
 | US-039 — Dedicated agent roles | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Merged review of six distinct role contracts and disagreement/escalation behavior. |
 | US-040 — Adversarial evolution and held-out gates | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independently adjudicated family-hidden real cases; authored finite false-accept counts do not generalize. |
 | US-041 — Co-evolving encoder/decoder candidates | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Representative hidden corpus and qualified learned/conventional baselines including all search/training costs. |
@@ -55,7 +55,7 @@ evidence; independent review, real measurements and external sources are not inf
 | US-047 — Independent acceptance ledger | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Passing commit-bound CI, merged review and real signed per-story completion receipts. |
 | US-048 — Pre-registered controlled experiments | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Actual final protocol registration bound to a real corpus/sample plan before opening its holdout. |
 | US-049 — Four worked real-world demonstrations | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Real independently reviewed clinical/nursing/legal inputs; current examples are clearly authored fixtures plus actual encoded video. |
-| US-050 — Peer-review package and reproducible figures | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Independent peer review; no validated compression improvement is claimed. |
+| US-050 — Peer-review package and reproducible figures | IMPLEMENTED_RESEARCH_REFERENCE | IN_REVIEW | Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established. |
 | US-051 — Release readiness and pilot stop conditions | IMPLEMENTED_RESEARCH_REFERENCE | BLOCKED | Independent security/privacy/licensing/fidelity review, supported devices and measured pilot economics. |
 
 ## US-001 — Source and capability inventory
@@ -82,7 +82,7 @@ Remaining: No remaining US-002 software criterion. Independent domain validation
 
 ## US-003 — Independently replayable research harness
 
-Runnable evidence: tools/activation_runtime/tests/test_demo_media.py
+Runnable evidence: tools/activation_runtime/tests/test_run_research.py; tools/activation_runtime/tests/test_demo_media.py
 
 1. Pinned tool/runtime versions and fixed fixtures. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Command emits source/policy/grammar digests, exact arguments, stdout and machine-readable result. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
@@ -93,14 +93,14 @@ Remaining: Independent replay on the pinned reference environment.
 
 ## US-004 — Risk, prior art and novelty register
 
-Runnable evidence: tools/activation_runtime/research/paper/report.md
+Runnable evidence: tools/activation_runtime/tests/test_research_package.py
 
 1. Each claimed novelty links to a falsifiable comparator. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Prior-art citations have dates/versions. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 3. No generic “first” or “better compression” claim without experiment. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 4. Negative results are retained. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 
-Remaining: Independent novelty assessment; no priority or superiority claim is made.
+Remaining: Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established.
 
 ## US-005 — Purpose-scoped information obligations
 
@@ -126,14 +126,14 @@ Remaining: Real authorized reviewer signature and qualified source/policy bindin
 
 ## US-007 — WitnessGraph and evidence independence
 
-Runnable evidence: tools/activation_runtime/tests/test_native_apx.py
+Runnable evidence: tools/activation_runtime/tests/test_witness_graph.py; tools/activation_runtime/tests/test_native_apx.py; tools/activation_runtime/tests/test_native_witness.py
 
 1. Witness derivation graph records source roots and custody. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Shared roots collapse under independence calculation. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 3. Contradictory, stale or missing witnesses cannot satisfy exact-information preservation. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 4. Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 
-Remaining: Independent real-source ancestry/custody evidence; origin labels alone are insufficient.
+Remaining: Canonical grouping and custody-root adapter implemented; commit-bound CI verification pending. Source authenticity and real-world independence are not established.
 
 ## US-008 — Omission and residual audit
 
@@ -412,18 +412,18 @@ Remaining: Measured full lifecycle inputs and uncertainty by real catalog/viewer
 
 ## US-033 — Streaming segment delivery and seek
 
-Runnable evidence: tools/activation_runtime/tests/test_streaming.py; tools/activation_runtime/tests/test_streaming_boundaries.py
+Runnable evidence: tools/activation_runtime/tests/test_streaming.py; tools/activation_runtime/tests/test_streaming_boundaries.py; tools/activation_runtime/tests/test_playback_benchmark.py
 
 1. Segment index supports seek, pause/resume and bitrate changes. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Scene state dependencies are explicit. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 3. Missing module/segment falls back without silent frame corruption. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 4. Measure startup latency, buffering and seek times against AV1 baseline. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 
-Remaining: Network/device startup, buffering and seek measurements against conventional playback.
+Remaining: Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.
 
 ## US-034 — Append-only conversation tree
 
-Runnable evidence: tools/activation_runtime/tests/test_runtime.py
+Runnable evidence: tools/activation_runtime/tests/test_runtime.py; tools/activation_runtime/tests/test_garden_query.py
 
 1. Stores source turn ID/hash, actor and timestamp. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Branches can fork/rejoin without cycles. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
@@ -456,7 +456,7 @@ Remaining: Real independently authorized scope-bounded validation/evidence and d
 
 ## US-037 — Gardener proposal loop and review UI
 
-Runnable evidence: tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py
+Runnable evidence: tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_garden_web.py
 
 1. Bounded scheduled job operates only on authorized sources. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Produces candidate events with source anchors, confidence/calibration and suggested cost. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
@@ -467,14 +467,14 @@ Remaining: Real user feedback and calibrated utility/false-merge measurements; r
 
 ## US-038 — Isolated agent experiment harness
 
-Runnable evidence: tools/activation_runtime/tests/test_agents.py
+Runnable evidence: tools/activation_runtime/tests/test_agents.py; tools/activation_runtime/tests/test_agent_pins.py
 
 1. Candidate agents run with scoped CPU/token/time and tool permissions. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Every proposal includes parent grammar hash, patches and rationale. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 3. Restricted execution sandbox prevents arbitrary host changes. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 4. Evaluation always runs on pinned code/datasets. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 
-Remaining: Supported-host security review. The implemented backend is deterministic typed search, not an LLM novelty claim.
+Remaining: Software criteria implemented; commit-bound CI verification pending. Independent domain validation and production/device/network performance are not established.
 
 ## US-039 — Dedicated agent roles
 
@@ -544,7 +544,7 @@ Remaining: Real release/reviewer trust maps, durable deployment and independent 
 
 ## US-045 — SDK and CLI parity
 
-Runnable evidence: tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py
+Runnable evidence: tools/activation_runtime/tests/test_service_sdk.py; sdk/typescript/test/activation.test.mjs; tools/activation_runtime/tests/test_reviewed_workflow.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_gardener_agents.py
 
 1. JSON/typed interfaces support validation, evaluate, trace and fallback. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. Golden fixtures produce identical finite verdicts across languages. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
@@ -599,14 +599,14 @@ Remaining: Real independently reviewed clinical/nursing/legal inputs; current ex
 
 ## US-050 — Peer-review package and reproducible figures
 
-Runnable evidence: tools/activation_runtime/research/paper/report.pdf
+Runnable evidence: tools/activation_runtime/tests/test_research_package.py
 
 1. Paper includes exact existing grammar syntax, genuine PackSpec excerpts, versioned experimental proposals, and limitations. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 2. All figures regenerated by committed scripts from receipts. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 3. Repository and PDFs contain a traceability matrix from each research claim to an experiment. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 4. No “validated compression improvement” in abstract until independently established. — PENDING_INDEPENDENT_COMPLETION_RECEIPT
 
-Remaining: Independent peer review; no validated compression improvement is claimed.
+Remaining: Written documentation criteria verified locally; commit-bound CI pending. Positive novelty, compression superiority and independent peer review are not established.
 
 ## US-051 — Release readiness and pilot stop conditions
 

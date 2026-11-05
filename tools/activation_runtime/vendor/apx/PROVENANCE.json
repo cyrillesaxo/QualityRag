@@ -6,6 +6,7 @@
   "sha256": {
     "packages/apx-wbc/src/index.ts": "d25ab8317bfd37407fa68a711985e567317faf89f97fd3aadc65d2cd26217898",
     "packages/apx-rcoc/src/index.ts": "33bf9a1ffe7e18ac28e859de514bf1a3beb8e39f9c4014c6764cd32d224f110a",
-    "packages/apx-rcoc/src/canonical-taxonomy.ts": "315588fd9efaf20b8021e7ca4da19066bfd86c3d22b82a40f088f0e5908eee97"
+    "packages/apx-rcoc/src/canonical-taxonomy.ts": "315588fd9efaf20b8021e7ca4da19066bfd86c3d22b82a40f088f0e5908eee97",
+    "packages/apx-evidence/src/index.ts": "49c690848c4dcb1022f815d5deb258ddd074317eb0cc3cebde40a99d069199ee"
   }
 }

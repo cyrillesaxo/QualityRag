@@ -181,12 +181,14 @@
       },
       {
         "n": 4,
-        "kind": "EXTERNAL_INPUT",
-        "status": "NEEDS_INPUT",
+        "kind": "SOFTWARE",
+        "status": "TESTED",
         "evidence": [
-          "test_native_apx.test_canonical_wbc_reduction_and_negative_input"
+          "test_native_witness.test_original_apx_matches_pinned_golden_groups",
+          "test_native_witness.test_discrepancy_blocks_root_assessment_and_gate_projection",
+          "test_native_witness.test_missing_or_changed_canonical_source_never_falls_back"
         ],
-        "note": "The vendored APX source has WBC/RCOC but no WitnessGraph package; canonical golden fixtures need the private source."
+        "note": "Original APX evidence module found at the already pinned commit, vendored unmodified, executed through Node, and checked against declared custody-root components. Discrepancy or missing/modified source refuses use. Declared-key grouping is not source authentication."
       }
     ],
     "US-008": [

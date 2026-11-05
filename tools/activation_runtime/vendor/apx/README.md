@@ -1,6 +1,6 @@
 # Pinned original APX source subset
 
-These three unmodified source files come from cyrillesaxo/apx at commit
+These four unmodified source files (WBC, RCoC and WitnessGraph evidence) come from cyrillesaxo/apx at commit
 9a4f8a3e4a3fe77d576369217525e54d0162b8b0 under Apache-2.0 (see LICENSE).
 Original author/research lineage: Cyrille Eloundou / APX. No NOTICE file exists
 at that upstream revision. PROVENANCE.json records the exact source digests.

@@ -12,11 +12,12 @@ class NativeAPXMissingTests(unittest.TestCase):
         import json
         import shutil
         from tools.activation_runtime.native_apx import SOURCES, COMMIT
+        from tools.activation_runtime.native_witness import SOURCE, SHA256
         vendor = Path(__file__).resolve().parents[1] / "vendor" / "apx"
         provenance = json.loads((vendor / "PROVENANCE.json").read_text())
         self.assertEqual(provenance["commit"], COMMIT)
-        self.assertEqual(provenance["sha256"], SOURCES)
-        for path, expected in SOURCES.items():
+        self.assertEqual(provenance["sha256"], {**SOURCES,SOURCE:SHA256})
+        for path, expected in provenance["sha256"].items():
             self.assertEqual(hashlib.sha256((vendor / path).read_bytes()).hexdigest(), expected)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "apx"

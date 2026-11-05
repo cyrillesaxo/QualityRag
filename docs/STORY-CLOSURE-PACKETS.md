@@ -4,25 +4,25 @@
 
 What each open FR.MD story still needs, judged criterion by criterion against its *written* acceptance criteria (`tools/activation_runtime/criteria_map.json`). This page changes no status.
 
-Inventory: 14 BLOCKED, 2 DONE, 35 IN_REVIEW. Open: 49, with 196 criteria.
+Inventory: 13 BLOCKED, 2 DONE, 36 IN_REVIEW. Open: 49, with 196 criteria.
 
 | Category | Stories |
 |---|---|
 | Software work remaining (0) | — |
 | A written criterion requires human review (4) | US-009, US-031, US-046, US-051 |
-| Needs external input (11) | US-007, US-021, US-022, US-025, US-027, US-028, US-029, US-041, US-047, US-048, US-049 |
+| Needs external input (10) | US-021, US-022, US-025, US-027, US-028, US-029, US-041, US-047, US-048, US-049 |
 | Document check only (0) | — |
-| Written software criteria met (34) | US-003, US-004, US-005, US-006, US-008, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-023, US-024, US-026, US-030, US-032, US-033, US-034, US-035, US-036, US-037, US-038, US-039, US-040, US-042, US-043, US-044, US-045, US-050 |
+| Written software criteria met (35) | US-003, US-004, US-005, US-006, US-007, US-008, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-023, US-024, US-026, US-030, US-032, US-033, US-034, US-035, US-036, US-037, US-038, US-039, US-040, US-042, US-043, US-044, US-045, US-050 |
 
 Criteria by kind and status:
 
 | Kind | GAP | IMPLEMENTED | NEEDS_INPUT | PARTIAL | TESTED |
 |---|---|---|---|---|---|
 | DOCUMENT | 0 | 0 | 0 | 0 | 8 |
-| EXTERNAL_INPUT | 0 | 0 | 18 | 3 | 0 |
+| EXTERNAL_INPUT | 0 | 0 | 17 | 3 | 0 |
 | HUMAN_REVIEW | 0 | 0 | 5 | 0 | 0 |
 | MERGE | 0 | 0 | 1 | 0 | 0 |
-| SOFTWARE | 0 | 5 | 0 | 0 | 156 |
+| SOFTWARE | 0 | 5 | 0 | 0 | 157 |
 
 ## Signing
 
@@ -114,19 +114,6 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 
 1. Supply the input named in the table (licensed data, device, private source or merge).
 2. Run the existing harness on it; keep raw outputs and negative results.
-
-### US-007 · WitnessGraph and evidence independence (BLOCKED)
-
-| # | Criterion | Kind | Status | Evidence / note |
-|---|---|---|---|---|
-| 1 | Witness derivation graph records source roots and custody. | SOFTWARE | TESTED | `test_witness_graph.test_roots_and_custody_are_recorded_through_derivation`; witness_graph.py records source roots and custodians through derivations. |
-| 2 | Shared roots collapse under independence calculation. | SOFTWARE | TESTED | `test_witness_graph.test_shared_roots_collapse`, `test_witness_graph.test_merged_derivation_joins_groups_transitively`, `test_witness_graph.test_gate_counts_a_mirror_once`; No root-collapsing independence calculation. |
-| 3 | Contradictory, stale or missing witnesses cannot satisfy exact-information preservation. | SOFTWARE | TESTED | `test_witness_graph.test_contradicting_stale_unknown_or_missing_cannot_satisfy` |
-| 4 | Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed. | EXTERNAL_INPUT | NEEDS_INPUT | `test_native_apx.test_canonical_wbc_reduction_and_negative_input`; The vendored APX source has WBC/RCOC but no WitnessGraph package; canonical golden fixtures need the private source. |
-
-- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_witness_graph.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_native_apx.py'`
-- **Inventory blocking text:** Independent real-source ancestry/custody evidence; origin labels alone are insufficient.
-- **Notes:** Witness derivation graph with root collapse added in this branch; canonical APX WitnessGraph golden fixtures are still not available here.
 
 ### US-021 · FF-RCT native-regime integration (BLOCKED)
 
@@ -309,6 +296,20 @@ Residual risk: someone holding a *retired* key could still sign a receipt dated 
 - **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_preservation.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_omission_authority.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_reviewed_workflow.py'`
 - **Inventory blocking text:** Real authorized reviewer signature and qualified source/policy binding.
 - **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+
+### US-007 · WitnessGraph and evidence independence (IN_REVIEW)
+
+| # | Criterion | Kind | Status | Evidence / note |
+|---|---|---|---|---|
+| 1 | Witness derivation graph records source roots and custody. | SOFTWARE | TESTED | `test_witness_graph.test_roots_and_custody_are_recorded_through_derivation`; witness_graph.py records source roots and custodians through derivations. |
+| 2 | Shared roots collapse under independence calculation. | SOFTWARE | TESTED | `test_witness_graph.test_shared_roots_collapse`, `test_witness_graph.test_merged_derivation_joins_groups_transitively`, `test_witness_graph.test_gate_counts_a_mirror_once`; No root-collapsing independence calculation. |
+| 3 | Contradictory, stale or missing witnesses cannot satisfy exact-information preservation. | SOFTWARE | TESTED | `test_witness_graph.test_contradicting_stale_unknown_or_missing_cannot_satisfy` |
+| 4 | Canonical APX WitnessGraph behavior is used or tested against golden fixtures; discrepancies fail closed. | SOFTWARE | TESTED | `test_native_witness.test_original_apx_matches_pinned_golden_groups`, `test_native_witness.test_discrepancy_blocks_root_assessment_and_gate_projection`, `test_native_witness.test_missing_or_changed_canonical_source_never_falls_back`; Original APX evidence module found at the already pinned commit, vendored unmodified, executed through Node, and checked against declared custody-root components. Discrepancy or missing/modified source refuses use. Declared-key grouping is not source authentication. |
+
+- **Exercise the software:** `python -m unittest discover -s tools/activation_runtime/tests -p 'test_witness_graph.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_native_apx.py' && python -m unittest discover -s tools/activation_runtime/tests -p 'test_native_witness.py'`
+- **Inventory blocking text:** Canonical grouping and custody-root adapter implemented; commit-bound CI verification pending. Source authenticity and real-world independence are not established.
+- **Note:** every written criterion is met; anything above that asks for more goes beyond the criteria.
+- **Notes:** Witness derivation graph with root collapse added in this branch; canonical APX WitnessGraph golden fixtures are still not available here.
 
 ### US-008 · Omission and residual audit (IN_REVIEW)
 

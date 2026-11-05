@@ -9,7 +9,8 @@ so a mirror of a document can never corroborate the document.
 Exact-information preservation is satisfied only by enough root-independent,
 fresh, supporting witnesses; any contradicting witness refuses it, and stale,
 unknown or missing witnesses leave it UNKNOWN. This is a finite structural check;
-it does not authenticate sources (canonical APX WitnessGraph parity is not claimed).
+it does not authenticate sources. Original APX grouping verifies the declared root
+groups; a discrepancy or unavailable canonical runtime refuses independence.
 """
 from __future__ import annotations
 
@@ -110,7 +111,20 @@ def independent_groups(graph: dict, witness_ids: list[str]) -> list[list[str]]:
     groups: dict[str, list[str]] = {}
     for wid in witness_ids:
         groups.setdefault(find(wid), []).append(wid)
-    return sorted(sorted(g) for g in groups.values())
+    local=sorted(sorted(g) for g in groups.values())
+    if not local:return []
+    from .native_witness import build as canonical_graph
+    projected=[];expected=[]
+    for group in local:
+        key=fingerprint(sorted({r for wid in group for r in graph["roots"][wid]}))
+        projected.extend({"id":wid,"independence_key":key} for wid in group)
+        if len(group)>1:expected.append({"key":key,"witness_ids":group,"independence_credit":"withheld"})
+    native=canonical_graph(projected)
+    if native!={"nodes":projected,"dependentGroups":sorted(expected,key=lambda row:row["key"])}:
+        raise ValueError("Canonical WitnessGraph discrepancy; independence refused")
+    native_groups=[row["witness_ids"] for row in native["dependentGroups"]]
+    grouped={wid for group in native_groups for wid in group}
+    return sorted(native_groups+[[row["id"]] for row in projected if row["id"] not in grouped])
 
 
 def assess_exact(graph: dict, obligation: str, *, as_of: str, max_age_seconds: int | None,

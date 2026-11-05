@@ -9,7 +9,11 @@
 
 ## Current acceptance snapshot
 
-**2 DONE · 35 IN_REVIEW · 14 BLOCKED · 49 open.** US-001 source inventory
+**Formal ledger: 2 DONE · 36 IN_REVIEW · 13 BLOCKED.** These are acceptance
+states, not counts of unimplemented stories. See the [software and documentation
+verification](docs/SOFTWARE-VERIFICATION.md) for tested delivery coverage.
+US-007 is no longer externally blocked: the pinned original APX WitnessGraph
+module is integrated and differences fail closed. US-001 source inventory
 and US-002 versioned schema catalog are complete against their stated software
 criteria, pinned to implementation commit
 `a924177641957092f08507e6fc33d303dc42555c` and passing

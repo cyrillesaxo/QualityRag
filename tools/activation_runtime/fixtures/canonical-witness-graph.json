@@ -1,0 +1,44 @@
+{
+  "source_commit": "9a4f8a3e4a3fe77d576369217525e54d0162b8b0",
+  "source_sha256": "49c690848c4dcb1022f815d5deb258ddd074317eb0cc3cebde40a99d069199ee",
+  "input": [
+    {
+      "id": "mirror",
+      "independence_key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "label",
+      "independence_key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "other",
+      "independence_key": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "expected": {
+    "nodes": [
+      {
+        "id": "mirror",
+        "independence_key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "id": "label",
+        "independence_key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "id": "other",
+        "independence_key": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "dependentGroups": [
+      {
+        "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "witness_ids": [
+          "label",
+          "mirror"
+        ],
+        "independence_credit": "withheld"
+      }
+    ]
+  }
+}
