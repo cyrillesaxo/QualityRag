@@ -1,217 +1,219 @@
 {
   "schema": "qualityrag.software-verification-report/v1",
   "scope": "SOFTWARE_ACCEPTANCE_EVIDENCE_ONLY",
-  "tested_commit": "d78d9fb0f5e9c30077928cdddff08cd00fa4a1e7",
+  "tested_commit": "3484f2575deda90b9d9a591b480332cee67456d9",
   "ci": {
-    "commit": "d78d9fb0f5e9c30077928cdddff08cd00fa4a1e7",
+    "commit": "3484f2575deda90b9d9a591b480332cee67456d9",
+    "activation_run_id": 42030159671,
+    "attempt": 2,
+    "job_id": 127256549730,
     "runs": [
       {
-        "id": 42028099049,
-        "name": "PackSpec source selection",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028099049"
-      },
-      {
-        "id": 42028098895,
+        "id": 42030167354,
         "name": "APX PackSpec-derived examples",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028098895"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167354"
       },
       {
-        "id": 42028098889,
-        "name": "Source PackSpec compiler",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028098889"
-      },
-      {
-        "id": 42028099016,
-        "name": "Real document ingestion lab",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028099016"
-      },
-      {
-        "id": 42028098907,
+        "id": 42030167604,
         "name": "Enterprise RAG training example",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028098907"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167604"
       },
       {
-        "id": 42028098942,
+        "id": 42030167600,
+        "name": "Real document ingestion lab",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167600"
+      },
+      {
+        "id": 42030167577,
         "name": "APX Semantic Store Prototype",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028098942"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167577"
       },
       {
-        "id": 42028099200,
-        "name": "Additional SDKs",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028099200"
-      },
-      {
-        "id": 42028098868,
-        "name": "Studio and Registry",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028098868"
-      },
-      {
-        "id": 42028098901,
-        "name": "SDK CI",
-        "event": "pull_request",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028098901"
-      },
-      {
-        "id": 42028099030,
+        "id": 42030167356,
         "name": "Spring Boot integration",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028099030"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167356"
       },
       {
-        "id": 42028098949,
-        "name": "Kotlin PHP Ruby Swift",
+        "id": 42030167439,
+        "name": "SDK CI",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028098949"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167439"
       },
       {
-        "id": 42028099053,
+        "id": 42030167389,
+        "name": "Source PackSpec compiler",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167389"
+      },
+      {
+        "id": 42030167507,
+        "name": "PackSpec source selection",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167507"
+      },
+      {
+        "id": 42030167602,
+        "name": "Additional SDKs",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167602"
+      },
+      {
+        "id": 42030167699,
+        "name": "Studio and Registry",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167699"
+      },
+      {
+        "id": 42030167347,
         "name": "Activation runtime research",
         "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028099053"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167347"
       },
       {
-        "id": 42028090968,
-        "name": "PackSpec source selection",
+        "id": 42030167607,
+        "name": "Kotlin PHP Ruby Swift",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030167607"
+      },
+      {
+        "id": 42030160038,
+        "name": "Studio and Registry",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028090968"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030160038"
       },
       {
-        "id": 42028091611,
-        "name": "APX PackSpec-derived examples",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091611"
-      },
-      {
-        "id": 42028091230,
-        "name": "SDK CI",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091230"
-      },
-      {
-        "id": 42028091057,
+        "id": 42030159830,
         "name": "Enterprise RAG training example",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091057"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159830"
       },
       {
-        "id": 42028091153,
+        "id": 42030159776,
         "name": "Source PackSpec compiler",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091153"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159776"
       },
       {
-        "id": 42028091042,
-        "name": "Real document ingestion lab",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091042"
-      },
-      {
-        "id": 42028091288,
-        "name": "Studio and Registry",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091288"
-      },
-      {
-        "id": 42028091199,
-        "name": "Additional SDKs",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091199"
-      },
-      {
-        "id": 42028091103,
-        "name": "Kotlin PHP Ruby Swift",
-        "event": "push",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091103"
-      },
-      {
-        "id": 42028091104,
+        "id": 42030159914,
         "name": "Spring Boot integration",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091104"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159914"
       },
       {
-        "id": 42028091319,
+        "id": 42030159768,
+        "name": "APX PackSpec-derived examples",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159768"
+      },
+      {
+        "id": 42030159669,
+        "name": "SDK CI",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159669"
+      },
+      {
+        "id": 42030159602,
+        "name": "Real document ingestion lab",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159602"
+      },
+      {
+        "id": 42030159580,
+        "name": "PackSpec source selection",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159580"
+      },
+      {
+        "id": 42030159634,
+        "name": "Additional SDKs",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159634"
+      },
+      {
+        "id": 42030159861,
+        "name": "Kotlin PHP Ruby Swift",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159861"
+      },
+      {
+        "id": 42030159671,
         "name": "Activation runtime research",
         "event": "push",
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42028091319"
+        "url": "https://github.com/cyrillesaxo/QualityRag/actions/runs/42030159671"
       }
     ],
-    "activation_run_id": 42028091319,
-    "job_id": 127247261253,
     "tests": {
-      "runtime": 316,
+      "runtime": 322,
       "typescript": 24,
       "finite_activation": 10,
       "compiler": 40,
       "ledger": 15,
-      "total": 405,
+      "total": 411,
       "skipped": 0
-    }
+    },
+    "retry_reason": "First push attempt timed out downloading Ubuntu media packages before test execution; identical commit passed on retry."
   },
   "input_sha256": {
-    "criteria_map.json": "73bb9a465647cfb25b84aa4c51dc7538bbff245cff1976169775eb83f83ecf58",
-    "capabilities.json": "09b05986b31e681f4e6d0a40a409024a7136fb403106b9124c0417e2f792f183"
+    "criteria_map.json": "65e1a4dcb7e285108501a48c0f1eed4a65071285f019e714c0b108a0db171c05",
+    "capabilities.json": "829a92265b27897cf4f846b476a6d7c98ae475ce9d3c8bf081773173e2ecf8e0"
   },
   "summary": {
     "candidates": 32,
-    "verified_software_stories": 30,
-    "incomplete_candidates": 2,
+    "verified_software_stories": 32,
+    "incomplete_candidates": 0,
     "previously_formally_accepted": 2,
-    "not_yet_verified_or_awaiting_other_requirements": 19
+    "not_yet_verified_or_awaiting_other_requirements": 17
   },
   "limitations": [
     "Not independent domain/scientific validation.",
@@ -219,6 +221,14 @@
     "Does not mark story status DONE or assert a merge.",
     "TESTED cites exercised behavior; no inference from a test name alone."
   ],
+  "previous_verification": {
+    "tested_commit": "d78d9fb0f5e9c30077928cdddff08cd00fa4a1e7",
+    "passed": 30,
+    "incomplete": [
+      "US-033",
+      "US-038"
+    ]
+  },
   "stories": [
     {
       "story_id": "US-003",
@@ -1298,7 +1308,7 @@
         },
         {
           "path": "tools/activation_runtime/agents.py",
-          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
         },
         {
           "path": "tools/activation_runtime/cli.py",
@@ -1313,7 +1323,7 @@
     {
       "story_id": "US-033",
       "title": "Streaming segment delivery and seek",
-      "result": "INCOMPLETE",
+      "result": "PASS",
       "criteria": [
         {
           "number": 1,
@@ -1345,9 +1355,12 @@
         {
           "number": 4,
           "text": "Measure startup latency, buffering and seek times against AV1 baseline.",
-          "result": "NOT_VERIFIED",
-          "evidence": [],
-          "note": "Verification found startup/seek timings only. benchmark_seek explicitly returns network_buffering=UNMEASURED; full criterion is not met."
+          "result": "PASS",
+          "evidence": [
+            "test_playback_benchmark.test_actual_av1_and_signed_stream_startup_buffer_and_seek_measurements",
+            "test_playback_benchmark.test_observed_late_frame_produces_real_rebuffer_wait"
+          ],
+          "note": "Actual local bounded playback measures startup, queue-empty stalls and seeks for both signed reference segments and AV1. WAN and physical-device performance remain unmeasured."
         }
       ],
       "implementation_files": [
@@ -1362,6 +1375,18 @@
         {
           "path": "tools/activation_runtime/tests/test_streaming_boundaries.py",
           "sha256": "bd6ad59579dba6f150d387ada2c79ef5fe75c87e1e9c82ed15a19e0604629cc3"
+        },
+        {
+          "path": "tools/activation_runtime/playback_benchmark.py",
+          "sha256": "c3486594a52412b680d397644deb0f1bcec2b5be291ccfe41e2ee719354b50ae"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_playback_benchmark.py",
+          "sha256": "efe57e54c27471df48d0bc9812b9432f51e598302aeb737744531d180eeb07de"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
         }
       ]
     },
@@ -1620,7 +1645,7 @@
     {
       "story_id": "US-038",
       "title": "Isolated agent experiment harness",
-      "result": "INCOMPLETE",
+      "result": "PASS",
       "criteria": [
         {
           "number": 1,
@@ -1634,11 +1659,11 @@
         {
           "number": 2,
           "text": "Every proposal includes parent grammar hash, patches and rationale.",
-          "result": "NOT_VERIFIED",
+          "result": "PASS",
           "evidence": [
-            "test_criterion_behaviors.test_proposal_binds_parent_patch_and_rationale"
+            "test_agent_pins.test_every_role_has_patches_rationale_and_exact_evaluation_pin"
           ],
-          "note": "The cited check proves parent hash, patches and rationale for grammar-compiler only. Other role proposals do not uniformly carry patches; every-proposal criterion is not yet established."
+          "note": "All six roles return an explicit patch list, parent grammar hash and rationale; non-editing proposals use an empty list."
         },
         {
           "number": 3,
@@ -1652,15 +1677,62 @@
         {
           "number": 4,
           "text": "Evaluation always runs on pinned code/datasets.",
-          "result": "NOT_VERIFIED",
-          "evidence": [],
-          "note": "Worker requests bind parent grammar and task, but neither worker nor evaluation currently enforces a pinned evaluator-code identity and dataset manifest. Passing CI is not that runtime binding."
+          "result": "PASS",
+          "evidence": [
+            "test_agent_pins.test_worker_rejects_changed_dataset_and_each_stale_code_pin",
+            "test_agent_pins.test_pin_records_actual_source_bytes_and_exact_task_dataset"
+          ],
+          "note": "Worker recomputes code/schema/runtime and exact finite task-dataset pins before sandbox execution; parent verifies returned pin. This is not external corpus validation."
         }
       ],
       "implementation_files": [
         {
           "path": "tools/activation_runtime/agents.py",
-          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
+        },
+        {
+          "path": "tools/activation_runtime/agent_worker.py",
+          "sha256": "2ff684923759b205d9e6d57ed4ba377f1809e3344dc965312c8b655e59eb3b46"
+        },
+        {
+          "path": "tools/activation_runtime/process_sandbox.py",
+          "sha256": "a8f33009665288ed0615a4fe44b43d32c93b52db8037bf0cfe445adf4c0cebc4"
+        },
+        {
+          "path": "tools/activation_runtime/common.py",
+          "sha256": "a7e3a17d891a66d570647bee6f3b52784aebb5087e2b8d4f394cb8c560de758c"
+        },
+        {
+          "path": "tools/activation_runtime/tests/test_agent_pins.py",
+          "sha256": "c911635e768492efa0a3e6409e540c691a22353ebde10ffc97112897f2f17fe4"
+        },
+        {
+          "path": "docs/SOFTWARE-GAP-CLOSURE.md",
+          "sha256": "782ba8fc61790d434fa2072ac38f5bfa10be796803dda908d224cb63e611b477"
+        },
+        {
+          "path": "tools/activation_runtime/roles/activation-optimizer.json",
+          "sha256": "05c74cd86643c2a671dee57be4c23c4984a6192f75bce4d530d270c8cef64323"
+        },
+        {
+          "path": "tools/activation_runtime/roles/counterexample.json",
+          "sha256": "fb6b751329e1beee2da7d152b8ed9abb59dffde22f5bb6d5b7cab1ad1847a3f8"
+        },
+        {
+          "path": "tools/activation_runtime/roles/decomposition.json",
+          "sha256": "d5caecd43278a0e1547de53bcac73e1468a816b4dccbe3e76784c320c7840a2a"
+        },
+        {
+          "path": "tools/activation_runtime/roles/ffrct-economist.json",
+          "sha256": "80c125145158d7b7f4ef5d6ed5002dbe0c8960ad95fd16eab1500c5f1373fdad"
+        },
+        {
+          "path": "tools/activation_runtime/roles/grammar-compiler.json",
+          "sha256": "36398089ed9b0ab025235f88bb21a8374acf97061cd046b707cf69dfbcfef43d"
+        },
+        {
+          "path": "tools/activation_runtime/roles/packspec-guardian.json",
+          "sha256": "ffbeb2bf2fe40d83684e8db10b623c2997c608607140bc9be903b02efbeb6d49"
         }
       ]
     },
@@ -1836,7 +1908,7 @@
         },
         {
           "path": "tools/activation_runtime/agents.py",
-          "sha256": "da8d6e8b49139718e3286dd24da7a39720c234e2ce77f3c756d28a91501d610c"
+          "sha256": "985c3732b7bd937f6b7d7a4f69473f26048bc9b6c17e720706a2e5fca49cc8f0"
         },
         {
           "path": "tools/activation_runtime/cli.py",
