@@ -1903,7 +1903,7 @@
         },
         {
           "path": "tools/activation_runtime/evolution.py",
-          "sha256": "d927b6d6e647f481fe3ed08b7a3d84b891d1cbc48f2a18a6a3b84f6e22305a0f"
+          "sha256": "9528e36436c9e3b041c863f1f3f1e8a78f83d2ca41c424d9dda25425670a0ec9"
         },
         {
           "path": "tools/activation_runtime/evolution_worker.py",
@@ -1915,7 +1915,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_evolution.py",
-          "sha256": "4a03712a9da8150751537414a499565c48a265a8d8160b2ef7f00832a0159a0a"
+          "sha256": "d3047b51ee2488d5b7e58ffb20bae136ead6d694cfef84fb03394d1653259299"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_proposals.py; tools/activation_runtime/tests/test_browser.py; tools/activation_runtime/tests/test_garden_web.py; tools/activation_runtime/tests/test_evolution.py",
@@ -2005,7 +2005,7 @@
         },
         {
           "path": "tools/activation_runtime/evolution.py",
-          "sha256": "d927b6d6e647f481fe3ed08b7a3d84b891d1cbc48f2a18a6a3b84f6e22305a0f"
+          "sha256": "9528e36436c9e3b041c863f1f3f1e8a78f83d2ca41c424d9dda25425670a0ec9"
         },
         {
           "path": "tools/activation_runtime/evolution_worker.py",
@@ -2017,7 +2017,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_evolution.py",
-          "sha256": "4a03712a9da8150751537414a499565c48a265a8d8160b2ef7f00832a0159a0a"
+          "sha256": "d3047b51ee2488d5b7e58ffb20bae136ead6d694cfef84fb03394d1653259299"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/tests/test_agents.py; tools/activation_runtime/tests/test_agent_pins.py; tools/activation_runtime/tests/test_evolution.py",
@@ -2159,7 +2159,7 @@
         },
         {
           "path": "tools/activation_runtime/evolution.py",
-          "sha256": "d927b6d6e647f481fe3ed08b7a3d84b891d1cbc48f2a18a6a3b84f6e22305a0f"
+          "sha256": "9528e36436c9e3b041c863f1f3f1e8a78f83d2ca41c424d9dda25425670a0ec9"
         },
         {
           "path": "tools/activation_runtime/evolution_worker.py",
@@ -2171,7 +2171,7 @@
         },
         {
           "path": "tools/activation_runtime/tests/test_evolution.py",
-          "sha256": "4a03712a9da8150751537414a499565c48a265a8d8160b2ef7f00832a0159a0a"
+          "sha256": "d3047b51ee2488d5b7e58ffb20bae136ead6d694cfef84fb03394d1653259299"
         }
       ],
       "test_or_receipt": "tools/activation_runtime/research/receipts/engineering-v1.json; tools/activation_runtime/tests/test_evolution.py",

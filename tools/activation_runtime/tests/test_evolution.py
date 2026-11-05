@@ -85,6 +85,10 @@ class EvolutionTests(unittest.TestCase):
             self.assertEqual(len({family for r in (first,second,third) for family in r["fresh_evaluation_families"]}),3)
             self.assertFalse(second["can_release"]);self.assertFalse(second["can_generate"])
             self.assertIn("diagnostics",provider.contexts[1]["history"][0]["development_findings"][0])
+            activation = provider.contexts[1]["history"][0]["development_findings"][0]["diagnostics"][0]["activation"]
+            self.assertGreaterEqual(activation["activation_ns"],0)
+            self.assertIn("modules",activation)
+            self.assertIn("steps",activation)
             for context in provider.contexts:
                 text=json.dumps(context)
                 self.assertNotIn("case2",text);self.assertNotIn("family-2:",text)

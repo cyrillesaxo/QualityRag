@@ -69,7 +69,7 @@ class OllamaProposer:
             "{op:xor,value:0..255}, {op:reverse}. Activation is {mode:ON_DEMAND or EAGER,chunk_bytes:256..262144}. "
             "Learn reusable source-bound nonterminals using {op:productions,rules:[{name:identifier,literal:training-source-text}]}, "
             "1-32 unique productions of at most 256 UTF-8 bytes each; literals must occur in the training source. "
-            "Compose new grammar programs and activation plans from observed counterexamples, not a fixed candidate grid. "
+            "Compose new grammar programs and activation plans from observed counterexamples, not a fixed candidate grid. Compare development activation_ns, executed modules and work steps; latency samples are observations, not proof of a stable advantage. "
             "Do not request held-out data, invent measurements, execute code, or claim semantic validation. "
             "Byte-exact preservation is mandatory. Candidates must account for all grammar and metadata bytes.")
         body={"model":self.model,"stream":False,"format":"json","options":{"num_predict":2048,"num_ctx":16384},"messages":[
@@ -267,7 +267,7 @@ class EvolutionGarden:
                 previous=json.loads(old)
                 findings=[]
                 for finding in previous.get("development_findings",[])[:2]:
-                    diagnostics=[{k:d[k] for k in ("id","candidate_bytes","baseline_bytes")} for d in finding["diagnostics"][:4]]
+                    diagnostics=[{k:d[k] for k in ("id","candidate_bytes","baseline_bytes","activation")} for d in finding["diagnostics"][:4]]
                     old_program=finding["program"]
                     if old_program is not None and len(canonical(old_program))>2048:
                         old_program={"program_sha256":fingerprint(old_program),"details":"Retained in branch receipt; omitted from planning preview budget"}
