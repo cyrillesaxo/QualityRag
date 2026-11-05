@@ -1879,7 +1879,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "6abe1675aff7b5619857ef19b29e33cb2f1a7b60d7091ef3f5b6623ce17c336a"
+          "sha256": "d109e738287fc2ee647161569a90dee5d0f19819d1fd995b7f568070e499ed81"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -1887,11 +1887,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "89142c2663bfbaf4dd148eaba30fd7f675d3e8b1cd28c3fb8e1313e8859a779f"
+          "sha256": "096b64446a04308ade0ede76476a56aa0d6cde254287f87afe20d6d6bf2f7428"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "ee15e54e28e55b23d4be7e602fbab3a553c8117c16d2edba2b2a12346e0410b9"
+          "sha256": "d65bfd8b7c38e73554115b3c83528046d9570db86c3d7151d3e57b3c03a9642c"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2283,7 +2283,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "6abe1675aff7b5619857ef19b29e33cb2f1a7b60d7091ef3f5b6623ce17c336a"
+          "sha256": "d109e738287fc2ee647161569a90dee5d0f19819d1fd995b7f568070e499ed81"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2291,11 +2291,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "89142c2663bfbaf4dd148eaba30fd7f675d3e8b1cd28c3fb8e1313e8859a779f"
+          "sha256": "096b64446a04308ade0ede76476a56aa0d6cde254287f87afe20d6d6bf2f7428"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "ee15e54e28e55b23d4be7e602fbab3a553c8117c16d2edba2b2a12346e0410b9"
+          "sha256": "d65bfd8b7c38e73554115b3c83528046d9570db86c3d7151d3e57b3c03a9642c"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
@@ -2435,7 +2435,7 @@
         },
         {
           "path": "tools/activation_runtime/web/index.html",
-          "sha256": "6abe1675aff7b5619857ef19b29e33cb2f1a7b60d7091ef3f5b6623ce17c336a"
+          "sha256": "d109e738287fc2ee647161569a90dee5d0f19819d1fd995b7f568070e499ed81"
         },
         {
           "path": "tools/activation_runtime/web/app.js",
@@ -2443,11 +2443,11 @@
         },
         {
           "path": "tools/activation_runtime/web/style.css",
-          "sha256": "89142c2663bfbaf4dd148eaba30fd7f675d3e8b1cd28c3fb8e1313e8859a779f"
+          "sha256": "096b64446a04308ade0ede76476a56aa0d6cde254287f87afe20d6d6bf2f7428"
         },
         {
           "path": "tools/activation_runtime/tests/test_browser.py",
-          "sha256": "ee15e54e28e55b23d4be7e602fbab3a553c8117c16d2edba2b2a12346e0410b9"
+          "sha256": "d65bfd8b7c38e73554115b3c83528046d9570db86c3d7151d3e57b3c03a9642c"
         },
         {
           "path": "docs/REVIEW-WORKSPACE-WORKFLOWS.md",
