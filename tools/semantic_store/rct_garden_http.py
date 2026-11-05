@@ -165,7 +165,7 @@ def create_app(db_path: Path, token: str, *, receipt_dir: Path | None = None):
                                 with os.fdopen(fd, "w", encoding="utf-8") as stream:
                                     json.dump(experiment, stream, ensure_ascii=False,
                                               allow_nan=False, sort_keys=True)
-                                    stream.write("\\n")
+                                    stream.write("\n")
                                 ledger_ref = register_cycle(
                                     db, experiment, sources=sources,
                                     evidence_uri=receipt_file.resolve().as_uri(),
