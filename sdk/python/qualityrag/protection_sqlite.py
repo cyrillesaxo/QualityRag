@@ -58,6 +58,48 @@ class SQLitePolicyAuthority(_SQLiteBase):
                 PRIMARY KEY (tenant, policy_id)
             )
         """)
+        # Same database and write lock as policy revisions: release decisions
+        # can validate policy and claim a nonce in a single transaction.
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS protection_consumed_nonce (
+                nonce TEXT PRIMARY KEY,
+                expires_at INTEGER NOT NULL
+            )
+        """)
+
+    def consume_if_active(self, *, tenant: str, policy_id: str, version: int,
+                          nonce: str, expires_at: int, now: int) -> bool:
+        """Atomically verify current policy and consume one signed nonce.
+
+        This does not make external network delivery atomic with revocation.
+        """
+        if (not isinstance(tenant, str) or not tenant
+            or not isinstance(policy_id, str) or not policy_id
+            or type(version) is not int or version < 1
+            or not isinstance(nonce, str) or not nonce
+            or type(expires_at) is not int or type(now) is not int
+            or expires_at < now):
+            raise ProtectionDenied("INVALID_RELEASE_CLAIM")
+        try:
+            with self._connection() as db:
+                db.execute("BEGIN IMMEDIATE")
+                row = db.execute(
+                    "SELECT active_version FROM protection_policy "
+                    "WHERE tenant=? AND policy_id=?", (tenant, policy_id)
+                ).fetchone()
+                if row is None or row[0] != version:
+                    raise ProtectionDenied("POLICY_NOT_ACTIVE")
+                db.execute(
+                    "DELETE FROM protection_consumed_nonce WHERE expires_at < ?",
+                    (now,))
+                result = db.execute(
+                    "INSERT OR IGNORE INTO protection_consumed_nonce "
+                    "(nonce, expires_at) VALUES (?, ?)", (nonce, expires_at))
+                accepted = result.rowcount == 1
+                db.commit()
+                return accepted
+        except sqlite3.Error as exc:
+            raise ProtectionDenied("STORE_UNAVAILABLE") from exc
 
     def publish(self, *, tenant: str, policy_id: str, version: int) -> None:
         if (not isinstance(tenant, str) or not tenant
