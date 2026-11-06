@@ -176,3 +176,18 @@ Still required: durable and atomic distributed policy state, replay
 database, identity revocation and key rotation, signed key provenance,
 audited administrative operations, and a real isolated vault boundary.
 Successful SDK tests are correctness checks, not security accreditation.
+
+## Independent workload authorization
+
+`protection_grants.py` defines server-owned `StaticWorkloadGrants`:
+the verified identity assertion establishes who is calling, but only
+a separately configured grant permits its specific tenant, subject,
+purpose, and destination. The `ProtectionService` requires these grants
+both before issuance and before release. A signature indicating more
+purposes than the service has granted confers no extra privileges.
+
+The static grant set is test infrastructure, not a production policy
+decision point. A production deployment requires authenticated
+administration, durable grant state, tenant-scoped revisions, and
+revocation consistency. The trusted service must construct its grants
+and verifier internally; never let an untrusted caller supply their own.
