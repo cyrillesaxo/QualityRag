@@ -4,6 +4,7 @@ import unittest
 from qualityrag.protection import ProtectionDenied, SCHEMA
 from qualityrag.protection_attestation import attest_contract, InMemoryReplayStore
 from qualityrag.protection_lifecycle import InMemoryPolicyAuthority
+from qualityrag.protection_grants import StaticWorkloadGrants, WorkloadGrant
 from qualityrag.protection_service import (
     WorkloadTrust, SignedWorkloadVerifier, ProtectionService, sign_synthetic_workload,
 )
@@ -20,7 +21,11 @@ class ProtectionServiceTests(unittest.TestCase):
         self.verifier = SignedWorkloadVerifier(self.trust)
         self.policies = InMemoryPolicyAuthority()
         self.policies.publish(tenant="tenant-a", policy_id="payment", version=1)
+        self.grants = StaticWorkloadGrants([
+            WorkloadGrant("tenant-a", "worker-a", "review", "llm")
+        ])
         self.service = ProtectionService(
+            workload_grants=self.grants,
             verifier=self.verifier, policy_authority=self.policies,
             replay_store=InMemoryReplayStore(), registry_key=REGISTRY_KEY,
             release_key=RELEASE_KEY)
@@ -77,7 +82,7 @@ class ProtectionServiceTests(unittest.TestCase):
 
     def test_wrong_tenant_cannot_use_signed_contract(self):
         claims = dict(self.claims, tenant="tenant-b")
-        with self.assertRaisesRegex(ProtectionDenied, "UNVERIFIED_CONTRACT"):
+        with self.assertRaisesRegex(ProtectionDenied, "WORKLOAD_NOT_AUTHORIZED"):
             self.issue(self.sign(claims))
 
     def test_wrong_subject_cannot_release(self):
@@ -91,6 +96,26 @@ class ProtectionServiceTests(unittest.TestCase):
         wrong["kid"] = "unknown"
         with self.assertRaisesRegex(ProtectionDenied, "IDENTITY_DENIED"):
             self.issue(wrong)
+
+    def test_signed_but_unapproved_workload_denied(self):
+        claims = dict(self.claims, sub="unapproved-worker")
+        with self.assertRaisesRegex(ProtectionDenied, "WORKLOAD_NOT_AUTHORIZED"):
+            self.issue(self.sign(claims))
+
+    def test_signed_expanded_purpose_denied_by_service(self):
+        claims = dict(self.claims, purposes=["review", "export"])
+        with self.assertRaisesRegex(ProtectionDenied, "WORKLOAD_NOT_AUTHORIZED"):
+            self.service.issue(
+                assertion=self.sign(claims), record=self.record,
+                contract_attestation=self.attested,
+                purpose="export", destination="llm", now=1001)
+
+    def test_signed_worker_cannot_change_destination(self):
+        with self.assertRaisesRegex(ProtectionDenied, "WORKLOAD_NOT_AUTHORIZED"):
+            self.service.issue(
+                assertion=self.assertion, record=self.record,
+                contract_attestation=self.attested,
+                purpose="review", destination="attacker", now=1001)
 
     def test_revocation_after_issuance_denied(self):
         envelope = self.issue()
