@@ -2,6 +2,7 @@ import copy
 import unittest
 
 from qualityrag.protection import Principal, ProtectionDenied, SCHEMA
+from qualityrag.protection_lifecycle import InMemoryPolicyAuthority
 from qualityrag.protection_attestation import (
     attest_contract, issue_protected_view, verify_protected_release, InMemoryReplayStore,
 )
@@ -13,8 +14,11 @@ RELEASE_KEY = b"release-secret-test-key-32-bytes-minimum!"
 class AttestedProtectionTests(unittest.TestCase):
     def setUp(self):
         self.principal = Principal("operator", "tenant1", frozenset({"review"}))
+        self.policy_authority = InMemoryPolicyAuthority()
+        self.policy_authority.publish(tenant="tenant1", policy_id="payment-contract", version=1)
         grant = [{"purpose": "review", "destination": "llm", "operation": "read"}]
         self.contract = {"schema": SCHEMA, "tenant": "tenant1", "authenticated": False,
+                         "policy_id": "payment-contract", "policy_version": 1,
                          "fields": {
                              "payment_ref": {"classification": "pci", "mode": "reference", "grants": grant},
                              "last_four": {"classification": "pci", "mode": "derived", "grants": grant},
@@ -30,12 +34,14 @@ class AttestedProtectionTests(unittest.TestCase):
             self.record if record is None else record,
             self.attested if attestation is None else attestation, self.principal,
             purpose="review", destination="llm", registry_key=REGISTRY_KEY,
-            release_key=RELEASE_KEY, now=1000, ttl_seconds=60)
+            release_key=RELEASE_KEY, policy_authority=self.policy_authority,
+            now=1000, ttl_seconds=60)
 
     def release(self, envelope, **kwargs):
         return verify_protected_release(
             envelope, self.principal, destination="llm", purpose="review",
             release_key=RELEASE_KEY, replay_store=self.replay,
+            policy_authority=self.policy_authority,
             now=kwargs.get("now", 1001), operation=kwargs.get("operation", "read"))
 
     def test_signed_contract_and_one_use_release(self):
@@ -67,7 +73,8 @@ class AttestedProtectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ProtectionDenied, "RELEASE_ATTESTATION_DENIED"):
             verify_protected_release(envelope, self.principal, destination="llm",
                                      purpose="review", release_key=REGISTRY_KEY,
-                                     replay_store=self.replay, now=1001)
+                                     replay_store=self.replay,
+                                     policy_authority=self.policy_authority, now=1001)
 
     def test_expired_receipt_denied(self):
         with self.assertRaisesRegex(ProtectionDenied, "RELEASE_POLICY_DENIED"):
@@ -102,6 +109,26 @@ class AttestedProtectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ProtectionDenied, "UNSAFE_VALUE"):
             self.issue(attestation=signed, record=record)
 
+    def test_revoked_policy_denies_unexpired_receipt(self):
+        envelope = self.issue()
+        self.policy_authority.revoke(tenant="tenant1", policy_id="payment-contract")
+        with self.assertRaisesRegex(ProtectionDenied, "POLICY_NOT_ACTIVE"):
+            self.release(envelope)
+
+    def test_stale_version_denied_after_policy_update(self):
+        envelope = self.issue()
+        self.policy_authority.publish(tenant="tenant1", policy_id="payment-contract", version=2)
+        with self.assertRaisesRegex(ProtectionDenied, "POLICY_NOT_ACTIVE"):
+            self.release(envelope)
+        with self.assertRaisesRegex(ProtectionDenied, "POLICY_NOT_ACTIVE"):
+            self.issue()
+
+    def test_unsigned_policy_version_change_denied(self):
+        tampered = copy.deepcopy(self.attested)
+        tampered["payload"]["policy_version"] = 2
+        with self.assertRaisesRegex(ProtectionDenied, "CONTRACT_ATTESTATION_DENIED"):
+            self.issue(attestation=tampered)
+
     def test_raw_pan_denied(self):
         record = dict(self.record, payment_ref="4111111111111111")
         with self.assertRaisesRegex(ProtectionDenied, "UNSAFE_REFERENCE"):
@@ -112,19 +139,22 @@ class AttestedProtectionTests(unittest.TestCase):
         with self.assertRaises(ProtectionDenied):
             issue_protected_view(self.record, self.attested, wrong, purpose="review",
                                  destination="llm", registry_key=REGISTRY_KEY,
-                                 release_key=RELEASE_KEY, now=1000)
+                                 release_key=RELEASE_KEY,
+                                 policy_authority=self.policy_authority, now=1000)
 
     def test_wrong_audience_denied(self):
         with self.assertRaisesRegex(ProtectionDenied, "RELEASE_POLICY_DENIED"):
             verify_protected_release(self.issue(), self.principal, destination="attacker",
                                      purpose="review", release_key=RELEASE_KEY,
-                                     replay_store=self.replay, now=1001)
+                                     replay_store=self.replay,
+                                     policy_authority=self.policy_authority, now=1001)
 
     def test_invalid_ttl_denied(self):
         with self.assertRaisesRegex(ProtectionDenied, "INVALID_TTL"):
             issue_protected_view(self.record, self.attested, self.principal,
                                  purpose="review", destination="llm",
                                  registry_key=REGISTRY_KEY, release_key=RELEASE_KEY,
+                                 policy_authority=self.policy_authority,
                                  now=1000, ttl_seconds=3600)
 
 
