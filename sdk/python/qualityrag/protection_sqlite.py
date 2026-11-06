@@ -7,6 +7,7 @@ Do not use on unreliable network filesystems or with real cardholder data.
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 from .protection import ProtectionDenied
@@ -20,7 +21,7 @@ class _SQLiteBase:
         # path from an untrusted request; configuration is service-owned.
         self._path = str(path)
         try:
-            with self._connect() as db:
+            with self._connection() as db:
                 db.execute("PRAGMA journal_mode=WAL")
                 db.execute("PRAGMA busy_timeout=5000")
                 self._initialize(db)
@@ -31,6 +32,14 @@ class _SQLiteBase:
         db = sqlite3.connect(self._path, timeout=5, isolation_level=None)
         db.execute("PRAGMA busy_timeout=5000")
         return db
+
+    @contextmanager
+    def _connection(self):
+        # sqlite3.Connection's context manager does not close connections.
+        # Explicit closing avoids retaining open handles between requests.
+        with closing(self._connect()) as db:
+            with db:
+                yield db
 
     def _initialize(self, db: sqlite3.Connection) -> None:
         raise NotImplementedError
