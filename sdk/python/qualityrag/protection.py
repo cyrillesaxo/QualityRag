@@ -87,7 +87,7 @@ def protect(record: dict[str, Any], contract: dict[str, Any], principal: Princip
                 result[name] = value
             else:
                 raise ProtectionDenied("SENSITIVE_PLAINTEXT_DENIED")
-        elif mode == "plain" and _safe_string(value) and type(value) in (str, int, bool):
+        elif mode == "plain" and _safe_string(value) and type(value) in (str, bool):
             result[name] = value
         else:
             raise ProtectionDenied("UNSAFE_VALUE")
@@ -108,7 +108,7 @@ def authorize_release(view: dict[str, Any], principal: Principal, *,
     data = view.get("view")
     if not isinstance(data, dict):
         raise ProtectionDenied("INVALID_VIEW")
-    if any(not _safe_string(v) for v in data.values()):
+    if any(not (type(v) is bool or _safe_string(v)) for v in data.values()):
         raise ProtectionDenied("UNSAFE_RELEASE")
     return {"decision": "ALLOW_REFERENCE_ONLY", "destination": destination,
             "operation": operation, "view": dict(data)}
