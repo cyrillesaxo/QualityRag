@@ -149,12 +149,23 @@ def verify_protected_release(envelope: dict[str, Any], principal: Principal, *,
         or receipt.get("purpose") != purpose or purpose not in principal.purposes
         or receipt.get("audience") != destination):
         raise ProtectionDenied("RELEASE_POLICY_DENIED")
-    # Check current policy AFTER receipt verification, BEFORE nonce consumption.
-    policy_authority.require_active(tenant=principal.tenant,
-                                    policy_id=receipt.get("policy_id"),
-                                    version=receipt.get("policy_version"))
+    # Check all view constraints before making any irreversible nonce claim.
     view = authorize_release(receipt.get("protected_view"), principal,
                              destination=destination, purpose=purpose, operation=operation)
-    if not replay_store.consume(nonce, expiry, ts):
+    # Durable SQLite policy backends atomically check policy AND consume the
+    # nonce under one write lock. In-memory backends retain their documented
+    # non-atomic development behavior.
+    atomic_claim = getattr(policy_authority, "consume_if_active", None)
+    if callable(atomic_claim):
+        accepted = atomic_claim(
+            tenant=principal.tenant, policy_id=receipt.get("policy_id"),
+            version=receipt.get("policy_version"), nonce=nonce,
+            expires_at=expiry, now=ts)
+    else:
+        policy_authority.require_active(tenant=principal.tenant,
+                                        policy_id=receipt.get("policy_id"),
+                                        version=receipt.get("policy_version"))
+        accepted = replay_store.consume(nonce, expiry, ts)
+    if not accepted:
         raise ProtectionDenied("REPLAY_DENIED")
     return view
