@@ -19,6 +19,7 @@ from .protection_attestation import (
     InMemoryReplayStore, issue_protected_view, verify_protected_release,
 )
 from .protection_lifecycle import InMemoryPolicyAuthority
+from .protection_grants import StaticWorkloadGrants
 
 
 def _canonical(value: dict[str, Any]) -> bytes:
@@ -100,6 +101,7 @@ class ProtectionService:
     def __init__(self, *, verifier: SignedWorkloadVerifier,
                  policy_authority: InMemoryPolicyAuthority,
                  replay_store: InMemoryReplayStore,
+                 workload_grants: StaticWorkloadGrants,
                  registry_key: bytes, release_key: bytes) -> None:
         if not isinstance(registry_key, bytes) or len(registry_key) < 32:
             raise ProtectionDenied("INVALID_KEY")
@@ -107,6 +109,9 @@ class ProtectionService:
             raise ProtectionDenied("INVALID_KEY")
         self._verifier = verifier
         self._policy_authority = policy_authority
+        if not isinstance(workload_grants, StaticWorkloadGrants):
+            raise ProtectionDenied("MISSING_WORKLOAD_GRANTS")
+        self._workload_grants = workload_grants
         self._replay_store = replay_store
         self._registry_key = registry_key
         self._release_key = release_key
@@ -115,6 +120,7 @@ class ProtectionService:
               contract_attestation: dict[str, Any], purpose: str,
               destination: str, now: int | None = None) -> dict[str, Any]:
         principal = self._verifier.verify(assertion, now=now)
+        self._workload_grants.require(principal, purpose=purpose, destination=destination)
         return issue_protected_view(
             record, contract_attestation, principal, purpose=purpose,
             destination=destination, registry_key=self._registry_key,
@@ -124,6 +130,7 @@ class ProtectionService:
     def release(self, *, assertion: dict[str, Any], envelope: dict[str, Any],
                 purpose: str, destination: str, now: int | None = None) -> dict[str, Any]:
         principal = self._verifier.verify(assertion, now=now)
+        self._workload_grants.require(principal, purpose=purpose, destination=destination)
         return verify_protected_release(
             envelope, principal, purpose=purpose, destination=destination,
             release_key=self._release_key, policy_authority=self._policy_authority,
