@@ -46,6 +46,58 @@ class SQLitePolicyTests(unittest.TestCase):
             results = list(pool.map(publish, [first, second]))
         self.assertEqual(sorted(results), ["NON_MONOTONIC_POLICY_VERSION", "ok"])
 
+    def test_atomic_policy_and_nonce_claim(self):
+        p = SQLitePolicyAuthority(self.path)
+        p.publish(tenant="a", policy_id="p", version=1)
+        self.assertTrue(p.consume_if_active(
+            tenant="a", policy_id="p", version=1,
+            nonce="unique-claim", expires_at=1100, now=1000))
+        with self.assertRaisesRegex(ProtectionDenied, "POLICY_NOT_ACTIVE"):
+            p.consume_if_active(
+                tenant="b", policy_id="p", version=1,
+                nonce="different-tenant", expires_at=1100, now=1000)
+        self.assertFalse(SQLitePolicyAuthority(self.path).consume_if_active(
+            tenant="a", policy_id="p", version=1,
+            nonce="unique-claim", expires_at=1100, now=1000))
+
+    def test_atomic_claim_denied_after_revocation(self):
+        p = SQLitePolicyAuthority(self.path)
+        p.publish(tenant="a", policy_id="p", version=1)
+        p.revoke(tenant="a", policy_id="p")
+        with self.assertRaisesRegex(ProtectionDenied, "POLICY_NOT_ACTIVE"):
+            p.consume_if_active(tenant="a", policy_id="p", version=1,
+                                nonce="unspent", expires_at=1100, now=1000)
+        p.publish(tenant="a", policy_id="p", version=2)
+        with self.assertRaisesRegex(ProtectionDenied, "POLICY_NOT_ACTIVE"):
+            p.consume_if_active(tenant="a", policy_id="p", version=1,
+                                nonce="unspent", expires_at=1100, now=1000)
+        self.assertTrue(p.consume_if_active(
+            tenant="a", policy_id="p", version=2,
+            nonce="unspent", expires_at=1100, now=1000))
+
+    def test_atomic_claim_races_with_revocation_without_unauthorized_approval(self):
+        p = SQLitePolicyAuthority(self.path)
+        p.publish(tenant="a", policy_id="p", version=1)
+        # Both operations serialize at BEGIN IMMEDIATE. The claim either
+        # occurs before revocation or gets denied; it never bypasses a
+        # revocation committed before the claim.
+        def claim():
+            try:
+                return p.consume_if_active(
+                    tenant="a", policy_id="p", version=1,
+                    nonce="race-nonce", expires_at=1100, now=1000)
+            except ProtectionDenied as exc:
+                return str(exc)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+            claimed = pool.submit(claim)
+            revoked = pool.submit(p.revoke, tenant="a", policy_id="p")
+            result = claimed.result()
+            revoked.result()
+        self.assertIn(result, [True, "POLICY_NOT_ACTIVE"])
+        with self.assertRaisesRegex(ProtectionDenied, "POLICY_NOT_ACTIVE"):
+            p.consume_if_active(tenant="a", policy_id="p", version=1,
+                                nonce="next-nonce", expires_at=1100, now=1000)
+
     def test_replay_is_durable_and_atomic(self):
         first = SQLiteReplayStore(self.path)
         second = SQLiteReplayStore(self.path)
