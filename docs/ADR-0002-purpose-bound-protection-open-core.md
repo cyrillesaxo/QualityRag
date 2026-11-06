@@ -191,3 +191,28 @@ decision point. A production deployment requires authenticated
 administration, durable grant state, tenant-scoped revisions, and
 revocation consistency. The trusted service must construct its grants
 and verifier internally; never let an untrusted caller supply their own.
+
+## Durable policy / replay persistence (experimental SQLite)
+
+`sdk/python/qualityrag/protection_sqlite.py` adds `SQLitePolicyAuthority`
+and `SQLiteReplayStore` using SQLite transactions and a shared database
+file. They conform to the policy/replay protocols used by the attested
+protection service. A policy's highest version survives revocation and
+restart, avoiding accidental downgrade. Nonce insertion uses a unique key
+and an immediate transaction, so concurrent processes sharing that database
+cannot both consume the same nonce. Synthetic service and concurrency tests
+cover both behaviors.
+
+**Operational boundary:** These stores are suitable for local development
+or controlled single-host evaluation only. They are NOT proof of globally
+consistent authorization in an elastic multi-host deployment. Production
+requires a properly authenticated and monitored central policy registry,
+trusted time, key rotation, database backup/recovery, tenant admin
+authorization, distributed nonce retention, failure-mode tests, and an
+atomic release decision tied to actual outbound delivery.
+
+SQLite on an unreliable network share is unsupported. Do not accept the
+database path from requests. Access-control on the DB itself must be
+enforced outside this code. Anyone who can directly modify these tables
+can bypass the protection policy. This prototype neither ingests nor
+stores real PAN values.
