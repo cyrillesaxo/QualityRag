@@ -2,7 +2,7 @@
 
 The Academy is a problem-driven training programme. Each chapter opens on a failure that RAG teams describe in their own words. It then shows what QualityRag does about it, using real SDK output, and ends with what QualityRag does **not** guarantee.
 
-This release covers the first five chapters, the ones aimed at winning customers. The full twenty-chapter plan is in [docs/training/README.md](../training/README.md#qualityrag-academy-twenty-problems-one-episode-each).
+This release covers eight chapters. A1–A5 are aimed at winning customers. A6–A8 are the research track, and each pairs a pattern that works today with a research prototype. The full twenty-chapter plan is in [docs/training/README.md](../training/README.md#qualityrag-academy-twenty-problems-one-episode-each).
 
 | Chapter | The complaint | Video | Lab | Status |
 |---|---|---|---|---|
@@ -11,6 +11,9 @@ This release covers the first five chapters, the ones aimed at winning customers
 | A3 | "Three sources agree, but they all copied the same original." | [watch](episodes/academy-a3-independent-sources/academy-a3-independent-sources.mp4) | [a3](labs/a3_independent_sources.py) | Available now |
 | A4 | "It uses outdated policies, and picks a side when documents disagree." | [watch](episodes/academy-a4-stale-and-contradicting/academy-a4-stale-and-contradicting.mp4) | [a4](labs/a4_stale_and_contradicted.py) | Available now |
 | A5 | "My PDF tables are completely messed up. How would I even know?" | [watch](episodes/academy-a5-unverified-extraction/academy-a5-unverified-extraction.mp4) | [a5](labs/a5_unverified_extraction.py) | Research preview |
+| A6 | "The answer is spread across three files, and RAG only reads one." | [watch](episodes/academy-a6-combine-documents/academy-a6-combine-documents.mp4) | [a6](labs/a6_combine_documents.py) | Available pattern + research (explicit, anchored link candidates) |
+| A7 | "It can't understand our diagrams, or our images, or our videos." | [watch](episodes/academy-a7-images-and-video/academy-a7-images-and-video.mp4) | [a7](labs/a7_images_and_video.py) | Research preview (visual appearance search; identity unknown) |
+| A8 | "It gave the right rule, for the wrong customer or region." | [watch](episodes/academy-a8-wrong-scope/academy-a8-wrong-scope.mp4) | [a8](labs/a8_wrong_scope.py) | Available pattern + research (purpose-scoped lens) |
 
 ## What each chapter contains
 
@@ -28,7 +31,7 @@ This release covers the first five chapters, the ones aimed at winning customers
 ## Run it
 
 ```sh
-python docs/academy/labs/a1_right_document_wrong_answer.py     # any lab, from the repository root
+python docs/academy/labs/a1_right_document_wrong_answer.py     # any lab, from the repository root (A7 needs Pillow)
 python docs/academy/labs/test_labs.py                          # check that the labs still teach the truth
 python docs/academy/build.py                                   # rebuild index.html from chapters.json
 python docs/training/render/render.py docs/academy/episodes/academy-a1-right-document-wrong-answer \
@@ -42,4 +45,9 @@ Open `index.html` from a local checkout to take the Academy offline. Progress is
 - The scenarios use the synthetic EU payments corpus. Its passages are invented.
 - The real cases are summarised from the cited sources. They show the failure pattern; they are not claims about which technology those systems used.
 - A5 is a research preview. QualityRag treats unchecked extraction as `UNKNOWN`, and Semantic Codex keeps source anchors and marks partial coverage. Table repair, OCR and table-structure validation are not implemented.
+- A6–A8 use the Semantic Store research prototypes. Every research output stays `INCONCLUSIVE`:
+  - A6: link candidates come only from explicit `RELATE` declarations.
+  - A7: visual matches measure appearance and never identity. The reversed-arrow diagram scores distance 0.
+  - A8: purpose contracts are not authenticated.
+- The A8 policies are invented. They are not statements of law.
 - Career salary ranges and translations, which are part of the Dodo v4 template, are left out until sourced figures and reviewed translations exist.

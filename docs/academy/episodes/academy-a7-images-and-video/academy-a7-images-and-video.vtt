@@ -1,0 +1,43 @@
+WEBVTT
+
+00:00:00.700 --> 00:00:02.834
+It can't understand our diagrams
+
+00:00:03.134 --> 00:00:05.439
+or our images, or our videos.
+
+00:00:06.800 --> 00:00:08.742
+Two architecture diagrams.
+
+00:00:09.042 --> 00:00:13.672
+In the first, service A calls service B. In the second, B calls A.
+
+00:00:13.972 --> 00:00:18.453
+That arrow is the whole meaning, and to most pipelines the two look the same.
+
+00:00:19.800 --> 00:00:26.521
+In the research track, Semantic Codex indexes images and sampled video frames with a pixel hash.
+
+00:00:26.821 --> 00:00:33.499
+Compare the diagram with its reversed copy: distance zero. Identical appearance, opposite meaning.
+
+00:00:33.799 --> 00:00:38.429
+A different diagram scores thirteen, and an unrelated image thirty-five.
+
+00:00:38.729 --> 00:00:43.487
+Every result says identity unknown, and admission stays inconclusive.
+
+00:00:44.833 --> 00:00:46.541
+Appearance is not meaning.
+
+00:00:46.841 --> 00:01:00.516
+Video frames are sampled with time anchors, up to twelve from the first minute. An optional scene search ranks frames against a text prompt, but its scores are uncalibrated, and it never identifies people.
+
+00:01:01.867 --> 00:01:03.169
+That's the boundary.
+
+00:01:03.469 --> 00:01:15.288
+QualityRag can find and anchor visual media. It doesn't read diagrams, extract text from images, or recognise people. Visual evidence never admits on its own.
+
+00:01:15.588 --> 00:01:18.383
+Next: the right rule, for the wrong customer.

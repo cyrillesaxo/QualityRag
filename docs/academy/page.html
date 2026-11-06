@@ -248,7 +248,7 @@ function home() {
   const done = C.filter(c => P.ch[c.id]?.done).length;
   const gains = C.map(c => P.ch[c.id]).filter(s => s && s.pre && s.post).map(s => s.post - s.pre);
   const hero = document.createElement("section"); hero.className = "frame hero";
-  hero.innerHTML = `<span class="tf">QualityRag Academy · five chapters</span><h1>Evidence before answers</h1><p class="lede">${esc(DATA.intro)}</p>
+  hero.innerHTML = `<span class="tf">QualityRag Academy · ${C.length} chapters</span><h1>Evidence before answers</h1><p class="lede">${esc(DATA.intro)}</p>
     <div class="row"><a class="btn primary" href="#${(C.find(c => !P.ch[c.id]?.done) || C[0]).id}">${done ? "Continue" : "Start with A1"}</a><a class="btn" href="https://github.com/cyrillesaxo/QualityRag/blob/docs/activation-research-fr-v01/docs/training/film-01-evidence-engine/qualityrag-the-evidence-engine.mp4">Watch the flagship film</a></div>`;
   m.append(hero);
   const stats = frame("Your learning analytics", "Progress");
@@ -266,7 +266,7 @@ function home() {
   m.append(path);
   m.append(reviewBlock(() => true));
   const road = frame("The full programme", "Twenty problems, one chapter each");
-  road.insertAdjacentHTML("beforeend", `<div class="tablewrap"><table><thead><tr><th>Chapter</th><th>The complaint</th><th>Status</th></tr></thead><tbody>${C.map(c => `<tr><td class="mono">${c.code}</td><td><a href="#${c.id}">${esc(c.complaint)}</a></td><td><span class="chip ${c.research ? "warn" : "ok"}">${c.research ? "Research preview" : "Available now"}</span></td></tr>`).join("")}${DATA.roadmap.map(r => `<tr><td class="mono">${r[0]}</td><td>${esc(r[1])}</td><td><span class="chip">${esc(r[2])}</span></td></tr>`).join("")}</tbody></table></div>`);
+  road.insertAdjacentHTML("beforeend", `<div class="tablewrap"><table><thead><tr><th>Chapter</th><th>The complaint</th><th>Status</th></tr></thead><tbody>${C.map(c => `<tr><td class="mono">${c.code}</td><td><a href="#${c.id}">${esc(c.complaint)}</a></td><td><span class="chip ${c.research ? "warn" : "ok"}">${esc(c.status || (c.research ? "Research preview" : "Available now"))}</span></td></tr>`).join("")}${DATA.roadmap.map(r => `<tr><td class="mono">${r[0]}</td><td>${esc(r[1])}</td><td><span class="chip">${esc(r[2])}</span></td></tr>`).join("")}</tbody></table></div>`);
   m.append(road);
   applyPath();
 }

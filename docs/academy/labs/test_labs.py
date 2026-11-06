@@ -8,6 +8,9 @@ EXPECT = {
     "a3_independent_sources.py": ["INCONCLUSIVE  sources=1", "ADMIT         sources=2"],
     "a4_stale_and_contradicted.py": ["STALE_EVIDENCE", "verdict: REFUSE", "CONTRADICTION"],
     "a5_unverified_extraction.py": ["UNKNOWN_EVIDENCE", "verdict: ADMIT"],
+    "a6_combine_documents.py": ["verdict: INCONCLUSIVE", "dpa-in-place", "verdict: ADMIT", "msa -REQUIRES-> dpa", "INVALID_EXPLICIT_DECLARATION", "STRUCTURAL_CANDIDATE_NOT_FACT", "admission: INCONCLUSIVE"],
+    "a7_images_and_video.py": ["lab/architecture-reversed.png", "distance=0", "identity=UNKNOWN", "admission: INCONCLUSIVE"],
+    "a8_wrong_scope.py": ["verdict: INCONCLUSIVE", "applies-to-eu", "verdict: ADMIT", "review: NOT_AUTHENTICATED", "is rejected"],
 }
 
 

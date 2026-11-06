@@ -1,0 +1,46 @@
+WEBVTT
+
+00:00:00.700 --> 00:00:02.194
+It gave the right rule
+
+00:00:02.494 --> 00:00:03.881
+for the wrong customer.
+
+00:00:05.233 --> 00:00:08.818
+An EU customer asks for a refund after twenty days.
+
+00:00:09.118 --> 00:00:14.473
+Search finds the refund policy: a great match, written for US customers.
+
+00:00:14.773 --> 00:00:17.867
+The model applies it. Yes, you have thirty days.
+
+00:00:18.167 --> 00:00:21.688
+The rule was real. It just didn't apply to this customer.
+
+00:00:23.033 --> 00:00:25.551
+Make applicability its own requirement.
+
+00:00:25.851 --> 00:00:33.681
+The US policy supports the refund rule, but nothing says it applies to EU consumers, so the check is inconclusive.
+
+00:00:33.981 --> 00:00:39.187
+EU terms with an explicit scope clause satisfy both, and the check admits.
+
+00:00:40.533 --> 00:00:43.990
+Research goes a step further, with a purpose-scoped lens.
+
+00:00:44.290 --> 00:00:52.120
+It declares which distinctions a purpose must keep, like who a policy applies to, and which it may drop, like the banner colour.
+
+00:00:52.420 --> 00:01:02.042
+A contract that contradicts itself is rejected. And every lens stays unauthenticated and inconclusive, until a trusted reviewer promotes it.
+
+00:01:03.400 --> 00:01:06.110
+Scope is a requirement, not an assumption.
+
+00:01:06.410 --> 00:01:13.792
+QualityRag won't guess a document's jurisdiction, or the customer's region. Your application supplies both.
+
+00:01:14.092 --> 00:01:17.421
+That completes the research track: chapters six to eight.

@@ -1,0 +1,379 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a6-combine-documents",
+  "title": "QualityRag Academy · A6 · Combining documents",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "The answer is spread across three files",
+        "and RAG only reads one."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"The answer is spread across three files…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…and RAG only reads one.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A6",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Is the vendor cleared to process customer data?",
+        "The answer lives in three places: the contract, the security review, and the data processing agreement.",
+        "Top-k search returns two of them. The model fills in the third.",
+        "No single document holds the whole answer, so no single passage can prove it."
+      ],
+      "data": {
+        "tf": [
+          "A6",
+          "The failure"
+        ],
+        "kicker": "Question",
+        "title": "Is vendor Acme cleared to process customer data?",
+        "title_size": 46,
+        "cards": [
+          {
+            "id": "msa",
+            "meta": "msa-2026.pdf · legal repository",
+            "text": "Master services agreement, signed 2026-02-01.",
+            "x": 120,
+            "y": 300,
+            "w": 640,
+            "at": [
+              1,
+              0.4
+            ]
+          },
+          {
+            "id": "sec",
+            "meta": "SEC-4471 · security tickets",
+            "text": "Security review SEC-4471 passed.",
+            "x": 120,
+            "y": 450,
+            "w": 640,
+            "at": [
+              1,
+              1.6
+            ]
+          },
+          {
+            "id": "dpa",
+            "meta": "dpa-v3.docx · privacy office · NOT RETRIEVED",
+            "text": "Data processing agreement v3.",
+            "x": 120,
+            "y": 600,
+            "w": 640,
+            "accent": "warn",
+            "at": [
+              1,
+              3.2
+            ]
+          },
+          {
+            "id": "ans",
+            "meta": "MODEL ANSWER",
+            "text": "Yes. Acme is fully cleared.",
+            "x": 1240,
+            "y": 430,
+            "w": 560,
+            "size": 30,
+            "at": [
+              2,
+              1.2
+            ]
+          }
+        ],
+        "wires": [
+          {
+            "from": "msa",
+            "to": "ans",
+            "at": [
+              2,
+              0.4
+            ]
+          },
+          {
+            "from": "sec",
+            "to": "ans",
+            "at": [
+              2,
+              0.6
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              2,
+              0.2
+            ],
+            "card": "msa",
+            "state": "ok",
+            "tag": "retrieved"
+          },
+          {
+            "at": [
+              2,
+              0.4
+            ],
+            "card": "sec",
+            "state": "ok",
+            "tag": "retrieved"
+          },
+          {
+            "at": [
+              2,
+              1.8
+            ],
+            "card": "dpa",
+            "state": "warn",
+            "tag": "never retrieved"
+          },
+          {
+            "at": [
+              3,
+              0.4
+            ],
+            "card": "ans",
+            "state": "bad",
+            "tag": "one third unchecked"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "QualityRag splits the answer into requirements, and each one can be met by a different document.",
+        "With two files, the check names the missing piece: the data processing agreement.",
+        "Add the third file, and the same check admits."
+      ],
+      "data": {
+        "tf": [
+          "A6",
+          "Lab · available now"
+        ],
+        "kicker": "Lab A6 · real output",
+        "title": "One answer, three documents, three requirements",
+        "title_size": 48,
+        "file": "terminal · python sdk",
+        "blocks": [
+          {
+            "cmd": "python docs/academy/labs/a6_combine_documents.py",
+            "out": "== Two of the three files retrieved\nverdict: INCONCLUSIVE\n  contract-signed        ADMIT         sources=1  -\n  security-review        ADMIT         sources=1  -\n  dpa-in-place           INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE\n\n== All three files\nverdict: ADMIT\n  contract-signed        ADMIT         sources=1  -\n  security-review        ADMIT         sources=1  -\n  dpa-in-place           ADMIT         sources=1  -",
+            "at": [
+              0,
+              1.0
+            ],
+            "out_at": [
+              1,
+              0.0
+            ],
+            "reveal": 5.0
+          }
+        ],
+        "notes": [
+          {
+            "text": "INCONCLUSIVE · dpa-in-place missing",
+            "state": "warn",
+            "at": [
+              1,
+              3.0
+            ]
+          },
+          {
+            "text": "ADMIT · every part from its own file",
+            "state": "ok",
+            "at": [
+              2,
+              1.2
+            ],
+            "x": 560
+          }
+        ]
+      }
+    },
+    {
+      "id": "links",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Linking documents to each other is research.",
+        "Semantic Codex extracts only the links a document declares explicitly, with the exact line they came from.",
+        "A sentence like, the DPA covers the security review, creates no link. And a malformed declaration is reported, not guessed.",
+        "Every link stays a candidate, not a fact. Admission stays inconclusive."
+      ],
+      "data": {
+        "tf": [
+          "A6",
+          "Research preview"
+        ],
+        "kicker": "Research · Semantic Codex v1.2 · same run",
+        "title": "Links between documents are candidates, not facts",
+        "title_size": 48,
+        "file": "terminal · semantic store prototype",
+        "blocks": [
+          {
+            "cmd": "",
+            "out": "== Declared links between documents (research)\n  msa -REQUIRES-> dpa   at msa line 2\n  dpa -REFERENCES-> sec   at dpa line 3\n  sec line 2: INVALID_EXPLICIT_DECLARATION\n  interpretation: STRUCTURAL_CANDIDATE_NOT_FACT\n  admission: INCONCLUSIVE   can_generate: False",
+            "at": [
+              1,
+              0.0
+            ],
+            "reveal": 4.0
+          }
+        ],
+        "notes": [
+          {
+            "text": "exact line anchors",
+            "state": "ok",
+            "at": [
+              1,
+              4.0
+            ]
+          },
+          {
+            "text": "malformed → reported",
+            "state": "warn",
+            "at": [
+              2,
+              4.0
+            ],
+            "x": 300
+          },
+          {
+            "text": "admission: INCONCLUSIVE",
+            "state": "warn",
+            "at": [
+              3,
+              1.0
+            ],
+            "x": 640
+          }
+        ]
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "Today: declare what the answer needs, and let each document satisfy its part.",
+        "In research: explicit links with exact anchors, reviewed before they count. QualityRag does not infer relationships from ordinary sentences.",
+        "Next: diagrams, images and video."
+      ],
+      "data": {
+        "tf": [
+          "A6",
+          "The boundary"
+        ],
+        "kicker": "Episode A6 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Splits one answer into requirements across files",
+            "at": [
+              0,
+              0.0
+            ]
+          },
+          {
+            "text": "Names the missing file-shaped piece",
+            "at": [
+              0,
+              2.0
+            ]
+          },
+          {
+            "text": "Anchors declared links to an exact line (research)",
+            "at": [
+              1,
+              0.4
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Infer links from ordinary sentences",
+            "at": [
+              1,
+              4.6
+            ]
+          },
+          {
+            "text": "Treat a link candidate as a fact",
+            "at": [
+              1,
+              2.4
+            ]
+          },
+          {
+            "text": "Find the missing file for you",
+            "at": [
+              1,
+              6.0
+            ]
+          }
+        ],
+        "next": {
+          "text": "Next · A7 · diagrams, images and video",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}

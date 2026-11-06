@@ -1,0 +1,311 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a7-images-and-video",
+  "title": "QualityRag Academy · A7 · Diagrams, images and video (research preview)",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "It can't understand our diagrams",
+        "or our images, or our videos."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"It can't understand our diagrams…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…or our images, or our videos.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A7",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Two architecture diagrams.",
+        "In the first, service A calls service B. In the second, B calls A.",
+        "That arrow is the whole meaning, and to most pipelines the two look the same."
+      ],
+      "data": {
+        "tf": [
+          "A7",
+          "The failure · illustration"
+        ],
+        "kicker": "Two diagrams · one arrow",
+        "title": "Same picture, opposite meaning",
+        "title_size": 52,
+        "cards": [
+          {
+            "id": "d1",
+            "meta": "architecture.png",
+            "text": "Service A  ──▶  Service B",
+            "x": 120,
+            "y": 320,
+            "w": 700,
+            "size": 34,
+            "at": [
+              0,
+              0.4
+            ]
+          },
+          {
+            "id": "d2",
+            "meta": "architecture-reversed.png",
+            "text": "Service A  ◀──  Service B",
+            "x": 120,
+            "y": 540,
+            "w": 700,
+            "size": 34,
+            "at": [
+              0,
+              0.8
+            ]
+          },
+          {
+            "id": "m",
+            "meta": "WHAT THE DIAGRAM MEANS",
+            "text": "Who calls whom: the arrow decides.",
+            "x": 1180,
+            "y": 430,
+            "w": 620,
+            "size": 28,
+            "at": [
+              2,
+              0.0
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              1,
+              0.4
+            ],
+            "card": "d1",
+            "state": "ok",
+            "tag": "A calls B"
+          },
+          {
+            "at": [
+              1,
+              2.4
+            ],
+            "card": "d2",
+            "state": "bad",
+            "tag": "B calls A",
+            "glitch": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "In the research track, Semantic Codex indexes images and sampled video frames with a pixel hash.",
+        "Compare the diagram with its reversed copy: distance zero. Identical appearance, opposite meaning.",
+        "A different diagram scores thirteen, and an unrelated image thirty-five.",
+        "Every result says identity unknown, and admission stays inconclusive."
+      ],
+      "data": {
+        "tf": [
+          "A7",
+          "Lab · research"
+        ],
+        "kicker": "Lab A7 · real output · Semantic Codex v0.4",
+        "title": "Appearance is measurable. Meaning is not, yet.",
+        "title_size": 48,
+        "file": "terminal · semantic store prototype",
+        "blocks": [
+          {
+            "cmd": "python docs/academy/labs/a7_images_and_video.py",
+            "out": "== Indexed 4 images (64-bit difference hash per image)\n== Visually similar to lab/architecture.png\n  lab/architecture-reversed.png  distance=0   identity=UNKNOWN\n  lab/three-tier.png             distance=13  identity=UNKNOWN\n  lab/team-photo.png             distance=35  identity=UNKNOWN\n  method: 64_BIT_DHASH   scope: BOUNDED_VISUAL_APPEARANCE_NOT_PERSON_IDENTITY\n  admission: INCONCLUSIVE   can_generate: False",
+            "at": [
+              0,
+              1.2
+            ],
+            "out_at": [
+              1,
+              0.0
+            ],
+            "reveal": 3.0
+          }
+        ],
+        "notes": [
+          {
+            "text": "distance 0 · opposite meaning",
+            "state": "bad",
+            "at": [
+              1,
+              3.0
+            ]
+          },
+          {
+            "text": "identity UNKNOWN · admission INCONCLUSIVE",
+            "state": "warn",
+            "at": [
+              3,
+              0.6
+            ],
+            "x": 440
+          }
+        ]
+      }
+    },
+    {
+      "id": "scope",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Appearance is not meaning.",
+        "Video frames are sampled with time anchors, up to twelve from the first minute. An optional scene search ranks frames against a text prompt, but its scores are uncalibrated, and it never identifies people."
+      ],
+      "data": {
+        "tf": [
+          "A7",
+          "Research track"
+        ],
+        "size": 66,
+        "lines": [
+          {
+            "text": "Appearance is not meaning.",
+            "at": 0
+          },
+          {
+            "text": "video · ≤ 12 frames · first 60 s · time anchors",
+            "at": [
+              1,
+              0.2
+            ],
+            "color": "ok",
+            "size": 48
+          }
+        ],
+        "note": {
+          "text": "Semantic Codex v0.4–v0.5 · optional OpenCLIP scene search · uncalibrated scores · no OCR · no face or person recognition",
+          "at": [
+            1,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "That's the boundary.",
+        "QualityRag can find and anchor visual media. It doesn't read diagrams, extract text from images, or recognise people. Visual evidence never admits on its own.",
+        "Next: the right rule, for the wrong customer."
+      ],
+      "data": {
+        "tf": [
+          "A7",
+          "The boundary"
+        ],
+        "kicker": "Episode A7 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Indexes images and sampled video frames with anchors",
+            "at": [
+              1,
+              0.0
+            ]
+          },
+          {
+            "text": "Finds visually similar media",
+            "at": [
+              1,
+              1.2
+            ]
+          },
+          {
+            "text": "Labels every match identity UNKNOWN",
+            "at": [
+              1,
+              6.4
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Understand what a diagram means",
+            "at": [
+              1,
+              2.6
+            ]
+          },
+          {
+            "text": "Read text in images (no OCR)",
+            "at": [
+              1,
+              3.8
+            ]
+          },
+          {
+            "text": "Recognise faces or people",
+            "at": [
+              1,
+              5.0
+            ]
+          }
+        ],
+        "next": {
+          "text": "Next · A8 · right rule, wrong scope",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}

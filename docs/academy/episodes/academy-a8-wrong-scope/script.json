@@ -1,0 +1,340 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a8-wrong-scope",
+  "title": "QualityRag Academy · A8 · Right rule, wrong scope",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "It gave the right rule",
+        "for the wrong customer."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"It gave the right rule…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…for the wrong customer.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A8",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "An EU customer asks for a refund after twenty days.",
+        "Search finds the refund policy: a great match, written for US customers.",
+        "The model applies it. Yes, you have thirty days.",
+        "The rule was real. It just didn't apply to this customer."
+      ],
+      "data": {
+        "tf": [
+          "A8",
+          "The failure · illustration"
+        ],
+        "kicker": "Question · invented policies",
+        "title": "Can an EU customer get a refund after 20 days?",
+        "title_size": 46,
+        "cards": [
+          {
+            "id": "us",
+            "meta": "refunds-us.html · US policy site",
+            "text": "Refunds within 30 days of purchase.",
+            "x": 120,
+            "y": 320,
+            "w": 660,
+            "at": [
+              1,
+              0.4
+            ]
+          },
+          {
+            "id": "eu",
+            "meta": "refunds-eu.html · EU terms · NOT RETRIEVED",
+            "text": "EU consumers: 14-day refund window.",
+            "x": 120,
+            "y": 520,
+            "w": 660,
+            "accent": "warn",
+            "at": [
+              3,
+              0.6
+            ]
+          },
+          {
+            "id": "ans",
+            "meta": "MODEL ANSWER",
+            "text": "Yes. You have 30 days.",
+            "x": 1240,
+            "y": 420,
+            "w": 560,
+            "size": 30,
+            "at": [
+              2,
+              0.4
+            ]
+          }
+        ],
+        "wires": [
+          {
+            "from": "us",
+            "to": "ans",
+            "at": [
+              2,
+              0.0
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              1,
+              2.6
+            ],
+            "card": "us",
+            "state": "warn",
+            "tag": "US scope only"
+          },
+          {
+            "at": [
+              3,
+              0.2
+            ],
+            "card": "ans",
+            "state": "bad",
+            "tag": "wrong customer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Make applicability its own requirement.",
+        "The US policy supports the refund rule, but nothing says it applies to EU consumers, so the check is inconclusive.",
+        "EU terms with an explicit scope clause satisfy both, and the check admits."
+      ],
+      "data": {
+        "tf": [
+          "A8",
+          "Lab · available now"
+        ],
+        "kicker": "Lab A8 · real output",
+        "title": "Scope is a requirement, not an assumption",
+        "title_size": 50,
+        "file": "terminal · python sdk",
+        "blocks": [
+          {
+            "cmd": "python docs/academy/labs/a8_wrong_scope.py",
+            "out": "== Refund rule found, but it is the US policy\nverdict: INCONCLUSIVE\n  refund-rule            ADMIT         sources=1  -\n  applies-to-eu          INCONCLUSIVE  sources=0  INSUFFICIENT_INDEPENDENT_EVIDENCE\n\n== EU terms with an explicit scope clause\nverdict: ADMIT\n  refund-rule            ADMIT         sources=1  -\n  applies-to-eu          ADMIT         sources=1  -",
+            "at": [
+              0,
+              0.6
+            ],
+            "out_at": [
+              1,
+              0.0
+            ],
+            "reveal": 4.0
+          }
+        ],
+        "notes": [
+          {
+            "text": "applies-to-eu · 0 sources → INCONCLUSIVE",
+            "state": "warn",
+            "at": [
+              1,
+              4.0
+            ]
+          },
+          {
+            "text": "explicit scope clause → ADMIT",
+            "state": "ok",
+            "at": [
+              2,
+              1.6
+            ],
+            "x": 640
+          }
+        ]
+      }
+    },
+    {
+      "id": "lens",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Research goes a step further, with a purpose-scoped lens.",
+        "It declares which distinctions a purpose must keep, like who a policy applies to, and which it may drop, like the banner colour.",
+        "A contract that contradicts itself is rejected. And every lens stays unauthenticated and inconclusive, until a trusted reviewer promotes it."
+      ],
+      "data": {
+        "tf": [
+          "A8",
+          "Research preview"
+        ],
+        "kicker": "Research · purpose-scoped lens v1.5 · same run",
+        "title": "Keep what the purpose needs. Nothing less.",
+        "title_size": 50,
+        "file": "terminal · semantic store prototype",
+        "blocks": [
+          {
+            "cmd": "",
+            "out": "== Purpose contract (research)\n  purpose: refund-eligibility   must keep: applies_to, grants   may omit: styled_as\n  review: NOT_AUTHENTICATED   admission: INCONCLUSIVE\n  a contract that both keeps and omits 'grants' is rejected: Invalid required/optional distinction contract",
+            "at": [
+              1,
+              0.0
+            ],
+            "reveal": 2.5
+          }
+        ],
+        "notes": [
+          {
+            "text": "must keep: applies_to, grants",
+            "state": "ok",
+            "at": [
+              1,
+              3.0
+            ]
+          },
+          {
+            "text": "self-contradicting contract → rejected",
+            "state": "bad",
+            "at": [
+              2,
+              0.8
+            ],
+            "x": 450
+          },
+          {
+            "text": "INCONCLUSIVE until reviewed",
+            "state": "warn",
+            "at": [
+              2,
+              4.0
+            ],
+            "x": 1080
+          }
+        ]
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "Scope is a requirement, not an assumption.",
+        "QualityRag won't guess a document's jurisdiction, or the customer's region. Your application supplies both.",
+        "That completes the research track: chapters six to eight."
+      ],
+      "data": {
+        "tf": [
+          "A8",
+          "The boundary"
+        ],
+        "kicker": "Episode A8 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Treats applicability as its own requirement",
+            "at": [
+              0,
+              0.0
+            ]
+          },
+          {
+            "text": "Names the missing scope evidence",
+            "at": [
+              0,
+              1.4
+            ]
+          },
+          {
+            "text": "Rejects contradictory purpose contracts (research)",
+            "at": [
+              0,
+              2.6
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Infer a document's jurisdiction",
+            "at": [
+              1,
+              1.2
+            ]
+          },
+          {
+            "text": "Know the customer's region unless you pass it",
+            "at": [
+              1,
+              3.0
+            ]
+          },
+          {
+            "text": "Authenticate a purpose contract",
+            "at": [
+              1,
+              5.0
+            ]
+          }
+        ],
+        "next": {
+          "text": "Academy · A1–A8 complete",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}
