@@ -30,7 +30,7 @@ The Garden and Evolution frames show how the research loop is designed. They are
 
 ## QualityRag Academy: twenty problems, one episode each
 
-**Chapters A1–A8 are built:** videos, interactive chapters and labs are in [docs/academy](../academy/README.md).
+**Chapters A1–A8 and A12–A14 are built:** videos, interactive chapters and labs are in [docs/academy](../academy/README.md).
 
 Each Academy episode opens on a failure that RAG teams describe in their own words. It then demonstrates what QualityRag does about that failure, and states what it does *not* guarantee. The first five are the customer-acquisition episodes.
 
@@ -47,9 +47,9 @@ Each Academy episode opens on a failure that RAG teams describe in their own wor
 | A9 | "It works with one PDF, fails with more." | Duplicates counted once; unlinked passages excluded | Available (partial) |
 | A10 | "Chunking is destroying the context." | Conditional wording flagged; typed spans | Partial |
 | A11 | "The answer is in my documents, but RAG can't find it." | Not a retriever: names what is missing so the app can re-retrieve | Partial |
-| A12 | "We can't measure whether our RAG is improving." | Policy tester, deceptive-witness fixtures, Evolution | Experimental |
-| A13 | "Excellent in the demo, unreliable in production." | Held-out families; Health | Experimental |
-| A14 | "Every change breaks something." | Policy changes, branch replay, signed promotion | Experimental |
+| A12 | "We can't measure whether our RAG is improving." | Policy tester, deceptive-witness fixtures, Evolution | Built · experimental |
+| A13 | "Excellent in the demo, unreliable in production." | Held-out families; Health | Built · experimental |
+| A14 | "Every change breaks something." | Policy changes, branch replay, signed promotion | Built · experimental |
 | A15 | "We can't guarantee who sees which documents." | Signed tokens with scopes (not a document access-control system) | Partial |
 | A16 | "Too slow and expensive at scale." | The evaluator needs no model call; representation cost is researched in the Garden | Research |
 | A17 | "Vector search can't find exact product codes." | Out of scope: pair QualityRag with keyword or hybrid retrieval | Not addressed |

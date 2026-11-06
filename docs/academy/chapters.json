@@ -1,6 +1,6 @@
 {
   "academy": "QualityRag Academy",
-  "intro": "Eight problem-driven chapters. Each one opens on a failure that RAG teams describe in their own words, shows what QualityRag does about it with real output, and ends on what it does not guarantee. A1–A5 are available now; A6–A8 are the research track, pairing what works today with research prototypes.",
+  "intro": "Eleven problem-driven chapters. Each one opens on a failure that RAG teams describe in their own words, shows what QualityRag does about it with real output, and ends on what it does not guarantee. A1–A5 are available now, A6–A8 are the research track, and A12–A14 are the measurement track, built on branch replay and Evolution.",
   "levels": [
     "Retriever",
     "Evidence Scout",
@@ -23,21 +23,6 @@
       "A11",
       "The answer is in my documents, but RAG can't find it",
       "Partial"
-    ],
-    [
-      "A12",
-      "We can't measure whether our RAG is improving",
-      "Experimental"
-    ],
-    [
-      "A13",
-      "Excellent in the demo, unreliable in production",
-      "Experimental"
-    ],
-    [
-      "A14",
-      "Every change breaks something",
-      "Experimental"
     ],
     [
       "A15",
@@ -2119,6 +2104,758 @@
         ],
         "timing": "Video 1.5 min · lab 10 min · war game 6 min · quiz 5 min.",
         "activity": "For one of your policies, write the applies-to requirement and the evidence that would satisfy it."
+      }
+    },
+    {
+      "id": "a12",
+      "code": "A12",
+      "title": "Measuring improvement",
+      "status": "Experimental",
+      "research": true,
+      "complaint": "“We can't tell if our RAG is getting better, or just sounding better.”",
+      "video": "academy-a12-measure-improvement",
+      "lab_file": "a12_measure_improvement.py",
+      "objectives": [
+        [
+          "Remember",
+          "Name the two replay rates: answer rate and false-admission rate."
+        ],
+        [
+          "Understand",
+          "Explain why thumbs-up and judge scores don't measure wrong answers admitted."
+        ],
+        [
+          "Apply",
+          "Run lab A12 and compare two policy versions."
+        ],
+        [
+          "Analyze",
+          "Work out which cases drive each rate."
+        ],
+        [
+          "Evaluate",
+          "Decide whether a rate change is worth shipping."
+        ],
+        [
+          "Create",
+          "Label ten of your own recorded cases with expect_admit."
+        ]
+      ],
+      "scenario": {
+        "setup": "Ravi's team ships a new retrieval policy every sprint. The dashboard shows thumbs-up at 87% and a judge score of 4.2. Nobody can say whether wrong answers went down.",
+        "dialogue": [
+          [
+            "Junior",
+            "Thumbs up went from 84 to 87 percent. We improved, right?"
+          ],
+          [
+            "Grumpy",
+            "Users liked it more. Did it stop telling them wrong things? That's the number the auditor wants."
+          ],
+          [
+            "Cloudina",
+            "Record real cases, have a person label what each one should do, and replay every policy on them. Then you have two numbers that mean something."
+          ]
+        ]
+      },
+      "concepts": [
+        [
+          "Label the outcome, not the prose",
+          "A recorded case is the evidence a search returned plus a label from a person: expect_admit true (it should answer) or false (it should not). The label is about the decision, not the wording."
+        ],
+        [
+          "Two rates",
+          "Replay evaluates every case under a policy. Answer rate is the share of should-answer cases admitted. False-admission rate is the share of should-not cases admitted. Lower false admissions at a small cost in answers is often the trade you want."
+        ],
+        [
+          "Same gate, recorded evidence",
+          "Replay uses the same deterministic evaluator as production, on recorded evidence. It doesn't re-run retrieval or labelling, so the numbers are reproducible."
+        ]
+      ],
+      "hook": "Measure two numbers: right answers given, and wrong answers admitted.",
+      "recall": [
+        {
+          "q": "The share of should-not cases that a policy admits is the false-admission",
+          "a": [
+            "rate"
+          ]
+        },
+        {
+          "q": "The case label that says a case should answer is expect_",
+          "a": [
+            "admit"
+          ]
+        }
+      ],
+      "lab_try": "Add two more should-not cases made of copies of the handbook. How do version 1.0's false-admission rate and version 1.1's change?",
+      "wargame": {
+        "name": "Sprint review",
+        "brief": "Your team proposes v1.1 of the recovery policy. The dashboard shows thumbs-up steady at 87%.",
+        "steps": [
+          {
+            "q": "What do you need before approving v1.1?",
+            "options": [
+              [
+                "A higher judge score",
+                false,
+                "A model grading a model doesn't count wrong answers admitted."
+              ],
+              [
+                "Replay on labelled recorded cases",
+                true,
+                "Replay gives answer rate and false-admission rate for both versions."
+              ],
+              [
+                "More demo questions",
+                false,
+                "Demo questions are the easy cases."
+              ]
+            ]
+          },
+          {
+            "q": "Replay: v1.0 admits 60% of should-not cases; v1.1 admits 0% and answers 83% instead of 100%. Ship?",
+            "options": [
+              [
+                "Yes, automatically",
+                false,
+                "The trade-off is a decision; look at the lost answer first."
+              ],
+              [
+                "Look at the one lost answer, then decide and record why",
+                true,
+                "A14 shows the lost case is a single regulator source. That's a judgement call."
+              ],
+              [
+                "No, any lost answer is unacceptable",
+                false,
+                "Then you keep a 60% false-admission rate."
+              ]
+            ]
+          }
+        ]
+      },
+      "boss": {
+        "name": "The Vanity Metric",
+        "phases": [
+          {
+            "title": "Define",
+            "task": "Six cases should answer; five should not. Policy admits all six and three of the five. False-admission rate?",
+            "options": [
+              "30%",
+              "60%",
+              "100%"
+            ],
+            "correct": 1,
+            "hints": [
+              "Divide by the should-not cases only.",
+              "3 of 5.",
+              "60%."
+            ]
+          },
+          {
+            "title": "Compare",
+            "task": "Which result is better for a regulated workflow?",
+            "options": [
+              "100% answers, 60% false admissions",
+              "83% answers, 0% false admissions",
+              "Both are the same"
+            ],
+            "correct": 1,
+            "hints": [
+              "What does a wrong answer cost here?",
+              "Wrong answers are the expensive ones.",
+              "83% answers, 0% false admissions."
+            ]
+          },
+          {
+            "title": "Boundary",
+            "task": "What can replay not do?",
+            "options": [
+              "Re-evaluate recorded evidence under two policies",
+              "Decide whether your labels are correct",
+              "Report both rates"
+            ],
+            "correct": 1,
+            "hints": [
+              "Labels come from people.",
+              "Replay trusts the labels it's given.",
+              "Decide whether your labels are correct."
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "q": "What is a recorded case?",
+          "options": [
+            "A transcript of the model's answer",
+            "Retrieved evidence plus a person's expect_admit label",
+            "A judge-model score"
+          ],
+          "correct": 1,
+          "why": "Replay cases carry id, evidence and optional expect_admit."
+        },
+        {
+          "q": "Answer rate is measured over",
+          "options": [
+            "All cases",
+            "Cases labelled expect_admit true",
+            "Cases the model answered"
+          ],
+          "correct": 1,
+          "why": "Only labelled should-answer cases count."
+        },
+        {
+          "q": "Does replay re-run retrieval?",
+          "options": [
+            "Yes",
+            "No, it re-evaluates recorded evidence",
+            "Only for new policies"
+          ],
+          "correct": 1,
+          "why": "The replay note says so."
+        },
+        {
+          "q": "Why aren't thumbs-up rates enough?",
+          "options": [
+            "They're too slow",
+            "They don't count wrong answers admitted",
+            "They need labels"
+          ],
+          "correct": 1,
+          "why": "Satisfaction and correctness aren't the same measurement."
+        },
+        {
+          "q": "What happened to v1.1's false-admission rate in the lab?",
+          "options": [
+            "Stayed at 60%",
+            "Dropped to 0%",
+            "Rose to 75%"
+          ],
+          "correct": 1,
+          "why": "Requiring two independent origins blocked every copy-based case."
+        }
+      ],
+      "deep": {
+        "title": "The two rates",
+        "body": "answer_rate = |{c : label(c)=true ∧ verdict(c)=ADMIT}| / |{c : label(c)=true}|. false_admission_rate = |{c : label(c)=false ∧ verdict(c)=ADMIT}| / |{c : label(c)=false}|. Unlabelled cases still show flips but don't enter either rate. Because the evaluator is deterministic, the same cases and policy give the same rates on any machine."
+      },
+      "instructor": {
+        "icebreaker": "Ask each team which metric they report for their assistant, and whether it would go up if the assistant became more confidently wrong.",
+        "confusions": [
+          [
+            "“Replay measures retrieval quality.”",
+            "It measures the policy on recorded evidence. Retrieval changes need new recordings."
+          ],
+          [
+            "“Labels are automatic.”",
+            "A person decides expect_admit."
+          ]
+        ],
+        "timing": "Video 1 min · lab 10 min · war game 6 min · quiz 5 min.",
+        "activity": "Label ten real cases from your own logs and compute both rates for your current policy."
+      }
+    },
+    {
+      "id": "a13",
+      "code": "A13",
+      "title": "Demo vs production",
+      "status": "Experimental",
+      "research": true,
+      "complaint": "“Excellent in the demo, unreliable in production.”",
+      "video": "academy-a13-demo-vs-production",
+      "lab_file": "a13_demo_vs_production.py",
+      "objectives": [
+        [
+          "Remember",
+          "Recall that a policy must be scored on held-out cases, not only the ones it was tuned on."
+        ],
+        [
+          "Understand",
+          "Explain why demo cases hide copies, stale and weak sources."
+        ],
+        [
+          "Apply",
+          "Run lab A13 on both case sets."
+        ],
+        [
+          "Analyze",
+          "Classify production failures into copies, staleness and weak sources."
+        ],
+        [
+          "Evaluate",
+          "Judge whether a held-out set is hard enough."
+        ],
+        [
+          "Create",
+          "Design a held-out set from your own traffic."
+        ]
+      ],
+      "scenario": {
+        "setup": "Mei's assistant was a hit in the steering-committee demo. Three weeks into production, support tickets show it confidently answering from copies, stale runbooks and wiki pages.",
+        "dialogue": [
+          [
+            "Junior",
+            "It was perfect in the demo. What changed?"
+          ],
+          [
+            "Grumpy",
+            "Nothing changed. The demo questions were picked because they worked."
+          ],
+          [
+            "Cloudina",
+            "Score the same policy on cases it has never seen, taken from real traffic. The demo tells you it can work; the held-out set tells you whether it does."
+          ]
+        ]
+      },
+      "concepts": [
+        [
+          "Selection bias",
+          "Demo cases are usually chosen because they work: current documents, independent sources, clean retrieval. Production retrieval returns copies, forwards, stale runbooks and weak single sources."
+        ],
+        [
+          "Hold out, then score",
+          "Keep a set of labelled cases from real traffic that nobody tuned the policy on. Score every policy on it. A big gap between demo and held-out rates is the warning."
+        ],
+        [
+          "Fresh families (research)",
+          "The Evolution loop builds this in: without fresh, held-out evaluation families it can continue development but cannot promote a research champion."
+        ]
+      ],
+      "hook": "A policy is only as good as its score on cases it has never seen.",
+      "recall": [
+        {
+          "q": "On held-out production cases, the lab's false-admission rate was",
+          "a": [
+            "75%",
+            "75"
+          ]
+        },
+        {
+          "q": "Evolution can't promote a champion without fresh, held-out",
+          "a": [
+            "families",
+            "family"
+          ]
+        }
+      ],
+      "lab_try": "Run lab A13 with the stricter policy from _cases.py (STRICT). What happens to the held-out false-admission rate, and to the answer rate?",
+      "wargame": {
+        "name": "After the launch",
+        "brief": "The demo scored 100% answers and 0% false admissions. Production tickets disagree.",
+        "steps": [
+          {
+            "q": "What's the first diagnostic step?",
+            "options": [
+              [
+                "Re-run the demo",
+                false,
+                "It will pass again; that's the problem."
+              ],
+              [
+                "Label a sample of production cases and score the policy on them",
+                true,
+                "The held-out set shows 75% false admissions."
+              ],
+              [
+                "Raise the model's temperature",
+                false,
+                "Generation settings don't change what evidence was admitted."
+              ]
+            ]
+          },
+          {
+            "q": "Where should the held-out cases come from?",
+            "options": [
+              [
+                "The demo script",
+                false,
+                "Those are the tuned cases."
+              ],
+              [
+                "Real traffic, labelled by a person, kept out of tuning",
+                true,
+                "Only then is the score honest."
+              ],
+              [
+                "Generated by the model",
+                false,
+                "Generated cases inherit the model's blind spots."
+              ]
+            ]
+          }
+        ]
+      },
+      "boss": {
+        "name": "The Perfect Demo",
+        "phases": [
+          {
+            "title": "Read",
+            "task": "Same policy: demo false admissions 0%, held-out 75%. What does the gap mean?",
+            "options": [
+              "The policy broke",
+              "The demo never contained the hard cases",
+              "Held-out labels are wrong"
+            ],
+            "correct": 1,
+            "hints": [
+              "Nothing about the policy changed.",
+              "Look at what the demo cases contained.",
+              "The demo never contained the hard cases."
+            ]
+          },
+          {
+            "title": "Classify",
+            "task": "Which held-out case was refused even by version 1.0?",
+            "options": [
+              "field-copies",
+              "field-stale",
+              "field-wiki-only"
+            ],
+            "correct": 1,
+            "hints": [
+              "One case failed a freshness rule.",
+              "max_age_seconds is one year.",
+              "field-stale."
+            ]
+          },
+          {
+            "title": "Boundary",
+            "task": "What can't QualityRag tell you about your held-out set?",
+            "options": [
+              "Its answer rate",
+              "Whether it represents production",
+              "Its false-admission rate"
+            ],
+            "correct": 1,
+            "hints": [
+              "Two of these are computed.",
+              "Representativeness is a judgement.",
+              "Whether it represents production."
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "q": "Why do demos overstate quality?",
+          "options": [
+            "Demos use better models",
+            "Demo cases are selected because they work",
+            "Production is slower"
+          ],
+          "correct": 1,
+          "why": "Selection bias, not a different system."
+        },
+        {
+          "q": "What makes a held-out set useful?",
+          "options": [
+            "It's large",
+            "It wasn't used to tune the policy and comes from real traffic",
+            "It's generated"
+          ],
+          "correct": 1,
+          "why": "Only unseen, real cases measure generalisation."
+        },
+        {
+          "q": "In the lab, which rate changed between demo and held-out?",
+          "options": [
+            "Answer rate",
+            "False-admission rate",
+            "Neither"
+          ],
+          "correct": 1,
+          "why": "Answer rate stayed 100%; false admissions went 0% → 75%."
+        },
+        {
+          "q": "What does Evolution require before promotion?",
+          "options": [
+            "A signed commit",
+            "Fresh evaluation families",
+            "A higher judge score"
+          ],
+          "correct": 1,
+          "why": "Without fresh families it can't promote a research champion."
+        },
+        {
+          "q": "Does QualityRag collect production cases for you?",
+          "options": [
+            "Yes",
+            "No, your application records and labels them",
+            "Only with MCP"
+          ],
+          "correct": 1,
+          "why": "Recording and labelling are the integrator's job."
+        }
+      ],
+      "deep": {
+        "title": "Overfitting a policy",
+        "body": "A policy tuned until every demo case passes is fitted to that set. Its error on unseen cases is the honest estimate. In lab A13 the same policy has false_admission_rate 0/1 on demo and 3/4 on held-out cases, because the held-out set contains the failure modes (same origin, forwarded copy, weak single source) that the demo excluded."
+      },
+      "instructor": {
+        "icebreaker": "Ask who has seen an assistant demo better than it worked in production, and what the demo questions had in common.",
+        "confusions": [
+          [
+            "“More demo questions fix it.”",
+            "Only unseen, real cases do."
+          ],
+          [
+            "“The held-out set is automatically representative.”",
+            "That's a human judgement; QualityRag can't make it."
+          ]
+        ],
+        "timing": "Video 1 min · lab 8 min · war game 6 min · quiz 5 min.",
+        "activity": "Pull twenty recent production queries, label them, and compare their rates with your demo set."
+      }
+    },
+    {
+      "id": "a14",
+      "code": "A14",
+      "title": "Every change breaks something",
+      "status": "Experimental",
+      "research": true,
+      "complaint": "“Every change breaks something, and we find out from customers.”",
+      "video": "academy-a14-every-change-breaks",
+      "lab_file": "a14_every_change_breaks.py",
+      "objectives": [
+        [
+          "Remember",
+          "Name the replay effects: false admission removed, correct answer lost, and their opposites."
+        ],
+        [
+          "Understand",
+          "Explain why a stricter policy can both fix and break cases."
+        ],
+        [
+          "Apply",
+          "Run lab A14 and read every flipped verdict."
+        ],
+        [
+          "Analyze",
+          "Trace a lost answer back to the requirement change that caused it."
+        ],
+        [
+          "Evaluate",
+          "Decide whether a trade-off is acceptable, and record why."
+        ],
+        [
+          "Create",
+          "Propose a requirement change that keeps the regulator case while blocking copies."
+        ]
+      ],
+      "scenario": {
+        "setup": "Jonas tightens the recovery policy to require two independent sources. It's a one-line change. Last time, a one-line change blocked half of support's answers for a day.",
+        "dialogue": [
+          [
+            "Junior",
+            "It's one number. What could go wrong?"
+          ],
+          [
+            "Grumpy",
+            "Last time it was one number too. Customers found the problem before we did."
+          ],
+          [
+            "Cloudina",
+            "Replay it first. You'll see exactly which verdicts change, which ones that fixes and which ones it breaks, before anyone outside the team does."
+          ]
+        ]
+      },
+      "concepts": [
+        [
+          "Changes are trade-offs",
+          "Requiring two independent sources stops copies passing as corroboration, and also blocks correct answers that rest on one authoritative source. Both effects are real."
+        ],
+        [
+          "Replay names every flip",
+          "For each case whose verdict changes, replay reports from, to and the effect: false_admission_removed, correct_answer_lost, false_admission_added or correct_answer_gained. The console's Policy changes screen shows the same result."
+        ],
+        [
+          "Nothing is applied",
+          "Replay is read-only. Promoting a policy change is a separate signed review, available once Health shows nothing to fix."
+        ]
+      ],
+      "hook": "Replay first, then decide. Promotion stays a signed review.",
+      "recall": [
+        {
+          "q": "The effect when a stricter policy blocks a right answer is correct_answer_",
+          "a": [
+            "lost"
+          ]
+        },
+        {
+          "q": "Promoting a policy change is a separate signed",
+          "a": [
+            "review"
+          ]
+        }
+      ],
+      "lab_try": "Give the regulator case a second independent origin (for example a published bulletin). Run the replay again. How many correct answers are lost now?",
+      "wargame": {
+        "name": "The one-line change",
+        "brief": "You propose min_independent_sources 1 → 2 for recovery-procedure. Release is tomorrow.",
+        "steps": [
+          {
+            "q": "What do you run before merging?",
+            "options": [
+              [
+                "The unit tests",
+                false,
+                "They check the code, not what the policy does to real cases."
+              ],
+              [
+                "A replay of recorded, labelled cases under both policies",
+                true,
+                "It lists every verdict that would change."
+              ],
+              [
+                "Nothing, it's one line",
+                false,
+                "That's how the last incident happened."
+              ]
+            ]
+          },
+          {
+            "q": "Replay: 3 false admissions removed, 1 correct answer lost (a regulator notice). What now?",
+            "options": [
+              [
+                "Ship and accept the loss silently",
+                false,
+                "Record the decision; somebody will ask."
+              ],
+              [
+                "Decide explicitly: accept, or add a requirement that admits authoritative single sources, then replay again",
+                true,
+                "The trade-off becomes a reviewed decision."
+              ],
+              [
+                "Revert the change",
+                false,
+                "Then the three false admissions return."
+              ]
+            ]
+          }
+        ]
+      },
+      "boss": {
+        "name": "The Silent Regression",
+        "phases": [
+          {
+            "title": "Count",
+            "task": "How many verdicts changed in the lab?",
+            "options": [
+              "3",
+              "4",
+              "11"
+            ],
+            "correct": 1,
+            "hints": [
+              "Count the flip lines.",
+              "Three removed plus one lost.",
+              "4."
+            ]
+          },
+          {
+            "title": "Effect",
+            "task": "field-regulator went ADMIT → INCONCLUSIVE and was labelled should-answer. Effect?",
+            "options": [
+              "false_admission_removed",
+              "correct_answer_lost",
+              "correct_answer_gained"
+            ],
+            "correct": 1,
+            "hints": [
+              "It should have answered.",
+              "It stopped answering.",
+              "correct_answer_lost."
+            ]
+          },
+          {
+            "title": "Boundary",
+            "task": "After a good replay, what applies the new policy?",
+            "options": [
+              "Replay itself",
+              "A separate signed review",
+              "The console automatically"
+            ],
+            "correct": 1,
+            "hints": [
+              "Replay is read-only.",
+              "The console says nothing is applied there.",
+              "A separate signed review."
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "q": "What does replay compare?",
+          "options": [
+            "Two models",
+            "Two policies on the same recorded cases",
+            "Two retrieval indexes"
+          ],
+          "correct": 1,
+          "why": "base and branch packs, same cases."
+        },
+        {
+          "q": "Which effect means the change fixed a case?",
+          "options": [
+            "correct_answer_lost",
+            "false_admission_removed",
+            "false_admission_added"
+          ],
+          "correct": 1,
+          "why": "A should-not case that is no longer admitted."
+        },
+        {
+          "q": "Why was the regulator answer lost?",
+          "options": [
+            "It was stale",
+            "It had only one independent origin",
+            "It contradicted the handbook"
+          ],
+          "correct": 1,
+          "why": "The new policy needs two."
+        },
+        {
+          "q": "Does the Policy changes screen apply the new policy?",
+          "options": [
+            "Yes",
+            "No, promotion is a separate signed review",
+            "Only for admins"
+          ],
+          "correct": 1,
+          "why": "“Nothing is applied here.”"
+        },
+        {
+          "q": "What does pack_diff show?",
+          "options": [
+            "The model output",
+            "Each requirement field that changed, from → to",
+            "The retrieval scores"
+          ],
+          "correct": 1,
+          "why": "For example min_independent_sources 1 → 2."
+        }
+      ],
+      "deep": {
+        "title": "The four effects",
+        "body": "For a labelled case whose verdict changes: was = base admits, now = branch admits. was ∧ ¬now ∧ ¬label → false_admission_removed; was ∧ ¬now ∧ label → correct_answer_lost; ¬was ∧ now ∧ ¬label → false_admission_added; ¬was ∧ now ∧ label → correct_answer_gained. Unlabelled flips are still listed. A change with zero lost and zero added is a strict improvement on these cases, not in general."
+      },
+      "instructor": {
+        "icebreaker": "Ask for the smallest config change that ever caused the biggest incident in the room.",
+        "confusions": [
+          [
+            "“Replay deploys the change.”",
+            "It's read-only; promotion is signed review."
+          ],
+          [
+            "“No lost answers means the change is safe.”",
+            "Only on the recorded cases. Keep adding real ones."
+          ]
+        ],
+        "timing": "Video 1.5 min · lab 10 min · war game 6 min · quiz 5 min.",
+        "activity": "Take a policy change you are considering and replay it on twenty labelled cases before discussing it."
       }
     }
   ]

@@ -1,0 +1,307 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a14-every-change-breaks",
+  "title": "QualityRag Academy · A14 · Every change breaks something",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "Every change breaks something",
+        "and we find out from customers."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"Every change breaks something…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…and we find out from customers.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A14",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "One line in the policy: require two independent sources, instead of one.",
+        "It will stop copies passing as corroboration. Good.",
+        "It may also block an answer backed by one authoritative source, like a regulator's notice.",
+        "Most teams find out which, after shipping."
+      ],
+      "data": {
+        "tf": [
+          "A14",
+          "The failure"
+        ],
+        "kicker": "A one-line policy change",
+        "title": "recovery-procedure · min_independent_sources 1 → 2",
+        "title_size": 44,
+        "cards": [
+          {
+            "id": "fix",
+            "meta": "WHAT IT SHOULD FIX",
+            "text": "Copies of one handbook no longer pass as two sources.",
+            "x": 120,
+            "y": 320,
+            "w": 760,
+            "at": [
+              1,
+              0.0
+            ]
+          },
+          {
+            "id": "brk",
+            "meta": "WHAT IT MIGHT BREAK",
+            "text": "A regulator's notice is one source, and correct.",
+            "x": 120,
+            "y": 520,
+            "w": 760,
+            "at": [
+              2,
+              0.0
+            ]
+          },
+          {
+            "id": "when",
+            "meta": "WHEN TEAMS FIND OUT",
+            "text": "After release, from customers.",
+            "x": 1100,
+            "y": 420,
+            "w": 700,
+            "size": 28,
+            "at": [
+              3,
+              0.0
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              1,
+              1.4
+            ],
+            "card": "fix",
+            "state": "ok",
+            "tag": "good"
+          },
+          {
+            "at": [
+              2,
+              2.4
+            ],
+            "card": "brk",
+            "state": "warn",
+            "tag": "risk"
+          },
+          {
+            "at": [
+              3,
+              1.0
+            ],
+            "card": "when",
+            "state": "bad",
+            "tag": "too late"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Replay the change on recorded cases before it ships.",
+        "Four results change. Three false admissions are removed: two copies, and a wiki page.",
+        "And one correct answer is lost: the regulator's notice, which has a single source.",
+        "Now the trade-off is a decision, made before release, not a surprise after it."
+      ],
+      "data": {
+        "tf": [
+          "A14",
+          "Lab"
+        ],
+        "kicker": "Lab A14 · real output · branch replay",
+        "title": "See the trade-off before you ship",
+        "title_size": 50,
+        "file": "terminal · python",
+        "blocks": [
+          {
+            "cmd": "python docs/academy/labs/a14_every_change_breaks.py",
+            "out": "== Replay gateway-recovery@1.0 -> gateway-recovery@1.1-two-origins on 11 recorded cases\n  change: recovery-procedure min_independent_sources 1 -> 2\n  4 verdicts changed\n  field-copies       ADMIT        -> INCONCLUSIVE false_admission_removed\n  field-forwarded    ADMIT        -> INCONCLUSIVE false_admission_removed\n  field-wiki-only    ADMIT        -> INCONCLUSIVE false_admission_removed\n  field-regulator    ADMIT        -> INCONCLUSIVE correct_answer_lost\n  false admissions removed 3 · correct answers lost 1",
+            "at": [
+              0,
+              0.6
+            ],
+            "out_at": [
+              1,
+              0.0
+            ],
+            "reveal": 4.0
+          }
+        ],
+        "notes": [
+          {
+            "text": "3 false admissions removed",
+            "state": "ok",
+            "at": [
+              1,
+              3.6
+            ]
+          },
+          {
+            "text": "1 correct answer lost",
+            "state": "bad",
+            "at": [
+              2,
+              1.4
+            ],
+            "x": 470
+          }
+        ]
+      }
+    },
+    {
+      "id": "live",
+      "kind": "console",
+      "pad": [
+        0.4,
+        1.0
+      ],
+      "tf": [
+        "A14",
+        "Live console"
+      ],
+      "prep": [
+        "signin",
+        "open_ask",
+        "run_check"
+      ],
+      "steps": [
+        {
+          "say": "The console runs the same replay on the Policy changes screen.",
+          "do": "open_changes"
+        },
+        {
+          "say": "Compare results, and every changed verdict is listed, with what it means.",
+          "do": "run_compare"
+        },
+        {
+          "say": "Nothing is applied here. Promoting a policy change is a separate, signed review.",
+          "do": "point_replay_note"
+        }
+      ]
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "Replay first, then decide.",
+        "QualityRag shows exactly what a change would fix, and what it would break. Whether that trade is worth it is your decision, and promotion stays a signed review.",
+        "That completes the measurement track."
+      ],
+      "data": {
+        "tf": [
+          "A14",
+          "The boundary"
+        ],
+        "kicker": "Episode A14 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Replays a policy change on recorded cases",
+            "at": [
+              0,
+              0.0
+            ]
+          },
+          {
+            "text": "Lists every verdict that would change, with its effect",
+            "at": [
+              1,
+              0.0
+            ]
+          },
+          {
+            "text": "Keeps promotion a separate signed review",
+            "at": [
+              1,
+              6.4
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Decide the trade-off for you",
+            "at": [
+              1,
+              4.0
+            ]
+          },
+          {
+            "text": "Re-run retrieval on new data",
+            "at": [
+              1,
+              5.0
+            ]
+          },
+          {
+            "text": "Apply the change automatically",
+            "at": [
+              1,
+              7.0
+            ]
+          }
+        ],
+        "next": {
+          "text": "Academy · measurement track complete",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}

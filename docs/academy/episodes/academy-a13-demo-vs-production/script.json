@@ -1,0 +1,399 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a13-demo-vs-production",
+  "title": "QualityRag Academy · A13 · Demo vs production",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "Excellent in the demo",
+        "unreliable in production."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"Excellent in the demo…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…unreliable in production.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A13",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "The demo was built from clean cases: a current handbook, plus an independent change record.",
+        "Production retrieval is messier: copies of the same handbook, a forwarded email, a twenty twenty-four runbook, a team wiki page.",
+        "The same policy meets a different world."
+      ],
+      "data": {
+        "tf": [
+          "A13",
+          "The failure"
+        ],
+        "kicker": "Two case sets · one policy",
+        "title": "The demo never met the hard cases",
+        "title_size": 50,
+        "cards": [
+          {
+            "id": "d0",
+            "meta": "demo-1",
+            "text": "handbook + change-board record",
+            "x": 120,
+            "y": 300,
+            "w": 760,
+            "at": [
+              0,
+              0.3
+            ]
+          },
+          {
+            "id": "d1",
+            "meta": "demo-2",
+            "text": "handbook + SRE ticket",
+            "x": 120,
+            "y": 450,
+            "w": 760,
+            "at": [
+              0,
+              0.7
+            ]
+          },
+          {
+            "id": "d2",
+            "meta": "demo-3",
+            "text": "handbook 7.4 + change-board record",
+            "x": 120,
+            "y": 600,
+            "w": 760,
+            "at": [
+              0,
+              1.1
+            ]
+          },
+          {
+            "id": "f0",
+            "meta": "field-copies",
+            "text": "handbook + its intranet mirror",
+            "x": 1040,
+            "y": 300,
+            "w": 760,
+            "at": [
+              1,
+              0.3
+            ]
+          },
+          {
+            "id": "f1",
+            "meta": "field-forwarded",
+            "text": "a forwarded copy of the handbook",
+            "x": 1040,
+            "y": 450,
+            "w": 760,
+            "at": [
+              1,
+              0.7
+            ]
+          },
+          {
+            "id": "f2",
+            "meta": "field-stale",
+            "text": "a 2024 runbook",
+            "x": 1040,
+            "y": 600,
+            "w": 760,
+            "at": [
+              1,
+              1.1
+            ]
+          },
+          {
+            "id": "f3",
+            "meta": "field-wiki-only",
+            "text": "one team wiki page",
+            "x": 1040,
+            "y": 750,
+            "w": 760,
+            "at": [
+              1,
+              1.5000000000000002
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              0,
+              3.2
+            ],
+            "card": "d0",
+            "state": "ok",
+            "tag": "clean"
+          },
+          {
+            "at": [
+              0,
+              3.4
+            ],
+            "card": "d1",
+            "state": "ok",
+            "tag": "clean"
+          },
+          {
+            "at": [
+              0,
+              3.6
+            ],
+            "card": "d2",
+            "state": "ok",
+            "tag": "clean"
+          },
+          {
+            "at": [
+              1,
+              3.0
+            ],
+            "card": "f0",
+            "state": "warn",
+            "tag": "same origin"
+          },
+          {
+            "at": [
+              1,
+              3.8
+            ],
+            "card": "f1",
+            "state": "warn",
+            "tag": "copy"
+          },
+          {
+            "at": [
+              1,
+              4.6
+            ],
+            "card": "f2",
+            "state": "bad",
+            "tag": "stale"
+          },
+          {
+            "at": [
+              1,
+              5.6
+            ],
+            "card": "f3",
+            "state": "warn",
+            "tag": "single, weak source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Score one policy on both sets.",
+        "On the demo cases: every right answer, and no false admissions.",
+        "On held-out production cases: still every right answer, but seventy-five percent of the cases that should be refused are admitted.",
+        "The demo didn't lie. It just never met the hard cases."
+      ],
+      "data": {
+        "tf": [
+          "A13",
+          "Lab"
+        ],
+        "kicker": "Lab A13 · real output",
+        "title": "Same policy, two case sets",
+        "title_size": 52,
+        "file": "terminal · python",
+        "blocks": [
+          {
+            "cmd": "python docs/academy/labs/a13_demo_vs_production.py",
+            "out": "== One policy, gateway-recovery@1.0, two case sets\n  demo cases                   4 cases   answer rate 100%   false admissions 0%\n  held-out production cases    7 cases   answer rate 100%   false admissions 75%",
+            "at": [
+              0,
+              0.4
+            ],
+            "out_at": [
+              1,
+              0.0
+            ],
+            "reveal": 3.5
+          }
+        ],
+        "notes": [
+          {
+            "text": "demo · false admissions 0%",
+            "state": "ok",
+            "at": [
+              1,
+              1.6
+            ]
+          },
+          {
+            "text": "held-out · false admissions 75%",
+            "state": "bad",
+            "at": [
+              2,
+              4.0
+            ],
+            "x": 470
+          }
+        ]
+      }
+    },
+    {
+      "id": "research",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "The research loop builds this in.",
+        "Evolution can keep developing on the cases it has seen, but it cannot promote a champion without fresh, held-out families."
+      ],
+      "data": {
+        "tf": [
+          "A13",
+          "Research track"
+        ],
+        "size": 70,
+        "lines": [
+          {
+            "text": "Develop on what you've seen.",
+            "at": 0
+          },
+          {
+            "text": "Promote only on fresh, held-out families.",
+            "at": [
+              1,
+              0.4
+            ],
+            "color": "ok"
+          }
+        ],
+        "note": {
+          "text": "Evolution · without fresh evaluation families it can continue development but cannot promote a research champion",
+          "at": [
+            1,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "Test where it will fail, not where it shines.",
+        "Your held-out set has to come from real traffic, and QualityRag can't tell whether it's representative. That judgement is yours.",
+        "Next: every change breaks something."
+      ],
+      "data": {
+        "tf": [
+          "A13",
+          "The boundary"
+        ],
+        "kicker": "Episode A13 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Scores the same policy on any labelled case set",
+            "at": [
+              0,
+              0.0
+            ]
+          },
+          {
+            "text": "Keeps demo and held-out results separate",
+            "at": [
+              0,
+              1.2
+            ]
+          },
+          {
+            "text": "Won't promote without fresh families (Evolution)",
+            "at": [
+              0,
+              2.2
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Collect production cases for you",
+            "at": [
+              1,
+              1.0
+            ]
+          },
+          {
+            "text": "Tell whether a held-out set is representative",
+            "at": [
+              1,
+              3.2
+            ]
+          },
+          {
+            "text": "Replace monitoring in production",
+            "at": [
+              1,
+              5.6
+            ]
+          }
+        ],
+        "next": {
+          "text": "Next · A14 · every change breaks something",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+WEBVTT
+
+00:00:00.700 --> 00:00:02.471
+Every change breaks something
+
+00:00:02.771 --> 00:00:04.671
+and we find out from customers.
+
+00:00:06.033 --> 00:00:11.197
+One line in the policy: require two independent sources, instead of one.
+
+00:00:11.497 --> 00:00:14.996
+It will stop copies passing as corroboration. Good.
+
+00:00:15.296 --> 00:00:21.014
+It may also block an answer backed by one authoritative source, like a regulator's notice.
+
+00:00:21.314 --> 00:00:23.704
+Most teams find out which, after shipping.
+
+00:00:25.067 --> 00:00:28.843
+Replay the change on recorded cases before it ships.
+
+00:00:29.143 --> 00:00:35.053
+Four results change. Three false admissions are removed: two copies, and a wiki page.
+
+00:00:35.353 --> 00:00:40.709
+And one correct answer is lost: the regulator's notice, which has a single source.
+
+00:00:41.009 --> 00:00:46.108
+Now the trade-off is a decision, made before release, not a surprise after it.
+
+00:00:47.367 --> 00:00:51.826
+The console runs the same replay on the Policy changes screen.
+
+00:00:52.126 --> 00:00:56.777
+Compare results, and every changed verdict is listed, with what it means.
+
+00:00:57.077 --> 00:01:02.219
+Nothing is applied here. Promoting a policy change is a separate, signed review.
+
+00:01:03.567 --> 00:01:05.658
+Replay first, then decide.
+
+00:01:05.958 --> 00:01:16.284
+QualityRag shows exactly what a change would fix, and what it would break. Whether that trade is worth it is your decision, and promotion stays a signed review.
+
+00:01:16.584 --> 00:01:18.505
+That completes the measurement track.
