@@ -16,6 +16,25 @@ def read(path,limit=524288):
     return strict_json(path.read_bytes(),max_bytes=limit)
 
 
+def contract_keygen(out,key_id):
+    """Private key stays with the contract governor (mode 0600); only public keys are distributed:
+    DER/SPKI base64url for the registry trust store, raw base64 for the runtime."""
+    import base64,os
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives.serialization import Encoding,PrivateFormat,PublicFormat,NoEncryption
+    from .common import identity
+    identity(key_id)
+    folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
+    key=Ed25519PrivateKey.generate();private=folder/(key_id+".key")
+    fd=os.open(private,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+    with os.fdopen(fd,"wb") as f:f.write(key.private_bytes(Encoding.Raw,PrivateFormat.Raw,NoEncryption()))
+    pub=key.public_key()
+    der=base64.urlsafe_b64encode(pub.public_bytes(Encoding.DER,PublicFormat.SubjectPublicKeyInfo)).decode().rstrip("=")
+    raw=base64.b64encode(pub.public_bytes(Encoding.Raw,PublicFormat.Raw)).decode()
+    (folder/(key_id+".registry-trust.json")).write_text(json.dumps({key_id:der}))
+    return {"private_key":str(private),"registry_trust_store":{key_id:der},"runtime_public_key":{key_id:raw}}
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser()
     sub=parser.add_subparsers(dest="command",required=True)
@@ -38,6 +57,11 @@ def main(argv=None):
     p.add_argument("--since",type=int,default=0);p.add_argument("--limit",type=int,default=200)
     p.add_argument("--request",help="event JSON for the event action")
     p.add_argument("--interval",type=float,default=2.0);p.add_argument("--max-polls",type=int,default=0,help="watch: stop after N polls (0 = until interrupted)")
+    p=sub.add_parser("contract-keygen",help="create a contract-governor Ed25519 key pair (ADR-0002)")
+    p.add_argument("--out",required=True);p.add_argument("--key-id",required=True)
+    p=sub.add_parser("contract-sign",help="sign a data contract offline for registry staging (ADR-0002)")
+    p.add_argument("--contract",required=True);p.add_argument("--key",required=True);p.add_argument("--key-id",required=True)
+    p.add_argument("--sequence",type=int,required=True);p.add_argument("--hours",type=int,default=24*7)
     p=sub.add_parser("serve");p.add_argument("--root",required=True);p.add_argument("--keys",required=True);p.add_argument("--port",type=int,default=8769)
     args=parser.parse_args(argv)
     if args.command=="catalog":
@@ -100,6 +124,18 @@ def main(argv=None):
     elif args.command=="encode-scene":
         payload,result=encode(args.source,read(args.model));Path(args.out).write_text(json.dumps(payload,sort_keys=True))
     elif args.command=="decode-scene":result=decode(read(args.payload,40_000_000),read(args.model),args.out)
+    elif args.command=="contract-keygen":result=contract_keygen(args.out,args.key_id)
+    elif args.command=="contract-sign":
+        from datetime import datetime,timedelta,timezone
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        from .protection import sign_contract
+        if not 1<=args.hours<=24*30:raise ValueError("Validity must be 1 hour to 30 days")
+        raw=Path(args.key).read_bytes()
+        if len(raw)!=32:raise ValueError("Expected a 32-byte raw Ed25519 private key")
+        now=datetime.now(timezone.utc).replace(microsecond=0)
+        stamp=lambda v:v.isoformat().replace("+00:00","Z")
+        result=sign_contract(read(args.contract),Ed25519PrivateKey.from_private_bytes(raw),key_id=args.key_id,
+                             issued_at=stamp(now),expires_at=stamp(now+timedelta(hours=args.hours)),sequence=args.sequence)
     else:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
         import base64
@@ -110,7 +146,8 @@ def main(argv=None):
             decode_keys=lambda values:{kid:Ed25519PublicKey.from_public_bytes(base64.b64decode(value,validate=True)) for kid,value in values.items()}
             authorities[tenant]={"review":decode_keys(row["review"]),"subjects":row["subjects"],"authors":decode_keys(row["authors"])}
         app=Application(args.root,access_keys=keys("access"),release_keys=keys("release"),
-                        minimum_sequence=config["minimum_sequence"],preservation_authorities=authorities)
+                        minimum_sequence=config["minimum_sequence"],preservation_authorities=authorities,
+                        protection=config.get("protection"))
         from .authority import Principal
         principals=[Principal(row["subject"],row["tenant"],frozenset(row["scopes"])) for row in config.get("proposal_principals",[])]
         stop,thread=app.start_proposal_loop(principals,interval_seconds=config.get("proposal_interval_seconds",60))

@@ -55,11 +55,17 @@ class PolicyTesterTests(unittest.TestCase):
         pack["requirements"][0]["max_age_seconds"] = 60
         docs = json.loads(json.dumps(self.ex["documents"]))
         docs[0]["observed_at"] = "2026-01-01T00:00:00Z"
+        undated = g.policy_test(pack, docs, self.ex["retrieved"], as_of=self.ex["as_of"])
+        r = next(x for x in undated["requirements"] if x["requirement_id"] == "recovery-procedure")
+        spans = {s["chunk_id"]: s for s in r["spans"]}
+        self.assertFalse(spans["ops-7.3"]["counts_as_origin"])   # stale
+        self.assertFalse(spans["ops-mirror-7.3"]["counts_as_origin"])  # undated under a max age: never "now"
+        self.assertIn("ops-mirror-7.3", [u["chunk_id"] for u in undated["undated"]])
+        next(d for d in docs if any(c["id"] == "ops-mirror-7.3" for c in d["chunks"]))["observed_at"] = self.ex["as_of"]
         r = next(x for x in g.policy_test(pack, docs, self.ex["retrieved"], as_of=self.ex["as_of"])["requirements"]
                  if x["requirement_id"] == "recovery-procedure")
         spans = {s["chunk_id"]: s for s in r["spans"]}
-        self.assertFalse(spans["ops-7.3"]["counts_as_origin"])   # stale
-        self.assertTrue(spans["ops-mirror-7.3"]["counts_as_origin"])  # same origin, fresh copy
+        self.assertTrue(spans["ops-mirror-7.3"]["counts_as_origin"])  # same origin, explicitly fresh copy
 
     def test_rejects_bad_input(self):
         for args in [(self.ex["pack"], self.ex["documents"], ["nope"]), (self.ex["pack"], [], ["ops-7.3"]),

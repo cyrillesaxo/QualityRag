@@ -96,7 +96,8 @@ class GardenerAgentTests(unittest.TestCase):
         self.assertEqual(by_id[1]["result"]["serverInfo"]["name"], "qualityrag-gardener")
         names = [t["name"] for t in by_id[2]["result"]["tools"]]
         self.assertEqual(names, ["garden_query", "garden_suggestions", "policy_test", "policy_advise", "policy_replay",
-                                 "functional_siblings", "garden_propose", "garden_challenge", "garden_test"])
+                                 "functional_siblings", "evidence_admit", "release_output", "garden_propose",
+                                 "garden_challenge", "garden_test"])
         for i in (3, 4, 5):
             self.assertFalse(by_id[i]["result"]["isError"], by_id[i])
         self.assertEqual(by_id[4]["result"]["structuredContent"]["independent_validation"], "NOT_ESTABLISHED")

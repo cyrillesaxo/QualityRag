@@ -11,7 +11,7 @@ function reply(res,status,data){res.writeHead(status,{'content-type':'applicatio
 function fail(res,error) {
  const code=error.message;
  if(code==='SELF_APPROVAL_FORBIDDEN'||code==='SAME_ACTOR_PROMOTION_FORBIDDEN')return reply(res,403,{error:code});
- return reply(res,code==='NOT_FOUND'||code==='UNKNOWN_SERVICE'||code==='UNBOUND_SERVICE'?404:
+ return reply(res,code==='NOT_FOUND'||code==='UNKNOWN_SERVICE'||code==='UNBOUND_SERVICE'||code==='UNBOUND_CONTRACT'?404:
    code==='VERSION_EXISTS'||code==='NOT_DRAFT'||code==='SIGNED_SEQUENCE_EXISTS'||code==='SIGNED_SEQUENCE_ROLLBACK'||code==='SIGNED_NOT_STAGED'||code==='SIGNED_NOT_APPROVED'?409:400,{error:code});
 }
 async function body(req) {
@@ -22,7 +22,7 @@ async function body(req) {
  }
  try {return JSON.parse(txt)}catch{throw new Error('INVALID_JSON')}
 }
-export function createHandler(store,token,{trustedPolicyKeys=new Map(),authenticate=null,enforceSeparation=false}={}) {
+export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedContractKeys=new Map(),authenticate=null,enforceSeparation=false}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
  return async(req,res)=>{
@@ -51,7 +51,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
   }else if(provided!== 'Bearer '+token)return reply(res,401,{error:'UNAUTHORIZED'});
   try {
    if(req.method==='GET'&&url.pathname==='/v1/state'){
-    return reply(res,200,store.state?await store.state():{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings)});
+    return reply(res,200,store.state?await store.state():{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings),contractPromotions:Object.values(store.data.contractPromotions).map(({envelope,...summary})=>summary),contractBindings:Object.values(store.data.contractBindings)});
    }
    if(req.method==='POST'&&url.pathname==='/v1/services') return reply(res,201,await store.register(await body(req),actor));
    if(req.method==='POST'&&url.pathname==='/v1/policies/drafts') return reply(res,201,await store.draft(await body(req),actor));
@@ -81,6 +81,31 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      res.setHeader('etag','"'+result.signedPolicy.signature+'"');
      return reply(res,200,result);
    }
+   // ---------- Data contracts (ADR-0002): stage signed -> approve -> publish -> resolve ----------
+   if(req.method==='POST'&&url.pathname==='/v1/contracts/validate'){
+    return reply(res,200,await store.validateContractDraft(await body(req)));
+   }
+   if(req.method==='POST'&&url.pathname==='/v1/contracts/signed'){
+    return reply(res,201,await store.stageContract(await body(req),actor,trustedContractKeys));
+   }
+   const contractAction=url.pathname.match(/^\/v1\/contracts\/signed\/([^/]+)\/([0-9]+)\/(approve|publish)$/);
+   if(req.method==='POST'&&contractAction){
+    const id=decodeURIComponent(contractAction[1]),sequence=Number(contractAction[2]);
+    if(!Number.isSafeInteger(sequence)||sequence<=0)throw new Error('INVALID_SIGNED_SEQUENCE');
+    const result=contractAction[3]==='approve'
+      ?await store.approveContract(id,sequence,actor,trustedContractKeys,{enforceSeparation})
+      :await store.publishContract(id,sequence,actor,trustedContractKeys,{enforceSeparation});
+    return reply(res,200,result);
+   }
+   const contractResolve=url.pathname.match(/^\/v1\/contracts\/resolve\/([^/]+)$/);
+   if(req.method==='GET'&&contractResolve){
+    const result=await store.resolveContract(decodeURIComponent(contractResolve[1]),trustedContractKeys);
+    res.setHeader('etag','"'+result.signedContract.signature+'"');
+    return reply(res,200,result);
+   }
+   if(req.method==='GET'&&url.pathname==='/v1/contracts/published'){
+    return reply(res,200,await store.publishedContracts(url.searchParams.get('tenant'),trustedContractKeys));
+   }
    const resolve=url.pathname.match(/^\/v1\/resolve\/([^/]+)\/([^/]+)$/);
    if(req.method==='GET'&&resolve){
     const result=await store.resolve(decodeURIComponent(resolve[1]),decodeURIComponent(resolve[2]));
@@ -104,6 +129,8 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
  const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?
     loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
  if(backend==='postgres' && keys.size===0)throw new Error('TRUSTED_POLICY_KEYS_REQUIRED');
+ const contractKeys=process.env.QUALITYRAG_CONTRACT_KEYS_FILE?
+    loadTrustedPolicyKeys(process.env.QUALITYRAG_CONTRACT_KEYS_FILE):new Map();
  const oidc=authMode==='oidc'
   ?createOidcAuthenticator({issuer:process.env.QUALITYRAG_OIDC_ISSUER,
      audience:process.env.QUALITYRAG_OIDC_AUDIENCE,jwksUri:process.env.QUALITYRAG_OIDC_JWKS_URI,
@@ -112,7 +139,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
-    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc}));
+    {trustedPolicyKeys:keys,trustedContractKeys:contractKeys,authenticate:oidc,enforceSeparation:!!oidc}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
   server.listen(Number(process.env.PORT||5055),host,
     ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));

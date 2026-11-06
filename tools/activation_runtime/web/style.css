@@ -383,3 +383,21 @@ details.gov-finding:not(.sev-ERROR):not(.sev-WARN):not(.sev-INFO){border:1px sol
 @media(max-width:640px){.engine-row{grid-template-columns:auto minmax(0,1fr) auto}.engine-open{grid-column:2/-1}}
 .sect-body>*,.code-wrap{min-width:0}
 .code-wrap pre{max-width:100%}
+
+/* Protected data (ADR-0002) */
+.prot-card p{margin:4px 0;font-size:13px}
+.prot-doc{border-top:1px solid var(--line-2);padding:12px 0}
+.prot-doc-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prot-chunk{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-weight:400}
+.prot-chunk input{margin-top:4px}
+.prot-text{margin:4px 0;line-height:1.6}
+.prot-token{margin:0 2px}
+.prot-context{border-left:3px solid var(--ok);padding:4px 10px;margin:8px 0}
+.prot-row{display:flex;gap:12px;flex-wrap:wrap}
+.prot-row label{flex:1;min-width:160px;display:flex;flex-direction:column;gap:4px}
+.prot-ok{border-left:4px solid var(--ok)}
+.prot-bad{border-left:4px solid var(--bad)}
+.gov-tag.ok{color:var(--ok);border-color:var(--ok)}.gov-tag.bad{color:var(--bad);border-color:var(--bad)}
+.prot-card,#prot-admit-result .card,#prot-release-result .card{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.prot-wide{padding:20px 24px}.prot-wide h2{margin:0 0 4px}
+#prot-receipts td{vertical-align:top}#prot-receipts .gov-tag{white-space:nowrap}

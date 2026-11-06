@@ -78,7 +78,7 @@ def _chunks(documents):
 
 def policy_test(pack: dict, documents: list, retrieved: list, *, as_of: str, question: str | None = None) -> dict:
     """Run the gate on the retrieved chunks and explain every counted and uncounted span."""
-    compile_pack(pack)
+    aged = {o.requirement_id for o in compile_pack(pack) if o.max_age_seconds is not None}
     chunks = _chunks(documents)
     if not isinstance(retrieved, list) or not retrieved or len(retrieved) > LIMITS["chunks"]:
         raise ValueError("retrieved must be a nonempty list of chunk ids")
@@ -86,16 +86,26 @@ def policy_test(pack: dict, documents: list, retrieved: list, *, as_of: str, que
     if unknown:
         raise ValueError("retrieved names unknown chunks")
     order = list(dict.fromkeys(retrieved))
-    witnesses, unlinked = [], []
+    witnesses, unlinked, undated = [], [], []
     for cid in order:
         doc, chunk = chunks[cid]
         if not chunk.get("requirement_id") or not chunk.get("status"):
             unlinked.append({"chunk_id": cid, "document": doc["id"], "origin": doc["origin"], "text": chunk["text"],
                              "revision": doc.get("revision"), "reason": "No requirement link or status: not counted"})
             continue
+        observed = chunk.get("observed_at") or doc.get("observed_at")
+        if not observed:
+            if chunk["requirement_id"] in aged:
+                # A freshness requirement cannot be met by evidence with no date: a missing claim is a
+                # denial, never "now". The empty date makes the gate reject the row as invalid.
+                undated.append({"chunk_id": cid, "requirement_id": chunk["requirement_id"],
+                                "reason": "No observed_at under a max_age_seconds requirement: invalid, not counted"})
+                observed = ""
+            else:
+                observed = as_of  # no max age: the date is never evaluated, so exploratory corpora still work
         witnesses.append({"id": cid, "requirement_id": chunk["requirement_id"], "origin": doc["origin"],
                           "source_ref": doc["id"] + "#" + cid, "status": chunk["status"],
-                          "observed_at": chunk.get("observed_at") or doc.get("observed_at") or as_of,
+                          "observed_at": observed,
                           **({"scope": chunk["scope"]} if "scope" in chunk else {}),
                           **({"authority": chunk["authority"]} if "authority" in chunk else {})})
     result = evaluate_compiled(pack, witnesses, as_of=as_of)
@@ -129,7 +139,7 @@ def policy_test(pack: dict, documents: list, retrieved: list, *, as_of: str, que
     return {
         "schema": "qualityrag.policy-test/v0.1", "question": question, "as_of": as_of,
         "pack_id": pack["id"], "pack_version": pack["version"], "verdict": result["verdict"],
-        "requirements": requirements, "unlinked": unlinked,
+        "requirements": requirements, "unlinked": unlinked, "undated": undated,
         "dependent_groups": result["witness_graph"]["dependent_groups"],
         "summary": {
             "retrieved": len(order), "counted_witnesses": len(witnesses), "unlinked": len(unlinked),
