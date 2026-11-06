@@ -30,7 +30,7 @@ The Garden and Evolution frames show how the research loop is designed. They are
 
 ## QualityRag Academy: twenty problems, one episode each
 
-**Chapters A1–A5 are built:** videos, interactive chapters and labs are in [docs/academy](../academy/README.md).
+**Chapters A1–A8 are built:** videos, interactive chapters and labs are in [docs/academy](../academy/README.md).
 
 Each Academy episode opens on a failure that RAG teams describe in their own words. It then demonstrates what QualityRag does about that failure, and states what it does *not* guarantee. The first five are the customer-acquisition episodes.
 
@@ -41,9 +41,9 @@ Each Academy episode opens on a failure that RAG teams describe in their own wor
 | A3 | "Three sources agree, but they all copied the same original." · "The citations don't support the answer." | Same-origin copies count once; only passages linked to a requirement count | Available; authoritative provenance verification is still a gap |
 | A4 | "It uses outdated policies." · "Two documents contradict each other." | `max_age_seconds`; `REFUSE` on recorded contradiction | Available (age and declared contradictions only) |
 | A5 | "My PDF tables are completely messed up." | Structure-preserving representation (Semantic Codex) | Research preview |
-| A6 | "It can't combine several documents." | Cross-document relationships in typed grammar | Research |
-| A7 | "It can't understand diagrams, images and video." | Semantic Store prototypes | Research |
-| A8 | "Right rule, wrong customer or region." | Purpose-scoped lenses | Research |
+| A6 | "It can't combine several documents." | Cross-document relationships in typed grammar | Built · available pattern + research |
+| A7 | "It can't understand diagrams, images and video." | Semantic Store prototypes | Built · research preview |
+| A8 | "Right rule, wrong customer or region." | Purpose-scoped lenses | Built · available pattern + research |
 | A9 | "It works with one PDF, fails with more." | Duplicates counted once; unlinked passages excluded | Available (partial) |
 | A10 | "Chunking is destroying the context." | Conditional wording flagged; typed spans | Partial |
 | A11 | "The answer is in my documents, but RAG can't find it." | Not a retriever: names what is missing so the app can re-retrieve | Partial |

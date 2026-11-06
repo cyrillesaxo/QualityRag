@@ -14,6 +14,8 @@
     const b={};const L=d.lines||[];const size=d.size||84,gap=size*1.42,top=540-((L.length-1)*gap)/2-size*0.62;
     b.h=heading(d);
     b.lines=L.map((x,i)=>el('abs cine-title',esc(x.text),{left:'120px',width:'1680px',textAlign:d.align||'center',top:(top+i*gap)+'px',fontSize:(x.size||size)+'px',color:COL[x.color]||x.color||'#F3F6FA'}));
+    // One line each: shrink a line until it fits the 1680 px column instead of wrapping into the next one.
+    b.lines.forEach((n,i)=>{n.style.whiteSpace='nowrap';let f=L[i].size||size;while(n.scrollWidth>1680&&f>36){f-=2;n.style.fontSize=f+'px';}});
     if(d.note)b.note=el('abs mono',esc(d.note.text),{left:'0',width:'1920px',textAlign:'center',top:'860px',fontSize:'24px',color:'#8E97A5'});
     return b;
   },draw(b,t,m,dur,d){

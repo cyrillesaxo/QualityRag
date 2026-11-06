@@ -1,0 +1,49 @@
+WEBVTT
+
+00:00:00.700 --> 00:00:02.919
+The answer is spread across three files
+
+00:00:03.219 --> 00:00:05.481
+and RAG only reads one.
+
+00:00:06.833 --> 00:00:09.693
+Is the vendor cleared to process customer data?
+
+00:00:09.993 --> 00:00:16.671
+The answer lives in three places: the contract, the security review, and the data processing agreement.
+
+00:00:16.971 --> 00:00:21.046
+Top-k search returns two of them. The model fills in the third.
+
+00:00:21.346 --> 00:00:26.360
+No single document holds the whole answer, so no single passage can prove it.
+
+00:00:27.700 --> 00:00:33.845
+QualityRag splits the answer into requirements, and each one can be met by a different document.
+
+00:00:34.145 --> 00:00:39.351
+With two files, the check names the missing piece: the data processing agreement.
+
+00:00:39.651 --> 00:00:42.595
+Add the third file, and the same check admits.
+
+00:00:43.933 --> 00:00:46.622
+Linking documents to each other is research.
+
+00:00:46.922 --> 00:00:54.048
+Semantic Codex extracts only the links a document declares explicitly, with the exact line they came from.
+
+00:00:54.348 --> 00:01:03.394
+A sentence like, the DPA covers the security review, creates no link. And a malformed declaration is reported, not guessed.
+
+00:01:03.694 --> 00:01:08.623
+Every link stays a candidate, not a fact. Admission stays inconclusive.
+
+00:01:09.967 --> 00:01:15.365
+Today: declare what the answer needs, and let each document satisfy its part.
+
+00:01:15.665 --> 00:01:25.863
+In research: explicit links with exact anchors, reviewed before they count. QualityRag does not infer relationships from ordinary sentences.
+
+00:01:26.163 --> 00:01:29.001
+Next: diagrams, images and video.
