@@ -97,6 +97,20 @@ class SyntheticAuthorizedMetadataProvider:
                 raise ProtectionDenied("INVALID_METADATA_GRANTS")
             self._access[key] = frozenset(grants)
 
+    def revoke_synthetic_access(self, *, tenant: str, reference: str,
+                                subject: str, purpose: str) -> None:
+        """Test-only revocation; not atomic with a concurrent service release."""
+        key = (tenant, reference)
+        self._access[key] = self._access.get(key, frozenset()).difference(
+            {(subject, purpose)})
+
+    def replace_synthetic_payment(self, payment: ProtectedPayment) -> None:
+        """Test-only simulation of authoritative source attribute changes."""
+        key = (payment.tenant, payment.reference)
+        if key not in self._payments._items:
+            raise ProtectionDenied("NOT_FOUND")
+        self._payments._items[key] = payment
+
     def get_authorized_payment(self, *, tenant: str, subject: str,
                                purpose: str, reference: str) -> ProtectedPayment:
         if (not isinstance(subject, str) or not subject or
