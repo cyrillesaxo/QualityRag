@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {verifySignedPolicy} from './signed.js';
+import {verifySignedContract,validateContract,contractSha256} from './contracts.js';
 
 export const hashPolicy = (policy) => createHash('sha256').update(JSON.stringify(policy)).digest('hex');
 export function validatePolicy(p) {
@@ -13,12 +14,13 @@ export function validatePolicy(p) {
   }
   return {id:p.id,version:p.version,requirements:p.requirements.map(r=>({...r}))};
 }
-const empty = () => ({services:{},policies:{},bindings:{},signedPromotions:{},signedBindings:{},audit:[],governanceAudit:[],governanceHead:'0'.repeat(64)});
+const empty = () => ({services:{},policies:{},bindings:{},signedPromotions:{},signedBindings:{},contractPromotions:{},contractBindings:{},audit:[],governanceAudit:[],governanceHead:'0'.repeat(64)});
 export class RegistryStore {
   constructor(file) {
     this.file=file;
     this.data=fs.existsSync(file)? JSON.parse(fs.readFileSync(file,'utf8')) : empty();
     this.data.signedPromotions??={};this.data.signedBindings??={};
+    this.data.contractPromotions??={};this.data.contractBindings??={};
     this.data.governanceAudit??=[];this.data.governanceHead??='0'.repeat(64);
     this.verifyGovernanceAudit();
   }
@@ -139,6 +141,62 @@ export class RegistryStore {
       throw new Error('SIGNED_POLICY_INTEGRITY_FAILURE');
     return {serviceId,environment,sequence:binding.sequence,status:'PUBLISHED',
       signedPolicy:entry.bundle};
+  }
+
+  // ---------- Data contracts (ADR-0002) ----------
+  validateContractDraft(raw) {
+    const c=validateContract(raw);
+    return {valid:true,contractId:c.id,kind:c.kind,tenant:c.tenant,sha256:contractSha256(c)};
+  }
+  stageContract(envelope,actor,trustedKeys) {
+    const m=verifySignedContract(envelope,trustedKeys);
+    const head=this.data.contractBindings[m.contractId];
+    if(head&&(head.tenant!==m.tenant||head.kind!==m.kind))throw new Error('CONTRACT_IDENTITY_CHANGE_FORBIDDEN');
+    if(m.sequence<=(head?.sequence??0))throw new Error('SIGNED_SEQUENCE_ROLLBACK');
+    const key=m.contractId+'#'+m.sequence;
+    if(this.data.contractPromotions[key])throw new Error('SIGNED_SEQUENCE_EXISTS');
+    this.data.contractPromotions[key]={...m,status:'STAGED',envelope,stagedBy:actor,stagedAt:new Date().toISOString()};
+    this.record(actor,'SIGNED_CONTRACT_STAGED',key);this.save();
+    return {contractId:m.contractId,kind:m.kind,tenant:m.tenant,sequence:m.sequence,status:'STAGED',keyId:m.keyId,sha256:m.sha256};
+  }
+  approveContract(contractId,sequence,actor,trustedKeys,{enforceSeparation=false}={}) {
+    const key=contractId+'#'+sequence, entry=this.data.contractPromotions[key];
+    if(!entry)throw new Error('NOT_FOUND');
+    if(entry.status!=='STAGED')throw new Error('SIGNED_NOT_STAGED');
+    if(enforceSeparation&&entry.stagedBy===actor)throw new Error('SELF_APPROVAL_FORBIDDEN');
+    const m=verifySignedContract(entry.envelope,trustedKeys);
+    if(m.sha256!==entry.sha256||m.sequence!==sequence)throw new Error('SIGNED_BINDING_MISMATCH');
+    entry.status='APPROVED';entry.approvedBy=actor;entry.approvedAt=new Date().toISOString();
+    this.record(actor,'SIGNED_CONTRACT_APPROVED',key);this.save();
+    return {contractId,sequence,status:entry.status};
+  }
+  publishContract(contractId,sequence,actor,trustedKeys,{enforceSeparation=false}={}) {
+    const key=contractId+'#'+sequence, entry=this.data.contractPromotions[key];
+    if(!entry)throw new Error('NOT_FOUND');
+    if(entry.status!=='APPROVED')throw new Error('SIGNED_NOT_APPROVED');
+    if(enforceSeparation&&(entry.stagedBy===actor||entry.approvedBy===actor))throw new Error('SAME_ACTOR_PROMOTION_FORBIDDEN');
+    const m=verifySignedContract(entry.envelope,trustedKeys);
+    if(m.sha256!==entry.sha256||m.sequence!==sequence||m.contractId!==contractId)throw new Error('SIGNED_BINDING_MISMATCH');
+    if(sequence<=(this.data.contractBindings[contractId]?.sequence??0))throw new Error('SIGNED_SEQUENCE_ROLLBACK');
+    this.data.contractBindings[contractId]={contractId,kind:m.kind,tenant:m.tenant,sequence,promotionKey:key,
+      sha256:m.sha256,signature:entry.envelope.signature};
+    entry.status='PUBLISHED';entry.publishedBy=actor;entry.publishedAt=new Date().toISOString();
+    this.record(actor,'SIGNED_CONTRACT_PUBLISHED',key);this.save();
+    return {contractId,sequence,status:entry.status,sha256:m.sha256};
+  }
+  resolveContract(contractId,trustedKeys) {
+    const binding=this.data.contractBindings[contractId];
+    if(!binding)throw new Error('UNBOUND_CONTRACT');
+    const entry=this.data.contractPromotions[binding.promotionKey];
+    if(!entry||entry.status!=='PUBLISHED'||entry.envelope.signature!==binding.signature)throw new Error('CONTRACT_INTEGRITY_FAILURE');
+    const m=verifySignedContract(entry.envelope,trustedKeys);
+    if(m.sha256!==binding.sha256||m.sequence!==binding.sequence)throw new Error('CONTRACT_INTEGRITY_FAILURE');
+    return {contractId,kind:m.kind,tenant:m.tenant,sequence:m.sequence,status:'PUBLISHED',sha256:m.sha256,signedContract:entry.envelope};
+  }
+  publishedContracts(tenant,trustedKeys) {
+    if(typeof tenant!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(tenant))throw new Error('INVALID_TENANT');
+    const ids=Object.values(this.data.contractBindings).filter(b=>b.tenant===tenant).map(b=>b.contractId).sort();
+    return {tenant,contracts:ids.map(id=>this.resolveContract(id,trustedKeys).signedContract)};
   }
   resolve(serviceId,environment) {
     if (!this.data.services[serviceId]) throw new Error('UNKNOWN_SERVICE');

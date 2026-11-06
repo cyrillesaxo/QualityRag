@@ -100,7 +100,7 @@ class Client:
         self.opener=build_opener(_NoRedirect())
 
     def request(self,route,payload):
-        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/evolution","gardener/proposals","gardener/event","gardener/outcome","gardener/query","policy/example","policy/test","policy/advise","policy/replay","policy/siblings"}:
+        if route not in {"validate","evaluate","activate-plan","reviewed-run","observations","fallback","source","status","gardener/state","gardener/evolution","gardener/proposals","gardener/event","gardener/outcome","gardener/query","policy/example","policy/test","policy/advise","policy/replay","policy/siblings","protect/status","protect/ingest","protect/documents","protect/admit","protect/release","protect/receipts"}:
             raise ValueError("Unsupported SDK route")
         request=Request(self.url+"/api/"+route,data=json.dumps(payload,allow_nan=False).encode(),
                         headers={"Content-Type":"application/json","Authorization":"Bearer "+self.token},method="POST")
@@ -132,6 +132,19 @@ class Client:
         if evidence_ids is not None:body["evidence_ids"]=list(evidence_ids)
         return self.request("gardener/event",body)
     def policy_example(self)->dict[str,object]:return self.request("policy/example",{})
+    # ADR-0002 protection: the model sees sealed evidence; everything leaving goes through release().
+    def protect_status(self)->dict[str,object]:return self.request("protect/status",{})
+    def protect_ingest(self,envelope:dict)->dict[str,object]:return self.request("protect/ingest",{"envelope":envelope})
+    def protect_documents(self)->dict[str,object]:return self.request("protect/documents",{})
+    def protect_admit(self,*,pack:dict,retrieved:list[str],as_of:str|None=None)->dict[str,object]:
+        body={"pack":pack,"retrieved":retrieved}
+        if as_of is not None:body["as_of"]=as_of
+        return self.request("protect/admit",body)
+    def release(self,*,output:str,destination:str,purpose:str,operation:str,label:dict|None,review:dict|None=None)->dict[str,object]:
+        body={"output":output,"destination":destination,"purpose":purpose,"operation":operation,"label":label}
+        if review is not None:body["review"]=review
+        return self.request("protect/release",body)
+    def protect_receipts(self)->dict[str,object]:return self.request("protect/receipts",{})
     def policy_test(self,*,pack:dict,documents:list,retrieved:list[str],question:str|None=None,as_of:str|None=None)->dict[str,object]:
         """Run the gate on retrieved chunks and explain which spans it counted. Read scope; writes nothing."""
         body={"pack":pack,"documents":documents,"retrieved":list(retrieved)}

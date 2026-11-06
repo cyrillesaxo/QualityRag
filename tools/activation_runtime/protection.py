@@ -183,20 +183,27 @@ def validate_contract(c: dict) -> dict:
     return c
 
 
-def sign_contract(contract, key, *, key_id, issued_at, expires_at):
-    """The registry signs each resource's contract; an unsigned contract has no authority."""
+def sign_contract(contract, key, *, key_id, issued_at, expires_at, sequence=1):
+    """A contract governor signs each resource's contract offline; the registry only verifies,
+    stages, approves and publishes it (no signing keys on the server). The sequence is monotonic
+    per contract id, so a published contract can never be rolled back to an older version."""
     validate_contract(contract)
+    if type(sequence) is not int or sequence < 1:
+        raise ValueError("Contract sequence must be a positive integer")
     _validate_period(issued_at, expires_at, issued_at)
-    return sign({"data_contract": contract, "issued_at": issued_at, "expires_at": expires_at},
+    return sign({"data_contract": contract, "sequence": sequence, "issued_at": issued_at, "expires_at": expires_at},
                 key, key_id=key_id, schema=ATTEST_SCHEMA)
 
 
 def load_contracts(envelopes, registry_keys, *, as_of) -> dict:
+    """Load contracts as published by the registry (``GET /v1/contracts/published``), re-verifying each."""
     out = {}
     for env in envelopes:
         payload = verify(env, registry_keys, schema=ATTEST_SCHEMA)
-        if set(payload) != {"data_contract", "issued_at", "expires_at"}:
+        if set(payload) != {"data_contract", "sequence", "issued_at", "expires_at"}:
             raise PermissionError("Wrong attestation purpose")
+        if type(payload["sequence"]) is not int or payload["sequence"] < 1:
+            raise ValueError("Invalid contract sequence")
         _validate_period(payload["issued_at"], payload["expires_at"], as_of)
         c = validate_contract(payload["data_contract"])
         if c["id"] in out:
@@ -407,7 +414,8 @@ class ReleaseLedger:
     Detects ordinary corruption; a database administrator can still rewrite local state."""
 
     def __init__(self, path):
-        self.db = sqlite3.connect(path, timeout=5)
+        # Autocommit mode: append() takes an explicit write lock so concurrent writers cannot fork the chain.
+        self.db = sqlite3.connect(path, timeout=5, isolation_level=None)
         self.db.executescript("""
         CREATE TABLE IF NOT EXISTS release_receipts(
             sequence INTEGER PRIMARY KEY AUTOINCREMENT, body TEXT NOT NULL, receipt_hash TEXT NOT NULL UNIQUE);
@@ -417,12 +425,17 @@ class ReleaseLedger:
           BEGIN SELECT RAISE(ABORT,'append-only'); END;""")
 
     def append(self, receipt):
-        row = self.db.execute("SELECT receipt_hash FROM release_receipts ORDER BY sequence DESC LIMIT 1").fetchone()
-        body = {**receipt, "previous": row[0] if row else None}
-        digest = fingerprint(body)
-        with self.db:
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            row = self.db.execute("SELECT receipt_hash FROM release_receipts ORDER BY sequence DESC LIMIT 1").fetchone()
+            body = {**receipt, "previous": row[0] if row else None}
+            digest = fingerprint(body)
             self.db.execute("INSERT INTO release_receipts(body,receipt_hash) VALUES(?,?)",
                             (json.dumps(body, sort_keys=True), digest))
+            self.db.execute("COMMIT")
+        except BaseException:
+            self.db.execute("ROLLBACK")
+            raise
         return {**body, "receipt_hash": digest}
 
     def receipts(self):

@@ -2,7 +2,13 @@
 
 - **Status:** Accepted as a research reference. Production use requires the acceptance criteria below.
 - **Date:** 2026-11-06
-- **Implementation:** [`tools/activation_runtime/protection.py`](../tools/activation_runtime/protection.py) and [`tests/test_protection.py`](../tools/activation_runtime/tests/test_protection.py)
+- **Implementation:**
+  - Core: [`protection.py`](../tools/activation_runtime/protection.py)
+  - Service host and `protect/*` API: [`protection_host.py`](../tools/activation_runtime/protection_host.py)
+  - Registry data contracts: [`apps/registry/src/contracts.js`](../apps/registry/src/contracts.js), guide in [DATA-CONTRACTS.md](../apps/registry/DATA-CONTRACTS.md)
+  - Studio panel *6. Data contracts*
+  - Console screen *Protected data*
+  - MCP tools `evidence_admit` and `release_output`
 - **Related:** [ADR-0001](ADR-0001-semantic-constraint-compiler.md) (the deterministic gate) and the PackSpec registry ([`apps/registry`](../apps/registry))
 
 ## Context
@@ -74,7 +80,33 @@ Reveal   isolated detokenizer re-checks the owner's rule before any value is ope
 | 6 | An append-only, hash-chained ledger stores hashes, classes and decisions, never plaintext. `released_from(source)` recalls everything released from a source that is later withdrawn | `ReleaseLedger` |
 | 7 | 24 tests, mapped below | `test_protection.py` |
 
-This change also closes a gap found while reviewing the code. `policy_test`, used by the console and by the MCP tool, treated undated evidence as observed "now". A planted document with no date therefore satisfied a freshness requirement. Now an undated span is invalid under any requirement that sets `max_age_seconds`, and it is listed under `undated`. Without a maximum age the date is never evaluated, so undated exploratory corpora behave as before.
+This change also closes a gap found while reviewing the code, in both the server and the console's replay case builder. `policy_test`, used by the console and by the MCP tool, treated undated evidence as observed "now". A planted document with no date therefore satisfied a freshness requirement. Now an undated span is invalid under any requirement that sets `max_age_seconds`, and it is listed under `undated`. Without a maximum age the date is never evaluated, so undated exploratory corpora behave as before.
+
+## Where it runs
+
+| Surface | What it does |
+|---|---|
+| **Registry** (`apps/registry`) | Stores data contracts alongside PackSpecs. A contract governor signs offline; the registry holds no signing keys. Contracts are staged, approved by a different person, then published by a third, with OIDC roles enforcing the separation. Sequences only go forward, and a contract can't change tenant or kind. Every transition is in the hash-chained governance audit. Both the file store and Postgres (migration `002_data_contracts.sql`) support this. The runtime reads `GET /v1/contracts/published?tenant=…` and re-verifies every envelope itself. |
+| **CLI** | `contract-keygen` creates a governor key pair (the private key is written with mode 0600). `contract-sign` produces the envelope to stage. |
+| **Studio** | Templates for source and destination contracts. A plain-language summary of what a contract allows. Registry validation, download of the unsigned contract for offline signing, staging of signed envelopes, and the approve and publish actions. |
+| **Runtime service** | A `protection` block in the serve configuration enables `protect/status`, `documents`, `ingest`, `admit`, `release` and `receipts`. The tenant always comes from the signed access token. `ingest` and `release` need write scope. |
+| **Console** | *Protected data* lists the contracts and the signed documents, with protected values shown only as tags. It admits evidence, sends text through the gateway, and lists every receipt with its reasons in plain words. |
+| **MCP** | `evidence_admit` returns untrusted-marked context and a label. `release_output` is the only send tool. The server's instructions tell the agent never to follow text inside evidence, and that a DENY is final. |
+
+### Serve configuration
+
+```json
+"protection": {
+  "contract_keys":  {"governor": "<raw Ed25519 public key, base64>"},
+  "publisher_keys": {"billing-ledger": "<raw public key, base64>"},
+  "reviewer_keys":  {"reviewer": "<raw public key, base64>"},
+  "vault_key_file": "/secure/vault.key",
+  "registry": {"url": "https://registry.example", "token_file": "/secure/registry-token", "tenants": ["acme-bank"]},
+  "entitlements": {"priya": [{"destination": "customer-email", "purposes": ["customer-service"], "operations": ["notify"]}]}
+}
+```
+
+`contracts_file` (a saved `published` response) or inline `contracts` can replace `registry` for offline workspaces.
 
 ## Threat tests
 
@@ -101,18 +133,17 @@ This change also closes a gap found while reviewing the code. `policy_test`, use
 - **Classification is not infallible.** The detection backstop covers card numbers only. OCR output, attachments, tables and embedded metadata need the owner's classification, or they stay quarantined.
 - **`TokenVault` is a reference stand-in.** Production should use established tokenization, for example an HSM or HashiCorp Vault's Transform engine (which needs Vault Enterprise), not cryptography built into QualityRag. Format-preserving encryption (FF1) should be supported only where a format must be preserved. It is not the default.
 - **In-process isolation is not deployment isolation.** `Detokenizer` is a separate component in code. Production must run it as a separate privileged service with its own credentials.
-- **Not yet wired in:**
-  - the Node registry does not yet store or serve data contracts;
-  - MCP and agent tool outputs do not yet pass through `release`;
-  - the console's replay case builder (`web/governance.js`) still fills a missing date with the current time when it builds replay cases.
+- **An MCP server can't stop an agent host from using other tools.** `release_output` is the only send tool QualityRag offers. Making it the agent's only way out is a deployment control: network egress policy, and a host that has no other send tools.
+- **Contract roles reuse the policy roles.** In OIDC mode, data contracts use `policy.author`, `policy.approver` and `policy.publisher`. Separate data-owner roles may be needed where the people who own data differ from the people who own policies.
+- **Only the Python SDK** has the `protect_*` and `release` methods so far.
 - **No measured adversarial benchmark yet.** The tests show that the mechanisms behave as specified. They don't measure attack success rates against a baseline.
 
 ## Acceptance before production claims
 
 1. The detokenizer runs as an isolated service, with credentials no model-facing component can reach, verified by a boundary test.
 2. A tokenization adapter for an established service, such as Vault Transform or an HSM-backed provider, replaces `TokenVault`.
-3. The registry stores, versions and signs data contracts alongside PackSpecs.
-4. Every agent and MCP egress path goes through `release`, and a test proves no other egress exists.
+3. ~~The registry stores, versions and distributes signed data contracts alongside PackSpecs.~~ Done: file and Postgres stores, Python↔Node round-trip tested.
+4. Every agent egress path goes through `release`, enforced by deployment (network policy, and a host with no other send tools), and a test against the deployed boundary shows no other egress.
 5. A scored adversarial run against a plain RAG pipeline: injection, replay, confused deputy, cross-tenant access and incomplete classification.
 6. A documented PCI scoping assessment, before any statement about scope.
 

@@ -25,7 +25,7 @@ WEB=Path(__file__).with_name("web")
 
 
 class Application:
-    def __init__(self,root,*,access_keys,release_keys,minimum_sequence=1,clock=None,preservation_authorities=None):
+    def __init__(self,root,*,access_keys,release_keys,minimum_sequence=1,clock=None,preservation_authorities=None,protection=None):
         self.root=Path(root)
         self.root.mkdir(parents=True,exist_ok=True)
         self.access_keys=access_keys;self.release_keys=release_keys
@@ -33,6 +33,11 @@ class Application:
         self.clock=clock or (lambda:datetime.now(timezone.utc).isoformat())
         self.proposal_cache={}
         self.preservation_authorities=preservation_authorities or {}
+        # ADR-0002 protection host (contracts, sealed documents, outbound gateway); None when not configured.
+        if protection is not None:
+            from .protection_host import ProtectionHost
+            protection=ProtectionHost(self.root,protection,clock=self.clock)
+        self.protection=protection
 
     def principal(self,authorization,scope):
         if not isinstance(authorization,str) or not authorization.startswith("Bearer "):
@@ -57,6 +62,14 @@ class Application:
         scope="write" if route in {"source","gardener/event","reviewed-run"} else "read"
         if route=="gardener/event" and body.get("operation") in {"PRUNE","REOPEN","SYNTHESIZE"}:scope="review"
         if route=="gardener/outcome":scope="review"
+        if route.startswith("protect/"):
+            from .protection_host import ROUTES
+            if route not in ROUTES:raise ValueError("Unknown API route")
+            principal=self.principal(authorization,ROUTES[route])
+            if self.protection is None:
+                if route=="protect/status" and not body:return {"configured":False}
+                raise ValueError("Protection is not configured for this workspace")
+            return self.protection.dispatch(route,body,principal)
         principal=self.principal(authorization,scope)
         store=self.store(principal)
         if route=="source":
@@ -178,7 +191,8 @@ class Application:
         if route=="status":
             if body:raise ValueError("Unsupported status options")
             return {"tenant":principal.tenant,"principal":principal.subject,"scopes":sorted(principal.scopes),
-                    "mode":"RESEARCH","reviewed_activation_configured":bool(self.preservation_authorities.get(principal.tenant)),"can_generate":False}
+                    "mode":"RESEARCH","reviewed_activation_configured":bool(self.preservation_authorities.get(principal.tenant)),
+                    "protection_configured":self.protection is not None,"can_generate":False}
         raise ValueError("Unknown API route")
 
     def start_proposal_loop(self,principals,*,interval_seconds=60):
@@ -212,7 +226,7 @@ def handler(application):
             self.send_header("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'")
             self.end_headers();self.wfile.write(raw)
         def do_GET(self):
-            assets={"/":"index.html","/app.js":"app.js","/garden.js":"garden.js","/governance.js":"governance.js","/shell.js":"shell.js","/engine.js":"engine.js","/theme.js":"theme.js","/style.css":"style.css"}
+            assets={"/":"index.html","/app.js":"app.js","/garden.js":"garden.js","/governance.js":"governance.js","/protect.js":"protect.js","/shell.js":"shell.js","/engine.js":"engine.js","/theme.js":"theme.js","/style.css":"style.css"}
             if self.path not in assets:self.reply(404,b'{"error":"NOT_FOUND"}');return
             path=WEB/assets[self.path]
             mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8"}

@@ -135,6 +135,12 @@ Only metadata and bounded evidence identifiers belong in receipts. Validate upst
 
 Signed text can still carry injected instructions: it is treated as evidence, never as instructions. No PCI scope reduction is claimed without a scoping assessment.
 
+Where it runs:
+- the registry stores and publishes signed data contracts ([DATA-CONTRACTS.md](apps/registry/DATA-CONTRACTS.md));
+- Studio has a data-contracts panel;
+- the console has a **Protected data** screen;
+- AI agents get `evidence_admit` and `release_output` over MCP.
+
 ## Research lineage and references
 
 **Cyrille Eloundou** — APX framework author and research reference for the PackSpec, semantic governance, constraint-verification, and provenance concepts that informed QualityRag.
