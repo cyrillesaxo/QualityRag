@@ -128,3 +128,26 @@ PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_p
 PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protected_metadata.py' -v
 PYTHONPATH=sdk/python python examples/protection_comparison.py
 ```
+
+## Policy revision and revocation prototype
+
+The experimental attestation path now requires signed `policy_id` and
+`policy_version` in its contract. A trusted `InMemoryPolicyAuthority`
+tracks the active version for each tenant and policy. Both view issuance
+and release verification require that the signed version is currently active.
+Publishing a new version invalidates receipts created under older versions;
+revocation invalidates outstanding receipts for that policy.
+
+The registry retains a monotonic version high-water mark when a policy is
+revoked, so the prior revision cannot simply be republished. Test coverage
+includes revocation between issuance and release, downgrade attempts, and
+cross-tenant policy confusion.
+
+**Important:** this is not durable or distributed revocation. Multiple
+processes would hold inconsistent views and restarts would lose history.
+The registry must never be passed into a real trusted service by a request
+caller. Production needs an authenticated central policy authority,
+persistent monotonic versions, a failure-closed lookup, and race handling
+between revocation and actual delivery. It also needs independently
+authenticated workload identity. The current `Principal` remains a
+caller-provided test object.
