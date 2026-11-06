@@ -6,6 +6,19 @@ QualityRag evaluates a versioned **PackSpec** against retrieved evidence **befor
 
 **Status:** Experimental v0.1. Local, deterministic policy evaluator; not a proof of source authenticity, truth, regulatory compliance, or production readiness. No LLM is required for evaluation.
 
+## Watch QualityRAG in action
+
+The fastest way to understand QualityRAG is to watch an evidence check fail safely, then see what additional evidence changes.
+
+| 51-second overview | The Evidence Engine — 2 min 12 sec |
+| --- | --- |
+| [![Watch the QualityRAG overview: a missing condition changes the evidence decision](docs/training/homepage-45s/poster.jpg)](docs/training/homepage-45s/qualityrag-homepage-45s.mp4) | [![Watch The Evidence Engine: PackSpec, deceptive witnesses, verdicts, and the experimental Semantic Garden](docs/training/film-01-evidence-engine/poster.jpg)](docs/training/film-01-evidence-engine/qualityrag-the-evidence-engine.mp4) |
+| **[Watch the short overview](docs/training/homepage-45s/qualityrag-homepage-45s.mp4)** · [Captions (VTT)](docs/training/homepage-45s/qualityrag-homepage-45s.vtt) | **[Watch the full narrated film](docs/training/film-01-evidence-engine/qualityrag-the-evidence-engine.mp4)** · [Captions (VTT)](docs/training/film-01-evidence-engine/qualityrag-the-evidence-engine.vtt) |
+
+**Learn by doing:** [Getting started (3-minute video)](docs/training/episode-01-getting-started/episode-01-getting-started.mp4) · [QualityRAG Academy — 11 video-and-lab chapters](docs/academy/README.md) · [Complete training video catalog](docs/training/README.md).
+
+*Click a thumbnail to open its narrated MP4. GitHub README pages show the poster links, not an arbitrary embedded HTML video player. The videos illustrate the current evidence gate and distinguish experimental research concepts from validated SDK behavior.*
+
 ## See the difference
 
 | Traditional RAG | QualityRAG |
