@@ -216,3 +216,26 @@ database path from requests. Access-control on the DB itself must be
 enforced outside this code. Anyone who can directly modify these tables
 can bypass the protection policy. This prototype neither ingests nor
 stores real PAN values.
+
+## Atomic database release decision
+
+`SQLitePolicyAuthority.consume_if_active(...)` now combines current-policy
+version lookup, revoked-policy rejection and one-use nonce insertion under a
+single `BEGIN IMMEDIATE` SQLite transaction. The attested release verifier
+calls this method when the configured policy authority provides it, instead
+of performing separate policy checks and nonce updates. Regression tests cover
+duplicate attempts, revoked versions, tenant isolation and competing
+revocation/claim operations. In-memory test registries retain their earlier
+non-atomic behavior and must not be deployed as security boundaries.
+
+**What the transaction proves:** inside a single correctly locked SQLite
+database, a completed policy revocation is observed by a later release
+claim, and only one concurrent claim for a given nonce succeeds.
+
+**What it does not prove:** if revocation commits *after* a claim but before
+an external API call completes, that external disclosure could still occur.
+Do not claim strict revocation-at-delivery or exactly-once delivery. A
+production disclosure component requires an authenticated outbound proxy,
+revalidation at the point of delivery, authoritative policy state, and a
+carefully specified response to retries, partial failures, timeouts, and
+cancellation. No external disclosure is performed by the current code.
