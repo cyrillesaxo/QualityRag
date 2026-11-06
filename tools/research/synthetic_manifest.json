@@ -1,0 +1,51 @@
+{
+  "schema": "qualityrag.jepa-rct-paired/v0.1",
+  "tasks": [
+    {
+      "id": "low-bp",
+      "regime": "clinical-instruction-synthetic",
+      "gold": {
+        "administer": false,
+        "threshold": 90,
+        "comparator": "<"
+      },
+      "required": [
+        "administer",
+        "threshold",
+        "comparator"
+      ]
+    },
+    {
+      "id": "payment-role",
+      "regime": "contractual-roles-synthetic",
+      "gold": {
+        "payer": "Alice",
+        "payee": "Bob"
+      },
+      "required": [
+        "payer",
+        "payee"
+      ]
+    },
+    {
+      "id": "exception",
+      "regime": "policy-exception-synthetic",
+      "gold": {
+        "allowed": false,
+        "exception_active": true
+      },
+      "required": [
+        "allowed",
+        "exception_active"
+      ]
+    }
+  ],
+  "candidates": {
+    "jepa": {
+      "status": "NOT_RUN"
+    },
+    "rct": {
+      "status": "NOT_RUN"
+    }
+  }
+}
