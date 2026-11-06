@@ -239,3 +239,35 @@ production disclosure component requires an authenticated outbound proxy,
 revalidation at the point of delivery, authoritative policy state, and a
 carefully specified response to retries, partial failures, timeouts, and
 cancellation. No external disclosure is performed by the current code.
+
+## Dry-run disclosure gateway (experimental)
+
+`sdk/python/qualityrag/protection_disclosure.py` adds a reference-only
+`DryRunDisclosureGateway` with server-configured named destinations and
+in-memory simulated sinks. It will not send HTTP requests or invoke real
+payments, reveal underlying PANs, or choose an arbitrary URL from a model
+prompt. The gateway validates the destination *before* triggering the
+signed workload, policy and replay checks in `ProtectionService.release`.
+
+The gate consumes one release receipt before invoking the configured
+synthetic sink. A failed sink call does not cause an automatic retry, and
+the same receipt cannot be used again. Tests cover an unconfigured
+destination, forged audience, revoked policy, invalid identity,
+duplicate receipt use and sink failure.
+
+**Not a production egress proxy:** the destination is a trusted
+in-process fake, not a network endpoint. The gate is not atomic across
+authorization and external delivery. Future network adapters must enforce
+TLS/mTLS identities, strict outbound destination allowlists, DNS/redirect
+protection, idempotency, sensitive output scanning, post-authorization
+rechecks and operational audit semantics. For real releases, model-
+controlled URLs, payload destinations and arbitrary callbacks must not
+be accepted. Receipt validity cannot by itself grant access to arbitrary
+protected data. The current demo remains synthetic and does not handle
+PCI cardholder data.
+
+Reproduce:
+
+```bash
+PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection_disclosure.py' -v
+```
