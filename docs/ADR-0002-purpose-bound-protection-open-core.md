@@ -1,6 +1,6 @@
 # ADR-0002: Open-core purpose-bound information protection (experimental)
 
-**Status:** Proposed, prototype implemented; no production security or PCI compliance claim.
+**Status:** Proposed, experimental attested reference implementation; no production security or PCI compliance claim.
 **Owner:** QualityRAG / Dodo LLC
 **Date:** 2026-11-06
 
@@ -11,7 +11,7 @@ SDKs, conformance tests and basic masking/reference protection open source
 under the repository's existing Apache-2.0 license. Implement a **pluggable
 commercial enforcement plane** later, without closing the core formats.
 
-The initial Python reference module is `sdk/python/qualityrag/protection.py`.
+The initial Python reference modules are `sdk/python/qualityrag/protection.py` and `sdk/python/qualityrag/protection_attestation.py`.
 It selects purpose-scoped views from **already protected** source records.
 It never accepts, stores, encrypts or detokenizes raw payment card data.
 
@@ -51,10 +51,10 @@ It never accepts, stores, encrypts or detokenizes raw payment card data.
 ### Commercial extension interface (planned, not implemented)
 
 A deployable proprietary edition could provide:
-- authenticated resource provenance and immutable policy versions;
+- production authenticated resource provenance and immutable policy versions;
 - trusted vault/KMS adapters and tenant-bound reference minting;
 - identity federation and least-privilege capability issuance;
-- signed, short-lived, replay-resistant outbound release receipts;
+- production signed, short-lived, distributed replay-resistant outbound release receipts;
 - purpose/operation/destination-scoped authorization with revocation;
 - detailed non-sensitive audit evidence, monitoring and support;
 - testable controlled-release behavior across cloud/agent boundaries.
@@ -90,7 +90,7 @@ inference, cost and latency. Negative outcomes must be retained.
 ## Local verification
 
 ```bash
-PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection.py' -v
+PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection*.py' -v
 ```
 
 ## Compatibility
