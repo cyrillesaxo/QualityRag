@@ -159,13 +159,37 @@ class ProtectionService:
             payment.attributes(), contract_attestation, principal,
             purpose=purpose, destination=destination,
             registry_key=self._registry_key, release_key=self._release_key,
-            policy_authority=self._policy_authority, now=now)
+            policy_authority=self._policy_authority, now=now,
+            source_reference=payment_reference)
 
     def release(self, *, assertion: dict[str, Any], envelope: dict[str, Any],
                 purpose: str, destination: str, now: int | None = None) -> dict[str, Any]:
         principal = self._verifier.verify(assertion, now=now)
         self._workload_grants.require(principal, purpose=purpose, destination=destination)
+        def validate_source(receipt: dict[str, Any], bound_principal: Principal) -> None:
+            reference = receipt.get("source_reference")
+            if reference is None:
+                # Legacy experimental issues are not source bound.
+                return
+            if not isinstance(reference, str) or not reference or self._metadata_provider is None:
+                raise ProtectionDenied("SOURCE_REVALIDATION_DENIED")
+            item = self._metadata_provider.get_authorized_payment(
+                tenant=bound_principal.tenant, subject=bound_principal.subject,
+                purpose=purpose, reference=reference)
+            if (not isinstance(item, ProtectedPayment)
+                or item.tenant != bound_principal.tenant
+                or item.reference != reference):
+                raise ProtectionDenied("SOURCE_REVALIDATION_DENIED")
+            safe_view = receipt["protected_view"]["view"]
+            current = item.attributes()
+            if not isinstance(safe_view, dict) or any(
+                name not in current or current[name] != value
+                for name, value in safe_view.items()
+            ):
+                raise ProtectionDenied("SOURCE_STATE_CHANGED")
+
         return verify_protected_release(
             envelope, principal, purpose=purpose, destination=destination,
             release_key=self._release_key, policy_authority=self._policy_authority,
-            replay_store=self._replay_store, now=now)
+            replay_store=self._replay_store, now=now,
+            pre_consume_check=validate_source)
