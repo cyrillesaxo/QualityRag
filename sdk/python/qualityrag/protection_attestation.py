@@ -79,6 +79,8 @@ def issue_protected_view(record: dict[str, Any], attestation: dict[str, Any],
     if (not isinstance(policy_id, str) or not policy_id
         or type(policy_version) is not int or policy_version < 1):
         raise ProtectionDenied("INVALID_POLICY_VERSION")
+    if contract.get("tenant") != principal.tenant:
+        raise ProtectionDenied("UNVERIFIED_CONTRACT")
     policy_authority.require_active(tenant=principal.tenant, policy_id=policy_id,
                                     version=policy_version)
     # Authentication is derived from verified signature, NEVER from caller data.
