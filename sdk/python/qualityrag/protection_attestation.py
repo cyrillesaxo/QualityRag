@@ -12,10 +12,18 @@ import json
 import secrets
 import threading
 import time
-from typing import Any
+from typing import Any, Protocol
 
 from .protection import Principal, ProtectionDenied, protect, authorize_release, SCHEMA
 from .protection_lifecycle import InMemoryPolicyAuthority
+
+class ReplayLedger(Protocol):
+    def consume(self, nonce: str, expires_at: int, now: int) -> bool: ...
+
+
+class PolicyRegistry(Protocol):
+    def require_active(self, *, tenant: str, policy_id: str, version: int) -> None: ...
+
 
 CONTRACT_VERSION = "qualityrag.contract-attestation/v0.1"
 RECEIPT_VERSION = "qualityrag.release-receipt/v0.1"
@@ -66,7 +74,7 @@ def _verify_contract(attestation: dict[str, Any], key: bytes) -> dict[str, Any]:
 def issue_protected_view(record: dict[str, Any], attestation: dict[str, Any],
                          principal: Principal, *, purpose: str, destination: str,
                          registry_key: bytes, release_key: bytes,
-                         policy_authority: InMemoryPolicyAuthority,
+                         policy_authority: PolicyRegistry,
                          now: int | None = None, ttl_seconds: int = 60) -> dict[str, Any]:
     """Trusted service only. Principal must already be authenticated externally."""
     if type(ttl_seconds) is not int or not 1 <= ttl_seconds <= 300:
@@ -113,8 +121,8 @@ class InMemoryReplayStore:
 
 def verify_protected_release(envelope: dict[str, Any], principal: Principal, *,
                              destination: str, purpose: str, release_key: bytes,
-                             replay_store: InMemoryReplayStore,
-                             policy_authority: InMemoryPolicyAuthority,
+                             replay_store: ReplayLedger,
+                             policy_authority: PolicyRegistry,
                              now: int | None = None,
                              operation: str = "read") -> dict[str, Any]:
     """Verify signed, time-bounded, one-use reference-only release.
