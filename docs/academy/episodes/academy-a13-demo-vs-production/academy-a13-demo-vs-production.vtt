@@ -1,0 +1,43 @@
+WEBVTT
+
+00:00:00.700 --> 00:00:02.173
+Excellent in the demo
+
+00:00:02.473 --> 00:00:04.180
+unreliable in production.
+
+00:00:05.533 --> 00:00:11.507
+The demo was built from clean cases: a current handbook, plus an independent change record.
+
+00:00:11.807 --> 00:00:20.512
+Production retrieval is messier: copies of the same handbook, a forwarded email, a twenty twenty-four runbook, a team wiki page.
+
+00:00:20.812 --> 00:00:23.437
+The same policy meets a different world.
+
+00:00:24.800 --> 00:00:26.806
+Score one policy on both sets.
+
+00:00:27.106 --> 00:00:31.437
+On the demo cases: every right answer, and no false admissions.
+
+00:00:31.737 --> 00:00:39.951
+On held-out production cases: still every right answer, but seventy-five percent of the cases that should be refused are admitted.
+
+00:00:40.251 --> 00:00:43.879
+The demo didn't lie. It just never met the hard cases.
+
+00:00:45.233 --> 00:00:47.218
+The research loop builds this in.
+
+00:00:47.518 --> 00:00:55.220
+Evolution can keep developing on the cases it has seen, but it cannot promote a champion without fresh, held-out families.
+
+00:00:56.567 --> 00:00:59.149
+Test where it will fail, not where it shines.
+
+00:00:59.449 --> 00:01:07.705
+Your held-out set has to come from real traffic, and QualityRag can't tell whether it's representative. That judgement is yours.
+
+00:01:08.005 --> 00:01:10.438
+Next: every change breaks something.

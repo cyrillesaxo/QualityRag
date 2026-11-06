@@ -2,7 +2,11 @@
 
 The Academy is a problem-driven training programme. Each chapter opens on a failure that RAG teams describe in their own words. It then shows what QualityRag does about it, using real SDK output, and ends with what QualityRag does **not** guarantee.
 
-This release covers eight chapters. A1–A5 are aimed at winning customers. A6–A8 are the research track, and each pairs a pattern that works today with a research prototype. The full twenty-chapter plan is in [docs/training/README.md](../training/README.md#qualityrag-academy-twenty-problems-one-episode-each).
+This release covers eleven chapters:
+
+- A1–A5 are aimed at winning customers.
+- A6–A8 are the research track. Each pairs a pattern that works today with a research prototype.
+- A12–A14 are the measurement track, built on branch replay of labelled cases and on Evolution's held-out families. The full twenty-chapter plan is in [docs/training/README.md](../training/README.md#qualityrag-academy-twenty-problems-one-episode-each).
 
 | Chapter | The complaint | Video | Lab | Status |
 |---|---|---|---|---|
@@ -14,6 +18,9 @@ This release covers eight chapters. A1–A5 are aimed at winning customers. A6�
 | A6 | "The answer is spread across three files, and RAG only reads one." | [watch](episodes/academy-a6-combine-documents/academy-a6-combine-documents.mp4) | [a6](labs/a6_combine_documents.py) | Available pattern + research (explicit, anchored link candidates) |
 | A7 | "It can't understand our diagrams, or our images, or our videos." | [watch](episodes/academy-a7-images-and-video/academy-a7-images-and-video.mp4) | [a7](labs/a7_images_and_video.py) | Research preview (visual appearance search; identity unknown) |
 | A8 | "It gave the right rule, for the wrong customer or region." | [watch](episodes/academy-a8-wrong-scope/academy-a8-wrong-scope.mp4) | [a8](labs/a8_wrong_scope.py) | Available pattern + research (purpose-scoped lens) |
+| A12 | "We can't tell if our RAG is getting better, or just sounding better." | [watch](episodes/academy-a12-measure-improvement/academy-a12-measure-improvement.mp4) | [a12](labs/a12_measure_improvement.py) | Experimental (branch replay: answer rate and false-admission rate) |
+| A13 | "Excellent in the demo, unreliable in production." | [watch](episodes/academy-a13-demo-vs-production/academy-a13-demo-vs-production.mp4) | [a13](labs/a13_demo_vs_production.py) | Experimental (held-out scoring; Evolution needs fresh families to promote) |
+| A14 | "Every change breaks something, and we find out from customers." | [watch](episodes/academy-a14-every-change-breaks/academy-a14-every-change-breaks.mp4) | [a14](labs/a14_every_change_breaks.py) | Experimental (replay every flip before release; promotion is signed review) |
 
 ## What each chapter contains
 
@@ -50,4 +57,5 @@ Open `index.html` from a local checkout to take the Academy offline. Progress is
   - A7: visual matches measure appearance and never identity. The reversed-arrow diagram scores distance 0.
   - A8: purpose contracts are not authenticated.
 - The A8 policies are invented. They are not statements of law.
+- A12–A14 use synthetic recorded cases. The labels stand for a reviewer's decision. Replay re-evaluates recorded evidence; it doesn't re-run retrieval or labelling.
 - Career salary ranges and translations, which are part of the Dodo v4 template, are left out until sourced figures and reviewed translations exist.

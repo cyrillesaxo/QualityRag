@@ -273,6 +273,14 @@ class Console:
             self.callout(".gov-verdict-main", "Not enough evidence", 4200)
         elif name == "hold":
             pass
+        elif name == "open_changes":
+            self.click(p.locator('[data-nav="changes"]')); p.locator("#gov-replay-form").wait_for(); self.wait(500)
+            self.smooth("#gov-replay-form", "start"); self.callout("#gov-branch-editor", "Proposed: two independent sources", 3200)
+        elif name == "run_compare":
+            self.click(p.get_by_role("button", name="Compare results")); p.locator("#gov-replay-result .gov-headline").wait_for(); self.wait(300)
+            self.smooth("#gov-replay-result", "start"); self.callout("#gov-replay-result .gov-stats", None, 3600)
+        elif name == "point_replay_note":
+            self.smooth("#gov-replay-result > .gov-fine", "center"); self.callout("#gov-replay-result > .gov-fine", "Nothing is applied here", 4200)
         elif name == "open_health":
             self.click(p.locator('[data-nav="health"]')); p.locator(".gov-finding").first.wait_for()
         elif name == "point_findings":

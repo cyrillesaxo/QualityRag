@@ -1,0 +1,47 @@
+1
+00:00:00,700 --> 00:00:03,645
+We can't tell if our RAG is getting better
+
+2
+00:00:03,945 --> 00:00:05,439
+or just sounding better.
+
+3
+00:00:06,800 --> 00:00:14,267
+Most teams measure their RAG with thumbs up, a model grading another model, and a handful of demo questions.
+
+4
+00:00:14,567 --> 00:00:17,341
+None of those answers the question that matters.
+
+5
+00:00:17,641 --> 00:00:21,269
+Did we stop giving wrong answers, without losing right ones?
+
+6
+00:00:22,633 --> 00:00:30,058
+QualityRag measures against recorded cases, labelled by a person: this one should answer, this one should not.
+
+7
+00:00:30,358 --> 00:00:38,423
+Replay them under two policies. Version one answers everything it should, but admits sixty percent of the cases it shouldn't.
+
+8
+00:00:38,723 --> 00:00:43,929
+Version one point one admits none of them, and still answers eighty-three percent.
+
+9
+00:00:44,229 --> 00:00:49,776
+Two numbers you can track every release: right answers given, and wrong answers admitted.
+
+10
+00:00:51,133 --> 00:00:53,310
+Measure the policy, not the vibe.
+
+11
+00:00:53,610 --> 00:01:03,467
+Replay re-evaluates recorded evidence. It doesn't re-run retrieval, and it can't label your cases. A person decides what each case should do.
+
+12
+00:01:03,767 --> 00:01:06,818
+Next: why the demo looked better than production.

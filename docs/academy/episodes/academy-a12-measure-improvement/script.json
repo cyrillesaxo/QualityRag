@@ -1,0 +1,297 @@
+{
+  "schema": "qualityrag.training-episode/v1",
+  "id": "academy-a12-measure-improvement",
+  "title": "QualityRag Academy · A12 · Measuring improvement",
+  "theme": "cine",
+  "score": true,
+  "voice": {
+    "engine": "kokoro-v1.0",
+    "voice": "af_bella",
+    "lang": "en-us",
+    "speed": 0.95,
+    "sentence_gap": 0.45
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "kind": "animation",
+      "template": "statement",
+      "pad": [
+        0.7,
+        1.0
+      ],
+      "say": [
+        "We can't tell if our RAG is getting better",
+        "or just sounding better."
+      ],
+      "data": {
+        "lines": [
+          {
+            "text": "\"We can't tell if our RAG is getting better…\"",
+            "at": 0
+          },
+          {
+            "text": "\"…or just sounding better.\"",
+            "at": 1,
+            "color": "warn"
+          }
+        ],
+        "note": {
+          "text": "QUALITYRAG ACADEMY · EPISODE A12",
+          "at": [
+            0,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "failure",
+      "kind": "animation",
+      "template": "board",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "Most teams measure their RAG with thumbs up, a model grading another model, and a handful of demo questions.",
+        "None of those answers the question that matters.",
+        "Did we stop giving wrong answers, without losing right ones?"
+      ],
+      "data": {
+        "tf": [
+          "A12",
+          "The failure"
+        ],
+        "kicker": "How RAG is usually measured",
+        "title": "Signals that don't answer the question",
+        "title_size": 50,
+        "cards": [
+          {
+            "id": "m0",
+            "meta": "USER FEEDBACK",
+            "text": "Thumbs up: 87%",
+            "x": 120,
+            "y": 300,
+            "w": 760,
+            "at": [
+              0,
+              0.3
+            ]
+          },
+          {
+            "id": "m1",
+            "meta": "MODEL GRADES MODEL",
+            "text": "Judge score: 4.2 / 5",
+            "x": 120,
+            "y": 450,
+            "w": 760,
+            "at": [
+              0,
+              0.7
+            ]
+          },
+          {
+            "id": "m2",
+            "meta": "HAND-PICKED",
+            "text": "Demo questions: all correct",
+            "x": 120,
+            "y": 600,
+            "w": 760,
+            "at": [
+              0,
+              1.1
+            ]
+          },
+          {
+            "id": "q",
+            "meta": "THE QUESTION THAT MATTERS",
+            "text": "Did wrong answers go down, without losing right ones?",
+            "x": 1100,
+            "y": 420,
+            "w": 700,
+            "size": 28,
+            "accent": "warn",
+            "at": [
+              1,
+              0.4
+            ]
+          }
+        ],
+        "events": [
+          {
+            "at": [
+              1,
+              0.0
+            ],
+            "card": "m0",
+            "state": "dim",
+            "tag": "how it felt"
+          },
+          {
+            "at": [
+              1,
+              0.3
+            ],
+            "card": "m1",
+            "state": "dim",
+            "tag": "a model's opinion"
+          },
+          {
+            "at": [
+              1,
+              0.6
+            ],
+            "card": "m2",
+            "state": "dim",
+            "tag": "easy cases"
+          },
+          {
+            "at": [
+              2,
+              0.6
+            ],
+            "card": "q",
+            "state": "warn",
+            "tag": "unmeasured"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lab",
+      "kind": "animation",
+      "template": "terminal",
+      "pad": [
+        0.5,
+        1.0
+      ],
+      "say": [
+        "QualityRag measures against recorded cases, labelled by a person: this one should answer, this one should not.",
+        "Replay them under two policies. Version one answers everything it should, but admits sixty percent of the cases it shouldn't.",
+        "Version one point one admits none of them, and still answers eighty-three percent.",
+        "Two numbers you can track every release: right answers given, and wrong answers admitted."
+      ],
+      "data": {
+        "tf": [
+          "A12",
+          "Lab"
+        ],
+        "kicker": "Lab A12 · real output · branch replay",
+        "title": "Two numbers per release",
+        "title_size": 52,
+        "file": "terminal · python",
+        "blocks": [
+          {
+            "cmd": "python docs/academy/labs/a12_measure_improvement.py",
+            "out": "== 11 recorded cases · 6 should answer · 5 should not\n  gateway-recovery@1.0               answer rate 100%   false admissions 60%\n  gateway-recovery@1.1-two-origins   answer rate 83%   false admissions 0%\n  Replay re-evaluates recorded evidence; it does not re-run retrieval or labeling. Promotion is a separate signed review.",
+            "at": [
+              0,
+              1.0
+            ],
+            "out_at": [
+              1,
+              0.0
+            ],
+            "reveal": 1.2
+          }
+        ],
+        "notes": [
+          {
+            "text": "1.0 · false admissions 60%",
+            "state": "bad",
+            "at": [
+              1,
+              4.0
+            ]
+          },
+          {
+            "text": "1.1 · false admissions 0% · answers 83%",
+            "state": "ok",
+            "at": [
+              2,
+              1.0
+            ],
+            "x": 470
+          }
+        ]
+      }
+    },
+    {
+      "id": "takeaway",
+      "kind": "animation",
+      "template": "takeaway",
+      "pad": [
+        0.5,
+        1.6
+      ],
+      "say": [
+        "Measure the policy, not the vibe.",
+        "Replay re-evaluates recorded evidence. It doesn't re-run retrieval, and it can't label your cases. A person decides what each case should do.",
+        "Next: why the demo looked better than production."
+      ],
+      "data": {
+        "tf": [
+          "A12",
+          "The boundary"
+        ],
+        "kicker": "Episode A12 · takeaway",
+        "title": "What changed, and what didn't",
+        "title_size": 52,
+        "does": [
+          {
+            "text": "Replays recorded, labelled cases under any policy",
+            "at": [
+              0,
+              0.0
+            ]
+          },
+          {
+            "text": "Reports answer rate and false-admission rate",
+            "at": [
+              0,
+              1.2
+            ]
+          },
+          {
+            "text": "Uses the same deterministic gate as production",
+            "at": [
+              0,
+              2.2
+            ]
+          }
+        ],
+        "doesnt": [
+          {
+            "text": "Re-run retrieval (it replays recorded evidence)",
+            "at": [
+              1,
+              1.6
+            ]
+          },
+          {
+            "text": "Label your cases for you",
+            "at": [
+              1,
+              4.0
+            ]
+          },
+          {
+            "text": "Prove that the labels are right",
+            "at": [
+              1,
+              6.0
+            ]
+          }
+        ],
+        "next": {
+          "text": "Next · A13 · demo vs production",
+          "at": [
+            2,
+            0.3
+          ]
+        }
+      }
+    }
+  ]
+}
