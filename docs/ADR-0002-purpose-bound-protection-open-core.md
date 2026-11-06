@@ -98,3 +98,33 @@ PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_p
 This is additive: no change to existing `qualityrag.evaluate`, PackSpec
 admission verdicts, existing Semantic Garden claims, or SDK contracts.
 Do not equate an evidence ADMIT verdict with approval to release sensitive data.
+
+
+## Follow-on implementation (synthetic evaluation)
+
+- `sdk/python/qualityrag/protected_metadata.py` defines a metadata-only
+  `ProtectedMetadataProvider` API and a synthetic in-memory implementation.
+  There is deliberately no `decrypt`, `reveal`, or `detokenize` method;
+  the interface is not a payment vault, credential store, or transaction API.
+- `examples/protection_comparison.py` includes deterministic, synthetic
+  redaction, tokenization-plus-attributes, and purpose-scoped comparison
+  fixtures, with regression tests. The redaction/tokenization policies are
+  selected baselines, not state-of-the-art or comprehensive provider
+  implementations. Field counts are not entropy, inference leakage, or
+  privacy metrics.
+- Real evaluation must include held-out authorized tasks, false-positive
+  and false-negative sensitive-field classification, joined-attribute
+  reidentification, utility preservation, leakage attempts, and operational
+  overhead. Publish failures and cost measurements with the results.
+- Existing raw-caller `protect` and `authorize_release` APIs remain
+  **demonstrations only**. Refactoring them into strictly private/internal
+  helpers and strengthening externally authenticated entrypoints is required
+  before any service integration.
+
+### Verification commands
+
+```bash
+PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection*.py' -v
+PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protected_metadata.py' -v
+PYTHONPATH=sdk/python python examples/protection_comparison.py
+```
