@@ -58,6 +58,24 @@ class DurableServiceTests(unittest.TestCase):
             assertion=self.assertion, envelope=env, purpose="review",
             destination="model", now=151)
 
+    def test_service_uses_one_database_transaction_not_legacy_replay_path(self):
+        class FailIfCalledReplay:
+            def consume(self, nonce, expires_at, now):
+                raise AssertionError("non-atomic replay ledger was used")
+        svc = ProtectionService(
+            verifier=self.verifier, workload_grants=self.grants,
+            policy_authority=SQLitePolicyAuthority(self.path),
+            replay_store=FailIfCalledReplay(),
+            registry_key=KEY_REGISTRY, release_key=KEY_RELEASE)
+        env = self.issue()
+        decision = svc.release(
+            assertion=self.assertion, envelope=env,
+            purpose="review", destination="model", now=151)
+        self.assertEqual(decision["view"]["terms"], "Due in thirty days")
+        with self.assertRaisesRegex(ProtectionDenied, "REPLAY_DENIED"):
+            svc.release(assertion=self.assertion, envelope=env,
+                        purpose="review", destination="model", now=151)
+
     def test_release_survives_restart_but_cannot_replay(self):
         env = self.issue()
         self.assertEqual(self.release(env)["view"], {"terms": "Due in thirty days"})
