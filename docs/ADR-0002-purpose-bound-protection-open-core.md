@@ -151,3 +151,28 @@ persistent monotonic versions, a failure-closed lookup, and race handling
 between revocation and actual delivery. It also needs independently
 authenticated workload identity. The current `Principal` remains a
 caller-provided test object.
+
+## Authenticated-workload service boundary (experimental)
+
+`sdk/python/qualityrag/protection_service.py` implements an in-process
+`ProtectionService` facade whose issue and release methods accept a signed
+workload assertion rather than a caller-constructed `Principal`. A
+`SignedWorkloadVerifier` checks its MAC, configured key identifier,
+issuer, audience, subject, tenant, purposes, issue time and expiration.
+The service derives its own `Principal`, holds the signing keys on the
+service side, checks policy versions, and consumes one-time receipts.
+
+This example uses synthetic HMAC assertions to exercise the trust model.
+**It is NOT OIDC, JWT, OAuth, SPIFFE/SPIRE, mTLS, or production authentication.**
+A trusted IdP adapter must replace it before network exposure. Assertions
+must be obtained through an authenticated transport and identities must
+be mapped to organization-approved, server-side authorization grants.
+Anyone able to mint a valid assertion with a trusted key can impersonate
+an authorized workload; keep keys out of model contexts and untrusted
+runtime processes. The public `sign_synthetic_workload` helper is test
+infrastructure only.
+
+Still required: durable and atomic distributed policy state, replay
+database, identity revocation and key rotation, signed key provenance,
+audited administrative operations, and a real isolated vault boundary.
+Successful SDK tests are correctness checks, not security accreditation.
