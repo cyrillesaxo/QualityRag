@@ -15,6 +15,7 @@ import time
 from typing import Any
 
 from .protection import Principal, ProtectionDenied, protect, authorize_release, SCHEMA
+from .protection_lifecycle import InMemoryPolicyAuthority
 
 CONTRACT_VERSION = "qualityrag.contract-attestation/v0.1"
 RECEIPT_VERSION = "qualityrag.release-receipt/v0.1"
@@ -65,6 +66,7 @@ def _verify_contract(attestation: dict[str, Any], key: bytes) -> dict[str, Any]:
 def issue_protected_view(record: dict[str, Any], attestation: dict[str, Any],
                          principal: Principal, *, purpose: str, destination: str,
                          registry_key: bytes, release_key: bytes,
+                         policy_authority: InMemoryPolicyAuthority,
                          now: int | None = None, ttl_seconds: int = 60) -> dict[str, Any]:
     """Trusted service only. Principal must already be authenticated externally."""
     if type(ttl_seconds) is not int or not 1 <= ttl_seconds <= 300:
@@ -72,6 +74,13 @@ def issue_protected_view(record: dict[str, Any], attestation: dict[str, Any],
     if type(now) is not int and now is not None:
         raise ProtectionDenied("INVALID_TIME")
     contract = _verify_contract(attestation, registry_key)
+    # Signed policy identity and current version must match trusted registry state.
+    policy_id, policy_version = contract.get("policy_id"), contract.get("policy_version")
+    if (not isinstance(policy_id, str) or not policy_id
+        or type(policy_version) is not int or policy_version < 1):
+        raise ProtectionDenied("INVALID_POLICY_VERSION")
+    policy_authority.require_active(tenant=principal.tenant, policy_id=policy_id,
+                                    version=policy_version)
     # Authentication is derived from verified signature, NEVER from caller data.
     contract["authenticated"] = True
     safe = protect(record, contract, principal, purpose=purpose, destination=destination)
@@ -80,7 +89,8 @@ def issue_protected_view(record: dict[str, Any], attestation: dict[str, Any],
                "tenant": principal.tenant, "purpose": purpose,
                "audience": destination, "operation": "read",
                "issued_at": issued, "expires_at": issued + ttl_seconds,
-               "nonce": secrets.token_hex(16), "protected_view": safe}
+               "nonce": secrets.token_hex(16), "policy_id": policy_id,
+               "policy_version": policy_version, "protected_view": safe}
     return {"receipt": receipt, "signature": _mac(receipt, release_key)}
 
 
@@ -101,7 +111,9 @@ class InMemoryReplayStore:
 
 def verify_protected_release(envelope: dict[str, Any], principal: Principal, *,
                              destination: str, purpose: str, release_key: bytes,
-                             replay_store: InMemoryReplayStore, now: int | None = None,
+                             replay_store: InMemoryReplayStore,
+                             policy_authority: InMemoryPolicyAuthority,
+                             now: int | None = None,
                              operation: str = "read") -> dict[str, Any]:
     """Verify signed, time-bounded, one-use reference-only release.
 
@@ -127,6 +139,10 @@ def verify_protected_release(envelope: dict[str, Any], principal: Principal, *,
         or receipt.get("purpose") != purpose or purpose not in principal.purposes
         or receipt.get("audience") != destination):
         raise ProtectionDenied("RELEASE_POLICY_DENIED")
+    # Check current policy AFTER receipt verification, BEFORE nonce consumption.
+    policy_authority.require_active(tenant=principal.tenant,
+                                    policy_id=receipt.get("policy_id"),
+                                    version=receipt.get("policy_version"))
     view = authorize_release(receipt.get("protected_view"), principal,
                              destination=destination, purpose=purpose, operation=operation)
     if not replay_store.consume(nonce, expiry, ts):
