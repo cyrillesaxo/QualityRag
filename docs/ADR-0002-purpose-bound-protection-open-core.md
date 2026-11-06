@@ -334,3 +334,36 @@ coordination, in addition to audited vault provenance.
 ```bash
 PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection_provenance.py' -v
 ```
+
+## Opaque-handle facade for model-facing callers
+
+`protection_handles.py` adds `OpaqueDisclosureFacade` and a bounded
+`InMemoryReceiptRegistry`. `prepare_payment` invokes only the
+source-owned metadata issuance path, stores the full signed receipt on the
+trusted side, and returns a high-entropy request handle plus the already
+authorized minimal view. The public response never includes the signed
+receipt, internal policy revision, source reference, authorization nonce,
+or signature. `deliver` retrieves the internal receipt by handle and
+passes it to the destination-controlled dry-run gateway, which repeats
+workload, purpose, policy, record-level access and replay checks.
+
+The facade rejects unknown/expired handles, and removes them after
+successful simulated delivery or a consumed-receipt delivery failure.
+Misrouted and unauthorized requests cannot choose a sink or fabricate
+a receipt. Registry capacity is bounded; overflow fails closed.
+
+**Important caveats:** `InMemoryReceiptRegistry` is process-local; its
+state is not encrypted, durable, shared across replicas, or operationally
+audited. It must run in an isolated trusted process with protected memory,
+and a production replacement must support encrypted durable storage,
+expiry cleanup, bounded memory, strong tenant isolation and consistent
+one-use state. An opaque handle is not a substitute for an authenticated
+caller or for server-side object authorization. The returned minimized
+view is deliberately visible to the authorized caller; the caller must
+not be permitted to set its own field policy. The legacy
+`ProtectionService.issue`, `release`, and low-level attestation helpers
+still expose receipts and remain **internal experimental APIs** only.
+
+```bash
+PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection_handles.py' -v
+```
