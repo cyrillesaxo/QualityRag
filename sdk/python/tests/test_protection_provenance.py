@@ -85,7 +85,7 @@ class MetadataProvenanceTests(unittest.TestCase):
             self.issue(assertion=other)
 
     def test_cross_tenant_metadata_denied(self):
-        with self.assertRaisesRegex(ProtectionDenied, "METADATA_ACCESS_DENIED"):
+        with self.assertRaisesRegex(ProtectionDenied, "WORKLOAD_NOT_AUTHORIZED"):
             other = self.sign({**self.principal_claims, "tenant": "tenant-b"})
             self.issue(assertion=other)
 
