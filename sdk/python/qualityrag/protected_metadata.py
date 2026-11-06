@@ -65,3 +65,45 @@ class SyntheticMetadataProvider:
         if item is None:
             raise ProtectionDenied("NOT_FOUND")
         return item
+
+
+class AuthorizedMetadataProvider(Protocol):
+    """Trusted provider must independently authorize access to each reference."""
+
+    def get_authorized_payment(self, *, tenant: str, subject: str,
+                               purpose: str, reference: str) -> ProtectedPayment:
+        """Return a tenant-bound payment only for the allowed subject/purpose."""
+
+
+class SyntheticAuthorizedMetadataProvider:
+    """Explicit object-level access grants for synthetic fixture records only.
+
+    This is a standalone simulation: no cryptographic identity, vault or
+    durable authorization. The trusted service, not the client, owns grants.
+    """
+
+    def __init__(self, payments: list[ProtectedPayment],
+                 access: dict[tuple[str, str], set[tuple[str, str]]]) -> None:
+        self._payments = SyntheticMetadataProvider(payments)
+        if not isinstance(access, dict):
+            raise ProtectionDenied("INVALID_METADATA_GRANTS")
+        self._access: dict[tuple[str, str], frozenset[tuple[str, str]]] = {}
+        for key, grants in access.items():
+            if (not isinstance(key, tuple) or len(key) != 2 or
+                not all(isinstance(x, str) and x for x in key) or
+                not isinstance(grants, set) or
+                not all(isinstance(g, tuple) and len(g) == 2 and
+                        all(isinstance(x, str) and x for x in g) for g in grants)):
+                raise ProtectionDenied("INVALID_METADATA_GRANTS")
+            self._access[key] = frozenset(grants)
+
+    def get_authorized_payment(self, *, tenant: str, subject: str,
+                               purpose: str, reference: str) -> ProtectedPayment:
+        if (not isinstance(subject, str) or not subject or
+            not isinstance(purpose, str) or not purpose or
+            (subject, purpose) not in self._access.get((tenant, reference), frozenset())):
+            raise ProtectionDenied("METADATA_ACCESS_DENIED")
+        item = self._payments.get_protected_payment(tenant=tenant, reference=reference)
+        if item.tenant != tenant or item.reference != reference:
+            raise ProtectionDenied("METADATA_SOURCE_MISMATCH")
+        return item
