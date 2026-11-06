@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 from qualityrag.protection import Principal, SCHEMA
+from qualityrag.protection_lifecycle import InMemoryPolicyAuthority
 from qualityrag.protection_attestation import (
     attest_contract, issue_protected_view, verify_protected_release, InMemoryReplayStore,
 )
@@ -33,14 +34,19 @@ def run_fixture() -> dict:
         "expiry_valid": {"classification": "pci", "mode": "derived", "grants": grant},
         "payment_terms": {"classification": "public", "mode": "plain", "grants": grant},
     }
-    contract = {"schema": SCHEMA, "tenant": "demo", "fields": fields}
+    contract = {"schema": SCHEMA, "tenant": "demo", "fields": fields,
+                "policy_id": "fixture-policy", "policy_version": 1}
+    policy_authority = InMemoryPolicyAuthority()
+    policy_authority.publish(tenant="demo", policy_id="fixture-policy", version=1)
     attested = attest_contract(contract, REGISTRY_KEY)
     envelope = issue_protected_view(
         source, attested, principal, purpose="payment_review", destination="llm",
-        registry_key=REGISTRY_KEY, release_key=RELEASE_KEY, now=1000, ttl_seconds=60)
+        registry_key=REGISTRY_KEY, release_key=RELEASE_KEY,
+        policy_authority=policy_authority, now=1000, ttl_seconds=60)
     scoped = verify_protected_release(
         envelope, principal, destination="llm", purpose="payment_review",
-        release_key=RELEASE_KEY, replay_store=InMemoryReplayStore(), now=1001)["view"]
+        release_key=RELEASE_KEY, replay_store=InMemoryReplayStore(),
+        policy_authority=policy_authority, now=1001)["view"]
 
     # Chosen representative baseline policies, not comprehensive products.
     redacted = {"payment_terms": source["payment_terms"]}
