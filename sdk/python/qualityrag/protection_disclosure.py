@@ -74,7 +74,7 @@ class DryRunDisclosureGateway:
             raise ProtectionDenied("UNSUPPORTED_RELEASE")
         try:
             self._routes[destination].accept(deepcopy(release["view"]))
-        except Exception as exc:
-            # No payload, identifiers, or exception detail in the result.
-            raise ProtectionDenied("SIMULATED_DELIVERY_FAILED") from exc
+        except Exception:
+            # Do not propagate the simulated sink exception or sensitive detail.
+            raise ProtectionDenied("SIMULATED_DELIVERY_FAILED") from None
         return {"status": "SIMULATED_DELIVERY_ACCEPTED", "destination": destination}
