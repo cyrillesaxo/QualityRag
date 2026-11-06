@@ -19,6 +19,7 @@ from .protection_attestation import (
     ReplayLedger, PolicyRegistry, issue_protected_view, verify_protected_release,
 )
 from .protection_grants import StaticWorkloadGrants
+from .protected_metadata import AuthorizedMetadataProvider, ProtectedPayment
 
 
 def _canonical(value: dict[str, Any]) -> bytes:
@@ -101,7 +102,8 @@ class ProtectionService:
                  policy_authority: PolicyRegistry,
                  replay_store: ReplayLedger,
                  workload_grants: StaticWorkloadGrants,
-                 registry_key: bytes, release_key: bytes) -> None:
+                 registry_key: bytes, release_key: bytes,
+                 metadata_provider: AuthorizedMetadataProvider | None = None) -> None:
         if not isinstance(registry_key, bytes) or len(registry_key) < 32:
             raise ProtectionDenied("INVALID_KEY")
         if not isinstance(release_key, bytes) or len(release_key) < 32:
@@ -114,6 +116,7 @@ class ProtectionService:
         self._replay_store = replay_store
         self._registry_key = registry_key
         self._release_key = release_key
+        self._metadata_provider = metadata_provider
 
     def issue(self, *, assertion: dict[str, Any], record: dict[str, Any],
               contract_attestation: dict[str, Any], purpose: str,
@@ -125,6 +128,38 @@ class ProtectionService:
             destination=destination, registry_key=self._registry_key,
             release_key=self._release_key, policy_authority=self._policy_authority,
             now=now)
+
+    def issue_payment_metadata(self, *, assertion: dict[str, Any],
+                               payment_reference: str,
+                               contract_attestation: dict[str, Any],
+                               purpose: str, destination: str,
+                               now: int | None = None) -> dict[str, Any]:
+        """Fetch source-owned payment attributes; never trust caller data.
+
+        Provider must be configured by the trusted service and enforce
+        record-level access independently. No PAN, key, or vault operation
+        crosses this interface. Legacy issue(record=...) is NOT appropriate
+        for an untrusted model-facing network API.
+        """
+        principal = self._verifier.verify(assertion, now=now)
+        self._workload_grants.require(principal, purpose=purpose,
+                                      destination=destination)
+        if self._metadata_provider is None:
+            raise ProtectionDenied("METADATA_PROVIDER_UNAVAILABLE")
+        if not isinstance(payment_reference, str) or not payment_reference:
+            raise ProtectionDenied("INVALID_PAYMENT_REFERENCE")
+        payment = self._metadata_provider.get_authorized_payment(
+            tenant=principal.tenant, subject=principal.subject,
+            purpose=purpose, reference=payment_reference)
+        if (not isinstance(payment, ProtectedPayment)
+            or payment.tenant != principal.tenant
+            or payment.reference != payment_reference):
+            raise ProtectionDenied("METADATA_SOURCE_MISMATCH")
+        return issue_protected_view(
+            payment.attributes(), contract_attestation, principal,
+            purpose=purpose, destination=destination,
+            registry_key=self._registry_key, release_key=self._release_key,
+            policy_authority=self._policy_authority, now=now)
 
     def release(self, *, assertion: dict[str, Any], envelope: dict[str, Any],
                 purpose: str, destination: str, now: int | None = None) -> dict[str, Any]:
