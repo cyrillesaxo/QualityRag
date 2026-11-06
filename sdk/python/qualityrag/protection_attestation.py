@@ -12,7 +12,7 @@ import json
 import secrets
 import threading
 import time
-from typing import Any, Protocol
+from typing import Any, Protocol, Callable
 
 from .protection import Principal, ProtectionDenied, protect, authorize_release, SCHEMA
 from .protection_lifecycle import InMemoryPolicyAuthority
@@ -75,12 +75,15 @@ def issue_protected_view(record: dict[str, Any], attestation: dict[str, Any],
                          principal: Principal, *, purpose: str, destination: str,
                          registry_key: bytes, release_key: bytes,
                          policy_authority: PolicyRegistry,
-                         now: int | None = None, ttl_seconds: int = 60) -> dict[str, Any]:
+                         now: int | None = None, ttl_seconds: int = 60,
+                         source_reference: str | None = None) -> dict[str, Any]:
     """Trusted service only. Principal must already be authenticated externally."""
     if type(ttl_seconds) is not int or not 1 <= ttl_seconds <= 300:
         raise ProtectionDenied("INVALID_TTL")
     if type(now) is not int and now is not None:
         raise ProtectionDenied("INVALID_TIME")
+    if source_reference is not None and (not isinstance(source_reference, str) or not source_reference):
+        raise ProtectionDenied("INVALID_SOURCE_REFERENCE")
     contract = _verify_contract(attestation, registry_key)
     # Signed policy identity and current version must match trusted registry state.
     policy_id, policy_version = contract.get("policy_id"), contract.get("policy_version")
@@ -101,6 +104,8 @@ def issue_protected_view(record: dict[str, Any], attestation: dict[str, Any],
                "issued_at": issued, "expires_at": issued + ttl_seconds,
                "nonce": secrets.token_hex(16), "policy_id": policy_id,
                "policy_version": policy_version, "protected_view": safe}
+    if source_reference is not None:
+        receipt["source_reference"] = source_reference
     return {"receipt": receipt, "signature": _mac(receipt, release_key)}
 
 
@@ -124,7 +129,8 @@ def verify_protected_release(envelope: dict[str, Any], principal: Principal, *,
                              replay_store: ReplayLedger,
                              policy_authority: PolicyRegistry,
                              now: int | None = None,
-                             operation: str = "read") -> dict[str, Any]:
+                             operation: str = "read",
+                             pre_consume_check: Callable[[dict[str, Any], Principal], None] | None = None) -> dict[str, Any]:
     """Verify signed, time-bounded, one-use reference-only release.
 
     Must run inside a trusted service. No detokenization or network side effect.
@@ -152,6 +158,11 @@ def verify_protected_release(envelope: dict[str, Any], principal: Principal, *,
     # Check all view constraints before making any irreversible nonce claim.
     view = authorize_release(receipt.get("protected_view"), principal,
                              destination=destination, purpose=purpose, operation=operation)
+    # Recheck resource-level access AFTER authenticating the signed receipt,
+    # but BEFORE irrevocably consuming its nonce. The trusted caller supplies
+    # this verifier; never accept it from an untrusted request.
+    if pre_consume_check is not None:
+        pre_consume_check(receipt, principal)
     # Durable SQLite policy backends atomically check policy AND consume the
     # nonce under one write lock. In-memory backends retain their documented
     # non-atomic development behavior.
