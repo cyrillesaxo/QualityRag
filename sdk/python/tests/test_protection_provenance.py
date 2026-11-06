@@ -79,6 +79,42 @@ class MetadataProvenanceTests(unittest.TestCase):
             purpose="review", destination="llm", now=1002)
         self.assertEqual(decision["view"], {"expiry_valid": True})
 
+    def test_access_revoked_after_issue_denies_release(self):
+        envelope = self.issue()
+        self.provider.revoke_synthetic_access(
+            tenant="tenant-a", reference=REFERENCE,
+            subject="worker-a", purpose="review")
+        with self.assertRaisesRegex(ProtectionDenied, "METADATA_ACCESS_DENIED"):
+            self.service.release(
+                assertion=self.assertion, envelope=envelope,
+                purpose="review", destination="llm", now=1002)
+
+    def test_source_attribute_changed_after_issue_denies_release(self):
+        envelope = self.issue()
+        self.provider.replace_synthetic_payment(
+            ProtectedPayment(REFERENCE, "tenant-a", "visa", "4242", False))
+        with self.assertRaisesRegex(ProtectionDenied, "SOURCE_STATE_CHANGED"):
+            self.service.release(
+                assertion=self.assertion, envelope=envelope,
+                purpose="review", destination="llm", now=1002)
+
+    def test_source_binding_tampering_rejected_by_signature(self):
+        envelope = self.issue()
+        forged = copy.deepcopy(envelope)
+        forged["receipt"]["source_reference"] = "ref_other_payment_00000001"
+        with self.assertRaisesRegex(ProtectionDenied, "RELEASE_ATTESTATION_DENIED"):
+            self.service.release(
+                assertion=self.assertion, envelope=forged,
+                purpose="review", destination="llm", now=1002)
+
+    def test_missing_provider_at_release_denied(self):
+        envelope = self.issue()
+        without_provider = self.service_with(None)
+        with self.assertRaisesRegex(ProtectionDenied, "SOURCE_REVALIDATION_DENIED"):
+            without_provider.release(
+                assertion=self.assertion, envelope=envelope,
+                purpose="review", destination="llm", now=1002)
+
     def test_unauthorized_object_denied_despite_valid_signed_workload(self):
         other = self.sign({**self.principal_claims, "sub": "worker-b"})
         with self.assertRaisesRegex(ProtectionDenied, "METADATA_ACCESS_DENIED"):
