@@ -17,6 +17,7 @@ class InMemoryPolicyAuthority:
     def __init__(self) -> None:
         self._lock = threading.RLock()
         self._active: dict[tuple[str, str], int] = {}
+        self._highest: dict[tuple[str, str], int] = {}
 
     def publish(self, *, tenant: str, policy_id: str, version: int) -> None:
         if (not isinstance(tenant, str) or not tenant
@@ -25,9 +26,10 @@ class InMemoryPolicyAuthority:
             raise ProtectionDenied("INVALID_POLICY_VERSION")
         with self._lock:
             key = (tenant, policy_id)
-            previous = self._active.get(key, 0)
+            previous = self._highest.get(key, 0)
             if version <= previous:
                 raise ProtectionDenied("NON_MONOTONIC_POLICY_VERSION")
+            self._highest[key] = version
             self._active[key] = version
 
     def revoke(self, *, tenant: str, policy_id: str) -> None:
