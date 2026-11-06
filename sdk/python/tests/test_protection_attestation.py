@@ -81,6 +81,27 @@ class AttestedProtectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ProtectionDenied, "RELEASE_POLICY_DENIED"):
             self.release(self.issue(), operation="detokenize")
 
+    def test_boolean_derived_attribute_release(self):
+        contract = copy.deepcopy(self.contract)
+        grant = [{"purpose": "review", "destination": "llm", "operation": "read"}]
+        contract["fields"]["expiry_valid"] = {
+            "classification": "pci", "mode": "derived", "grants": grant}
+        record = {**self.record, "expiry_valid": True}
+        signed = attest_contract(contract, REGISTRY_KEY)
+        envelope = self.issue(attestation=signed, record=record)
+        self.assertIs(self.release(envelope)["view"]["expiry_valid"], True)
+
+    def test_numeric_identifier_rejected_even_if_marked_public(self):
+        contract = copy.deepcopy(self.contract)
+        contract["fields"]["account_id"] = {
+            "classification": "public", "mode": "plain",
+            "grants": [{"purpose": "review", "destination": "llm",
+                        "operation": "read"}]}
+        signed = attest_contract(contract, REGISTRY_KEY)
+        record = {**self.record, "account_id": 4111111111111111}
+        with self.assertRaisesRegex(ProtectionDenied, "UNSAFE_VALUE"):
+            self.issue(attestation=signed, record=record)
+
     def test_raw_pan_denied(self):
         record = dict(self.record, payment_ref="4111111111111111")
         with self.assertRaisesRegex(ProtectionDenied, "UNSAFE_REFERENCE"):
