@@ -305,3 +305,32 @@ Tests:
 ```bash
 PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection_provenance.py' -v
 ```
+
+## Release-time object authorization and source state binding
+
+`issue_payment_metadata` now binds its opaque `source_reference` inside
+the signed release receipt. At `ProtectionService.release`, a trusted
+`pre_consume_check` runs **after verification of the signed receipt** and
+**before policy/nonce claim**. It queries the configured authorized
+metadata provider again for the verified tenant, subject, purpose and
+signed source reference. A revoked object grant, missing provider,
+mismatched identity/reference, or changed exposed attribute denies the
+release. The source binding is covered by the receipt signature, so
+altering it invalidates the receipt.
+
+This protects the simulated issue-to-release interval against grants
+revoked before the check and changes to attributes already selected
+for disclosure. The source reference remains in the signed receipt
+envelope and therefore the receipt must be kept within trusted service
+infrastructure; **do not send the full envelope to an LLM**.
+
+**Still not atomic with external delivery:** source authorization could
+change after the provider check or during a network send. The synthetic
+provider mutators and this pre-consume callback are not a distributed
+transaction, and do not guarantee revocation at actual delivery.
+A production system needs central object-access enforcement and delivery
+coordination, in addition to audited vault provenance.
+
+```bash
+PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection_provenance.py' -v
+```
