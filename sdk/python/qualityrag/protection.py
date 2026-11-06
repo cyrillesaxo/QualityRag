@@ -82,7 +82,7 @@ def protect(record: dict[str, Any], contract: dict[str, Any], principal: Princip
                     raise ProtectionDenied("INVALID_DERIVED_ATTRIBUTE")
                 if name in ("expiry_valid", "same_instrument", "payment_eligible") and type(value) is not bool:
                     raise ProtectionDenied("INVALID_DERIVED_ATTRIBUTE")
-                if not _safe_string(value):
+                if type(value) is str and not _safe_string(value):
                     raise ProtectionDenied("UNSAFE_DERIVED_ATTRIBUTE")
                 result[name] = value
             else:
