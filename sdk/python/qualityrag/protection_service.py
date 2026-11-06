@@ -16,9 +16,8 @@ from typing import Any, Mapping
 
 from .protection import Principal, ProtectionDenied
 from .protection_attestation import (
-    InMemoryReplayStore, issue_protected_view, verify_protected_release,
+    ReplayLedger, PolicyRegistry, issue_protected_view, verify_protected_release,
 )
-from .protection_lifecycle import InMemoryPolicyAuthority
 from .protection_grants import StaticWorkloadGrants
 
 
@@ -99,8 +98,8 @@ class ProtectionService:
     """
 
     def __init__(self, *, verifier: SignedWorkloadVerifier,
-                 policy_authority: InMemoryPolicyAuthority,
-                 replay_store: InMemoryReplayStore,
+                 policy_authority: PolicyRegistry,
+                 replay_store: ReplayLedger,
                  workload_grants: StaticWorkloadGrants,
                  registry_key: bytes, release_key: bytes) -> None:
         if not isinstance(registry_key, bytes) or len(registry_key) < 32:
