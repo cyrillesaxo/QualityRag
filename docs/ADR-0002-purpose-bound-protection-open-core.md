@@ -271,3 +271,37 @@ Reproduce:
 ```bash
 PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection_disclosure.py' -v
 ```
+
+## Service-owned metadata provenance (synthetic)
+
+`ProtectedMetadataProvider` remains a basic metadata-only abstraction.
+The stronger `AuthorizedMetadataProvider` interface now binds retrieval
+to tenant, authenticated subject, declared purpose and an opaque reference.
+`ProtectionService.issue_payment_metadata` accepts only an opaque
+reference and independently obtains the protected fields from the configured
+trusted source. It verifies that the returned `ProtectedPayment` belongs
+to the authenticated tenant and refers to the requested reference. The
+signed field contract still determines the *minimum attributes* returned.
+A signed workload with an applicable global purpose grant still needs a
+separate object-level retrieval grant.
+
+`SyntheticAuthorizedMetadataProvider` simulates this behavior in memory.
+It is not a vault, does not prove source authenticity, and has no real
+credential storage or external payment operation. A compromised or
+misconfigured trusted provider could still return false but well-formed
+attributes; production requires independently authenticated source
+provenance, an access-controlled remote data service, and comprehensive
+tenant/object authorization.
+
+**Unsafe legacy boundary:** `ProtectionService.issue(record=...)` still
+accepts a caller-supplied record for existing local experiments. It MUST
+NOT be exposed in a model-facing or untrusted network API. Only
+`issue_payment_metadata` models the preferred source-owned flow.
+Even this newer path is not production-safe while using synthetic
+workload signatures, in-process keys and synthetic metadata providers.
+
+Tests:
+
+```bash
+PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests -p 'test_protection_provenance.py' -v
+```
