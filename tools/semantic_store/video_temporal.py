@@ -15,6 +15,8 @@ def group_observations(witnesses, duration_ms, *, window_ms=5000, max_events=100
         raise VideoEvidenceError("Invalid temporal grouping configuration")
     if not isinstance(witnesses, list):
         raise VideoEvidenceError("Invalid witness list")
+    if (duration_ms + window_ms - 1) // window_ms > 100_000:
+        raise VideoEvidenceError("Temporal scan budget exceeded")
     groups = []
     # Preserve every timestamped witness through at least one candidate event.
     # A long speech interval may be indexed into multiple windows.
