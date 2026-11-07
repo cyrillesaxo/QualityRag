@@ -149,3 +149,29 @@ python -m unittest discover -s tools/semantic_store/tests -p 'test_video_transit
 ```
 
 Future work is *multi-frame tracking*, occlusion-aware identity association and independently evaluated state-transition verification; do not market the present paired-still-image output as action recognition.
+
+
+## Geometric multi-frame tracking from supplied detections
+
+`video_tracking.py` associates **caller-supplied, source-grounded bounding boxes** by class, elapsed time and intersection-over-union. It does not detect objects in a video and does not recognize the identity of people. Tracks are `GEOMETRIC_HYPOTHESIS` candidates; ambiguous matches, class changes, long gaps and nonoverlapping boxes create separate tracks instead of declaring the object identical.
+
+Supply a JSON array whose `witness_id` references an actually sampled, hashed frame in the same inference run:
+
+```json
+[
+  {"witness_id":"frame-0","category":"wheelchair",
+   "bbox":[0.1,0.1,0.4,0.7],"attributes":{"brake_position":"unknown"}},
+  {"witness_id":"frame-1","category":"wheelchair",
+   "bbox":[0.11,0.1,0.42,0.7],"attributes":{"brake_position":"appears_engaged"}}
+]
+```
+
+Use `--detections-json detections.json` alongside `--vision-model` when running `video_inference.py`. The frame IDs must correspond to sampled frame order, which changes if scene-scan windows or other sampling settings change. Source integration should eventually provide detections directly from a spatial grounding model in the same pipeline rather than manually aligning JSON.
+
+The tracker emits candidate histories of attribute changes and dedicated `object_continuity_verified=UNKNOWN` constraints. It does **not** establish that the wheelchairs at the two timestamps are definitely the same physical object, that the brakes were actually engaged, or that a transfer was safe. All output stays `INCONCLUSIVE`.
+
+```sh
+python -m unittest discover -s tools/semantic_store/tests -p 'test_video_tracking.py' -v
+```
+
+Next planned integration is spatial grounding/segmentation to emit frame-local detections, then multi-frame tracking evaluation against adversarial occlusion, lookalikes, cuts and camera motion. Persistent WitnessGraph storage and independently governed FF-RCT evaluation remain separate review-gated tasks.
