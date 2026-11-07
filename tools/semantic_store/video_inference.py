@@ -17,6 +17,7 @@ from urllib.request import Request, urlopen
 from video_evidence import compile_video_evidence, VideoEvidenceError
 from video_temporal import group_observations
 from video_scenes import propose_change_windows
+from video_transitions import propose_visual_transitions, vision_transition_ollama
 
 
 def media_hash(path):
@@ -133,7 +134,8 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                         vision_model=None, interval_ms=5000, max_frames=200,
                         inspection_windows=None, vision=None,
                         detect_scene_changes=False, scene_cadence_ms=2000,
-                        scene_threshold=0.24):
+                        scene_threshold=0.24, detect_transitions=False,
+                        transition_compare=None, max_transition_pairs=40):
     """Run explicitly requested local adapters and produce unverified evidence.
 
     A vision callable can replace Ollama for testing or another reviewed provider.
@@ -153,7 +155,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                 witnesses.append(w)
         receipts.append(receipt)
 
-    if detect_scene_changes and not vision_model:
+    if (detect_scene_changes or detect_transitions) and not vision_model:
         raise VideoEvidenceError("Scene-aware sampling requires a vision model")
     active_windows = list(inspection_windows or [])
     if detect_scene_changes:
@@ -167,21 +169,47 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
 
     if vision_model:
         analyzer = vision or (lambda b: vision_ollama_local(b, model_name=vision_model))
-        for i, at in enumerate(sample_times(duration_ms, interval_ms, active_windows, max_frames)):
+        sampling_times = sample_times(duration_ms, interval_ms, active_windows, max_frames)
+        if detect_transitions and len(sampling_times) - 1 > max_transition_pairs:
+            raise VideoEvidenceError("Transition pair budget exceeded")
+        previous_frame = None
+        transition_candidates = []
+        comparator = transition_compare or (lambda a, b: vision_transition_ollama(
+            a, b, model_name=vision_model))
+        for i, at in enumerate(sampling_times):
             frame = extract_frame(path, at)
             description = analyzer(frame)
             if not isinstance(description, str) or not description.strip():
                 raise VideoEvidenceError("Empty visual observation")
-            witnesses.append({
+            item = {
                 "id": f"frame-{i}", "modality": "video",
                 "interval": {"start_ms": at, "end_ms": min(at + 1, duration_ms)},
                 "text": description[:10000], "provider": f"vision:{vision_model}",
-                "frame_sha256": hashlib.sha256(frame).hexdigest()})
+                "frame_sha256": hashlib.sha256(frame).hexdigest()}
+            witnesses.append(item)
+            if detect_transitions and previous_frame is not None:
+                transition_candidates.extend(propose_visual_transitions(
+                    [(previous_frame, (item, frame))], compare=comparator))
+            previous_frame = (item, frame)
         receipts.append({"provider": "ollama-local" if vision is None else "injected-vision",
                          "model": vision_model, "sampling_interval_ms": interval_ms,
                          "sampled_frames": sum(w["modality"] == "video" for w in witnesses),
                          "trust": "UNVERIFIED_OUTPUT"})
     events = group_observations(witnesses, duration_ms, window_ms=interval_ms)
+    if detect_transitions:
+        for i, candidate in enumerate(transition_candidates):
+            events.append({
+                "id": f"transition-{i}", "label": "candidate visual attribute transition",
+                "interval": candidate["interval"],
+                "witnesses": [candidate["before_witness"], candidate["after_witness"]],
+                "changes": [candidate],
+                "constraints": [{"name": "transition_verified", "state": "UNKNOWN",
+                                 "witnesses": [candidate["before_witness"], candidate["after_witness"]]}]
+            })
+        receipts.append({"provider": "ollama-local" if transition_compare is None else "injected-comparator",
+                         "model": vision_model, "task": "paired-frame-attribute-comparison",
+                         "pair_count": len(transition_candidates),
+                         "trust": "UNVERIFIED_OUTPUT"})
     return compile_video_evidence(
         source_id=source_id, revision=revision, media_sha256=media_hash(path),
         duration_ms=duration_ms, witnesses=witnesses, events=events,
@@ -203,6 +231,9 @@ def main(argv=None):
                         help="Detect candidate abrupt visual changes before vision inference")
     parser.add_argument("--scene-cadence-ms", type=int, default=2000)
     parser.add_argument("--scene-threshold", type=float, default=0.24)
+    parser.add_argument("--compare-transitions", action="store_true",
+                        help="Opt into paired-frame visual attribute comparisons")
+    parser.add_argument("--max-transition-pairs", type=int, default=40)
     parser.add_argument("--inspection-windows", default=None,
                         help="Path to JSON array of dense sample windows")
     parser.add_argument("--output", required=True, help="Output candidate evidence JSON")
@@ -220,7 +251,9 @@ def main(argv=None):
         interval_ms=args.interval_ms, max_frames=args.max_frames,
         inspection_windows=windows, detect_scene_changes=args.scene_scan,
         scene_cadence_ms=args.scene_cadence_ms,
-        scene_threshold=args.scene_threshold)
+        scene_threshold=args.scene_threshold,
+        detect_transitions=args.compare_transitions,
+        max_transition_pairs=args.max_transition_pairs)
     Path(args.output).write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
 
 
