@@ -124,3 +124,28 @@ The implementation fails closed on excessive probe counts, scene windows or mode
 ```sh
 python -m unittest discover -s tools/semantic_store/tests -p 'test_video_scenes.py' -v
 ```
+
+
+## Candidate before/after state transitions
+
+Pass `--compare-transitions` to opt into a paired-frame comparison with the same local Ollama vision model used to caption frames:
+
+```sh
+python tools/semantic_store/video_inference.py ./authorized-training.mp4 \
+  --source-id training-001 --revision r3 \
+  --vision-model YOUR_LOCAL_VISION_MODEL \
+  --scene-scan --compare-transitions --max-transition-pairs 40 \
+  --max-frames 41 --output ./candidate-transitions.json
+```
+
+The `video_transitions.py` adapter requests structured JSON comparing **two distinct timestamped frames**. It records the candidate entity and attribute, before and after descriptions, and a `CHANGED` / `UNCHANGED` / `UNKNOWN` prediction. Every candidate retains the original frame-witness IDs and hashes, plus the explicitly unresolved `causal_attribution` and `physical_constraint_verdict`. A paired-frame difference does not establish what happened between the frames or whether an instructor's narrated action was actually performed.
+
+Transition candidates are attached to the `video-evidence/v1` artifact as event `changes`, together with a mandatory unresolved `transition_verified` constraint. No FF-RCT/PackSpec verdicts or source admission are promoted. The runner fails closed if requested comparisons exceed `--max-transition-pairs`, rather than silently skipping some. Each comparison is a separate local vision-model call, which can be expensive.
+
+Tests:
+
+```sh
+python -m unittest discover -s tools/semantic_store/tests -p 'test_video_transitions.py' -v
+```
+
+Future work is *multi-frame tracking*, occlusion-aware identity association and independently evaluated state-transition verification; do not market the present paired-still-image output as action recognition.
