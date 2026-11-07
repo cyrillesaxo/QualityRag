@@ -50,6 +50,19 @@ class TrackingTests(unittest.TestCase):
             detection("b", [0.6,0.6,0.9,0.9])], ws)
         self.assertEqual(len(tracks), 2)
 
+    def test_hard_cut_prevents_false_track_continuity(self):
+        ws = [witness("a", 0), witness("b", 1000)]
+        tracks = associate_detections(
+            [detection("a"), detection("b")], ws, scene_cut_ms=[500])
+        self.assertEqual(len(tracks), 2)
+        self.assertEqual(track_events(tracks), [])
+
+    def test_scene_cut_configuration_rejects_non_integer(self):
+        ws = [witness("a", 0), witness("b", 1000)]
+        with self.assertRaises(VideoEvidenceError):
+            associate_detections([detection("a"), detection("b")],
+                                 ws, scene_cut_ms=["500"])
+
     def test_different_categories_never_merge(self):
         ws = [witness("a", 0), witness("b", 1000)]
         tracks = associate_detections([
