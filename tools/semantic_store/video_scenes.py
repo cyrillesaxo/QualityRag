@@ -75,6 +75,7 @@ def propose_change_windows(path, duration_ms, *, cadence_ms=2000,
             windows.append({"start_ms": begin, "end_ms": end,
                             "peak_difference": round(score, 5)})
     return {"windows": windows,
+            "change_points_ms": [at for at, _ in changes],
             "receipt": {"detector": "luminance-absolute-difference/v1",
                         "cadence_ms": cadence_ms, "threshold": threshold,
                         "probed_frames": len(times), "candidate_transition_count": len(changes),
