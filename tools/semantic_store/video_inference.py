@@ -160,6 +160,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
     if (detect_scene_changes or detect_transitions) and not vision_model:
         raise VideoEvidenceError("Scene-aware sampling requires a vision model")
     active_windows = list(inspection_windows or [])
+    candidate_cut_times = []
     if detect_scene_changes:
         scene_scan = propose_change_windows(
             path, duration_ms, cadence_ms=scene_cadence_ms,
@@ -167,6 +168,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
         active_windows.extend(
             {"start_ms": w["start_ms"], "end_ms": w["end_ms"]}
             for w in scene_scan["windows"])
+        candidate_cut_times = scene_scan.get("change_points_ms", [])
         receipts.append(scene_scan["receipt"])
 
     if vision_model:
@@ -215,7 +217,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
     if detections is not None:
         if not vision_model:
             raise VideoEvidenceError("Tracking requires a vision model and hashed visual witnesses")
-        tracks = associate_detections(detections, witnesses)
+        tracks = associate_detections(detections, witnesses, scene_cut_ms=candidate_cut_times)
         events.extend(track_events(tracks))
         receipts.append({"provider": "caller-supplied-detections", "task": "geometric-track-proposals",
                          "detection_count": len(detections), "track_count": len(tracks),
