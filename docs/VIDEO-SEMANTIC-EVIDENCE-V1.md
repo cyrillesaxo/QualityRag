@@ -175,3 +175,10 @@ python -m unittest discover -s tools/semantic_store/tests -p 'test_video_trackin
 ```
 
 Next planned integration is spatial grounding/segmentation to emit frame-local detections, then multi-frame tracking evaluation against adversarial occlusion, lookalikes, cuts and camera motion. Persistent WitnessGraph storage and independently governed FF-RCT evaluation remain separate review-gated tasks.
+
+
+### Scene cuts and object-continuity safeguards
+
+When both `--scene-scan` and `--detections-json` are used, the scene-change scanner also supplies candidate cut timestamps to the geometric tracker. It **refuses to link tracks across a candidate cut** even when object labels and bounding boxes are identical. This trades continuity recall for lower false-merge risk; lighting changes and camera motion may incorrectly split a real object track. Without scene scanning, no camera-cut boundary is available and cross-cut identity remains a known risk.
+
+The current tracker is geometric and operates on externally supplied detections. It does not run segmentation, embedding-based re-identification, optical flow, causal action inference or identity recognition. Its attribute history remains a hypothesis requiring independent evidence review.
