@@ -44,12 +44,14 @@ def associate_detections(detections, witnesses, *, min_iou=0.5,
     Each witness must point to an actual, hashed video frame. Ambiguous matches
     start separate tracks rather than forcing same-entity continuity.
     """
-    if (not isinstance(detections, list) or len(detections) > max_detections
+    if (type(max_detections) is not int or max_detections < 1
+            or not isinstance(detections, list) or len(detections) > max_detections
             or not isinstance(witnesses, list)
-            or type(max_detections) is not int or max_detections < 1
             or type(max_gap_ms) is not int or max_gap_ms < 1
-            or type(min_iou) not in (int, float) or not 0 < min_iou <= 1
+            or type(min_iou) not in (int, float) or not math.isfinite(min_iou)
+            or not 0 < min_iou <= 1
             or type(ambiguity_margin) not in (int, float)
+            or not math.isfinite(ambiguity_margin)
             or not 0 <= ambiguity_margin <= 1):
         raise VideoEvidenceError("Invalid tracking configuration")
     indexed = {}
