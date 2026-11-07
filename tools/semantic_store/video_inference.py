@@ -16,6 +16,7 @@ from urllib.request import Request, urlopen
 
 from video_evidence import compile_video_evidence, VideoEvidenceError
 from video_temporal import group_observations
+from video_scenes import propose_change_windows
 
 
 def media_hash(path):
@@ -130,7 +131,9 @@ def vision_ollama_local(frame_bytes, *, model_name, endpoint="http://127.0.0.1:1
 
 def compile_local_media(path, *, source_id, revision, asr_model=None,
                         vision_model=None, interval_ms=5000, max_frames=200,
-                        inspection_windows=None, vision=None):
+                        inspection_windows=None, vision=None,
+                        detect_scene_changes=False, scene_cadence_ms=2000,
+                        scene_threshold=0.24):
     """Run explicitly requested local adapters and produce unverified evidence.
 
     A vision callable can replace Ollama for testing or another reviewed provider.
@@ -150,9 +153,21 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                 witnesses.append(w)
         receipts.append(receipt)
 
+    if detect_scene_changes and not vision_model:
+        raise VideoEvidenceError("Scene-aware sampling requires a vision model")
+    active_windows = list(inspection_windows or [])
+    if detect_scene_changes:
+        scene_scan = propose_change_windows(
+            path, duration_ms, cadence_ms=scene_cadence_ms,
+            threshold=scene_threshold)
+        active_windows.extend(
+            {"start_ms": w["start_ms"], "end_ms": w["end_ms"]}
+            for w in scene_scan["windows"])
+        receipts.append(scene_scan["receipt"])
+
     if vision_model:
         analyzer = vision or (lambda b: vision_ollama_local(b, model_name=vision_model))
-        for i, at in enumerate(sample_times(duration_ms, interval_ms, inspection_windows, max_frames)):
+        for i, at in enumerate(sample_times(duration_ms, interval_ms, active_windows, max_frames)):
             frame = extract_frame(path, at)
             description = analyzer(frame)
             if not isinstance(description, str) or not description.strip():
@@ -184,6 +199,10 @@ def main(argv=None):
                         help="Explicitly opt into loopback Ollama vision inference")
     parser.add_argument("--interval-ms", type=int, default=5000)
     parser.add_argument("--max-frames", type=int, default=200)
+    parser.add_argument("--scene-scan", action="store_true",
+                        help="Detect candidate abrupt visual changes before vision inference")
+    parser.add_argument("--scene-cadence-ms", type=int, default=2000)
+    parser.add_argument("--scene-threshold", type=float, default=0.24)
     parser.add_argument("--inspection-windows", default=None,
                         help="Path to JSON array of dense sample windows")
     parser.add_argument("--output", required=True, help="Output candidate evidence JSON")
@@ -199,7 +218,9 @@ def main(argv=None):
         args.media, source_id=args.source_id, revision=args.revision,
         asr_model=args.asr_model, vision_model=args.vision_model,
         interval_ms=args.interval_ms, max_frames=args.max_frames,
-        inspection_windows=windows)
+        inspection_windows=windows, detect_scene_changes=args.scene_scan,
+        scene_cadence_ms=args.scene_cadence_ms,
+        scene_threshold=args.scene_threshold)
     Path(args.output).write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
 
 
