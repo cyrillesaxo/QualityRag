@@ -62,3 +62,41 @@ PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_st
 ```
 
 This does not connect inference providers or the runtime console yet. It supplies a bounded, testable seam for future adapters and evaluation datasets.
+
+
+## Runnable local inference (added in PR #84)
+
+The optional runner is `tools/semantic_store/video_inference.py`. Requires local `ffmpeg` and `ffprobe`. Video frame inference is performed against **loopback Ollama** only, with an explicitly selected local multimodal vision model. Optional local speech transcription uses `faster-whisper` (install separately). Model weights may be downloaded by those runtimes when first selected; verify licensing and hardware requirements. No external YouTube retrieval, remote hosted inference, or background ingestion is built in.
+
+```sh
+# Pre-install ffmpeg, ffprobe, Ollama and a locally available vision model.
+# Then use an authorized local MP4:
+python tools/semantic_store/video_inference.py ./authorized-training.mp4 \
+  --source-id training-001 --revision r1 \
+  --vision-model YOUR_LOCAL_VISION_MODEL \
+  --interval-ms 5000 --max-frames 200 \
+  --output ./training-evidence.json
+
+# Optional additional speech observations:
+pip install faster-whisper
+python tools/semantic_store/video_inference.py ./authorized-training.mp4 \
+  --source-id training-001 --revision r1 \
+  --asr-model large-v3 --vision-model YOUR_LOCAL_VISION_MODEL \
+  --output ./training-evidence.json
+```
+
+For targeted higher-frequency sampling, provide `--inspection-windows windows.json`:
+
+```json
+[{"start_ms":10000,"end_ms":15000}]
+```
+
+The output is a bounded `qualityrag.video-evidence/v1` artifact. Each timestamped frame description and ASR segment becomes a separate candidate event, with hash and model receipt. **This runner does not yet perform temporal event fusion, tracking, OCR-specific grounding, action verification, or FF-RCT admission.** In particular, a single-frame description cannot establish that an action was completed. All inference outputs remain `UNVERIFIED_OBSERVATION` and `INCONCLUSIVE`, suitable for controlled evaluation and later reviewed ingestion.
+
+```sh
+PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p 'test_video_inference.py' -v
+```
+
+### Operational boundaries
+
+This is a research-local tool, not a hardened multi-tenant ingestion service. Treat input files as untrusted: use sandboxing, resource limits, protected credentials, and custody/retention controls before exposing it through a server. `--max-frames` provides an inference count bound, not a cap on the size or compute cost of an input video. Increase sampling density only after measuring consequential-event recall on held-out clips.
