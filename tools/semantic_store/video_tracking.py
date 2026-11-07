@@ -37,7 +37,7 @@ def intersection_over_union(left, right):
 
 def associate_detections(detections, witnesses, *, min_iou=0.5,
                          ambiguity_margin=0.1, max_gap_ms=6000,
-                         max_detections=3000):
+                         max_detections=3000, scene_cut_ms=None):
     """Return candidate tracks; never attach trust, physical action or identity.
 
     detections: [{witness_id, category, bbox, attributes:{str:str}}]
@@ -54,6 +54,12 @@ def associate_detections(detections, witnesses, *, min_iou=0.5,
             or not math.isfinite(ambiguity_margin)
             or not 0 <= ambiguity_margin <= 1):
         raise VideoEvidenceError("Invalid tracking configuration")
+    if scene_cut_ms is None:
+        scene_cut_ms = []
+    if (not isinstance(scene_cut_ms, list) or len(scene_cut_ms) > 500
+            or any(type(t) is not int or t < 0 for t in scene_cut_ms)):
+        raise VideoEvidenceError("Invalid candidate scene cut times")
+    cut_points = sorted(set(scene_cut_ms))
     indexed = {}
     for w in witnesses:
         if not isinstance(w, dict) or not isinstance(w.get("id"), str) or w["id"] in indexed:
@@ -106,6 +112,7 @@ def associate_detections(detections, witnesses, *, min_iou=0.5,
                 last = track["observations"][-1]
                 gap = timestamp - last["start_ms"]
                 if (gap <= 0 or gap > max_gap_ms
+                        or any(last["start_ms"] < cut <= timestamp for cut in cut_points)
                         or det["category"] != track["category"]):
                     continue
                 score = intersection_over_union(det["bbox"], last["bbox"])
