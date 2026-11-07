@@ -100,3 +100,27 @@ PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_st
 ### Operational boundaries
 
 This is a research-local tool, not a hardened multi-tenant ingestion service. Treat input files as untrusted: use sandboxing, resource limits, protected credentials, and custody/retention controls before exposing it through a server. `--max-frames` provides an inference count bound, not a cap on the size or compute cost of an input video. Increase sampling density only after measuring consequential-event recall on held-out clips.
+
+
+## Adaptive visual change-point inspection
+
+Use `--scene-scan` to request a **bounded, model-independent candidate transition scan** before visual-language-model inference:
+
+```sh
+python tools/semantic_store/video_inference.py ./authorized-training.mp4 \
+  --source-id training-001 --revision r2 \
+  --vision-model YOUR_LOCAL_VISION_MODEL \
+  --scene-scan --scene-cadence-ms 2000 \
+  --scene-threshold 0.24 --interval-ms 5000 --max-frames 200 \
+  --output ./scene-evidence.json
+```
+
+The scanner in `video_scenes.py` decodes tiny 32x18 grayscale frames at deterministic regular intervals. Mean absolute luminance difference proposes a change-point when it crosses the configured threshold. The candidate time is expanded into a local inspection window; dense model sampling combines these windows with regular control samples. The receipt records the detector version, threshold, probe frequency, and candidate count.
+
+**Interpretation boundary:** This detects image changes, not actions, entities, scene semantics, safety conditions, or motion direction. Camera pans, lighting, cuts and compression can produce false positives; gradual or occluded actions can be missed. An empty transition list does not prove nothing happened. The model output is `UNVERIFIED_OBSERVATION`, and downstream constraint admission remains `INCONCLUSIVE`.
+
+The implementation fails closed on excessive probe counts, scene windows or model-frame budgets, rather than silently dropping observations. For production, replace the repeated point-frame decode with bounded streaming and attach actual temporal tracking and a reviewed FF-RCT mapping.
+
+```sh
+python -m unittest discover -s tools/semantic_store/tests -p 'test_video_scenes.py' -v
+```
