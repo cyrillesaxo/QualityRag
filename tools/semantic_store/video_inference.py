@@ -15,6 +15,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from video_evidence import compile_video_evidence, VideoEvidenceError
+from video_temporal import group_observations
 
 
 def media_hash(path):
@@ -165,11 +166,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                          "model": vision_model, "sampling_interval_ms": interval_ms,
                          "sampled_frames": sum(w["modality"] == "video" for w in witnesses),
                          "trust": "UNVERIFIED_OUTPUT"})
-    events = []
-    for w in witnesses:
-        events.append({"id": "event-" + w["id"], "label": "candidate " + w["modality"] + " observation",
-                       "interval": dict(w["interval"]), "witnesses": [w["id"]],
-                       "constraints": []})
+    events = group_observations(witnesses, duration_ms, window_ms=interval_ms)
     return compile_video_evidence(
         source_id=source_id, revision=revision, media_sha256=media_hash(path),
         duration_ms=duration_ms, witnesses=witnesses, events=events,
