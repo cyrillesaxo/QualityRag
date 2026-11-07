@@ -1,6 +1,9 @@
 """Regression tests for candidate-only multimodal evidence."""
 import hashlib
 import unittest
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from video_evidence import compile_video_evidence, inspect_constraints, VideoEvidenceError
 
