@@ -158,7 +158,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                 raise VideoEvidenceError("Empty visual observation")
             witnesses.append({
                 "id": f"frame-{i}", "modality": "video",
-                "interval": {"start_ms": at, "end_ms": min(at + max(1, interval_ms), duration_ms)},
+                "interval": {"start_ms": at, "end_ms": min(at + 1, duration_ms)},
                 "text": description[:10000], "provider": f"vision:{vision_model}",
                 "frame_sha256": hashlib.sha256(frame).hexdigest()})
         receipts.append({"provider": "ollama-local" if vision is None else "injected-vision",
