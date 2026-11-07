@@ -19,6 +19,7 @@ from video_temporal import group_observations
 from video_scenes import propose_change_windows
 from video_transitions import propose_visual_transitions, vision_transition_ollama
 from video_tracking import associate_detections, track_events
+from video_spatial import detect_objects_ollama_local, frame_detections
 
 
 def media_hash(path):
@@ -137,7 +138,8 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                         detect_scene_changes=False, scene_cadence_ms=2000,
                         scene_threshold=0.24, detect_transitions=False,
                         transition_compare=None, max_transition_pairs=40,
-                        detections=None):
+                        detections=None, auto_detect_objects=False,
+                        spatial_detect=None):
     """Run explicitly requested local adapters and produce unverified evidence.
 
     A vision callable can replace Ollama for testing or another reviewed provider.
@@ -157,7 +159,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                 witnesses.append(w)
         receipts.append(receipt)
 
-    if (detect_scene_changes or detect_transitions) and not vision_model:
+    if (detect_scene_changes or detect_transitions or auto_detect_objects) and not vision_model:
         raise VideoEvidenceError("Scene-aware sampling requires a vision model")
     active_windows = list(inspection_windows or [])
     candidate_cut_times = []
@@ -171,6 +173,7 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
         candidate_cut_times = scene_scan.get("change_points_ms", [])
         receipts.append(scene_scan["receipt"])
 
+    auto_detections = []
     if vision_model:
         analyzer = vision or (lambda b: vision_ollama_local(b, model_name=vision_model))
         sampling_times = sample_times(duration_ms, interval_ms, active_windows, max_frames)
@@ -191,6 +194,13 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                 "text": description[:10000], "provider": f"vision:{vision_model}",
                 "frame_sha256": hashlib.sha256(frame).hexdigest()}
             witnesses.append(item)
+            if auto_detect_objects:
+                spatial_provider = spatial_detect or (lambda b: detect_objects_ollama_local(
+                    b, model_name=vision_model))
+                proposals = spatial_provider(frame)
+                if not isinstance(proposals, list):
+                    raise VideoEvidenceError("Spatial provider must return a list")
+                auto_detections.extend(frame_detections(proposals, item["id"]))
             if detect_transitions and previous_frame is not None:
                 transition_candidates.extend(propose_visual_transitions(
                     [(previous_frame, (item, frame))], compare=comparator))
@@ -214,6 +224,13 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                          "model": vision_model, "task": "paired-frame-attribute-comparison",
                          "pair_count": len(transition_candidates),
                          "trust": "UNVERIFIED_OUTPUT"})
+    if auto_detect_objects and detections is not None:
+        raise VideoEvidenceError("Choose auto spatial detection OR supplied detections")
+    if auto_detect_objects:
+        detections = auto_detections
+        receipts.append({"provider": "ollama-local" if spatial_detect is None else "injected-spatial",
+                         "model": vision_model, "task": "frame-local-spatial-proposals",
+                         "proposal_count": len(auto_detections), "trust": "UNVERIFIED_OUTPUT"})
     if detections is not None:
         if not vision_model:
             raise VideoEvidenceError("Tracking requires a vision model and hashed visual witnesses")
@@ -246,6 +263,8 @@ def main(argv=None):
     parser.add_argument("--compare-transitions", action="store_true",
                         help="Opt into paired-frame visual attribute comparisons")
     parser.add_argument("--max-transition-pairs", type=int, default=40)
+    parser.add_argument("--auto-detect-objects", action="store_true",
+                        help="Opt into local vision-model frame-local spatial proposals")
     parser.add_argument("--detections-json", default=None,
                         help="Optional JSON array of externally generated bounding-box detections")
     parser.add_argument("--inspection-windows", default=None,
@@ -271,7 +290,7 @@ def main(argv=None):
         scene_threshold=args.scene_threshold,
         detect_transitions=args.compare_transitions,
         max_transition_pairs=args.max_transition_pairs,
-        detections=detections)
+        detections=detections, auto_detect_objects=args.auto_detect_objects)
     Path(args.output).write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
 
 
