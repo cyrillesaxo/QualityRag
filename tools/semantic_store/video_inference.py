@@ -18,6 +18,7 @@ from video_evidence import compile_video_evidence, VideoEvidenceError
 from video_temporal import group_observations
 from video_scenes import propose_change_windows
 from video_transitions import propose_visual_transitions, vision_transition_ollama
+from video_tracking import associate_detections, track_events
 
 
 def media_hash(path):
@@ -135,7 +136,8 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                         inspection_windows=None, vision=None,
                         detect_scene_changes=False, scene_cadence_ms=2000,
                         scene_threshold=0.24, detect_transitions=False,
-                        transition_compare=None, max_transition_pairs=40):
+                        transition_compare=None, max_transition_pairs=40,
+                        detections=None):
     """Run explicitly requested local adapters and produce unverified evidence.
 
     A vision callable can replace Ollama for testing or another reviewed provider.
@@ -210,6 +212,14 @@ def compile_local_media(path, *, source_id, revision, asr_model=None,
                          "model": vision_model, "task": "paired-frame-attribute-comparison",
                          "pair_count": len(transition_candidates),
                          "trust": "UNVERIFIED_OUTPUT"})
+    if detections is not None:
+        if not vision_model:
+            raise VideoEvidenceError("Tracking requires a vision model and hashed visual witnesses")
+        tracks = associate_detections(detections, witnesses)
+        events.extend(track_events(tracks))
+        receipts.append({"provider": "caller-supplied-detections", "task": "geometric-track-proposals",
+                         "detection_count": len(detections), "track_count": len(tracks),
+                         "trust": "UNVERIFIED_OUTPUT"})
     return compile_video_evidence(
         source_id=source_id, revision=revision, media_sha256=media_hash(path),
         duration_ms=duration_ms, witnesses=witnesses, events=events,
@@ -234,6 +244,8 @@ def main(argv=None):
     parser.add_argument("--compare-transitions", action="store_true",
                         help="Opt into paired-frame visual attribute comparisons")
     parser.add_argument("--max-transition-pairs", type=int, default=40)
+    parser.add_argument("--detections-json", default=None,
+                        help="Optional JSON array of externally generated bounding-box detections")
     parser.add_argument("--inspection-windows", default=None,
                         help="Path to JSON array of dense sample windows")
     parser.add_argument("--output", required=True, help="Output candidate evidence JSON")
@@ -245,6 +257,9 @@ def main(argv=None):
             raise VideoEvidenceError("Expected array of inspection windows")
     if not args.asr_model and not args.vision_model:
         parser.error("Select --asr-model and/or --vision-model")
+    detections = None
+    if args.detections_json:
+        detections = json.loads(Path(args.detections_json).read_text(encoding="utf-8"))
     artifact = compile_local_media(
         args.media, source_id=args.source_id, revision=args.revision,
         asr_model=args.asr_model, vision_model=args.vision_model,
@@ -253,7 +268,8 @@ def main(argv=None):
         scene_cadence_ms=args.scene_cadence_ms,
         scene_threshold=args.scene_threshold,
         detect_transitions=args.compare_transitions,
-        max_transition_pairs=args.max_transition_pairs)
+        max_transition_pairs=args.max_transition_pairs,
+        detections=detections)
     Path(args.output).write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
 
 
