@@ -182,3 +182,25 @@ Next planned integration is spatial grounding/segmentation to emit frame-local d
 When both `--scene-scan` and `--detections-json` are used, the scene-change scanner also supplies candidate cut timestamps to the geometric tracker. It **refuses to link tracks across a candidate cut** even when object labels and bounding boxes are identical. This trades continuity recall for lower false-merge risk; lighting changes and camera motion may incorrectly split a real object track. Without scene scanning, no camera-cut boundary is available and cross-cut identity remains a known risk.
 
 The current tracker is geometric and operates on externally supplied detections. It does not run segmentation, embedding-based re-identification, optical flow, causal action inference or identity recognition. Its attribute history remains a hypothesis requiring independent evidence review.
+
+
+## Optional automatic frame-local spatial proposals
+
+Use `--auto-detect-objects` to request bounding boxes directly from the selected **local** Ollama vision model. This removes the requirement to supply `--detections-json`, but it does not provide a dedicated detector or guarantee bounding-box precision.
+
+```sh
+python tools/semantic_store/video_inference.py ./authorized-training.mp4 \
+  --source-id training-001 --revision r4 \
+  --vision-model YOUR_LOCAL_VISION_MODEL \
+  --scene-scan --auto-detect-objects \
+  --interval-ms 5000 --max-frames 100 \
+  --output ./spatial-candidates.json
+```
+
+The `video_spatial.py` adapter expects local structured JSON proposals: generic object class, normalized bounding box, and visible string attributes. It strictly rejects malformed, duplicate, nonfinite or over-budget proposals and binds each proposal to a hashed frame witness. Its output is consumed by the existing geometric tracker. `--auto-detect-objects` and `--detections-json` are mutually exclusive.
+
+These are **VLM-generated approximate coordinates**, not ground-truth detections or validated localization. Hallucinated coordinates or attributes remain possible. The tracking, comparison and semantic events therefore retain `UNVERIFIED_OUTPUT` / `INCONCLUSIVE` status and cannot satisfy clinical, physical or identity obligations. A dedicated bounding-box detector or segmentation model with independently evaluated localization accuracy remains a follow-up.
+
+```sh
+python -m unittest discover -s tools/semantic_store/tests -p 'test_video_spatial.py' -v
+```
