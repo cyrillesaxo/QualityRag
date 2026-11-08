@@ -3,7 +3,7 @@
 // This is NOT a production IdP, verified source provenance, or independent audit.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {RegistryStore} from '../apps/registry/src/store.js';
@@ -59,6 +59,17 @@ try{
  const review=await request('POST','/v1/evidence/evaluations/'+before.id+'/reviews','customer',
    {decision:'ACCEPTED',reasonCode:'REPRODUCED',
     note:'Same-source citations do not meet the approved independence requirement'});
+ const exportArg=process.argv.indexOf('--export');
+ let exportFile=null,exportHash=null;
+ if(exportArg>=0){
+   if(exportArg!==process.argv.length-2)
+     throw Error('Usage: evidence-assurance-show-me.mjs --export OUTPUT_JSON_PATH');
+   exportFile=path.resolve(process.argv[exportArg+1]);
+   if(exportFile.startsWith(dir+path.sep))throw Error('Export path must outlive the demo directory');
+   const pkg=await request('GET','/v1/evidence/evaluations/'+before.id+'/export','reader');
+   writeFileSync(exportFile,JSON.stringify(pkg,null,2)+'\\n',{encoding:'utf8',mode:0o600,flag:'wx'});
+   exportHash=pkg.integrity.sha256;
+ }
  const summary=await request('GET',
    '/v1/evidence/evaluations?serviceId=document-assistant&environment=test','reader');
  assert.equal(before.verdict,'INCONCLUSIVE');
@@ -76,6 +87,7 @@ try{
    pinned_replay:{reproduced:replay.reproduced,evaluator:replay.evaluator},
    independent_demo_reviewer:{decision:review.decision,reason:review.reasonCode},
    observed_summary:summary.summary,
+   portable_export:exportFile?{file:exportFile,sha256:exportHash}:null,
    boundaries:['synthetic sources','fake local demo identities','metadata gate only',
       'hash chain not externally anchored','no customer approval or compliance claim']
  },null,2));
