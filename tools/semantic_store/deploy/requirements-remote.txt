@@ -1,0 +1,4 @@
+# Pin the exact resolved versions at release time, after audit.
+mcp>=2.3,<3
+uvicorn>=0.31,<1
+PyJWT[crypto]>=2.10,<3
