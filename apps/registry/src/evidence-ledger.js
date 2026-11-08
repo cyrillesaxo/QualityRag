@@ -121,6 +121,64 @@ export class EvidenceLedger {
       caveat:'REGISTRY_INGRESS_ONLY_UNATTESTED_METADATA_REJECTED'});
     return true;
   }
+  recordProtectedDecision({serviceId,environment,actor,policy,policySha256,
+    requestId,traceId,custody,meaning,verified,result,evidence,live}){
+    if(!limited(serviceId)||!limited(environment)||
+       !limited(requestId)||!limited(traceId)||
+       typeof actor!=='string'||!actor||
+       typeof policySha256!=='string'||!/^[a-f0-9]{64}$/.test(policySha256)||
+       !verified?.payload||!['ADMIT','REFUSE','INCONCLUSIVE'].includes(result?.verdict)||
+       !Array.isArray(evidence)||evidence.length<1||evidence.length>8||
+       live?.verifiedExactLiveBytes!==true||live.owner!==actor)
+      throw Error('INVALID_PROTECTED_DECISION');
+    const nonceDigest=hex(serviceId+'@'+environment+':'+verified.payload.nonce);
+    const requestHash=hex(serviceId+'@'+environment+':'+requestId);
+    const records=this.readAll();
+    if(records.some(x=>x.type==='protected-decision'&&x.serviceId===serviceId&&
+      x.environment===environment&&x.nonceDigest===nonceDigest))
+      throw Error('PROTECTED_ATTESTATION_REPLAY');
+    if(records.some(x=>x.type==='protected-decision'&&x.serviceId===serviceId&&
+      x.environment===environment&&x.requestHash===requestHash))
+      throw Error('PROTECTED_REQUEST_REPLAY');
+    const actorHash=hex(actor);
+    if(records.filter(x=>x.type==='protected-decision'&&
+      x.actorHash===actorHash&&Date.parse(x.at)>=Date.now()-60000).length>=10)
+      throw Error('PROTECTED_DECISION_RATE_LIMITED');
+    const at=new Date().toISOString();
+    const row=this.append({id:randomUUID(),type:'protected-decision',
+      at,serviceId,environment,actorHash,policySha256,
+      requestHash,traceHash:hex(traceId),nonceDigest,
+      policy:structuredClone(policy),
+      evidence:structuredClone(evidence),result:structuredClone(result),
+      asOf:live.checkedAt,sourceCount:live.sourceCount,
+      signedCustody:structuredClone(custody),signedMeaning:structuredClone(meaning),
+      signedPayloadSha256:verified.signedPayloadSha256,
+      custodianKeyId:verified.signerIds[0],
+      meaningReviewerKeyId:verified.signerIds[1],
+      provenanceBasis:'CUSTOMER_CUSTODIAN_ATTESTED_PLUS_LIVE_GOOGLE_BYTES',
+      semanticBasis:'INDEPENDENT_HUMAN_REVIEWER_ATTESTED',
+      realPublisherVerified:false,externalAnchor:false});
+    return {id:row.id,at,verdict:result.verdict,
+      policySha256,chainHash:row.chainHash,
+      sourceCount:row.sourceCount,custodianKeyId:row.custodianKeyId,
+      meaningReviewerKeyId:row.meaningReviewerKeyId,
+      evidenceSemantics:'HUMAN_APPROVED_CLAIM_NOT_OBJECTIVE_TRUTH',
+      independentPublisherVerified:false,externallyAnchored:false,
+      coverage:'ONE_PROTECTED_REGISTRY_DECISION_ONLY'};
+  }
+  exportProtectedDecision(id,actor){
+    const row=this.readAll().find(x=>x.type==='protected-decision'&&x.id===id);
+    if(!row)throw Error('PROTECTED_DECISION_NOT_FOUND');
+    if(row.actorHash!==hex(actor))throw Error('PROTECTED_DECISION_OWNER_FORBIDDEN');
+    return {schema:'qualityrag.protected-drive-decision-replay/v1',
+      id:row.id,serviceId:row.serviceId,environment:row.environment,
+      at:row.at,asOf:row.asOf,policy:row.policy,
+      policySha256:row.policySha256,evidence:row.evidence,result:row.result,
+      signedCustody:row.signedCustody,signedMeaning:row.signedMeaning,
+      claim:'CUSTOMER_SIGNED_AUTHORITIES_PLUS_LIVE_BYTES_AT_EVALUATION',
+      sourceTruthProven:false,independentOriginsProven:false,
+      externallyAnchored:false,chainHash:row.chainHash};
+  }
   recordCandidateCheck(serviceId,environment,actor,policySha256,check){
     if(!limited(serviceId)||!limited(environment)||
        typeof actor!=='string'||!actor||
@@ -221,7 +279,15 @@ export class EvidenceLedger {
       governedCandidateChecks:rows.filter(x=>x.type==='drive-check'&&
         x.serviceId===serviceId&&x.environment===environment).length,
       governedCandidateRefusals:rows.filter(x=>x.type==='drive-check'&&
-        x.serviceId===serviceId&&x.environment===environment&&x.verdict==='REFUSE').length
+        x.serviceId===serviceId&&x.environment===environment&&x.verdict==='REFUSE').length,
+      protectedDecisions:rows.filter(x=>x.type==='protected-decision'&&
+        x.serviceId===serviceId&&x.environment===environment).length,
+      protectedAdmitted:rows.filter(x=>x.type==='protected-decision'&&
+        x.serviceId===serviceId&&x.environment===environment&&
+        x.result.verdict==='ADMIT').length,
+      protectedInconclusive:rows.filter(x=>x.type==='protected-decision'&&
+        x.serviceId===serviceId&&x.environment===environment&&
+        x.result.verdict==='INCONCLUSIVE').length
     };
     const latestBlocked=rows.filter(x=>x.type==='guard'&&x.serviceId===serviceId&&
       x.environment===environment).at(-1);
@@ -234,6 +300,9 @@ export class EvidenceLedger {
         protectedSince:this.protectedSince(serviceId,environment),
         governedCandidateChecks:summary.governedCandidateChecks,
         governedCandidateRefusals:summary.governedCandidateRefusals,
+        protectedDecisions:summary.protectedDecisions,
+        protectedAdmitted:summary.protectedAdmitted,
+        protectedInconclusive:summary.protectedInconclusive,
         lastCandidateCheckAt:latestCandidate?.at||null,
         externallyAnchored:false,coverage:'REGISTRY_EVENT_ENDPOINTS_ONLY'
       },
