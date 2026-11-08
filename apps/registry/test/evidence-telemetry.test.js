@@ -78,6 +78,20 @@ test('role authorization, real HTTP ingestion, replay, review, idempotency and c
     {...data,evidence:[E(1,'independent')] })).status,409);
   assert.equal((await request('POST','/v1/evidence/evaluations','ingester',
     {...data,requestId:'request-new',prompt:'customer secret'})).status,400);
+  const exportPath='/v1/evidence/evaluations/'+x.body.id+'/export';
+  const packageReply=await request('GET',exportPath,'reader');
+  assert.equal(packageReply.status,200,JSON.stringify(packageReply.body));
+  assert.equal(packageReply.body.payload.schema,'qualityrag.evidence-replay/v1');
+  assert.equal(packageReply.body.payload.policy.id,PACK.id);
+  assert.equal(packageReply.body.payload.policy.requirements[0].min_independent_sources,2);
+  assert.equal(packageReply.body.payload.expectedResult.verdict,'INCONCLUSIVE');
+  assert.equal(packageReply.body.payload.evidence.length,2);
+  assert.equal(packageReply.body.integrity.digitallySigned,false);
+  assert.equal(packageReply.body.integrity.externallyAnchored,false);
+  assert.equal(packageReply.body.integrity.authenticityVerified,false);
+  assert.match(packageReply.body.integrity.sha256,/^[a-f0-9]{64}$/);
+  assert.equal((await request('GET',exportPath,'other')).status,403);
+  assert.equal(permissionFor('GET',exportPath),'evidence.reader');
   const replay=await request('POST','/v1/evidence/evaluations/'+x.body.id+'/replay','reader');
   assert.equal(replay.status,200);
   assert.equal(replay.body.reproduced,true);
