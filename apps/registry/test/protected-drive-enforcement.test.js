@@ -154,3 +154,27 @@ test('protected services reject forged metadata, record blocked attempts without
    fs.rmSync(dir,{recursive:true,force:true});
  }
 });
+
+test('reviewer-sourced candidate telemetry has an explicit per-actor write limit',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-challenge-limit-'));
+ try{
+   const ledger=new EvidenceLedger(path.join(dir,'ledger.jsonl'));
+   const check={
+     schema:'qualityrag.drive-governed-candidate-check/v1',
+     result:'INCONCLUSIVE',evaluationAdmitted:false,
+     counters:{submitted:1,ownerExcluded:0,eligibleForReview:1,otherUnresolved:0}
+   };
+   for(let i=0;i<20;i++)
+     assert.ok(ledger.recordCandidateCheck('claims-api','dev','customer-reviewer',
+       'a'.repeat(64),check).id);
+   assert.throws(()=>ledger.recordCandidateCheck('claims-api','dev','customer-reviewer',
+     'a'.repeat(64),check),/DRIVE_CHALLENGE_RATE_LIMITED/);
+   const output=ledger.list('claims-api','dev');
+   assert.equal(output.summary.governedCandidateChecks,20);
+   assert.equal(output.summary.governedCandidateRefusals,0);
+   // Independent reviewers have separate counters.
+   assert.ok(ledger.recordCandidateCheck('claims-api','dev','second-reviewer',
+     'a'.repeat(64),check).id);
+   assert.equal(ledger.list('claims-api','dev').summary.governedCandidateChecks,21);
+ }finally{fs.rmSync(dir,{recursive:true,force:true})}
+});
