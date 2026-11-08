@@ -1,0 +1,23 @@
+name: QualityRAG remote MCP adapter
+on:
+  pull_request:
+    paths:
+      - 'netlify/mcp/**'
+      - '.github/workflows/netlify-mcp.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'netlify/mcp/**'
+      - '.github/workflows/netlify-mcp.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check netlify/mcp/netlify/functions/mcp.mjs
+      - name: Adapter contract tests
+        run: node --test netlify/mcp/tests/*.test.mjs
