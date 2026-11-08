@@ -72,6 +72,16 @@ def prepare(args):
     required(0<len(data)<=96_000,"SOURCE_FILE_SIZE_OUT_OF_BOUNDS")
     lines=data.decode("utf8","strict").replace("\r\n","\n").replace("\r","\n").split("\n")
     required(1<=args.line_number<=len(lines),"INVALID_LINE_ANCHOR")
+    witness={
+        "sourceId":args.source_id,"revision":sha256(data).hexdigest(),
+        "requirementId":args.requirement_id,"lineNumber":args.line_number,
+        "lineSha256":sha256(lines[args.line_number-1].encode("utf8")).hexdigest(),
+        "origin":args.origin,"status":args.status
+    }
+    return assemble_payload(args,[witness])
+
+
+def assemble_payload(args,witnesses):
     now=datetime.now(timezone.utc)
     expires=now+timedelta(minutes=5)
     payload={
@@ -80,12 +90,7 @@ def prepare(args):
         "nonce":"nonce-"+secrets.token_hex(16),
         "issued_at":now.isoformat(timespec="milliseconds").replace("+00:00","Z"),
         "expires_at":expires.isoformat(timespec="milliseconds").replace("+00:00","Z"),
-        "witnesses":[{
-            "sourceId":args.source_id,"revision":sha256(data).hexdigest(),
-            "requirementId":args.requirement_id,"lineNumber":args.line_number,
-            "lineSha256":sha256(lines[args.line_number-1].encode("utf8")).hexdigest(),
-            "origin":args.origin,"status":args.status
-        }],
+        "witnesses":witnesses,
         "observations":{
             "kind":"qualityrag.protected-drive-human-review/v1",
             "owner_binding":sha256(("qualityrag.review-owner/v1:"+
@@ -97,8 +102,60 @@ def prepare(args):
     }
     canonical(payload)
     write_new(args.out,payload)
-    return {"prepared":True,"out":args.out,"validityMinutes":5,
-            "note":"Independent source and semantic reviewers must examine source and PackSpec before signing."}
+    return {"prepared":True,"out":args.out,"witnessCount":len(witnesses),
+            "validityMinutes":5,
+            "note":"Independent custodians and meaning reviewers must inspect every source line and its governing PackSpec obligation before signing."}
+
+
+def prepare_manifest(args):
+    # Multi-clause remediation is explicitly reviewed. There is no automatic
+    # SUPPORTS default: every manifest entry must specify its reviewed status.
+    required(ID.fullmatch(args.service) and ID.fullmatch(args.environment) and
+             HEX.fullmatch(args.policy_sha) and ID.fullmatch(args.folder_id) and
+             isinstance(args.owner_subject,str) and
+             bool(args.owner_subject) and args.owner_subject.isascii(),
+             "INVALID_REVIEW_SCOPE")
+    manifest=read_json(args.manifest)
+    required(isinstance(manifest,dict) and set(manifest)=={"witnesses"} and
+             isinstance(manifest["witnesses"],list) and
+             1<=len(manifest["witnesses"])<=8,"INVALID_WITNESS_MANIFEST")
+    witnesses=[]
+    identities=set()
+    for item in manifest["witnesses"]:
+        required(isinstance(item,dict) and set(item)=={
+            "sourceId","requirementId","origin","status",
+            "lineNumber","sourcePath"
+        },"INVALID_WITNESS_MANIFEST_ROW")
+        required(isinstance(item["sourceId"],str) and
+                 SOURCE.fullmatch(item["sourceId"]) and
+                 isinstance(item["requirementId"],str) and
+                 ID.fullmatch(item["requirementId"]) and
+                 isinstance(item["origin"],str) and ORIGIN.fullmatch(item["origin"]) and
+                 item["status"] in ("SUPPORTS","CONTRADICTS","UNKNOWN") and
+                 type(item["lineNumber"]) is int and
+                 1<=item["lineNumber"]<=6000 and
+                 isinstance(item["sourcePath"],str) and
+                 item["sourcePath"],"INVALID_WITNESS_MANIFEST_ROW")
+        identity=(item["sourceId"],item["requirementId"],item["lineNumber"])
+        required(identity not in identities,"DUPLICATE_REVIEW_WITNESS")
+        identities.add(identity)
+        source_file=Path(item["sourcePath"])
+        required(source_file.is_file() and not source_file.is_symlink(),
+                 "INVALID_REVIEW_SOURCE_FILE")
+        data=source_file.read_bytes()
+        required(0<len(data)<=96_000,"SOURCE_FILE_SIZE_OUT_OF_BOUNDS")
+        lines=data.decode("utf8","strict").replace("\r\n","\n").replace("\r","\n").split("\n")
+        required(len(lines)<=6000 and all(len(x)<=1200 for x in lines),
+                 "SOURCE_FILE_NOT_FULLY_INDEXABLE")
+        required(item["lineNumber"]<=len(lines),"INVALID_LINE_ANCHOR")
+        witnesses.append({
+            "sourceId":item["sourceId"],"revision":sha256(data).hexdigest(),
+            "requirementId":item["requirementId"],
+            "lineNumber":item["lineNumber"],
+            "lineSha256":sha256(lines[item["lineNumber"]-1].encode("utf8")).hexdigest(),
+            "origin":item["origin"],"status":item["status"]
+        })
+    return assemble_payload(args,witnesses)
 
 
 def sign_review(args):
@@ -151,6 +208,10 @@ def main(argv=None):
         p.add_argument("--"+field,required=True)
     p.add_argument("--line-number",type=int,default=1)
     p.add_argument("--status",choices=("SUPPORTS","CONTRADICTS","UNKNOWN"),default="UNKNOWN")
+    p_multi=sub.add_parser("prepare-manifest")
+    for field in ("service","environment","policy-sha","owner-subject","folder-id",
+                  "manifest","out"):
+        p_multi.add_argument("--"+field,required=True)
     sign_parser=sub.add_parser("sign")
     for field in ("payload","private-key","key-id","out"):
         sign_parser.add_argument("--"+field,required=True)
@@ -161,7 +222,8 @@ def main(argv=None):
         combine.add_argument("--"+field,required=True)
     args=parser.parse_args(argv)
     try:
-        result={"prepare":prepare,"sign":sign_review,
+        result={"prepare":prepare,"prepare-manifest":prepare_manifest,
+                "sign":sign_review,
                 "build-request":build_request}[args.command](args)
         print(json.dumps(result,indent=2))
         return 0
