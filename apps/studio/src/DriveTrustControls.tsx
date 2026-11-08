@@ -16,6 +16,8 @@ type GovernedCheck={
  schema:string;result:'REFUSE'|'INCONCLUSIVE';evaluationAdmitted:boolean;
  decisionBoundary:string;meaningVerified:boolean;independentProvenanceVerified:boolean;
  policy:{id:string;version:string;sha256:string};
+ telemetry?:{recorded:boolean;receiptId:string|null;chainHash:string|null;
+  externallyAnchored:boolean;scope:string};
  observations:{sourceId:string;decision:string;reasons:string[];eligibleForReviewedEvidence:boolean}[];
 };
 type Props={token:string;folderId:string|null;connected:boolean;
@@ -173,6 +175,10 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
          meaning verified: {gate.meaningVerified?'yes':'no'};
          independent provenance verified: {gate.independentProvenanceVerified?'yes':'no'}.
          This check does not independently authenticate source content.</p>
+       <p style={{fontSize:12}}>
+         Local telemetry: <strong>{gate.telemetry?.recorded?'RECORDED':'NOT ENABLED'}</strong>
+         {gate.telemetry?.receiptId?' · Receipt '+gate.telemetry.receiptId:''}.
+         No externally anchored signature or customer acceptance is implied.</p>
      </div>}
      {requirementsError&&<p role="alert">{requirementsError}</p>}
      <div style={{overflowX:'auto'}}> 
