@@ -90,7 +90,7 @@ Example semantic fields:
   "globalApplicationEnforcement": false,
   "guardTelemetry": {
     "observedBlockedAttempts": 2,
-    "coverage": "REGISTRY_INGRESS_ONLY",
+    "coverage": "REGISTRY_EVENT_ENDPOINTS_ONLY",
     "externallyAnchored": false
   }
 }
