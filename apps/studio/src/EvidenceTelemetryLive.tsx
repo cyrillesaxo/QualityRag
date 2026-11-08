@@ -21,6 +21,7 @@ type Protection={schema:string;serviceId:string;environment:string;protected:boo
   protectedSince?:string|null;governedCandidateChecks?:number;
   governedCandidateRefusals?:number;lastCandidateCheckAt?:string|null;
   protectedDecisions?:number;protectedAdmitted?:number;protectedInconclusive?:number;
+  protectedUses?:number;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
 const forest='#102d21',green='#038112',muted='#587064';
@@ -129,6 +130,10 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
        {' · '}Admitted signed claims:
        <strong> {protection.guardTelemetry.protectedAdmitted||0}</strong>.
        These are human-approved metadata claims, not independently proven facts.</p>
+     <p>Request-specific evidence-use checks permitted:
+       <strong> {protection.guardTelemetry.protectedUses||0}</strong>.
+       A historical ADMIT or prior permit is not authorization for future
+       answers; each use requires fresh permissions and current source bytes.</p>
      <p>Governed Drive candidate checks: <strong>{protection.guardTelemetry.governedCandidateChecks||0}</strong>
        {' · '}Refused: <strong>{protection.guardTelemetry.governedCandidateRefusals||0}</strong>
        {protection.guardTelemetry.lastCandidateCheckAt?
