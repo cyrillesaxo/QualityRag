@@ -22,7 +22,7 @@ type Protection={schema:string;serviceId:string;environment:string;protected:boo
   governedCandidateRefusals?:number;lastCandidateCheckAt?:string|null;
   protectedDecisions?:number;protectedAdmitted?:number;protectedInconclusive?:number;
   protectedUses?:number;protectedBufferedReleases?:number;
-  protectedGroundedReleases?:number;
+  protectedGroundedReleases?:number;protectedSufficiencyBlocks?:number;
   protectedRevocations?:number;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
@@ -140,6 +140,10 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
        {' '}were source-grounded extracts, and the remainder were
        digest-only checks. Grounded extracts preserve signed text anchors,
        not document-wide semantic completeness.
+       Recorded source-grounded releases blocked for unreviewed distant
+       lexical signals: <strong>{protection.guardTelemetry.protectedSufficiencyBlocks||0}</strong>.
+       These are bounded registry observations, not a complete count of
+       hidden exceptions or a measurement of semantic recall.
        These counts reflect registry decisions, not confirmed network delivery
        or downstream answer correctness.
        A historical ADMIT or prior permit is not authorization for future
