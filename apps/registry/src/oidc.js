@@ -64,6 +64,10 @@ export function permissionFor(method,pathname){
   if(pathname==='/v1/drives/google/folder'&&method==='POST')return ROLE.driveManage;
   if(pathname==='/v1/drives/google/disconnect'&&method==='POST')return ROLE.driveManage;
   if(pathname==='/v1/evidence/enforcement'&&method==='GET')return ROLE.evidenceRead;
+  if(pathname==='/v1/evidence/protected-admit'&&method==='POST')return ROLE.evidenceIngest;
+  if(method==='GET'&&
+    /^\/v1\/evidence\/protected-decisions\/[0-9a-f-]{36}\/export$/.test(pathname))
+    return ROLE.evidenceRead;
   const ev='/v1/evidence/evaluations';
   if(method==='POST'&&pathname===ev)return ROLE.evidenceIngest;
   if(method==='GET'&&(pathname===ev||
