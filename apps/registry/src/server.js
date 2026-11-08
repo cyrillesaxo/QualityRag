@@ -65,7 +65,7 @@ function fail(res,error) {
      safe==='PROTECTED_DECISION_RATE_LIMITED'?429:
      safe==='PROTECTED_ATTESTATION_REPLAY'||safe==='PROTECTED_REQUEST_REPLAY'?409:
      safe==='PROTECTED_REVIEW_KEYS_NOT_CONFIGURED'||safe==='PROTECTED_REVIEW_KEYS_REQUIRED'?503:
-     safe.includes('REVIEW')?403:409;
+     /^PROTECTED_(?:REVIEW_|INVALID_REVIEW_|UNTRUSTED_REVIEW_|NONCANONICAL_REVIEW)/.test(safe)?403:409;
    return reply(res,status,{error:safe,admissionStatus:'BLOCKED'});
  }
  if(code==='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED')
