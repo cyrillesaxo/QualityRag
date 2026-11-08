@@ -7,7 +7,8 @@ export class GovernedRetrievalPipeline{
  }
  async ask({tenantId,principalId,query,packSpec,limit=8}){
   if(!packSpec||typeof packSpec!=='object')throw new Error('PACKSPEC_REQUIRED');
-  const evidence=this.index.search({tenantId,principalId,query,limit});
+  const evidence=await this.index.search({tenantId,principalId,query,limit});
+  if(!Array.isArray(evidence))throw new Error('INVALID_RETRIEVAL_RESULT');
   const decision=await this.evaluate({packSpec,query,evidence,tenantId,principalId});
   // A verdict from another tenant or an unknown verdict must never admit.
   if(!decision||decision.verdict!=='ADMIT'||decision.tenant_id!==tenantId||decision.principal_id!==principalId)
