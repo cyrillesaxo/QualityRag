@@ -23,8 +23,7 @@ export class BalafonsIndexWorker{
     await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[e.tenant_id+'\\0'+e.source_id]);
     const watermark=await c.query('SELECT source_sequence FROM qr_source_watermarks WHERE tenant_id=$1 AND principal_id=$2 AND source_id=$3 FOR UPDATE',[e.tenant_id,e.principal_id,e.source_id]);
     if(watermark.rows.length&&BigInt(watermark.rows[0].source_sequence)>=BigInt(e.source_sequence)){
-     await c.query(`INSERT INTO qr_source_watermarks(tenant_id,principal_id,source_id,source_sequence,last_event_id,deleted) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(tenant_id,source_id) DO UPDATE SET source_sequence=EXCLUDED.source_sequence,last_event_id=EXCLUDED.last_event_id,deleted=EXCLUDED.deleted,updated_at=now()`,[e.tenant_id,e.principal_id,e.source_id,e.source_sequence,e.event_id,e.action==='delete']);
-    await c.query(`UPDATE qr_balafons_evidence_inbox SET state='completed',content=NULL,updated_at=now(),attempts=attempts+1 WHERE event_id=$1 AND state='pending'`,[e.event_id]);continue;
+     await c.query(`UPDATE qr_balafons_evidence_inbox SET state='completed',content=NULL,updated_at=now(),attempts=attempts+1 WHERE event_id=$1 AND state='pending'`,[e.event_id]);continue;
     }
     await c.query('DELETE FROM qr_source_chunks WHERE tenant_id=$1 AND principal_id=$2 AND source_id=$3',
      [e.tenant_id,e.principal_id,e.source_id]);
@@ -36,6 +35,7 @@ export class BalafonsIndexWorker{
       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)`,
       [e.tenant_id,e.principal_id,e.source_id,e.revision,chunk.ordinal,chunk.start,chunk.end,chunk.text,JSON.stringify(e.metadata??{})]);
     }
+    await c.query(`INSERT INTO qr_source_watermarks(tenant_id,principal_id,source_id,source_sequence,last_event_id,deleted) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(tenant_id,source_id) DO UPDATE SET source_sequence=EXCLUDED.source_sequence,last_event_id=EXCLUDED.last_event_id,deleted=EXCLUDED.deleted,updated_at=now()`,[e.tenant_id,e.principal_id,e.source_id,e.source_sequence,e.event_id,e.action==='delete']);
     await c.query(`UPDATE qr_balafons_evidence_inbox SET state='completed',content=NULL,updated_at=now(),attempts=attempts+1
      WHERE event_id=$1 AND tenant_id=$2 AND principal_id=$3 AND state='pending'`,
      [e.event_id,e.tenant_id,e.principal_id]);count++;
