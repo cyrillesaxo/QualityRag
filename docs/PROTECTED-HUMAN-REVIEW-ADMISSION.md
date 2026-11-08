@@ -180,6 +180,27 @@ The exported receipt includes signed metadata and digests, **not the document
 text**. Handle it as potentially sensitive metadata, and use an offline reviewer
 when documents cannot leave the customer's environment.
 
+## Fresh permission before any downstream use
+
+The signed receipt above is a historical review result. It **does not**
+grant a permanent authorization to use the source. An integrated app must
+run a fresh `POST /v1/evidence/protected-decisions/{id}/use-check` for
+each proposed answer, providing an unused request ID and only the
+SHA-256 digest of the answer bytes. The registry rechecks both
+signatures (including expiry/revocation), current PackSpec and
+the owner-controlled source against live Google file bytes.
+
+The TypeScript `ProtectedUseClient.releaseAnswer()` is a fail-closed
+integration example. Studio offers a **Check live evidence-use permission**
+demonstration in the protected admission panel; it never sends the
+drafted answer text to the registry. If the customer excluded
+the source, Drive access vanished, the file changed or the
+policy was rebound, the old receipt is denied. Historical independent
+replay can still succeed on original bytes; this does **not** contradict
+current revocation.
+
+[Live evidence-use API, response-release example and limits](PROTECTED-EVIDENCE-USE.md).
+
 ## Acceptance and release gates
 
 Reproduce the following before a real pilot: a valid approval, source exclusion,
