@@ -166,10 +166,51 @@ export class EvidenceLedger {
       independentPublisherVerified:false,externallyAnchored:false,
       coverage:'ONE_PROTECTED_REGISTRY_DECISION_ONLY'};
   }
-  exportProtectedDecision(id,actor){
+  protectedDecisionForOwner(id,actor){
+    if(typeof id!=='string'||!/^[0-9a-f-]{36}$/.test(id)||
+       typeof actor!=='string'||!actor)
+      throw Error('PROTECTED_DECISION_NOT_FOUND');
     const row=this.readAll().find(x=>x.type==='protected-decision'&&x.id===id);
     if(!row)throw Error('PROTECTED_DECISION_NOT_FOUND');
     if(row.actorHash!==hex(actor))throw Error('PROTECTED_DECISION_OWNER_FORBIDDEN');
+    return row;
+  }
+  recordProtectedUse({decision,actor,requestId,answerSha256,checkedAt}){
+    if(!decision||decision.type!=='protected-decision'||
+       decision.result?.verdict!=='ADMIT'||
+       typeof actor!=='string'||!actor||decision.actorHash!==hex(actor)||
+       !limited(requestId)||typeof answerSha256!=='string'||
+       !/^[a-f0-9]{64}$/.test(answerSha256)||
+       typeof checkedAt!=='string'||!Number.isFinite(Date.parse(checkedAt)))
+      throw Error('PROTECTED_USE_INVALID');
+    const rows=this.readAll();
+    const requestHash=hex(decision.serviceId+'@'+decision.environment+':'+requestId);
+    if(rows.some(x=>x.type==='protected-use'&&
+       x.serviceId===decision.serviceId&&x.environment===decision.environment&&
+       x.requestHash===requestHash))
+      throw Error('PROTECTED_USE_REPLAY');
+    const lastMinute=rows.filter(x=>x.type==='protected-use'&&
+      x.actorHash===decision.actorHash&&Date.parse(x.at)>=Date.now()-60000);
+    if(lastMinute.length>=20)throw Error('PROTECTED_USE_RATE_LIMITED');
+    const item=this.append({id:randomUUID(),type:'protected-use',
+      at:new Date().toISOString(),serviceId:decision.serviceId,
+      environment:decision.environment,actorHash:decision.actorHash,
+      decisionId:decision.id,policySha256:decision.policySha256,
+      requestHash,answerSha256,checkedAt,
+      typeOfAuthorization:'HUMAN_SIGNED_EVIDENCE_USE_ONLY',
+      answerSemanticsVerified:false,
+      independentPublisherVerified:false,externallyAnchored:false});
+    return {schema:'qualityrag.protected-decision-use/v1',
+      permission:'PERMIT_SIGNED_ASSERTION_USE',decisionId:decision.id,
+      requestId,answerSha256,at:item.at,checkedAt,
+      policySha256:decision.policySha256,
+      receiptId:item.id,chainHash:item.chainHash,
+      globalEnforcement:false,answerSemanticsVerified:false,
+      independentPublisherVerified:false,externallyAnchored:false,
+      scope:'THIS_REGISTRY_CHECK_ONLY'};
+  }
+  exportProtectedDecision(id,actor){
+    const row=this.protectedDecisionForOwner(id,actor);
     return {schema:'qualityrag.protected-drive-decision-replay/v1',
       id:row.id,serviceId:row.serviceId,environment:row.environment,
       at:row.at,asOf:row.asOf,policy:row.policy,
@@ -287,7 +328,9 @@ export class EvidenceLedger {
         x.result.verdict==='ADMIT').length,
       protectedInconclusive:rows.filter(x=>x.type==='protected-decision'&&
         x.serviceId===serviceId&&x.environment===environment&&
-        x.result.verdict==='INCONCLUSIVE').length
+        x.result.verdict==='INCONCLUSIVE').length,
+      protectedUses:rows.filter(x=>x.type==='protected-use'&&
+        x.serviceId===serviceId&&x.environment===environment).length
     };
     const latestBlocked=rows.filter(x=>x.type==='guard'&&x.serviceId===serviceId&&
       x.environment===environment).at(-1);
@@ -303,6 +346,7 @@ export class EvidenceLedger {
         protectedDecisions:summary.protectedDecisions,
         protectedAdmitted:summary.protectedAdmitted,
         protectedInconclusive:summary.protectedInconclusive,
+        protectedUses:summary.protectedUses,
         lastCandidateCheckAt:latestCandidate?.at||null,
         externallyAnchored:false,coverage:'REGISTRY_EVENT_ENDPOINTS_ONLY'
       },
