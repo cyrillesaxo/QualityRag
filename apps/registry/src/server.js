@@ -115,6 +115,14 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
        return reply(res,200,driveIndex.status(actor,driveManager.status(actor)));
      }
+     if(req.method==='GET'&&url.pathname==='/v1/drives/google/visibility'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       return reply(res,200,driveIndex.visibility(actor,driveManager.status(actor)));
+     }
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/source-control'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       return reply(res,200,driveIndex.controlSource(actor,driveManager.status(actor),await body(req)));
+     }
      if(req.method==='POST'&&url.pathname==='/v1/drives/google/sync'){
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
        const input=await body(req);
