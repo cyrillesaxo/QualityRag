@@ -80,6 +80,9 @@ test('invalid and incomplete source records fail closed',()=>{
    sources:[{sourceId:source,lines:[]}],witnesses:[basic]
  }),/PROTECTED_SUFFICIENCY_SOURCE_UNAVAILABLE/);
  assert.throws(()=>scanReviewedSourceConstraints({
+   sources:[null],witnesses:[basic]
+ }),/PROTECTED_SUFFICIENCY_SOURCE_UNAVAILABLE/);
+ assert.throws(()=>scanReviewedSourceConstraints({
    sources:[{sourceId:source,lines:['value']}],
    witnesses:[{sourceId:other,lineNumber:1,status:'SUPPORTS'}]
  }),/PROTECTED_SUFFICIENCY_SOURCE_UNAVAILABLE/);
