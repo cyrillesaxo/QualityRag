@@ -12,6 +12,7 @@ import {UserDriveIndex} from './user-drive-index.js';
 import {parseProtectedDriveServices} from './protected-drive.js';
 import {loadProtectedReviewTrust,verifyHumanReviewAttestations,
   humanReviewDecision} from './protected-admission.js';
+import {buildSourceGroundedAnswer} from './source-grounded-answer.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -389,7 +390,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      protectedDecisionRoute[2]==='evidence'&&
      protectedDecisionRoute[3]==='protected-decisions'&&
      /^[0-9a-f-]{36}$/.test(protectedDecisionRoute[4]||'')&&
-     ['use-check','deliver'].includes(decisionAction)){
+     ['use-check','deliver','grounded-deliver'].includes(decisionAction)){
      if(!authenticate||!evidenceLedger||!driveIndex||!driveManager||
         !protectedReviewTrust)
        return reply(res,404,{error:'PROTECTED_USE_NOT_CONFIGURED'});
@@ -398,19 +399,21 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      const decisionId=protectedDecisionRoute[4];
      const input=await body(req);
      const gateway=decisionAction==='deliver';
-     const keys=gateway?['requestId','answer']:['requestId','answerSha256'];
+     const grounded=decisionAction==='grounded-deliver';
+     const keys=grounded?['requestId']:
+       gateway?['requestId','answer']:['requestId','answerSha256'];
      if(!input||typeof input!=='object'||Array.isArray(input)||
-        Object.keys(input).length!==2||
+        Object.keys(input).length!==keys.length||
         !keys.every(k=>Object.hasOwn(input,k))||
         typeof input.requestId!=='string'||
         !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(input.requestId)||
-        (gateway?(typeof input.answer!=='string'||
+        (grounded?false:gateway?(typeof input.answer!=='string'||
           !input.answer.trim()||Buffer.byteLength(input.answer,'utf8')>16384||
           input.answer.includes(String.fromCharCode(0))):
           (typeof input.answerSha256!=='string'||
           !/^[0-9a-f]{64}$/.test(input.answerSha256))))
        throw Error('PROTECTED_USE_INVALID');
-     const answerSha256=gateway?
+     let answerSha256=grounded?null:gateway?
        createHash('sha256').update(input.answer,'utf8').digest('hex'):
        input.answerSha256;
      const row=evidenceLedger.protectedDecisionForOwner(decisionId,actor);
@@ -437,7 +440,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      if(verified.signedPayloadSha256!==row.signedPayloadSha256)
        throw Error('PROTECTED_USE_SIGNATURE_RECORD_MISMATCH');
      const live=await driveIndex.verifyLiveApprovedWitnesses(
-       actor,driveManager,verified.payload.witnesses);
+       actor,driveManager,verified.payload.witnesses,
+       {includeWitnessLines:grounded});
      const refreshed=await store.resolve(row.serviceId,row.environment);
      if(refreshed.sha256!==current.sha256)
        throw Error('PROTECTED_USE_POLICY_CHANGED');
@@ -447,12 +451,25 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      if(replay.result.verdict!=='ADMIT'||
         JSON.stringify(replay.result)!==JSON.stringify(row.result))
        throw Error('PROTECTED_USE_EVIDENCE_CHANGED');
-     // Final ledger append also checks decision-level revocations and request
-     // replay synchronously; no async work can interleave before output.
+     // No free-form AI prose is accepted on the extractive path: all required
+     // approved witness anchors are rendered verbatim with adjacent context.
+     // This is syntactic/byte-grounded coverage, not semantic entailment.
+     const extract=grounded?buildSourceGroundedAnswer({
+       policy:refreshed.policy,witnesses:verified.payload.witnesses,
+       verifiedLines:live.verifiedLines}):null;
+     if(grounded)answerSha256=createHash('sha256')
+       .update(extract.answer,'utf8').digest('hex');
+     // Final append checks decision withdrawal and replay synchronously.
      const permit=evidenceLedger.recordProtectedUse({
        decision:row,actor,requestId:input.requestId,
        answerSha256,checkedAt:live.checkedAt,
-       mode:gateway?'SERVER_BUFFERED_RELEASE':'DIGEST_ONLY_CLIENT_RELEASE'
+       mode:grounded?'SOURCE_GROUNDED_EXTRACT':
+         gateway?'SERVER_BUFFERED_RELEASE':'DIGEST_ONLY_CLIENT_RELEASE'
+     });
+     if(grounded)return reply(res,200,{
+       ...extract,receipt:permit,delivery:'SERVER_GENERATED_EXTRACT_ONLY',
+       answerSemanticsVerified:false,globalEnforcement:false,
+       externallyAnchored:false
      });
      if(!gateway)return reply(res,200,permit);
      return reply(res,200,{
