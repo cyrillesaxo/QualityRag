@@ -150,6 +150,16 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
           <button type="button" disabled={busy} onClick={runReplay}>Re-run pinned evaluation</button>
           <button type="button" disabled={busy} onClick={exportReceipt}>Export independently replayable JSON</button>
         </div>
+        <div role="note" style={{margin:'14px 0',padding:13,
+          border:'1px solid #eed6a5',borderRadius:9,background:'#fffaf0',fontSize:13}}>
+          <strong>Source custody is NOT authenticated by this dashboard.</strong>
+          <p style={{margin:'8px 0'}}>Origin tokens are submitted by the application. Independent replay
+            establishes a reproducible metadata decision, not genuine source independence.
+            A customer custodian can separately sign the exact source-byte hashes and approved
+            origin mapping without uploading private files to Studio.</p>
+          <a href="https://github.com/cyrillesaxo/QualityRag/blob/feat/studio-evidence-assurance-telemetry-20261108/docs/EVIDENCE-CUSTOMER-SOURCE-CUSTODY.md"
+            target="_blank" rel="noreferrer">Run the customer-controlled source custody challenge</a>
+        </div>
         {replay&&<p role="status" style={{color:replay.reproduced?green:'#a12a23',fontWeight:700,fontSize:13}}>
          Replay {replay.reproduced?'MATCH':'MISMATCH'} · {replay.verdict} · as of {replay.asOf}.
          This is same-server deterministic replay; run the exported package through the independent Python SDK to compare.</p>}
