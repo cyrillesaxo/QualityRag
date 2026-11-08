@@ -51,14 +51,17 @@ const publicTrust={
 const server=http.createServer(createHandler(registry,null,{
  authenticate:async t=>t==='demo-owner'?{
    subject:owner,roles:new Set(['drive.reader','drive.manager','evidence.ingest','evidence.reader']),
+   evidenceServices:new Set([serviceId+'@'+environment])}:
+   t==='demo-owner-reviewer'?{
+   subject:owner,roles:new Set(['drive.reader','drive.manager','evidence.reviewer','evidence.reader']),
    evidenceServices:new Set([serviceId+'@'+environment])}:null,
  driveManager:connector,driveIndex:index,evidenceLedger:ledger,
  protectedDriveServices:new Set([serviceId+'@'+environment]),
  protectedReviewTrust:publicTrust
 }));
-async function request(method,route,payload){
+async function request(method,route,payload,token='demo-owner'){
  const response=await fetch('http://127.0.0.1:'+server.address().port+route,{
-   method,headers:{Authorization:'Bearer demo-owner','Content-Type':'application/json'},
+   method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
    body:payload===undefined?undefined:JSON.stringify(payload)
  });
  return {status:response.status,body:await response.json()};
@@ -109,6 +112,19 @@ try{
  assert.equal(allowedUse.body.answerSha256,answerSha256);
  const doubleUse=await request('POST',usePath,useInput);
  assert.equal(doubleUse.status,409);
+ // Withdraw one human interpretation without excluding the source.
+ const secondAccepted=await request('POST','/v1/evidence/protected-admit',
+   signedRequest(hit,'third-attestation-nonce'));
+ assert.equal(secondAccepted.status,201);
+ const revocationPath='/v1/evidence/protected-decisions/'+secondAccepted.body.id+'/revoke';
+ const withdrawn=await request('POST',revocationPath,
+   {reason:'REVIEW_DISPUTED'},'demo-owner-reviewer');
+ assert.equal(withdrawn.status,200,JSON.stringify(withdrawn.body));
+ const useWithdrawn=await request('POST',
+   '/v1/evidence/protected-decisions/'+secondAccepted.body.id+'/use-check',
+   {requestId:'example-answer-withdrawn',answerSha256});
+ assert.equal(useWithdrawn.status,409);
+ assert.equal(useWithdrawn.body.error,'PROTECTED_DECISION_REVOKED');
  index.controlSource(owner,connector.status(owner),{
    sourceId:hit.source_id,searchable:false,reason:'OUT_OF_SCOPE'
  });
@@ -158,6 +174,9 @@ try{
      permission:allowedUse.body.permission,answerTextUploaded:false},
    answerUseAfterExclusion:{http:useAfterExclusion.status,
      reason:useAfterExclusion.body.error},
+   specificDecisionWithdrawal:{status:withdrawn.body.status,
+     useAfterWithdrawal:useWithdrawn.body.error,
+     sourceStillSearchableWhenWithdrawn:true},
    independentPython:{signatures:result.signatureCount,sourceBytesMatched:true,
      metadataVerdictReproduced:result.reportedVerdict},
    offlineTamperedFile:'REJECTED',
