@@ -194,13 +194,15 @@ export class EvidenceLedger {
       revokedAt:item.at,reason,receiptId:item.id,
       externallyAnchored:false};
   }
-  recordProtectedUse({decision,actor,requestId,answerSha256,checkedAt}){
+  recordProtectedUse({decision,actor,requestId,answerSha256,checkedAt,
+    mode='DIGEST_ONLY_CLIENT_RELEASE'}){
     if(!decision||decision.type!=='protected-decision'||
        decision.result?.verdict!=='ADMIT'||
        typeof actor!=='string'||!actor||decision.actorHash!==hex(actor)||
        !limited(requestId)||typeof answerSha256!=='string'||
        !/^[a-f0-9]{64}$/.test(answerSha256)||
-       typeof checkedAt!=='string'||!Number.isFinite(Date.parse(checkedAt)))
+       typeof checkedAt!=='string'||!Number.isFinite(Date.parse(checkedAt))||
+       !['DIGEST_ONLY_CLIENT_RELEASE','SERVER_BUFFERED_RELEASE'].includes(mode))
       throw Error('PROTECTED_USE_INVALID');
     const rows=this.readAll();
     if(rows.some(x=>x.type==='protected-revocation'&&
@@ -217,14 +219,14 @@ export class EvidenceLedger {
       at:new Date().toISOString(),serviceId:decision.serviceId,
       environment:decision.environment,actorHash:decision.actorHash,
       decisionId:decision.id,policySha256:decision.policySha256,
-      requestHash,answerSha256,checkedAt,
+      requestHash,answerSha256,checkedAt,deliveryMode:mode,
       typeOfAuthorization:'HUMAN_SIGNED_EVIDENCE_USE_ONLY',
       answerSemanticsVerified:false,
       independentPublisherVerified:false,externallyAnchored:false});
     return {schema:'qualityrag.protected-decision-use/v1',
       permission:'PERMIT_SIGNED_ASSERTION_USE',decisionId:decision.id,
       requestId,answerSha256,at:item.at,checkedAt,
-      policySha256:decision.policySha256,
+      deliveryMode:mode,policySha256:decision.policySha256,
       receiptId:item.id,chainHash:item.chainHash,
       globalEnforcement:false,answerSemanticsVerified:false,
       independentPublisherVerified:false,externallyAnchored:false,
@@ -352,6 +354,9 @@ export class EvidenceLedger {
         x.result.verdict==='INCONCLUSIVE').length,
       protectedUses:rows.filter(x=>x.type==='protected-use'&&
         x.serviceId===serviceId&&x.environment===environment).length,
+      protectedBufferedReleases:rows.filter(x=>x.type==='protected-use'&&
+        x.serviceId===serviceId&&x.environment===environment&&
+        x.deliveryMode==='SERVER_BUFFERED_RELEASE').length,
       protectedRevocations:rows.filter(x=>x.type==='protected-revocation'&&
         x.serviceId===serviceId&&x.environment===environment).length
     };
@@ -370,6 +375,7 @@ export class EvidenceLedger {
         protectedAdmitted:summary.protectedAdmitted,
         protectedInconclusive:summary.protectedInconclusive,
         protectedUses:summary.protectedUses,
+        protectedBufferedReleases:summary.protectedBufferedReleases,
         protectedRevocations:summary.protectedRevocations,
         lastCandidateCheckAt:latestCandidate?.at||null,
         externallyAnchored:false,coverage:'REGISTRY_EVENT_ENDPOINTS_ONLY'
