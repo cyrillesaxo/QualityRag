@@ -18,6 +18,9 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  const [answer,setAnswer]=useState('');
  const [useReceipt,setUseReceipt]=useState<UseCheck|null>(null);
  const [useError,setUseError]=useState('');
+ const [sendDraftToGateway,setSendDraftToGateway]=useState(false);
+ const [delivered,setDelivered]=useState(false);
+ const [deliveryError,setDeliveryError]=useState('');
  const [revocationReason,setRevocationReason]=useState('OWNER_WITHDRAWN');
  const [revoked,setRevoked]=useState(false);
  const [revocationResult,setRevocationResult]=useState('');
@@ -28,6 +31,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  async function submit(){
    setBusy(true);setError('');setOutcome(null);
    setUseReceipt(null);setUseError('');setAnswer('');
+   setDelivered(false);setDeliveryError('');setSendDraftToGateway(false);
    setRevoked(false);setRevocationResult('');
    try{
      if(!token)throw Error('A signed registry identity is required.');
@@ -90,6 +94,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
         result.decisionId!==outcome.id||result.status!=='REVOKED')
        throw Error('Unexpected revocation response');
      setRevoked(true);setUseReceipt(null);setUseError('');
+     setDelivered(false);setDeliveryError('');
      setRevocationResult('Approval withdrawn at '+result.revokedAt+
        '. Historical audit remains, but future evidence-use checks are blocked.');
    }catch(e){setError(String(e))}
@@ -121,6 +126,41 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        throw Error('Registry did not return a valid request-specific permit.');
      setUseReceipt(receipt);
    }catch(e){setUseError(String(e))}
+   finally{setBusy(false)}
+ }
+ async function deliverViaGateway(){
+   if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token||!sendDraftToGateway)return;
+   setBusy(true);setDeliveryError('');setDelivered(false);setUseReceipt(null);
+   try{
+     if(!answer.trim()||new TextEncoder().encode(answer).length>16384||
+        answer.includes('\0'))
+       throw Error('Gateway pilot limits the draft to 16 KiB without NUL bytes.');
+     const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(answer));
+     const answerSha256=Array.from(new Uint8Array(digest))
+       .map(b=>b.toString(16).padStart(2,'0')).join('');
+     const requestId='delivery-'+crypto.randomUUID();
+     const response=await fetch(
+       '/v1/evidence/protected-decisions/'+outcome.id+'/deliver',{
+         method:'POST',cache:'no-store',redirect:'error',
+         headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+         body:JSON.stringify({requestId,answer})
+       });
+     const received=await response.json();
+     if(!response.ok)throw Error(String(received.error||'Gateway denied delivery'));
+     const receipt=received.receipt;
+     if(received.schema!=='qualityrag.protected-answer-delivery/v1'||
+        received.answer!==answer||received.delivery!=='BUFFERED_SINGLE_RESPONSE'||
+        received.answerSemanticsVerified!==false||
+        received.globalEnforcement!==false||
+        receipt?.schema!=='qualityrag.protected-decision-use/v1'||
+        receipt.permission!=='PERMIT_SIGNED_ASSERTION_USE'||
+        receipt.decisionId!==outcome.id||receipt.requestId!==requestId||
+        receipt.answerSha256!==answerSha256||receipt.globalEnforcement!==false||
+        receipt.answerSemanticsVerified!==false)
+       throw Error('Gateway response did not match the exact draft and request.');
+     setUseReceipt(receipt);
+     setDelivered(true);
+   }catch(e){setDeliveryError(String(e))}
    finally{setBusy(false)}
  }
  return <section aria-label="Customer-signed protected review" style={{
@@ -194,6 +234,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        <label>Proposed answer (kept in this browser, not uploaded)
          <textarea rows={3} value={answer} onChange={e=>{
            setAnswer(e.target.value);setUseReceipt(null);setUseError('');
+           setDelivered(false);setDeliveryError('');
          }} style={{width:'100%'}} maxLength={64000}/>
        </label>
        <button type="button" onClick={checkUse} disabled={busy||revoked||!answer.trim()}>
@@ -209,6 +250,34 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        {useError&&<p role="alert" style={{color:'#a83224'}}>
          No evidence-use permission: {useError}
        </p>}
+       <div style={{marginTop:14,padding:12,border:'1px solid #dfd7b7',
+         borderRadius:8,background:'#fffaf0'}}>
+         <strong>Controlled response gateway — explicit plaintext opt-in</strong>
+         <p style={{fontSize:12}}>The stronger gateway buffers your answer draft
+           inside this registry and returns it only if all current evidence checks
+           succeed. <strong>Unlike digest-only checking, this sends the full
+           draft to the registry.</strong> Use only in a trusted customer-operated
+           environment. No answer text is intentionally written to the ledger.
+           The answer's factual meaning is still not verified.</p>
+         <label style={{display:'block',fontSize:12}}>
+           <input type="checkbox" checked={sendDraftToGateway}
+             onChange={e=>{setSendDraftToGateway(e.target.checked);
+               setDelivered(false);setDeliveryError('');}}/>
+           I authorize sending this draft to the configured registry for
+           buffered release in this demonstration
+         </label>
+         <button type="button" disabled={busy||revoked||!sendDraftToGateway||
+           !answer.trim()||new TextEncoder().encode(answer).length>16384}
+           onClick={deliverViaGateway}>
+           Release through customer-operated gateway
+         </button>
+         {delivered&&<p role="status"><strong>Gateway released this exact draft.</strong>
+           {' '}The registry checked current source permissions and recorded
+           the request-specific permit. This is not proof of answer correctness.</p>}
+         {deliveryError&&<p role="alert" style={{color:'#a83224'}}>
+           Gateway did not release the answer: {deliveryError}
+         </p>}
+       </div>
      </div>}
    </div>}
    {error&&<p role="alert" style={{color:'#a83224'}}>{error}</p>}
