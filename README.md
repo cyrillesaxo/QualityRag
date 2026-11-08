@@ -57,3 +57,7 @@ Only metadata and bounded evidence identifiers belong in receipts. Validate upst
 ## License
 
 Apache-2.0. See `LICENSE`.
+
+## SDK onboarding and troubleshooting
+
+[Quickstart](docs/quickstart.md) · [SDK language guides](docs/README.md) · [Concepts](docs/concepts.md) · [Troubleshooting](docs/troubleshooting.md)
