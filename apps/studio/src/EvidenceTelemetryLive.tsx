@@ -1,4 +1,5 @@
 import React,{useEffect,useState} from 'react';
+import {ProtectedAdmission} from './ProtectedAdmission';
 
 type Verdict='ADMIT'|'REFUSE'|'INCONCLUSIVE';
 type Finding={requirement_id:string;verdict:Verdict;independent_sources:number;reasons:string[]};
@@ -19,6 +20,7 @@ type Protection={schema:string;serviceId:string;environment:string;protected:boo
   guardTelemetry:{observedBlockedAttempts:number;lastBlockedAt:string|null;
   protectedSince?:string|null;governedCandidateChecks?:number;
   governedCandidateRefusals?:number;lastCandidateCheckAt?:string|null;
+  protectedDecisions?:number;protectedAdmitted?:number;protectedInconclusive?:number;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
 const forest='#102d21',green='#038112',muted='#587064';
@@ -122,6 +124,11 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
      <p>Blocked generic submissions: <strong>{protection.guardTelemetry.observedBlockedAttempts}</strong>
        {protection.guardTelemetry.lastBlockedAt?
          ' · Last block: '+protection.guardTelemetry.lastBlockedAt:''}.</p>
+     <p>Human-signed protected decisions:
+       <strong> {protection.guardTelemetry.protectedDecisions||0}</strong>
+       {' · '}Admitted signed claims:
+       <strong> {protection.guardTelemetry.protectedAdmitted||0}</strong>.
+       These are human-approved metadata claims, not independently proven facts.</p>
      <p>Governed Drive candidate checks: <strong>{protection.guardTelemetry.governedCandidateChecks||0}</strong>
        {' · '}Refused: <strong>{protection.guardTelemetry.governedCandidateRefusals||0}</strong>
        {protection.guardTelemetry.lastCandidateCheckAt?
@@ -133,6 +140,9 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
        universal guarantee. Source authenticity, semantic review, independent admission, and external
        application enforcement are not yet implemented.</p>
    </div>}
+   {protection?.protected&&<ProtectedAdmission token={token}
+     serviceId={serviceId} environment={environment}
+     enabled={protection.sourceAdmission==='TWO_TRUSTED_HUMAN_SIGNATURES_AND_LIVE_BYTES'}/>}
    <p className="notice"><strong>Local, opt-in ledger.</strong> No live telemetry exists until an application explicitly sends evaluation events. Source origin labels are declared, not independently authenticated. The hash chain is not an externally anchored audit record.</p>
    <p style={{fontSize:13,color:muted}}>
     Service: <code>{serviceId}</code> · Environment: <code>{environment}</code> ·
