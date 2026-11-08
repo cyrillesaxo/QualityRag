@@ -85,7 +85,7 @@ def create_remote_app(environ=None):
     except ImportError as exc:
         raise RemoteConfigurationError("Install the pinned MCP Python v1 SDK") from exc
 
-    server=FastMCP("QualityRAG Video Evidence Read-Only")
+    server=FastMCP("QualityRAG Video Evidence Read-Only", json_response=True, stateless_http=True)
     base=settings["root"]
 
     @server.tool()
