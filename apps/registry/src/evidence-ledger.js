@@ -194,6 +194,32 @@ export class EvidenceLedger {
       revokedAt:item.at,reason,receiptId:item.id,
       externallyAnchored:false};
   }
+  recordSufficiencyBlock({decision,actor,requestId,signalCount,checkedAt}){
+    if(!decision||decision.type!=='protected-decision'||
+      decision.result?.verdict!=='ADMIT'||
+      typeof actor!=='string'||!actor||decision.actorHash!==hex(actor)||
+      !limited(requestId)||!Number.isSafeInteger(signalCount)||
+      signalCount<1||signalCount>48000||
+      typeof checkedAt!=='string'||!Number.isFinite(Date.parse(checkedAt)))
+      throw Error('PROTECTED_SUFFICIENCY_RECORD_INVALID');
+    const rows=this.readAll(),actorHash=hex(actor);
+    const requestHash=hex(decision.serviceId+'@'+decision.environment+':'+requestId);
+    if(rows.some(x=>x.type==='constraint-block'&&
+      x.serviceId===decision.serviceId&&x.environment===decision.environment&&
+      x.requestHash===requestHash))
+      throw Error('PROTECTED_SUFFICIENCY_BLOCK_REPLAY');
+    if(rows.filter(x=>x.type==='constraint-block'&&x.actorHash===actorHash&&
+      Date.parse(x.at)>=Date.now()-60000).length>=20)
+      throw Error('PROTECTED_SUFFICIENCY_RECORD_RATE_LIMITED');
+    const item=this.append({id:randomUUID(),type:'constraint-block',
+      at:new Date().toISOString(),
+      serviceId:decision.serviceId,environment:decision.environment,
+      actorHash,decisionId:decision.id,policySha256:decision.policySha256,
+      requestHash,signalCount,checkedAt,
+      reason:'UNREVIEWED_LEXICAL_CONSTRAINT_CANDIDATES',
+      sourceTextStored:false,semanticallyProven:false,externallyAnchored:false});
+    return {id:item.id,at:item.at,chainHash:item.chainHash};
+  }
   recordProtectedUse({decision,actor,requestId,answerSha256,checkedAt,
     mode='DIGEST_ONLY_CLIENT_RELEASE'}){
     if(!decision||decision.type!=='protected-decision'||
@@ -361,6 +387,8 @@ export class EvidenceLedger {
       protectedGroundedReleases:rows.filter(x=>x.type==='protected-use'&&
         x.serviceId===serviceId&&x.environment===environment&&
         x.deliveryMode==='SOURCE_GROUNDED_EXTRACT').length,
+      protectedSufficiencyBlocks:rows.filter(x=>x.type==='constraint-block'&&
+        x.serviceId===serviceId&&x.environment===environment).length,
       protectedRevocations:rows.filter(x=>x.type==='protected-revocation'&&
         x.serviceId===serviceId&&x.environment===environment).length
     };
@@ -381,6 +409,7 @@ export class EvidenceLedger {
         protectedUses:summary.protectedUses,
         protectedBufferedReleases:summary.protectedBufferedReleases,
         protectedGroundedReleases:summary.protectedGroundedReleases,
+        protectedSufficiencyBlocks:summary.protectedSufficiencyBlocks,
         protectedRevocations:summary.protectedRevocations,
         lastCandidateCheckAt:latestCandidate?.at||null,
         externallyAnchored:false,coverage:'REGISTRY_EVENT_ENDPOINTS_ONLY'
