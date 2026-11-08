@@ -12,7 +12,7 @@
 | Telemetry | Explicit opt-in `POST /v1/evidence/evaluations`, 0–100 metadata evidence rows, 50-row paged-style display cap | Coverage denominator, OTel pipelines, batch delivery, dedup across collectors |
 | Storage | Local 0600 JSONL file; sequence/previous-hash verification on load/read; fsync on append | Postgres tenant isolation, external anchoring, retention/deletion service, distributed writers |
 | Security | OIDC `evidence.ingest`, `evidence.reader`, `evidence.reviewer` roles; required signed `qualityrag_services` scope such as `claims-api@dev`; local developer token fallback | Independent source custody, encryption-at-rest management, deployed identity UX |
-| Replay | Re-evaluates **stored** approved policy, source metadata and timestamp using the same registry JS gate | Independent verifier and original-source-content authentication |
+| Replay | Same-server JS replay and portable export; independent Python v0.1 metadata verifier | Independently authenticated source content, signed receipts, deployed cross-org verifier |
 | Customer review | Separate OIDC actor, server-authoritative status, immutable append-only disposition history | Digital review signatures, customer IdP provisioning, appeal/adjudication workflow |
 | Studio | Real events panel next to synthetic explanatory lab; manual refresh, inspector, replay, disposition, unsigned export | Live streaming and multi-service analytics |
 | SDK | Explicit Python emission helper; no automatic background traffic | Java/TS native emitters and strong cross-version parity evidence |
@@ -82,6 +82,39 @@ A signed identity token must contain the correct configured issuer/audience and:
 
 The `qualityrag_services` array is required for every evidence API in OIDC mode, including when the subject possesses a role. Separate service writer identity (`evidence.ingest`) from independent customer reviewer identity (`evidence.reviewer`). A reviewer cannot review an evaluation emitted under the same OIDC subject, even if they possess all roles. The local single-token mode is **not** a substitute for independent acceptance.
 
+### Independent, offline customer replay
+
+The customer does not need to trust the Studio rendering or the registry's **same-server** replay result. Each authorized event now exposes a *portable replay package* with the approved policy, metadata-only source handles, original evaluation time, evaluator contract, and recorded verdict.
+
+In **Recorded Evidence Assurance**, choose an event and press **Export independently replayable JSON**. Alternatively, an authorized reader can fetch:
+
+```sh
+curl -fsS -H "Authorization: Bearer YOUR_SCOPED_READER_TOKEN" \
+  "http://127.0.0.1:5055/v1/evidence/evaluations/EVALUATION_UUID/export" \
+  > evidence-replay.json
+```
+
+On a separate workstation with the public SDK:
+
+```sh
+PYTHONPATH=sdk/python python -m qualityrag.verify_receipt evidence-replay.json
+```
+
+This verifier recomputes the exported payload digest, the embedded approved PackSpec digest, and the exact per-obligation result **using the Python SDK**, independently of the registry JavaScript evaluator. It **fails closed** if the record has changed or the verdict does not match. Its output reports `verified=true` **only for independent metadata replay**.
+
+For stronger **authenticity** of the *package*, obtain its SHA-256 from a trusted channel separate from the downloaded file, and pass that out-of-band commitment:
+
+```sh
+PYTHONPATH=sdk/python python -m qualityrag.verify_receipt \
+  evidence-replay.json \
+  --trusted-sha256 "64_HEX_CHARS_FROM_INDEPENDENT_SOURCE" \
+  --trusted-policy-sha256 "64_HEX_CHARS_FROM_APPROVED_POLICY_RECORD"
+```
+
+The embedded digest alone is **not** an authenticity proof, and the out-of-band SHA-256 only verifies which bytes were committed by a separately trusted party. Neither authenticates the original PDFs, proves source lineage, verifies the customer identity, or certifies regulatory compliance. The current registry hash chain is unanchored. Treat any reviewer decisions as recorded dispositions rather than verified signatures.
+
+**Technical format:** `qualityrag.evidence-replay/v1`; `integrity.sha256` is the SHA-256 of the registry's JSON serialization of `payload`. The verifier deliberately accepts only the bounded v0.1 PackSpec metadata constraints (`id`, `min_independent_sources`, `max_age_seconds`). Unknown semantic obligation types are not silently treated as satisfied. JavaScript and Python cross-runtime replay is covered by a test that creates a real registry export, then independently checks it in Python.
+
 ### Registry API
 
 | Request | Role | Meaning |
@@ -89,6 +122,7 @@ The `qualityrag_services` array is required for every evidence API in OIDC mode,
 | `POST /v1/evidence/evaluations` | `evidence.ingest` | Send metadata and reference a bound approved policy; server calculates verdict. Request IDs are idempotent within service/environment. |
 | `GET /v1/evidence/evaluations?serviceId=claims-api&environment=dev` | `evidence.reader` | Return up to 50 recent records and observed total; eligible request coverage remains unknown. |
 | `GET /v1/evidence/evaluations/{id}` | `evidence.reader` | Inspect a scoped record and its review history. |
+| `GET /v1/evidence/evaluations/{id}/export` | `evidence.reader` | Download a portable, unsigned, independently replayable evaluation package. |
 | `POST /v1/evidence/evaluations/{id}/replay` | `evidence.reader` | Re-evaluate pinned policy, metadata and original evaluation time. |
 | `POST /v1/evidence/evaluations/{id}/reviews` | `evidence.reviewer` | Append `ACCEPTED` or `DISPUTED` with required reason code and optional safe note. |
 
@@ -102,7 +136,7 @@ npm --prefix apps/studio run build
 PYTHONPATH=sdk/python python -m unittest discover -s sdk/python/tests
 ```
 
-The registry tests exercise HTTP role separation, scoped access, idempotency, duplicate-origin refusal/inconclusive logic, deterministic replay, customer disposition and stored-ledger tampering. Python tests verify transport, metadata allow-lists and non-TLS restrictions.
+The registry tests exercise HTTP role separation, scoped access, idempotency, duplicate-origin refusal/inconclusive logic, deterministic replay, portable export, customer disposition and stored-ledger tampering. Python tests verify transport, metadata allow-lists, non-TLS restrictions, tampering detection, and cross-runtime replay of an actual JavaScript-registry export.
 
 ## Production acceptance gates — do not conflate implementation with readiness
 
