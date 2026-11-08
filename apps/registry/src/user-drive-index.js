@@ -26,6 +26,7 @@ export class UserDriveIndex {
   const key=Buffer.from(encryptionKey||'','base64');
   check(key.length===32&&key.toString('base64')===encryptionKey,'INVALID_DRIVE_INDEX_KEY');
   this.dir=dir;this.key=key;this.now=now;
+  this.activeSyncs=new Set();this.generations=new Map();
  }
  location(subject){
   check(typeof subject==='string'&&subject.length>0,'DRIVE_INDEX_SUBJECT_REQUIRED');
@@ -70,6 +71,8 @@ export class UserDriveIndex {
  }
  clear(subject){
   const location=this.location(subject);
+  // Fence any in-progress network synchronization before erasing the file.
+  this.generations.set(location,(this.generations.get(location)||0)+1);
   try{fs.unlinkSync(location)}catch(e){if(e.code!=='ENOENT')throw e}
   return {indexed:false,removed:true};
  }
@@ -91,6 +94,11 @@ export class UserDriveIndex {
     sourceScope:'single selected Google Drive folder',semantics:'BOUNDED_LEXICAL_ONLY'};
  }
  async sync(subject,connector){
+  const ownerKey=this.location(subject);
+  check(!this.activeSyncs.has(ownerKey),'DRIVE_SYNC_IN_PROGRESS');
+  this.activeSyncs.add(ownerKey);
+  const startGeneration=this.generations.get(ownerKey)||0;
+  try{
   const connection=connector.status(subject);
   check(connection.connected,'DRIVE_CONNECTION_NOT_FOUND');
   check(typeof connection.folderId==='string'&&connection.folderId!=='root',
@@ -127,8 +135,8 @@ export class UserDriveIndex {
       else summary.failed++;
     }
   }
-  if(supported.length>0&&!entries.length&&summary.failed>0)
-    stop('DRIVE_SYNC_ALL_DOCUMENTS_FAILED');
+  // An empty/failed scan replaces the previous snapshot; never keep revoked
+  // content just because all eligible files could not be downloaded.
   const snapshot={schema:'qualityrag.user-drive-text-index/v1',
     account:connection.email,folderId:connection.folderId,
     syncedAt:new Date(this.now()).toISOString(),
@@ -136,8 +144,20 @@ export class UserDriveIndex {
       'PARTIAL':'SELECTED_FOLDER_TEXT_FILES',entries};
   // Atomic replacement prunes removed/deleted sources on each successful resync.
   // Search rejects a changed account/folder even if an old index remains on disk.
+  const latest=connector.status(subject);
+  check(this.generations.get(ownerKey)===undefined?
+      startGeneration===0:this.generations.get(ownerKey)===startGeneration,
+      'DRIVE_SYNC_INVALIDATED');
+  check(latest.connected&&latest.email===connection.email&&
+    latest.folderId===connection.folderId,'DRIVE_SYNC_INVALIDATED');
   this.save(subject,snapshot);
   return this.status(subject,connection);
+  }catch(error){
+    if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
+    throw error;
+  }finally{
+    this.activeSyncs.delete(ownerKey);
+  }
  }
  search(subject,connection,query){
   check(typeof query==='string'&&query.trim().length>1&&query.length<=MAX_QUERY,
