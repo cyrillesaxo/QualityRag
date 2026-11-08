@@ -22,6 +22,7 @@ type Protection={schema:string;serviceId:string;environment:string;protected:boo
   governedCandidateRefusals?:number;lastCandidateCheckAt?:string|null;
   protectedDecisions?:number;protectedAdmitted?:number;protectedInconclusive?:number;
   protectedUses?:number;protectedBufferedReleases?:number;
+  protectedGroundedReleases?:number;
   protectedRevocations?:number;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
@@ -134,9 +135,13 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
      <p>Request-specific evidence-use permissions issued:
        <strong> {protection.guardTelemetry.protectedUses||0}</strong>.
        Of these, <strong>{protection.guardTelemetry.protectedBufferedReleases||0}</strong>
-       {' '}were issued by the server-buffered response gateway; the remainder
-       were digest-only client checks. These counts reflect registry decisions,
-       not confirmed network delivery or downstream answer correctness.
+       {' '}were server-buffered free-form releases,
+       <strong> {protection.guardTelemetry.protectedGroundedReleases||0}</strong>
+       {' '}were source-grounded extracts, and the remainder were
+       digest-only checks. Grounded extracts preserve signed text anchors,
+       not document-wide semantic completeness.
+       These counts reflect registry decisions, not confirmed network delivery
+       or downstream answer correctness.
        A historical ADMIT or prior permit is not authorization for future
        answers; each use requires fresh permissions and current source bytes.</p>
      <p>Explicit owner-reviewed decision withdrawals:
