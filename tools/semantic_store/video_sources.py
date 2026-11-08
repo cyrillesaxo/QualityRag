@@ -38,8 +38,16 @@ def _url(value):
         raise CatalogError("Only supported HTTPS public video page hosts may be referenced")
     if not parsed.path or parsed.path == "/":
         raise CatalogError("A specific video page is required")
-    # Do not allow arbitrary tracking parameters into generated citation links.
-    return urlunsplit(("https", parsed.netloc.lower(), parsed.path, "", ""))
+    # Retain only the stable YouTube watch ID; stripping the whole query
+    # would turn /watch URLs into unusable citations.
+    params = {}
+    host = (parsed.hostname or "").lower()
+    if host in {"www.youtube.com","youtube.com"} and parsed.path == "/watch":
+        ids = [v for k,v in parse_qsl(parsed.query, keep_blank_values=True) if k == "v"]
+        if len(ids) != 1 or not re.fullmatch(r"[A-Za-z0-9_-]{6,64}",ids[0]):
+            raise CatalogError("YouTube watch page must have a single valid video ID")
+        params["v"] = ids[0]
+    return urlunsplit(("https", parsed.netloc.lower(), parsed.path, urlencode(params), ""))
 
 
 def _load(root):
