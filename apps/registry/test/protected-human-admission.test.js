@@ -203,10 +203,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(grounded.body.coverage.allSignedAnchorsIncluded,true);
    assert.equal(grounded.body.coverage.fullDocumentExaminedForExceptions,false);
    assert.equal(grounded.body.assertions.freeFormAnswerEntailmentVerified,false);
-   assert.ok(grounded.body.answer.includes(SOURCE.split('\\n')[0]));
-   assert.ok(grounded.body.answer.includes(SOURCE.split('\\n')[1]));
+   assert.ok(grounded.body.answer.includes(SOURCE.split('\n')[0]));
+   assert.ok(grounded.body.answer.includes(SOURCE.split('\n')[1]));
    assert.equal(grounded.body.sections[0].adjacentContext[0].text,
-     SOURCE.split('\\n')[1]);
+     SOURCE.split('\n')[1]);
    const repeatedGrounded=await request('POST',groundedPath,'owner',{
      requestId:'grounded-answer-001'});
    assert.equal(repeatedGrounded.status,409);
@@ -513,7 +513,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.ok(!auditBytes.includes(answerText));
    assert.ok(!auditBytes.includes(deliveryText));
    assert.ok(!auditBytes.includes(grounded.body.answer));
-   assert.ok(!auditBytes.includes(SOURCE.split('\\n')[0]));
+   assert.ok(!auditBytes.includes(SOURCE.split('\n')[0]));
    assert.ok(auditBytes.includes(answerSha256));
    assert.equal(list.summary.protectedInconclusive,0);
    assert.equal(list.observedCount,0);
