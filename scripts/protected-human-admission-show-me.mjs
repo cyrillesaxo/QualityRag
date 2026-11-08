@@ -112,8 +112,8 @@ try{
  assert.equal(ground.body.receipt.answerSha256,sha(ground.body.answer));
  assert.equal(ground.body.coverage.allSignedAnchorsIncluded,true);
  assert.equal(ground.body.coverage.fullDocumentExaminedForExceptions,false);
- assert.ok(ground.body.answer.includes(SOURCE.trim().split('\\n')[0]));
- assert.ok(ground.body.answer.includes(SOURCE.trim().split('\\n')[1]));
+ assert.ok(ground.body.answer.includes(SOURCE.trim().split('\n')[0]));
+ assert.ok(ground.body.answer.includes(SOURCE.trim().split('\n')[1]));
  const usePath='/v1/evidence/protected-decisions/'+accepted.body.id+'/use-check';
  const answer='Synthetic model result guarded by customer-signed evidence.';
  const answerSha256=sha(answer);
