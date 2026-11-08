@@ -35,11 +35,12 @@ class SourceRegistryTests(unittest.TestCase):
                     allow_public_citation=True)
             register_source(root,source_id="lesson-01",revision="r1",
                 media_sha256=a["source"]["media_sha256"],title="Demo",
-                rights="owned",public_url="https://www.youtube.com/watch?v=abc12&tracking=foo",
+                rights="owned",public_url="https://www.youtube.com/watch?v=abcDEF12345&tracking=foo",
                 allow_public_citation=True)
             ref=source_reference(root,"lesson-01",5100)
             self.assertEqual(ref["citation_status"],"TIMESTAMP_URL_CANDIDATE")
             self.assertIn("t=5",ref["url"])
+            self.assertIn("v=abcDEF12345",ref["url"])
             self.assertNotIn("tracking",ref["url"])
             query=research_video_evidence(root,"wheelchair")
             self.assertEqual(query["bundles"][0]["source_reference"]["url"],ref["url"])
