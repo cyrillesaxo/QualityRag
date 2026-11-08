@@ -10,7 +10,14 @@ type Evaluation={id:string;serviceId:string;environment:string;requestId:string;
   reviewHistory:Review[];chainHash:string;declaredOriginsOnly:boolean};
 type Replay={reproduced:boolean;verdict:Verdict;asOf:string;policySha256:string;
   result:{verdict:Verdict;findings:Finding[]};scope:string;sourceAuthenticityVerified:boolean};
-type Summary={admit:number;refuse:number;inconclusive:number;accepted:number;disputed:number;unreviewed:number;reviewedFalseBlocks:number};
+type Summary={admit:number;refuse:number;inconclusive:number;accepted:number;disputed:number;unreviewed:number;reviewedFalseBlocks:number;blockedUnattestedIngress?:number};
+type Protection={schema:string;serviceId:string;environment:string;protected:boolean;
+  mode:'BLOCK_UNATTESTED_GENERIC_EVIDENCE'|'LEGACY_METADATA_GATE';
+  genericEvidenceIngress:'BLOCKED'|'ALLOWED';sourceAdmission:string;
+  independentSourceVerification:string;globalApplicationEnforcement:boolean;
+  policy:{id:string;version:string;sha256:string};
+  guardTelemetry:{observedBlockedAttempts:number;lastBlockedAt:string|null;
+  externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
 const forest='#102d21',green='#038112',muted='#587064';
 const panel:React.CSSProperties={border:'1px solid #cfe2d4',borderRadius:13,padding:18,background:'#fff'};
@@ -25,11 +32,13 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
  const [busy,setBusy]=useState(false);
  const [observed,setObserved]=useState<number|null>(null);
  const [summary,setSummary]=useState<Summary|null>(null);
+ const [protection,setProtection]=useState<Protection|null>(null);
  const [replay,setReplay]=useState<Replay|null>(null);
  const [reasonCode,setReasonCode]=useState(reasons[0]);
  const [note,setNote]=useState('');
  const current=records.find(x=>x.id===selected);
  useEffect(()=>{setRecords([]);setSelected('');setObserved(null);setSummary(null);setReplay(null);
+   setProtection(null);
    setStatus('Scope changed. Refresh to load authorized evidence telemetry.');
  },[serviceId,environment,token]);
  const api=async(route:string,method='GET',body?:unknown)=>{
@@ -45,13 +54,18 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
    setBusy(true);
    try{
     const q=new URLSearchParams({serviceId,environment});
-    const data=await api('/v1/evidence/evaluations?'+q.toString());
+    const [data,protectedState]=await Promise.all([
+      api('/v1/evidence/evaluations?'+q.toString()),
+      api('/v1/evidence/enforcement?'+q.toString())
+    ]);
     setRecords(data.evaluations||[]);setObserved(data.observedCount);setSummary(data.summary||null);
+    setProtection(protectedState);
     setSelected(old=>(data.evaluations||[]).some((x:Evaluation)=>x.id===old)?old:
        data.evaluations?.[0]?.id||'');
     setReplay(null);
     setStatus('Registry evidence ledger loaded. Coverage of eligible requests is unknown.');
-   }catch(e){setRecords([]);setSelected('');setReplay(null);setObserved(null);setSummary(null);setStatus(String(e))}
+   }catch(e){setRecords([]);setSelected('');setReplay(null);setObserved(null);
+     setSummary(null);setProtection(null);setStatus(String(e))}
    finally{setBusy(false)}
  }
  async function runReplay(){
@@ -95,6 +109,21 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
      </div>
      <button type="button" disabled={!token||busy} onClick={refresh}>Refresh recorded events</button>
    </div>
+   {protection&&<div role="status" style={{padding:14,borderRadius:10,margin:'12px 0',
+     border:'1px solid #ceded4',background:'#f6faf7',fontSize:13}}>
+     <strong>Service evidence ingress: {protection.protected?
+       'PROTECTED — generic unreviewed submissions are blocked':
+       'LEGACY — generic metadata submissions remain allowed'}</strong>
+     <p>PackSpec {protection.policy.id} v{protection.policy.version}
+       {' · '} Mode: <code>{protection.mode}</code></p>
+     <p>Blocked attempts observed: <strong>{protection.guardTelemetry.observedBlockedAttempts}</strong>
+       {protection.guardTelemetry.lastBlockedAt?
+         ' · Last block: '+protection.guardTelemetry.lastBlockedAt:''}.
+       These are registry-ingress counts, not coverage of all downstream application requests.</p>
+     <p><strong>Remaining boundary:</strong> This is a server operator setting, not a tenant-wide or
+       universal guarantee. Source authenticity, semantic review, independent admission, and external
+       application enforcement are not yet implemented.</p>
+   </div>}
    <p className="notice"><strong>Local, opt-in ledger.</strong> No live telemetry exists until an application explicitly sends evaluation events. Source origin labels are declared, not independently authenticated. The hash chain is not an externally anchored audit record.</p>
    <p style={{fontSize:13,color:muted}}>
     Service: <code>{serviceId}</code> · Environment: <code>{environment}</code> ·
@@ -104,7 +133,8 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
    {summary&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10,margin:'12px 0'}}>
      {([['ADMIT',summary.admit],['INCONCLUSIVE',summary.inconclusive],['REFUSE',summary.refuse],
         ['Accepted findings',summary.accepted],['Disputed findings',summary.disputed],
-        ['Not yet reviewed',summary.unreviewed]] as [string,number][]).map(([name,count])=>
+        ['Not yet reviewed',summary.unreviewed],
+        ['Blocked ingress',summary.blockedUnattestedIngress||0]] as [string,number][]).map(([name,count])=>
         <div key={name} style={{background:'#f5fbf6',border:'1px solid #dce7dd',borderRadius:10,padding:'12px 14px'}}>
           <div style={{fontSize:12,color:muted}}>{name}</div>
           <strong style={{display:'block',fontSize:25,color:forest}}>{count}</strong>
@@ -112,7 +142,9 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
    </div>}
    <p role="status" style={{fontSize:13,color:forest}}>{status}</p>
    {records.length===0 ? <div style={panel}><strong>No telemetry events shown.</strong>
-     <p>To collect one, configure the local registry ledger and send a scoped evaluation event with opaque source and origin tokens. The synthetic demonstrations below are not observations from customers.</p></div>
+     <p>{protection?.protected?
+       'This service blocks generic evidence ingestion. Blocked attempts are tracked above, but they are not accepted evaluations. The scoped Drive candidate gate remains a separate review-only path.':
+       'To collect one, configure the local registry ledger and send a scoped evaluation event with opaque source and origin tokens. The synthetic demonstrations below are not observations from customers.'}</p></div>
    :<div className="columns" style={{gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,330px),1fr))',gap:15}}>
       <div style={panel}>
         <h3 style={{marginTop:0}}>Recorded evaluations</h3>
