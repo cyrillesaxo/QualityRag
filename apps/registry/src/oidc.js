@@ -7,7 +7,9 @@ const ROLE = Object.freeze({
   publish: 'policy.publisher',
   evidenceIngest: 'evidence.ingest',
   evidenceRead: 'evidence.reader',
-  evidenceReview: 'evidence.reviewer'
+  evidenceReview: 'evidence.reviewer',
+  driveRead: 'drive.reader',
+  driveManage: 'drive.manager'
 });
 export {ROLE};
 
@@ -46,6 +48,12 @@ export function createOidcAuthenticator({issuer,audience,jwksUri,roleClaim='role
 }
 
 export function permissionFor(method,pathname){
+  if(pathname==='/v1/drives/google/status'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/folders'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/files'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/start'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/drives/google/folder'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/drives/google/disconnect'&&method==='POST')return ROLE.driveManage;
   const ev='/v1/evidence/evaluations';
   if(method==='POST'&&pathname===ev)return ROLE.evidenceIngest;
   if(method==='GET'&&(pathname===ev||
