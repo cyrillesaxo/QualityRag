@@ -10,7 +10,8 @@ const tools = [
   ["functional_siblings","Evaluate candidate mechanisms against functional contracts",["function","contracts","candidates","as_of"]],
 ];
 const required={policy_test:["pack","documents","retrieved"],policy_replay:["base","branch","cases"],functional_siblings:["function","contracts","candidates"]};
-const catalog=tools.map(([name,description,properties])=>({name,description,inputSchema:{type:"object",properties:Object.fromEntries(properties.map(k=>[k,{type:"string",description:"JSON-compatible argument; send structured values for objects and arrays"}])),required:required[name]||[],additionalProperties:false}}));
+const fieldTypes={pack:"object",documents:"array",retrieved:"array",test:"object",benchmark:"object",base:"object",branch:"object",cases:"array",contracts:"object",candidates:"array",open_challenge:"boolean",active:"boolean",since:"integer",limit:"integer",far_limit:"number"};
+const catalog=tools.map(([name,description,properties])=>({name,description,inputSchema:{type:"object",properties:Object.fromEntries(properties.map(k=>[k,{type:fieldTypes[k]||"string"}])),required:required[name]||[],additionalProperties:false},annotations:{readOnlyHint:true}}));
 const headers={"content-type":"application/json","cache-control":"no-store","access-control-allow-origin":"*","access-control-allow-headers":"authorization,content-type,mcp-protocol-version,mcp-session-id","access-control-allow-methods":"GET,POST,OPTIONS"};
 const reply=(payload,status=200)=>new Response(JSON.stringify(payload),{status,headers});
 const err=(id,code,message)=>({jsonrpc:"2.0",id,error:{code,message}});
@@ -31,14 +32,15 @@ export default async function handler(request){
  const name=msg.params?.name,args=msg.params?.arguments||{};
  if(!tools.some(t=>t[0]===name))return reply(err(msg.id,-32602,"Unknown tool"),400);
  const endpoint=process.env.QUALITYRAG_API_ENDPOINT;
- const upstreamToken=process.env.QUALITYRAG_API_TOKEN;
+ const upstreamToken=process.env.QUALITYRAG_API_TOKEN_JSON;
  if(!endpoint || !upstreamToken)return reply({jsonrpc:"2.0",id:msg.id,result:{isError:true,content:[{type:"text",text:"QualityRAG backend is not configured"}]}});
  let target;try{target=new URL(endpoint);if(target.protocol!=="https:")throw Error("HTTPS required")}catch{return reply(err(msg.id,-32603,"Invalid backend configuration"),500)}
  // Existing runtime uses a single authenticated operation API. Do not synthesize policy results.
  try{
   const route=({garden_query:"gardener/query",garden_suggestions:"gardener/proposals",policy_test:"policy/test",policy_advise:"policy/advise",policy_replay:"policy/replay",functional_siblings:"policy/siblings"})[name];
   const upstreamUrl=new URL(target.toString().replace(/\\/$/,"")+"/api/"+route);
-  const upstream=await fetch(upstreamUrl,{method:"POST",headers:{"authorization":`Bearer ${upstreamToken}`,"content-type":"application/json"},body:JSON.stringify(args),signal:AbortSignal.timeout(25000)});
+  const encodedToken=Buffer.from(JSON.stringify(JSON.parse(upstreamToken))).toString("base64url");
+  const upstream=await fetch(upstreamUrl,{method:"POST",headers:{"authorization":`Bearer ${encodedToken}`,"content-type":"application/json"},body:JSON.stringify(args),signal:AbortSignal.timeout(25000)});
   const body=await upstream.text();
   if(!upstream.ok)return reply({jsonrpc:"2.0",id:msg.id,result:{isError:true,content:[{type:"text",text:`Backend returned HTTP ${upstream.status}`}]}});
   return reply({jsonrpc:"2.0",id:msg.id,result:{content:[{type:"text",text:body}]}});

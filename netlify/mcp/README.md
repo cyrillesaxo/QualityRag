@@ -1,9 +1,21 @@
-# QualityRAG remote MCP — Netlify adapter
+# QualityRAG MCP — isolated Netlify deployment
 
-This is an **independent** Netlify site. Do not deploy it over the existing `quality-rag` site, which currently serves PackSpec from another repository.
+Site created: https://app.netlify.com/projects/qualityrag-mcp (site ID dbab8219-bd78-4fe5-9d70-da33adab1d48). No deploy has been published yet.
 
-Deploy with Netlify base directory `netlify/mcp` and publish directory `public`. Set secret environment variables `QUALITYRAG_MCP_ACCESS_TOKEN`, `QUALITYRAG_API_ENDPOINT` (HTTPS), and `QUALITYRAG_API_TOKEN`. Do not commit tokens. The public endpoint is `https://<assigned-site>.netlify.app/mcp` after deployment.
+Deploy this repository's branch `feat/netlify-remote-mcp-20261108` to the dedicated site using base directory `netlify/mcp`, publish `public`, and Netlify Functions directory `netlify/functions` (as specified in netlify.toml). **Do not change the existing `quality-rag` PackSpec site.**
 
-The adapter supports MCP initialize, ping, tools/list and tools/call. **Backend operation routing must be validated against the QualityRAG HTTP API before production**; this is a staging integration, not a verified live tool server. The stdio MCP server in `tools/activation_runtime/mcp_server.py` remains the reference contract. The adapter currently provides a subset of read-only tools; write tools are intentionally excluded pending authorization and audit integration.
+Required Netlify environment variables (functions scope, secret):
+- `QUALITYRAG_MCP_ACCESS_TOKEN`: long random bearer token used by MCP clients. Static token is staging-only; replace with OAuth for ChatGPT production.
+- `QUALITYRAG_API_ENDPOINT`: publicly reachable HTTPS URL for the QualityRAG activation runtime (without /api).
+- `QUALITYRAG_API_TOKEN_JSON`: JSON representation of the signed access token expected by the existing Python QualityRAG SDK. The function encodes this JSON as base64url in the upstream Bearer header.
 
-Production checklist: verify the exact upstream operation protocol, implement structured input schemas from the Python server, configure OAuth for ChatGPT remote connectors instead of a static token, add CORS origin restrictions, integration tests, rate limits, and connect Neon persistence to the backend. Do not publicly advertise an endpoint until these pass.
+The adapter exposes six **read-only** tools. The existing Python stdio server is the contract reference. For now the API runtime must be deployed separately; a Neon database alone is not the runtime.
+
+Validation after deployment:
+1. GET /health returns service qualityrag-mcp and status ready (this is a process check, not proof the backend works).
+2. POST /mcp without Bearer returns 401.
+3. POST /mcp with Bearer and JSON-RPC initialize returns protocolVersion 2025-06-18.
+4. tools/list returns six read-only tools with structured input schemas.
+5. tools/call garden_query and policy_test must be checked against a live authenticated QualityRAG runtime; errors must never be reported as successful governance verdicts.
+
+**Do not claim ChatGPT connection readiness before OAuth, endpoint testing, and backend persistence are verified.**
