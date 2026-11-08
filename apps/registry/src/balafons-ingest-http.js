@@ -3,8 +3,8 @@ import {acceptBalafonsEvidence} from './balafons-evidence.js';
 // Opt-in receiver, mounted only behind an authenticated service gateway.
 // resolveOwner MUST verify a trusted service credential and return the Balafons
 // owner from an independently authenticated authorization context.
-export function createBalafonsIngestHandler({secret,resolveOwner,replayStore,enqueue}){
- if(typeof resolveOwner!=='function'||typeof enqueue!=='function'||!replayStore?.claim||typeof secret!=='string'||secret.length<32)
+export function createBalafonsIngestHandler({secret,resolveOwner,replayStore,enqueue,atomicInbox}){
+ if(typeof resolveOwner!=='function'||(!atomicInbox?.accept&&(typeof enqueue!=='function'||!replayStore?.claim))||typeof secret!=='string'||secret.length<32)
   throw new Error('BALAFONS_RECEIVER_NOT_CONFIGURED');
  return async function(req,res){
   const respond=(status,data)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))};
@@ -16,9 +16,10 @@ export function createBalafonsIngestHandler({secret,resolveOwner,replayStore,enq
   try{
    for await(const chunk of req){size+=chunk.length;if(size>500000)return respond(413,{error:'BODY_TOO_LARGE'});chunks.push(chunk)}
    const payload=Buffer.concat(chunks).toString('utf8');
-   const event=await acceptBalafonsEvidence({payload,signature:req.headers['x-qualityrag-signature'],secret,expectedOwnerId:owner,replayStore});
+   const event=await acceptBalafonsEvidence({payload,signature:req.headers['x-qualityrag-signature'],secret,expectedOwnerId:owner,replayStore,skipReplayClaim:Boolean(atomicInbox)});
    // Queue must be durable, tenant-partitioned and idempotent by event_id.
-   await enqueue(event);
+   if(atomicInbox){const accepted=await atomicInbox.accept(event);if(!accepted)return respond(409,{error:'EVIDENCE_REPLAY'});}
+   else await enqueue(event);
    return respond(202,{accepted:true,event_id:event.event_id});
   }catch(error){
    if(error.message==='EVIDENCE_REPLAY')return respond(409,{error:'EVIDENCE_REPLAY'});
