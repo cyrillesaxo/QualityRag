@@ -69,3 +69,53 @@ PYTHONPATH=tools/semantic_store python -m unittest discover \
 6. **Deployment:** only after tenant boundaries, authentication, consent, rate limits and model-worker isolation are implemented, expose a remote Streamable HTTP MCP endpoint and connect it in ChatGPT.
 
 Do not claim a connected ChatGPT tool or public Perplexity-like service before those steps have been executed and verified.
+
+
+## Rights-gated source registry (added)
+
+`video_sources.py` maintains a local metadata registry for each fingerprint-checked video source. Operators may register a title, immutable source ID/revision/media SHA-256, declared rights category (`owned`, `licensed`, `explicit_permission`, `unknown`, `restricted`) and optional public source page. Rights are **declarations**, not independently authenticated legal permissions. This registry does **not** download, crawl or fetch the registered URL.
+
+Timestamped research results now contain `source_reference`. A public link is returned only for sources explicitly registered with an allowed rights category and `allow_public_citation=true`. Otherwise it returns `NO_APPROVED_PUBLIC_REFERENCE` or `PRIVATE_OR_UNLICENSED` without disclosing a private URL. Approved public links use specific allowlisted HTTPS video hosts; YouTube timestamp links are candidates whose playback/deep-link support must be reviewed.
+
+A trusted local operator can register source metadata through Python:
+
+```python
+from video_sources import register_source
+register_source(
+    "/path/to/authorized/media", source_id="lesson-001", revision="r1",
+    media_sha256="PASTE_EXACT_64_CHARACTER_MEDIA_HASH",
+    title="Consented training demonstration", rights="owned",
+    public_url="https://www.youtube.com/watch?v=REPLACE_WITH_REAL_VIDEO_ID",
+    allow_public_citation=True)
+```
+
+Registration requires matching existing indexed evidence. It rejects attempts to change the source revision, media hash or rights silently. Do not expose source registration to untrusted chat users.
+
+## Optional hybrid dense/lexical search (added)
+
+`video_hybrid.py` provides a bounded, real embedding-vector retrieval path with lexical relevance blending; it is **optional**, not a claim that the entire video is semantically understood. Vectors cover source-bound *witness descriptions*, not raw video pixels. The search rejects stale indexes when catalog membership or source fingerprint changes, missing model IDs, dimension mismatches and malformed vectors. It returns the same rights-scoped timestamp citations and explicit `UNVERIFIED_OBSERVATION` admission.
+
+To build the index, provision a locally downloaded, reviewed and appropriately licensed sentence-transformers model in a local directory, then run the operator-only CLI:
+
+```sh
+python -m pip install sentence-transformers
+export QUALITYRAG_VIDEO_ROOT="$HOME/qualityrag-authorized-video"
+export QUALITYRAG_VIDEO_EMBED_MODEL_DIR="/absolute/path/to/locally-installed-model"
+export QUALITYRAG_VIDEO_EMBED_MODEL_ID="local-embedding-v1"
+PYTHONPATH=tools/semantic_store python tools/semantic_store/video_hybrid_cli.py
+```
+
+No remote model identifier or remote download is accepted by this path; `video_hybrid_cli.py` loads the model from the existing local directory. The new MCP tool `hybrid_search_video(query, limit, lexical_weight)` then searches the built index. `lexical_weight=0.5` blends both signals equally; 0 uses only dense similarity, 1 uses only token overlap. The index is a bounded local file, **not** a durable multi-tenant vector database or a verified semantic benchmark. Rebuild it after any changes to indexed sources.
+
+### Operational and evaluation limits
+
+- The registry permits URL references, not playback rights or downloading rights.
+- The local index is capped at 5,000 witness documents, 1,024 vector dimensions, and 16 MiB on-disk.
+- Only a source with declared rights and explicit permission can produce a public timestamp citation; a video description alone does not certify any action.
+- The MCP still runs via local stdio. It is not yet available to ChatGPT without connection, and it should not be exposed on a public network without authentication and tenant isolation.
+- Benchmark speech-only lexical, cross-modal lexical and cross-modal hybrid on held-out real footage, tracking consequential visual detail recall, false supports, cost, latency and source-access correctness before claiming an advantage.
+
+```sh
+PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_sources.py -v
+PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_hybrid.py -v
+```
