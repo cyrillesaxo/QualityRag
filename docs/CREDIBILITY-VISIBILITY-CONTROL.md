@@ -34,6 +34,30 @@ A customer must be able to **see what the system has done**, **constrain what it
 
 **Activity:** Studio displays only a bounded, local, user-specific operational history. It is **not** an externally anchored audit log, regulator-approved evidence trail, or cryptographic proof of human identity.
 
+### Governed Drive candidate check: owner control is enforced server-side
+
+The private Drive source toggle now has a **policy-bound enforcement point** in addition to lexical search. An authorized user can select a source, choose an approved PackSpec requirement and click **Check candidate** in Studio. The registry **resolves the approved PackSpec itself**; the browser cannot substitute a policy or verdict.
+
+The API requires the signed OIDC identity to have **both** `drive.reader` and `evidence.reader`, plus `qualityrag_services` authorization for the selected `serviceId@environment`. The current Drive user identity is never an input field.
+
+- `GET /v1/drives/google/governed-requirements?serviceId=claims-api&environment=dev`: only IDs of approved, bound requirements and the policy digest are shown.
+- `POST /v1/drives/google/governed-check`: bounded request `{"serviceId":"claims-api","environment":"dev","candidates":[{"sourceId":"google_drive/…","revision":"64hex","requirementId":"governing-rule","lineNumber":1}]}`.
+- A candidate explicitly excluded by its authenticated owner receives `REFUSE` with `SOURCE_EXCLUDED_BY_OWNER`.
+- A source not found in the current user's selected index, stale index, changed source revision, invalid line anchor, or missing index **cannot be admitted** and returns `INCONCLUSIVE` with a specific reason.
+- An included source is still `INCONCLUSIVE`, with explicit `SEMANTIC_SUPPORT_NOT_VERIFIED` and `SOURCE_PROVENANCE_NOT_VERIFIED` reasons. **Being retrievable is not evidence approval.**
+- Unknown PackSpec requirement IDs, unknown service bindings, malformed candidate data, unauthorized OIDC roles and cross-service requests fail closed.
+
+**This is a source-candidate governance gate, not an end-to-end business-answer evaluator.** It does not invoke the general evidence event ingest API, attach signed custody to Drive text, resolve semantic support, or make an `ADMIT` assertion. Other applications may still use the generic evidence intake and must separately integrate the same controls before claiming that exclusion is universal. The check is transient and is not itself an externally anchored telemetry record.
+
+Run a **real local HTTP demonstration using synthetic Drive files and mock identities**:
+
+```sh
+npm --prefix apps/registry install
+npm --prefix apps/registry run drive:governed-demo
+```
+
+It shows `INCONCLUSIVE` for an included-but-unreviewed source, `REFUSE` after owner exclusion (even after resync), `INCONCLUSIVE` after explicit re-inclusion, and `INCONCLUSIVE` after index deletion.
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
