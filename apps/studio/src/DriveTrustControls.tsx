@@ -63,11 +63,12 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
    }).catch(e=>{if(active)setRequirementsError(String(e))});
    return()=>{active=false};
  },[token,connected,indexEnabled,serviceId,environment]);
- async function checkGoverned(source:Source){
+ async function checkGoverned(source:Source,record=false){
    if(!requirement)return;
    setGateBusy(true);setGate(null);setRequirementsError('');
    try{
-     const result=await fetch('/v1/drives/google/governed-check',{
+     const result=await fetch(record?'/v1/drives/google/record-check':
+       '/v1/drives/google/governed-check',{
        method:'POST',cache:'no-store',redirect:'error',
        headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
        body:JSON.stringify({serviceId,environment,candidates:[{
@@ -161,9 +162,10 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
              requirements.map(id=><option key={id} value={id}>{id}</option>)}
          </select>
        </label>
-       <p style={{fontSize:12}}>Use “Check candidate” next to a source. An excluded source
-         is refused; an included but unreviewed source remains inconclusive.
-         This is a server-side candidate gate, not a finalized business decision.</p>
+       <p style={{fontSize:12}}>Use “Check candidate” to preview without writing to
+         the ledger. “Record challenge” requires a separate <code>evidence.reviewer</code>
+         role, creates a local ledger receipt, and never changes source admission.
+         Excluded sources are refused; included but unreviewed sources remain inconclusive.</p>
      </div>
      {gate&&<div role="status" style={{padding:12,margin:'10px 0',
        border:'1px solid #e6d7b6',background:'#fffaf0',borderRadius:8}}>
@@ -213,6 +215,8 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
            <td style={{borderTop:'1px solid #e2eae3',padding:9}}>
              <button type="button" disabled={gateBusy||Boolean(busy)||!requirement}
                onClick={()=>checkGoverned(source)}>Check candidate</button>
+             <button type="button" disabled={gateBusy||Boolean(busy)||!requirement}
+               onClick={()=>checkGoverned(source,true)}>Record challenge (reviewer)</button>
            </td>
          </tr>)}</tbody>
        </table>
