@@ -140,6 +140,43 @@ changed PackSpec, a non-admitted receipt, and owner exclusion while
 a provider download is in flight. Generic unreviewed evidence
 ingestion remains blocked for protected services.
 
+## Revoke one approval without hiding the underlying document
+
+A source owner may wish to withdraw a particular review without
+excluding the entire document from search (e.g., a previously accepted
+interpretation is disputed). This is a distinct **decision-level control**.
+
+`POST /v1/evidence/protected-decisions/{decisionId}/revoke` requires
+**both** `evidence.reviewer` and `drive.manager` under the
+*same source-owner OIDC subject* and service scope. The bounded request:
+
+```json
+{"reason":"REVIEW_DISPUTED"}
+```
+
+Allowed reason codes: `OWNER_WITHDRAWN`, `REVIEW_DISPUTED`,
+`CUSTODY_DISPUTED`. The registry appends a local
+`protected-revocation` event containing only scope, decision ID,
+actor hash, time and reason. Revocation is **permanent within the
+ledger**; reapproval requires a new two-signature decision.
+
+`GET /v1/evidence/protected-decisions/{decisionId}/status`
+allows an authorized source owner to inspect the current revoked
+state. The status endpoint **never** reports current use as
+automatically authorized: a live use check is always required.
+
+Every use-check examines the latest revocation records **twice**:
+before expensive Google I/O and during the synchronous final ledger
+append. A source can remain searchable, and the historical signed
+review remains independently replayable, while all future
+permissions for that revoked decision are denied. Studio displays
+withdrawal controls and an observed revocation counter.
+
+No automatic un-revoke or self-approved override is offered. A
+privileged filesystem operator could still tamper with the local,
+unanchored ledger; production external anchoring and durable custody
+remain necessary.
+
 ## Explicit limitations
 
 - Only **integrated applications** are guarded. A separate model,
