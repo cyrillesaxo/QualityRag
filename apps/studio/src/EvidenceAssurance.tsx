@@ -52,7 +52,7 @@ export function EvidenceAssurance(){
    <div style={block}><strong>1 initial REFUSE</strong><div>Contradiction</div></div>
    <div style={block}><strong>{reviewed}/{cases.length} reviewed</strong><div>Browser memory</div></div>
   </div>
-  <div className="columns" style={{gridTemplateColumns:'minmax(220px,1fr) minmax(0,2.1fr)'}}>
+  <div className="columns" style={{gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,280px),1fr))'}}>
    <div style={block}>{cases.map((c,i)=><button type="button" key={c.id} onClick={()=>choose(i)} aria-pressed={selected===i}
      style={{background:selected===i?'#e5f7e8':'#fff',color:'#133a20',border:'1px solid #cfe3d0',width:'100%',marginBottom:9,textAlign:'left'}}>
      <strong>{c.id}</strong><br/>{c.name}<br/><span style={badge(c.frames[0].verdict)}>{c.frames[0].verdict}</span></button>)}</div>
