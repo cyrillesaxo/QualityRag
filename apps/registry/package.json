@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test test/*.test.js && npm run evidence:demo && npm run drive:governed-demo && npm run protection:demo",
+    "test": "node --test test/*.test.js && npm run evidence:demo && npm run drive:governed-demo && npm run protection:demo && npm run admission:demo",
     "evidence:demo": "node ../../scripts/evidence-assurance-show-me.mjs",
     "drive:governed-demo": "node ../../scripts/drive-governed-control-show-me.mjs",
-    "protection:demo": "node ../../scripts/protected-drive-ingress-show-me.mjs"
+    "protection:demo": "node ../../scripts/protected-drive-ingress-show-me.mjs",
+    "admission:demo": "node ../../scripts/protected-human-admission-show-me.mjs"
   },
   "engines": {
     "node": ">=20"
