@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from video_research import research_video_evidence
 from video_catalog import (
     analyze_authorized_media, read_evidence, search_evidence, _root
 )
@@ -33,6 +34,18 @@ def create_server():
         """Search approved video/audio observations with source IDs and time spans.
         Returns candidate/unverified matches, not verified claims or an answer."""
         return search_evidence(configured_root(), query, modality=modality, limit=limit)
+
+    @server.tool()
+    def research_video_question(query: str, intent: str = "cross_modal",
+                                limit: int = 8, window_ms: int = 3000) -> dict:
+        """Retrieve timestamp-cited speech and visual evidence candidates.
+
+        Nearby visual observations do not verify speech, and missing matches
+        never imply an absent action. Returns no synthesized truth verdict.
+        """
+        return research_video_evidence(
+            configured_root(), query, intent=intent,
+            limit=limit, window_ms=window_ms)
 
     @server.tool()
     def inspect_video_evidence(source_id: str) -> dict:
