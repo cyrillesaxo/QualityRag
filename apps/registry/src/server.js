@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {RegistryStore} from './store.js';
@@ -378,28 +379,40 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        note:'Only a successful fresh use-check can permit a particular request; historical admission is never a standing authorization.'
      });
    }
-   if(req.method==='POST'&&
-     url.pathname.startsWith('/v1/evidence/protected-decisions/')&&
-     url.pathname.endsWith('/use-check')&&
-     url.pathname.split('/').length===6&&
-     /^[0-9a-f-]{36}$/.test(url.pathname.split('/')[4])){
+   // The local delivery gateway holds the complete answer until the exact
+   // same last-mile checks succeed. Unlike /use-check, it necessarily receives
+   // plaintext: deploy it within the customer's own trusted boundary.
+   const protectedDecisionRoute=url.pathname.split('/');
+   const decisionAction=protectedDecisionRoute[5];
+   if(req.method==='POST'&&protectedDecisionRoute.length===6&&
+     protectedDecisionRoute[1]==='v1'&&
+     protectedDecisionRoute[2]==='evidence'&&
+     protectedDecisionRoute[3]==='protected-decisions'&&
+     /^[0-9a-f-]{36}$/.test(protectedDecisionRoute[4]||'')&&
+     ['use-check','deliver'].includes(decisionAction)){
      if(!authenticate||!evidenceLedger||!driveIndex||!driveManager||
         !protectedReviewTrust)
        return reply(res,404,{error:'PROTECTED_USE_NOT_CONFIGURED'});
-     // The same source owner must initiate each use check. A protected
-     // service cannot rely on an old exported receipt as a durable permit.
      if(!actorRoles?.has('drive.reader'))
        return reply(res,403,{error:'FORBIDDEN'});
-     const decisionId=url.pathname.split('/')[4];
+     const decisionId=protectedDecisionRoute[4];
      const input=await body(req);
+     const gateway=decisionAction==='deliver';
+     const keys=gateway?['requestId','answer']:['requestId','answerSha256'];
      if(!input||typeof input!=='object'||Array.isArray(input)||
         Object.keys(input).length!==2||
-        !Object.hasOwn(input,'requestId')||!Object.hasOwn(input,'answerSha256')||
+        !keys.every(k=>Object.hasOwn(input,k))||
         typeof input.requestId!=='string'||
         !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(input.requestId)||
-        typeof input.answerSha256!=='string'||
-        !/^[0-9a-f]{64}$/.test(input.answerSha256))
+        (gateway?(typeof input.answer!=='string'||
+          !input.answer.trim()||Buffer.byteLength(input.answer,'utf8')>16384||
+          /[\\u0000]/.test(input.answer)):
+          (typeof input.answerSha256!=='string'||
+          !/^[0-9a-f]{64}$/.test(input.answerSha256))))
        throw Error('PROTECTED_USE_INVALID');
+     const answerSha256=gateway?
+       createHash('sha256').update(input.answer,'utf8').digest('hex'):
+       input.answerSha256;
      const row=evidenceLedger.protectedDecisionForOwner(decisionId,actor);
      if(evidenceLedger.protectedDecisionRevocation(row.id))
        throw Error('PROTECTED_DECISION_REVOKED');
@@ -423,8 +436,6 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        });
      if(verified.signedPayloadSha256!==row.signedPayloadSha256)
        throw Error('PROTECTED_USE_SIGNATURE_RECORD_MISMATCH');
-     // Independently recompute the decision, never trust the stored ADMIT
-     // field without confirming the original assertions and current policy.
      const live=await driveIndex.verifyLiveApprovedWitnesses(
        actor,driveManager,verified.payload.witnesses);
      const refreshed=await store.resolve(row.serviceId,row.environment);
@@ -436,11 +447,22 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      if(replay.result.verdict!=='ADMIT'||
         JSON.stringify(replay.result)!==JSON.stringify(row.result))
        throw Error('PROTECTED_USE_EVIDENCE_CHANGED');
+     // Final ledger append also checks decision-level revocations and request
+     // replay synchronously; no async work can interleave before output.
      const permit=evidenceLedger.recordProtectedUse({
        decision:row,actor,requestId:input.requestId,
-       answerSha256:input.answerSha256,checkedAt:live.checkedAt
+       answerSha256,checkedAt:live.checkedAt
      });
-     return reply(res,200,permit);
+     if(!gateway)return reply(res,200,permit);
+     return reply(res,200,{
+       schema:'qualityrag.protected-answer-delivery/v1',
+       answer:input.answer,
+       receipt:permit,
+       delivery:'BUFFERED_SINGLE_RESPONSE',
+       answerSemanticsVerified:false,
+       globalEnforcement:false,
+       externallyAnchored:false
+     });
    }
    if(req.method==='GET'&&url.pathname==='/v1/evidence/enforcement'){
      if(!evidenceLedger)return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
