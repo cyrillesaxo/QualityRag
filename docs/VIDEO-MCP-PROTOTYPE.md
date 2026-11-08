@@ -152,3 +152,25 @@ PYTHONPATH=tools/semantic_store python tools/semantic_store/video_mcp_remote.py
 ```
 
 This is a static source scope for a **single operator**, not per-user OAuth authorization or robust multi-tenancy. Do not share its token between tenants or expose it to public internet clients. Production needs a trusted identity provider, audience/scopes, per-tenant source ACL enforcement, token expiry/revocation, audit logs and load-shedding; those pieces are not completed here. Source permission declarations are not independently verified legal grants. Existing MCP connections remain unavailable from this conversation until the user installs/connects an approved, actually deployed connector.
+
+
+## Signed-token authorization mode (experimental resource server)
+
+The HTTP adapter now optionally validates **externally issued** RS256 access JWTs against operator-pinned *local* public JWKS, expected issuer, audience, expiration and `video:read` scope. It then intersects the signed subject's locally maintained source ACL with the server operator's global source allowlist. Search and research apply this authorized set before ranking or bundling; direct evidence inspection rejects disallowed sources. The ASGI request context is scoped to each authenticated request, with a dedicated two-principal MCP protocol regression test.
+
+```sh
+export QUALITYRAG_VIDEO_MCP_AUTH_MODE=jwt
+export QUALITYRAG_VIDEO_MCP_ISSUER="https://YOUR-IDENTITY-PROVIDER"
+export QUALITYRAG_VIDEO_MCP_AUDIENCE="qualityrag-video"
+export QUALITYRAG_VIDEO_MCP_JWKS_FILE="/run/secrets/trusted-jwks.json"
+export QUALITYRAG_VIDEO_MCP_ACL_FILE="/run/secrets/video-access.json"
+export QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS="video-a,video-b"
+# Retain the existing loopback-only, explicit HOSTS and HTTPS ORIGINS controls.
+PYTHONPATH=tools/semantic_store python tools/semantic_store/video_mcp_remote.py
+```
+
+A sample ACL document is `{"subjects":{"alice":["video-a"],"bob":["video-b"]}}`. The JWT signer is **never** hosted here. An external identity provider must be configured separately to issue access tokens with the exact audience and scope, rotate its signing keys and revoke credentials. The pinned public JWKS must be obtained and maintained through a trusted administrative process. This implementation does not dynamically fetch keys or trust JWK URLs inside tokens.
+
+**Deployment warning:** An OIDC access-token *resource-server validator* does not constitute a complete OAuth 2.1 authorization flow or a fully ChatGPT-compatible public MCP connector. OAuth discovery, authorization/consent, PKCE, dynamic client registration as required by the client, per-tenant ACL administration, token revocation/key rotation automation, audits and hosted HTTPS deployment remain outstanding. Do not expose the single-operator service publicly based on successful unit tests alone.
+
+The original static bearer mode remains available for isolated local staging. Do not reuse a static bearer token across customers.
