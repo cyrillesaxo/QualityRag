@@ -74,18 +74,18 @@ export function loadProtectedReviewTrust(file){
 }
 function verifyEnvelope(envelope,trust,role){
  only(envelope,['schema','canonical','key_id','payload','signature'],
-  'INVALID_PROTECTED_REVIEW_ENVELOPE');
+  'PROTECTED_INVALID_REVIEW_ENVELOPE');
  check(envelope.schema===SCHEMA&&envelope.canonical===CANONICAL&&
-   envelope.key_id===trust[role].keyId,'UNTRUSTED_PROTECTED_REVIEW_KEY');
+   envelope.key_id===trust[role].keyId,'PROTECTED_UNTRUSTED_REVIEW_KEY');
  check(typeof envelope.signature==='string'&&
    /^[A-Za-z0-9_-]{86}$/.test(envelope.signature),
-   'INVALID_PROTECTED_REVIEW_SIGNATURE');
+   'PROTECTED_INVALID_REVIEW_SIGNATURE');
  const bytes=Buffer.from(envelope.signature,'base64url');
  check(bytes.length===64&&bytes.toString('base64url')===envelope.signature,
-   'INVALID_PROTECTED_REVIEW_SIGNATURE');
+   'PROTECTED_INVALID_REVIEW_SIGNATURE');
  const signed=Buffer.concat([DOMAIN,reviewCanonical(envelope.payload)]);
  check(edVerify(null,signed,trust[role].key,bytes),
-   'INVALID_PROTECTED_REVIEW_SIGNATURE');
+   'PROTECTED_INVALID_REVIEW_SIGNATURE');
  return envelope.payload;
 }
 export function verifyHumanReviewAttestations(custody,meaning,trust,
@@ -97,7 +97,7 @@ export function verifyHumanReviewAttestations(custody,meaning,trust,
  check(reviewCanonical(a).equals(reviewCanonical(b)),
   'PROTECTED_REVIEW_SIGNERS_DISAGREE');
  only(a,['service','environment','policy_signature','nonce','issued_at',
-   'expires_at','witnesses','observations'],'INVALID_PROTECTED_REVIEW_PAYLOAD');
+   'expires_at','witnesses','observations'],'PROTECTED_INVALID_REVIEW_PAYLOAD');
  check(a.service===serviceId&&a.environment===environment&&
    a.policy_signature===POLICY_PREFIX+policySha256,
    'PROTECTED_REVIEW_POLICY_MISMATCH');
@@ -111,7 +111,7 @@ export function verifyHumanReviewAttestations(custody,meaning,trust,
    issued<expires&&expires-issued<=10*60000&&now<expires,
    'PROTECTED_REVIEW_EXPIRED');
  only(a.observations,['kind','owner_binding','folder_id','review_basis',
-   'origin_basis'],'INVALID_PROTECTED_REVIEW_CONTEXT');
+   'origin_basis'],'PROTECTED_INVALID_REVIEW_CONTEXT');
  check(a.observations.kind===KIND&&
    a.observations.owner_binding===sha('qualityrag.review-owner/v1:'+subject)&&
    a.observations.folder_id===folderId&&
@@ -123,13 +123,13 @@ export function verifyHumanReviewAttestations(custody,meaning,trust,
  const seen=new Set();
  for(const row of a.witnesses){
    only(row,['sourceId','revision','requirementId','lineNumber',
-     'lineSha256','origin','status'],'INVALID_PROTECTED_REVIEW_WITNESS');
+     'lineSha256','origin','status'],'PROTECTED_INVALID_REVIEW_WITNESS');
    check(SOURCE.test(row.sourceId)&&HEX.test(row.revision)&&HEX.test(row.lineSha256)&&
      ascii(row.requirementId,80)&&ORIGIN.test(row.origin)&&
      Number.isSafeInteger(row.lineNumber)&&row.lineNumber>=1&&
      row.lineNumber<=6000&&
      ['SUPPORTS','CONTRADICTS','UNKNOWN'].includes(row.status),
-     'INVALID_PROTECTED_REVIEW_WITNESS');
+     'PROTECTED_INVALID_REVIEW_WITNESS');
    const identity=row.sourceId+':'+row.requirementId+':'+row.lineNumber;
    check(!seen.has(identity),'PROTECTED_REVIEW_DUPLICATE_WITNESS');
    seen.add(identity);
