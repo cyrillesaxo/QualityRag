@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createCipheriv, createDecipheriv, createHmac, randomBytes, createHash} from 'node:crypto';
+import {scanReviewedSourceConstraints} from './constraint-sufficiency.js';
 
 // Encrypted, tenant-scoped Drive text preview. Separate from the legacy shared
 // single-user Semantic Codex worker. No automatic admission into QualityRAG.
@@ -237,7 +238,7 @@ export class UserDriveIndex {
   return {changed:true,visibility:this.visibility(subject,connection)};
  }
  async verifyLiveApprovedWitnesses(subject,connector,witnesses,
-   {includeWitnessLines=false}={}){
+   {includeWitnessLines=false,includeConstraintScan=false}={}){
   // Last-mile mandatory check: no signed claim alone bypasses current owner's
   // source controls. Re-fetch the exact file bytes from Google, including
   // the provider's parent-folder check, then re-check controls after all awaits.
@@ -312,10 +313,19 @@ export class UserDriveIndex {
       lineNumber:w.lineNumber,lineSha256:w.lineSha256,
       text:source.lines[i],context};
   }):undefined;
+  // Exact live-byte verification already succeeded for each listed file.
+  // Scan its entire indexed text (not just adjacent witness lines) for
+  // lexical indicators requiring a new human review. The scan never
+  // provides source authenticity or document-wide semantic completeness.
+  const constraintScan=includeConstraintScan?scanReviewedSourceConstraints({
+    sources:[...expected.values()].map(e=>({sourceId:e.sourceId,lines:e.lines})),
+    witnesses
+  }):undefined;
   return {owner:subject,folderId:connection.folderId,
     checkedAt:new Date(this.now()).toISOString(),sourceCount:expected.size,
     verifiedExactLiveBytes:true,independentPublisherVerified:false,
-    ...(includeWitnessLines?{verifiedLines}:{})};
+    ...(includeWitnessLines?{verifiedLines}:{}),
+    ...(includeConstraintScan?{constraintScan}:{})};
  }
  checkGovernedCandidates(subject,connection,policy,policySha256,candidates){
   // Guarded route from Drive *candidates* to governed evaluation. It deliberately
