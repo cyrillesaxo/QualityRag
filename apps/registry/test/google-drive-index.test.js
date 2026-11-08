@@ -125,6 +125,46 @@ test('separate encrypted Drive text indexes enforce OIDC user isolation and purg
      'https://drive.google.com/file/d/alice-text/view');
    assert.equal(searched.body.hits[0].anchor.line_number,1);
    assert.equal(searched.body.assurance,'NOT_EVALUATED_BY_PACKSPEC');
+   const visibility=await request('GET','/v1/drives/google/visibility','alice');
+   assert.equal(visibility.status,200);
+   assert.equal(visibility.body.sourceTruth,'UNVERIFIED');
+   assert.equal(visibility.body.packSpecAdmission,'NOT_PERFORMED');
+   assert.equal(visibility.body.sources.length,2);
+   assert.equal(visibility.body.inventory.some(row=>row.status==='UNSUPPORTED'&&
+     row.name==='Scan.pdf'),true);
+   const sourceId=searched.body.hits[0].source_id;
+   const controlRoute='/v1/drives/google/source-control';
+   const exclude={sourceId,searchable:false,reason:'SENSITIVE'};
+   assert.equal(permissionFor('GET','/v1/drives/google/visibility'),'drive.reader');
+   assert.equal(permissionFor('POST',controlRoute),'drive.manager');
+   assert.equal((await request('POST',controlRoute,'reader',exclude)).status,403);
+   assert.equal((await request('POST',controlRoute,'bob',exclude)).status,404);
+   assert.equal((await request('POST',controlRoute,'alice',
+     {...exclude,actor:'issuer#bob'})).status,400);
+   const switched=await request('POST',controlRoute,'alice',exclude);
+   assert.equal(switched.status,200,JSON.stringify(switched.body));
+   assert.equal(switched.body.visibility.sources.find(row=>row.sourceId===sourceId).searchable,false);
+   assert.equal(switched.body.visibility.activity[0].action,'EXCLUDE');
+   assert.equal(switched.body.visibility.activity[0].reason,'SENSITIVE');
+   const suppressed=await request('POST','/v1/drives/google/search','alice',{query:'hidden exception'});
+   assert.equal(suppressed.body.hits.length,0);
+   assert.equal((await request('POST','/v1/drives/google/search','alice',
+     {query:'contractors require'})).body.hits.length,1);
+   // A successful resync cannot silently reverse a user's exclusion decision.
+   assert.equal((await request('POST','/v1/drives/google/sync','alice',{})).status,200);
+   assert.equal((await request('POST','/v1/drives/google/visibility','alice',
+     {query:'no'})).status,404);
+   const afterResync=await request('GET','/v1/drives/google/visibility','alice');
+   assert.equal(afterResync.body.sources.find(row=>row.sourceId===sourceId).searchable,false);
+   assert.equal((await request('POST','/v1/drives/google/search','alice',
+     {query:'hidden exception'})).body.hits.length,0);
+   const included=await request('POST',controlRoute,'alice',
+     {sourceId,searchable:true,reason:'OWNER_SELECTION'});
+   assert.equal(included.status,200);
+   assert.equal(included.body.visibility.activity[0].action,'INCLUDE');
+   assert.equal((await request('POST','/v1/drives/google/search','alice',
+     {query:'hidden exception'})).body.hits.length,1);
+   assert.equal((await request('POST',controlRoute,'alice',exclude)).status,200);
    const bobOnly=await request('POST','/v1/drives/google/search','bob',{query:'vendor rule'});
    assert.equal(bobOnly.body.hits.length,1);
    const cannotGetBob=await request('POST','/v1/drives/google/search','alice',{query:'bob-only vendor rule'});
