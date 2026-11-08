@@ -8,9 +8,14 @@ from __future__ import annotations
 import json
 import os
 import sys
-from urllib.request import Request, urlopen
+from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise RuntimeError("HTTPS smoke rejects redirects to avoid credential forwarding")
 
 
 def smoke(url, token):
@@ -20,9 +25,10 @@ def smoke(url, token):
         raise ValueError("Set a canonical HTTPS URL ending in /mcp")
     if not isinstance(token,str) or not token or "\r" in token or "\n" in token:
         raise ValueError("An externally issued scoped access token is required")
+    open_url=build_opener(NoRedirect()).open
     base = url.removesuffix("/mcp")
     metadata_url = base+"/.well-known/oauth-protected-resource/mcp"
-    with urlopen(Request(metadata_url,headers={"Accept":"application/json"}),timeout=20) as response:
+    with open_url(Request(metadata_url,headers={"Accept":"application/json"}),timeout=20) as response:
         metadata=json.loads(response.read(100000))
     if metadata.get("resource") != url or not metadata.get("authorization_servers"):
         raise RuntimeError("Protected-resource metadata is invalid")
@@ -31,7 +37,7 @@ def smoke(url, token):
     headers={"Accept":"application/json, text/event-stream",
              "Content-Type":"application/json"}
     try:
-        urlopen(Request(url,data=body,headers=headers,method="POST"),timeout=20)
+        open_url(Request(url,data=body,headers=headers,method="POST"),timeout=20)
     except HTTPError as exc:
         if exc.code != 401:
             raise RuntimeError("Unauthenticated call must yield HTTP 401") from None
@@ -41,7 +47,7 @@ def smoke(url, token):
     else:
         raise RuntimeError("Unauthenticated call unexpectedly succeeded")
     headers["Authorization"]="Bearer "+token
-    with urlopen(Request(url,data=body,headers=headers,method="POST"),timeout=20) as response:
+    with open_url(Request(url,data=body,headers=headers,method="POST"),timeout=20) as response:
         if response.status != 200 or "application/json" not in response.headers.get("Content-Type",""):
             raise RuntimeError("Authenticated MCP tools/list returned unexpected response")
         result=json.loads(response.read(200000))
