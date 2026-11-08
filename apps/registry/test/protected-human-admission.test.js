@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
-import {createHash,createKeyPairSync,generateKeyPairSync,sign as edSign} from 'node:crypto';
+import {createHash,generateKeyPairSync,sign as edSign} from 'node:crypto';
 import {randomBytes} from 'node:crypto';
 import {RegistryStore} from '../src/store.js';
 import {EvidenceLedger} from '../src/evidence-ledger.js';
