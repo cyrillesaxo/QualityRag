@@ -102,6 +102,18 @@ try{
  const receipt=await request('GET','/v1/evidence/protected-decisions/'+
    accepted.body.id+'/export');
  assert.equal(receipt.status,200);
+ const groundedPath='/v1/evidence/protected-decisions/'+accepted.body.id+'/grounded-deliver';
+ const ground=await request('POST',groundedPath,{
+   requestId:'extract-demo-001'});
+ assert.equal(ground.status,200,JSON.stringify(ground.body));
+ assert.equal(ground.body.schema,'qualityrag.source-grounded-extract/v1');
+ assert.equal(ground.body.delivery,'SERVER_GENERATED_EXTRACT_ONLY');
+ assert.equal(ground.body.receipt.deliveryMode,'SOURCE_GROUNDED_EXTRACT');
+ assert.equal(ground.body.receipt.answerSha256,sha(ground.body.answer));
+ assert.equal(ground.body.coverage.allSignedAnchorsIncluded,true);
+ assert.equal(ground.body.coverage.fullDocumentExaminedForExceptions,false);
+ assert.ok(ground.body.answer.includes(SOURCE.trim().split('\\n')[0]));
+ assert.ok(ground.body.answer.includes(SOURCE.trim().split('\\n')[1]));
  const usePath='/v1/evidence/protected-decisions/'+accepted.body.id+'/use-check';
  const answer='Synthetic model result guarded by customer-signed evidence.';
  const answerSha256=sha(answer);
@@ -155,6 +167,10 @@ try{
    {requestId:'example-answer-002',answerSha256});
  assert.equal(useAfterExclusion.status,409);
  assert.equal(useAfterExclusion.body.error,'PROTECTED_OWNER_EXCLUDED_SOURCE');
+ const groundExcluded=await request('POST',groundedPath,{
+   requestId:'extract-demo-excluded'});
+ assert.equal(groundExcluded.status,409);
+ assert.ok(!JSON.stringify(groundExcluded.body).includes(SOURCE.trim()));
  const deniedDelivery=await request('POST',deliverPath,{
    requestId:'example-buffered-answer-excluded',answer
  });
@@ -163,6 +179,7 @@ try{
  const persisted=fs.readFileSync(path.join(dir,'evidence.jsonl'),'utf8');
  assert.equal(persisted.includes(SOURCE.trim()),false);
  assert.equal(persisted.includes(answer),false);
+ assert.equal(persisted.includes(ground.body.answer),false);
 
  // Independent Python validation sees the same two signatures, original
  // source bytes and a separately computed PackSpec decision.
@@ -194,6 +211,12 @@ try{
    liveGoogleBytesChecked:true,
    signedCustomerAssertion:{http:accepted.status,verdict:accepted.body.verdict},
    ownerExclusion:{http:excluded.status,reason:excluded.body.error},
+   sourceGroundedExtract:{http:ground.status,
+     signedAnchorsIncluded:ground.body.coverage.allSignedAnchorsIncluded,
+     adjacentContextVisible:ground.body.sections[0].adjacentContext.length>0,
+     documentWideCompletenessVerified:false,
+     afterOwnerExclusion:groundExcluded.body.error,
+     originalSourceTextStoredInLedger:false},
    answerUseBeforeExclusion:{http:allowedUse.status,
      permission:allowedUse.body.permission,answerTextUploaded:false},
    answerUseAfterExclusion:{http:useAfterExclusion.status,
