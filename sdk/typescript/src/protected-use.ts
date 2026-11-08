@@ -9,7 +9,8 @@ export type UseCheckReceipt={
  decisionId:string;requestId:string;answerSha256:string;
  policySha256:string;checkedAt:string;at:string;
  receiptId:string;chainHash:string;
- deliveryMode?:'DIGEST_ONLY_CLIENT_RELEASE'|'SERVER_BUFFERED_RELEASE';
+ deliveryMode?:'DIGEST_ONLY_CLIENT_RELEASE'|'SERVER_BUFFERED_RELEASE'|
+   'SOURCE_GROUNDED_EXTRACT';
  globalEnforcement:false;answerSemanticsVerified:false;
  independentPublisherVerified:false;externallyAnchored:false;
  scope:'THIS_REGISTRY_CHECK_ONLY'
