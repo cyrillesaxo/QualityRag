@@ -184,6 +184,22 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(allowedUse.body.answerSha256,answerSha256);
    assert.equal(allowedUse.body.answerSemanticsVerified,false);
    assert.equal((await request('POST',usePath,'owner',firstUsePayload)).status,409);
+   // A source exclusion during live Google I/O must be observed at the
+   // *second* owner-control check, before any use permit is recorded.
+   let resumeDownload;
+   pendingLive=new Promise(resolve=>{resumeDownload=resolve});
+   const racePending=request('POST',usePath,'owner',useInput());
+   for(let i=0;i<100&&pendingLive;i++)
+     await new Promise(resolve=>setTimeout(resolve,5));
+   assert.equal(pendingLive,null,'Google download should be in flight');
+   index.controlSource(subject,connector.status(subject),{
+     sourceId:hit.source_id,searchable:false,reason:'NEEDS_REVIEW'});
+   resumeDownload();
+   const racedUse=await racePending;
+   assert.equal(racedUse.status,409);
+   assert.equal(racedUse.body.error,'PROTECTED_OWNER_CONTEXT_CHANGED');
+   index.controlSource(subject,connector.status(subject),{
+     sourceId:hit.source_id,searchable:true,reason:'OWNER_SELECTION'});
    const exportUrl='/v1/evidence/protected-decisions/'+admit.body.id+'/export';
    assert.equal((await request('GET',exportUrl,'other')).status,403);
    assert.equal((await request('GET',exportUrl,'missingDrive')).status,403);
