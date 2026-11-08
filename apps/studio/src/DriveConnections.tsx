@@ -6,7 +6,7 @@ type Connection={provider:'google_drive';connected:boolean;email?:string;display
 type DriveIndexStatus={indexed:boolean;sourceCount:number;lastSyncedAt?:string;
   syncStatus:string;coverage:string;summary?:{listed:number;eligible:number;indexed:number;
   unsupported:number;failed:number;tooLarge:number;excludedEmpty:number;truncatedLines:number}};
-type DriveHit={source_id:string;revision:string;file_name:string;mime_type:string;
+type DriveHit={source_id:string;revision:string;source_url:string;file_name:string;mime_type:string;
   anchor:{kind:string;line_number:number};field:string;matched_text:string;
   matching_terms:number;quality:string};
 type DriveSearch={hits:DriveHit[];indexed:boolean;coverage:string;reason?:string;
@@ -269,8 +269,13 @@ function DriveConnections({token}:{token:string}){
                  <strong>{hit.file_name}</strong> · Line {hit.anchor.line_number}
                  {' · '} revision <code>{hit.revision.slice(0,12)}…</code>
                  <p>{hit.matched_text}</p>
+                 <a href={hit.source_url} target="_blank" rel="noopener noreferrer">
+                   Open original in my Google Drive
+                 </a>
                </li>)}</ul>
-               <p><strong>Lexical matches, not verified evidence.</strong> Empty results do
+               <p><strong>Lexical matches, not verified evidence.</strong> Line anchors refer to the
+                 extracted plain-text representation; Google Docs may not display the same line numbers.
+                 Empty results do
                  not establish that the source condition is absent.</p>
              </>}
            </>}
