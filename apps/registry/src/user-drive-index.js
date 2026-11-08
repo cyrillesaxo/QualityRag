@@ -214,7 +214,7 @@ export class UserDriveIndex {
     Object.hasOwn(input,'searchable')&&Object.hasOwn(input,'reason'),
     'INVALID_DRIVE_SOURCE_CONTROL');
   check(typeof input.sourceId==='string'&&
-    /^google_drive\\/[a-f0-9]{32}$/.test(input.sourceId)&&
+    /^google_drive[/][a-f0-9]{32}$/.test(input.sourceId)&&
     typeof input.searchable==='boolean'&&
     ['OWNER_SELECTION','SENSITIVE','OUT_OF_SCOPE','NEEDS_REVIEW'].includes(input.reason),
     'INVALID_DRIVE_SOURCE_CONTROL');
