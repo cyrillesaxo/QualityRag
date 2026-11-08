@@ -3,3 +3,5 @@
 .enterprise-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.enterprise-actions button:not(:disabled),.enterprise-demo button{cursor:pointer}.enterprise-demo{margin-top:12px;padding:12px;border:1px solid #b9d4c4;border-radius:10px;background:#fff}.enterprise-demo p{margin:8px 0}.enterprise-demo button{margin-top:5px}.enterprise-engine-card button:focus-visible{outline:3px solid #327b58;outline-offset:2px}
 
 .enterprise-lead-form{display:flex;flex-direction:column;gap:9px;margin-top:14px;padding-top:12px;border-top:1px solid #d1ded7}.enterprise-lead-form label{display:flex;flex-direction:column;gap:4px;font-size:13px}.enterprise-lead-form input{width:100%;box-sizing:border-box;border:1px solid #a7bcb0;border-radius:8px;padding:9px;font:inherit}.enterprise-lead-form small{color:#536b5e}
+
+.enterprise-lead-form select,.enterprise-lead-form textarea{width:100%;box-sizing:border-box;border:1px solid #a7bcb0;border-radius:8px;padding:9px;font:inherit}.enterprise-lead-form textarea{resize:vertical;min-height:75px}
