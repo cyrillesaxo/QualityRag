@@ -4,7 +4,7 @@ export class PgBalafonsEvidenceInbox{
  async accept(event){
   if(!event||!event.event_id||!event.tenant_id||!event.principal_id||!event.source_id||
    event.tenant_id!=='balafons:'+event.principal_id||
-   !event.source_id.startsWith(event.tenant_id+':')||event.acl?.owner_id!==event.principal_id||
+   !Number.isSafeInteger(event.source_sequence)||event.source_sequence<0||!event.source_id.startsWith(event.tenant_id+':')||event.acl?.owner_id!==event.principal_id||
    event.acl?.visibility!=='private'||!['index','delete'].includes(event.action))throw new Error('INVALID_EVIDENCE_OWNER');
   const c=await this.pool.connect();
   try{
@@ -14,10 +14,10 @@ export class PgBalafonsEvidenceInbox{
     [event.event_id,event.tenant_id,event.principal_id]);
    if(claimed.rowCount!==1){await c.query('ROLLBACK');return false}
    await c.query(`INSERT INTO qr_balafons_evidence_inbox
-    (event_id,tenant_id,principal_id,source_id,action,revision,content,metadata,acl)
-    VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb)`,
+    (event_id,tenant_id,principal_id,source_id,action,revision,content,metadata,acl,source_sequence)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10)`,
     [event.event_id,event.tenant_id,event.principal_id,event.source_id,event.action,event.revision,
-     event.content,JSON.stringify(event.metadata??null),JSON.stringify(event.acl)]);
+     event.content,JSON.stringify(event.metadata??null),JSON.stringify(event.acl),event.source_sequence]);
    await c.query('COMMIT');return true;
   }catch(error){await c.query('ROLLBACK').catch(()=>{});throw error}
   finally{c.release()}

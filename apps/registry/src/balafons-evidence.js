@@ -19,6 +19,7 @@ export async function acceptBalafonsEvidence({payload,signature,secret,expectedO
  if(!Number.isFinite(at)||Math.abs(now-at)>300000)throw new Error('EVIDENCE_EVENT_EXPIRED');
  if(!['index','delete'].includes(e.action))throw new Error('INVALID_EVIDENCE_ACTION');
  if(e.action==='index'&&(!HEX.test(e.revision||'')||typeof e.content!=='string'))throw new Error('INVALID_EVIDENCE_SOURCE');
+ if(!Number.isSafeInteger(e.source_sequence)||e.source_sequence<0)throw new Error('INVALID_SOURCE_SEQUENCE');
  // Atomic claim must precede any side effect; the ingestion worker must be
  // idempotent and record durable job outcome separately.
  if(!skipReplayClaim){
@@ -26,7 +27,7 @@ export async function acceptBalafonsEvidence({payload,signature,secret,expectedO
   if(!claimed)throw new Error('EVIDENCE_REPLAY');
  }
  return {tenant_id:e.tenant_id,principal_id:expectedOwnerId,source_id:e.source_id,
-  action:e.action,revision:e.revision,content:e.content,metadata:e.metadata,acl:e.acl,event_id:e.event_id};
+  action:e.action,source_sequence:e.source_sequence,revision:e.revision,content:e.content,metadata:e.metadata,acl:e.acl,event_id:e.event_id};
 }
 export class PgEvidenceReplayStore{
  constructor(pool){this.pool=pool}
