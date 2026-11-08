@@ -9,6 +9,7 @@ import path from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {RegistryStore} from '../apps/registry/src/store.js';
 import {UserDriveIndex} from '../apps/registry/src/user-drive-index.js';
+import {EvidenceLedger} from '../apps/registry/src/evidence-ledger.js';
 import {createHandler} from '../apps/registry/src/server.js';
 
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-governed-drive-demo-'));
@@ -38,8 +39,9 @@ const authenticate=async(token)=>{
   return {subject,roles:new Set(['drive.reader','drive.manager','evidence.reader']),
     evidenceServices:new Set([serviceId+'@'+environment])};
 };
+const ledger=new EvidenceLedger(path.join(directory,'evidence.jsonl'));
 const server=http.createServer(createHandler(store,null,{
-  authenticate,driveManager:connector,driveIndex:index
+  authenticate,driveManager:connector,driveIndex:index,evidenceLedger:ledger
 }));
 async function request(method,route,body){
   const response=await fetch('http://127.0.0.1:'+server.address().port+route,{
@@ -66,11 +68,13 @@ try{
   const before=await request('POST',uri,body);
   assert.equal(before.result,'INCONCLUSIVE');
   assert.equal(before.counters.eligibleForReview,1);
+  assert.equal(before.telemetry.recorded,true);
   await request('POST','/v1/drives/google/source-control',{
     sourceId:hit.source_id,searchable:false,reason:'OUT_OF_SCOPE'});
   const afterExclusion=await request('POST',uri,body);
   assert.equal(afterExclusion.result,'REFUSE');
   assert.equal(afterExclusion.observations[0].reasons[0],'SOURCE_EXCLUDED_BY_OWNER');
+  assert.equal(afterExclusion.telemetry.recorded,true);
   await index.sync(subject,connector);
   const afterResync=await request('POST',uri,body);
   assert.equal(afterResync.result,'REFUSE');
@@ -82,6 +86,13 @@ try{
   const afterDeletion=await request('POST',uri,body);
   assert.equal(afterDeletion.result,'INCONCLUSIVE');
   assert.equal(afterDeletion.observations[0].reasons[0],'NO_CURRENT_INDEX');
+  const checks=ledger.list(serviceId,environment);
+  assert.equal(checks.summary.governedCandidateChecks,5);
+  assert.equal(checks.summary.governedCandidateRefusals,2);
+  assert.equal(checks.observedCount,0);
+  const raw=fs.readFileSync(path.join(directory,'evidence.jsonl'),'utf8');
+  assert.equal(raw.includes('The policy has an exception'),false);
+  assert.equal(raw.includes(hit.source_id),false);
   console.log(JSON.stringify({
     demonstration:'SYNTHETIC REAL REGISTRY HTTP — PACKSPEC-BOUND SOURCE CONTROL',
     approvedPackSpec:requirements.policy.id+'@'+requirements.policy.version,
@@ -93,6 +104,9 @@ try{
       reasons:afterInclusion.observations[0].reasons},
     indexErased:{decision:afterDeletion.result,
       reasons:afterDeletion.observations[0].reasons},
+    observedGuardTelemetry:{candidateChecks:checks.summary.governedCandidateChecks,
+      candidateRefusals:checks.summary.governedCandidateRefusals,
+      storedPassages:0,externallyAnchored:false},
     boundaries:['candidate gate only, not business-answer evaluation',
       'not semantic support','not independent provenance','mock identity',
       'not universal enforcement in other RAG application integrations']
