@@ -634,9 +634,9 @@ test('customer can independently sign a bounded multi-line review that closes a 
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-manifest-review-'));
  const script=fileURLToPath(new URL(
    '../../../tools/packspec_compiler/prepare_protected_drive_review.py',import.meta.url));
- const original='Approval is required for ordinary claims.\\n'+
-   Array(4).fill('Routine administrative procedure.').join('\\n')+
-   '\\nExcept emergencies, which require a separate notice.';
+ const original='Approval is required for ordinary claims.\n'+
+   Array(4).fill('Routine administrative procedure.').join('\n')+
+   '\nExcept emergencies, which require a separate notice.';
  const sourceFile=path.join(dir,'reviewed-policy.txt');
  const manifestFile=path.join(dir,'witnesses.json');
  const preparedFile=path.join(dir,'prepared.json');
@@ -666,7 +666,7 @@ test('customer can independently sign a bounded multi-line review that closes a 
      '--environment','dev','--policy-sha',digest,
      '--owner-subject',subject,'--folder-id',folder,
      '--manifest',manifestFile,'--out',preparedFile]);
-   assert.equal(prepare.status,0,prepare.stdout+'\\n'+prepare.stderr);
+   assert.equal(prepare.status,0,prepare.stdout+'\n'+prepare.stderr);
    const prepared=JSON.parse(fs.readFileSync(preparedFile,'utf8'));
    assert.equal(prepared.witnesses.length,2);
    assert.equal(prepared.witnesses[1].lineNumber,6);
@@ -674,15 +674,15 @@ test('customer can independently sign a bounded multi-line review that closes a 
    const custody=run(['sign','--role','custodian','--payload',preparedFile,
      '--private-key',custKey,'--key-id','customer-custodian-2026',
      '--attest-reviewed','--out',custodyFile]);
-   assert.equal(custody.status,0,custody.stdout+'\\n'+custody.stderr);
+   assert.equal(custody.status,0,custody.stdout+'\n'+custody.stderr);
    const meaning=run(['sign','--role','meaningReviewer','--payload',preparedFile,
      '--private-key',reviewerKey,'--key-id','customer-meaning-reviewer-2026',
      '--attest-reviewed','--out',meaningFile]);
-   assert.equal(meaning.status,0,meaning.stdout+'\\n'+meaning.stderr);
+   assert.equal(meaning.status,0,meaning.stdout+'\n'+meaning.stderr);
    const transport=run(['build-request','--custody',custodyFile,
      '--meaning',meaningFile,'--request-id','approved-exception-001',
      '--trace-id','trace-exception-001','--out',requestFile]);
-   assert.equal(transport.status,0,transport.stdout+'\\n'+transport.stderr);
+   assert.equal(transport.status,0,transport.stdout+'\n'+transport.stderr);
    const payload=JSON.parse(fs.readFileSync(requestFile,'utf8'));
    const verified=verifyHumanReviewAttestations(
      payload.custody,payload.meaning,trust(),{
@@ -690,7 +690,7 @@ test('customer can independently sign a bounded multi-line review that closes a 
        subject,folderId:folder
      });
    assert.equal(verified.payload.witnesses.length,2);
-   const lines=original.split('\\n');
+   const lines=original.split('\n');
    const screening=scanReviewedSourceConstraints({
      sources:[{sourceId:src,lines}],witnesses:verified.payload.witnesses
    });
