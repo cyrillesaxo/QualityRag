@@ -38,7 +38,7 @@ def _near(a, b, radius):
 
 
 def research_video_evidence(root: str, query: str, *, intent: str = "cross_modal",
-                            limit: int = 8, window_ms: int = 3000) -> dict:
+                            limit: int = 8, window_ms: int = 3000,\n                            source_ids: frozenset[str] | None = None) -> dict:
     if intent not in ("cross_modal", "visual", "spoken"):
         raise CatalogError("Intent must be cross_modal, visual or spoken")
     if type(limit) is not int or not 1 <= limit <= MAX_RESULTS:
@@ -47,7 +47,7 @@ def research_video_evidence(root: str, query: str, *, intent: str = "cross_modal
         raise CatalogError("Invalid temporal window")
     # Current lexical search returns at most 30 hits; do not claim full recall.
     modality = {"cross_modal": "all", "visual": "video", "spoken": "audio"}[intent]
-    result = search_evidence(root, query, modality=modality, limit=30)
+    result = search_evidence(root, query, modality=modality, limit=30, source_ids=source_ids)
     bundles = []
     cache = {}
     for hit in result["results"]:
