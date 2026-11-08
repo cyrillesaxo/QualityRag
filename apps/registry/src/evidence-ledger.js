@@ -121,6 +121,29 @@ export class EvidenceLedger {
       caveat:'REGISTRY_INGRESS_ONLY_UNATTESTED_METADATA_REJECTED'});
     return true;
   }
+  recordCandidateCheck(serviceId,environment,actor,policySha256,check){
+    if(!limited(serviceId)||!limited(environment)||
+       typeof actor!=='string'||!actor||
+       typeof policySha256!=='string'||!/^[a-f0-9]{64}$/.test(policySha256)||
+       !check||check.schema!=='qualityrag.drive-governed-candidate-check/v1'||
+       !['REFUSE','INCONCLUSIVE'].includes(check.result)||
+       check.evaluationAdmitted!==false||!check.counters||
+       !['submitted','ownerExcluded','eligibleForReview','otherUnresolved'].every(k=>
+         Number.isSafeInteger(check.counters[k])&&check.counters[k]>=0&&
+         check.counters[k]<=25))
+      throw Error('INVALID_DRIVE_CANDIDATE_TELEMETRY');
+    const c=check.counters;
+    if(c.submitted!==c.ownerExcluded+c.eligibleForReview+c.otherUnresolved)
+      throw Error('INVALID_DRIVE_CANDIDATE_TELEMETRY');
+    const item=this.append({id:randomUUID(),type:'drive-check',
+      at:new Date().toISOString(),serviceId,environment,
+      actorHash:hex(actor),policySha256,
+      verdict:check.result,submitted:c.submitted,ownerExcluded:c.ownerExcluded,
+      eligibleForReview:c.eligibleForReview,otherUnresolved:c.otherUnresolved,
+      admission:false,sourceAuthenticityVerified:false});
+    return {id:item.id,at:item.at,chainHash:item.chainHash,
+      externallyAnchored:false};
+  }
   recordBlockedIngress(serviceId,environment,actor,policySha256){
     if(!limited(serviceId)||!limited(environment)||
        typeof actor!=='string'||!actor||
@@ -189,16 +212,25 @@ export class EvidenceLedger {
       reviewedFalseBlocks:dispositions.filter(x=>x.reasonCode==='FALSE_BLOCK').length,
       blockedUnattestedIngress:rows.filter(x=>x.type==='guard'&&
         x.serviceId===serviceId&&x.environment===environment&&
-        x.reason==='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED').length
+        x.reason==='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED').length,
+      governedCandidateChecks:rows.filter(x=>x.type==='drive-check'&&
+        x.serviceId===serviceId&&x.environment===environment).length,
+      governedCandidateRefusals:rows.filter(x=>x.type==='drive-check'&&
+        x.serviceId===serviceId&&x.environment===environment&&x.verdict==='REFUSE').length
     };
     const latestBlocked=rows.filter(x=>x.type==='guard'&&x.serviceId===serviceId&&
+      x.environment===environment).at(-1);
+    const latestCandidate=rows.filter(x=>x.type==='drive-check'&&x.serviceId===serviceId&&
       x.environment===environment).at(-1);
     return {observedCount:entries.length,coverage:'UNKNOWN',summary,
       guardTelemetry:{
         observedBlockedAttempts:summary.blockedUnattestedIngress,
         lastBlockedAt:latestBlocked?.at||null,
         protectedSince:this.protectedSince(serviceId,environment),
-        externallyAnchored:false,coverage:'REGISTRY_INGRESS_ONLY'
+        governedCandidateChecks:summary.governedCandidateChecks,
+        governedCandidateRefusals:summary.governedCandidateRefusals,
+        lastCandidateCheckAt:latestCandidate?.at||null,
+        externallyAnchored:false,coverage:'REGISTRY_EVENT_ENDPOINTS_ONLY'
       },
       evaluations:entries.slice(-limit).reverse().map(x=>this.snapshot(x.id))};
   }
