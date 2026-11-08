@@ -55,7 +55,7 @@ const provider=async(location,options={})=>{
   return str({files:FILES[user].map(f=>({...f,modifiedTime:'2026-11-08T12:00:00Z'}))});
  }
  const fileId=parts[4];
- if(fileId==='folder-alice'||fileId==='folder-bob')
+ if(['folder-alice','folder-bob','another-folder'].includes(fileId))
    return str({id:fileId,name:fileId,mimeType:'application/vnd.google-apps.folder',trashed:false});
  const item=[...FILES.alice,...FILES.bob].find(f=>f.id===fileId);
  if(!item)return str({error:'not found'},404);
@@ -158,7 +158,7 @@ test('separate encrypted Drive text indexes enforce OIDC user isolation and purg
    assert.equal(fs.existsSync(index.location('issuer#bob')),false);
    const bobSearch=await request('POST','/v1/drives/google/search','bob',{query:'vendor'});
    assert.equal(bobSearch.status,200);
-   assert.equal(bobSearch.body.hits.length,0);
+   assert.equal(bobSearch.body.reason,'NOT_INDEXED');
  }finally{
    await new Promise(ok=>server.close(ok));
    contentMode='normal';
