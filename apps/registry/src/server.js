@@ -464,7 +464,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      // It performs no ledger mutation and must not imply semantic completeness.
      if(preview)return reply(res,200,{
        ...live.constraintScan,
-       decisionId:row.id,
+       decisionId:row.id,checkedAt:live.checkedAt,
        humanReviewedSourceAssertions:true,
        releasePermittedByThisPreview:false,
        nextAction:live.constraintScan.candidateCount?
