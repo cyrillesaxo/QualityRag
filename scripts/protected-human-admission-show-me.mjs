@@ -114,6 +114,37 @@ try{
  assert.equal(ground.body.coverage.fullDocumentExaminedForExceptions,false);
  assert.ok(ground.body.answer.includes(SOURCE.trim().split('\n')[0]));
  assert.ok(ground.body.answer.includes(SOURCE.trim().split('\n')[1]));
+ const cleanSignal=await request('POST',
+   '/v1/evidence/protected-decisions/'+accepted.body.id+'/sufficiency-check',
+   {requestId:'signals-initial'});
+ assert.equal(cleanSignal.status,200);
+ assert.equal(cleanSignal.body.candidateCount,0);
+ assert.equal(cleanSignal.body.documentWideSemanticCompletenessVerified,false);
+ // Two signers can approve the primary line while a distant exception
+ // remains unreviewed. The source index will detect the lexical candidate.
+ const hiddenClause='Except emergencies, which need documented review.';
+ contents=SOURCE+Array(5).fill('Ordinary policy administration.').join('\n')+
+   '\n'+hiddenClause;
+ await index.sync(owner,connector);
+ const changedHit=index.search(owner,connector.status(owner),'Required approval').hits[0];
+ assert.ok(changedHit);
+ const risky=await request('POST','/v1/evidence/protected-admit',
+   signedRequest(changedHit,'risky-attestation-nonce'));
+ assert.equal(risky.status,201,JSON.stringify(risky.body));
+ const riskPath='/v1/evidence/protected-decisions/'+risky.body.id;
+ const signalReport=await request('POST',riskPath+'/sufficiency-check',
+   {requestId:'signals-distant-exception'});
+ assert.equal(signalReport.status,200);
+ assert.equal(signalReport.body.candidateCount,1);
+ assert.equal(signalReport.body.candidates[0].category,'EXCEPTION');
+ assert.equal(signalReport.body.sourceTextIncluded,false);
+ const riskRefusal=await request('POST',riskPath+'/grounded-deliver',
+   {requestId:'extract-with-hidden-exception'});
+ assert.equal(riskRefusal.status,409);
+ assert.equal(riskRefusal.body.error,'PROTECTED_SUFFICIENCY_UNREVIEWED_SIGNAL');
+ assert.ok(!JSON.stringify(riskRefusal.body).includes(hiddenClause));
+ contents=SOURCE;
+ await index.sync(owner,connector);
  const usePath='/v1/evidence/protected-decisions/'+accepted.body.id+'/use-check';
  const answer='Synthetic model result guarded by customer-signed evidence.';
  const answerSha256=sha(answer);
@@ -180,6 +211,8 @@ try{
  assert.equal(persisted.includes(SOURCE.trim()),false);
  assert.equal(persisted.includes(answer),false);
  assert.equal(persisted.includes(ground.body.answer),false);
+ assert.equal(persisted.includes(hiddenClause),false);
+ assert.equal(ledger.list(serviceId,environment).summary.protectedSufficiencyBlocks,1);
 
  // Independent Python validation sees the same two signatures, original
  // source bytes and a separately computed PackSpec decision.
@@ -211,6 +244,11 @@ try{
    liveGoogleBytesChecked:true,
    signedCustomerAssertion:{http:accepted.status,verdict:accepted.body.verdict},
    ownerExclusion:{http:excluded.status,reason:excluded.body.error},
+   distantExceptionScreen:{candidates:signalReport.body.candidateCount,
+     signalCategory:signalReport.body.candidates[0].category,
+     rawExceptionLeaked:false,
+     extractBlocked:riskRefusal.body.error,
+     documentWideSemanticCompletenessVerified:false},
    sourceGroundedExtract:{http:ground.status,
      signedAnchorsIncluded:ground.body.coverage.allSignedAnchorsIncluded,
      adjacentContextVisible:ground.body.sections[0].adjacentContext.length>0,
