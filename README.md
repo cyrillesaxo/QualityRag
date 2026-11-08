@@ -67,6 +67,20 @@ The final animation frame shows the **separate, experimental Semantic Garden** r
 [Read the walkthrough and regenerate the GIF](docs/README-ANIMATION.md)
 
 
+## Evidence Assurance: show me the decision
+
+QualityRAG Studio now has two distinct evidence-review views: **recorded opt-in telemetry** and a **synthetic challenge lab**. The recorded view shows the bound PackSpec, requirement-level reasons, declared source-origin tokens, a same-server replay and a separate customer review disposition. It does **not** prove that sources are authentic or that the policy is complete.
+
+Run the actual registry HTTP challenge locally (requires `npm --prefix apps/registry install`):
+
+```sh
+npm --prefix apps/registry run evidence:demo
+```
+
+The synthetic experiment records three citations with **one declared origin** (INCONCLUSIVE), adds an independent declared source (ADMIT), replays the first verdict, and appends a distinct review disposition. This is a runnable demonstration with mock identities, **not** live customer telemetry or independently attested evidence.
+
+**[Telemetry API, Studio setup, and production limitations](docs/EVIDENCE-TELEMETRY-REGISTRY.md)** · **[Acceptance-workflow design](docs/EVIDENCE-ASSURANCE-TELEMETRY.md)**
+
 ## PackSpec configuration choices
 
 Keep your policy **inside the application**, supply it as a **JSON property or mounted file**, or manage versions centrally through **QualityRag Studio**. All approaches use the same evidence evaluator; the Java SDK includes an explicit, fail-closed source selector.
