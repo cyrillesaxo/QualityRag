@@ -102,7 +102,9 @@ Setting `QUALITYRAG_DRIVE_INDEX_DIR` opt-in enables the new **My private Drive t
 2. Choose **Sync selected folder now**. This retrieves only direct-child text files in that folder; no recursive subtree traversal.
 3. Studio reports files listed, indexed, unsupported, failed, oversized, truncated, and last synced. Coverage is `PARTIAL` whenever files cannot be included. This is not a guarantee of full Drive discovery.
 4. Search with text such as `hidden exception`. The index produces lexical matches with a stable pseudonymous source ID, source revision, file name, and exact text-line anchor.
-5. Use **Delete my local index** to erase cached text. Selecting a different folder, replacing the Google connection, or disconnecting purges the prior per-subject index. A successful resync atomically replaces the old snapshot and removes deleted/moved files. In-flight synchronizations are fenced: they cannot recreate an index after a disconnect, folder switch, or explicit deletion.
+5. Open **Evidence visibility and owner control** to inspect the exact per-source inventory, source-revision digests, omitted/failed file reasons, and local activity history. An authorized owner can exclude individual sources from private lexical search with a reason, or explicitly include them again. Exclusion persists across resync and source revisions; **exclusion does not erase encrypted text**, and inclusion never constitutes PackSpec approval.
+6. Export the unsigned visibility report to inspect coverage independently. It is not a signed audit attestation.
+7. Use **Delete my local index** to erase cached text. Selecting a different folder, replacing the Google connection, or disconnecting purges the prior per-subject index. A successful resync atomically replaces the old snapshot and removes deleted/moved files. In-flight synchronizations are fenced: they cannot recreate an index after a disconnect, folder switch, or explicit deletion.
 
 Supported pilot MIME types: `text/plain`, `text/markdown`, `text/csv`, `application/json`, `application/vnd.google-apps.document` (exported by Drive as `text/plain`). PDF, DOCX, Sheets, Slides, media, OCR, image embeddings and video scene indexing are **not** included in this per-user Drive importer.
 
@@ -113,6 +115,8 @@ Supported pilot MIME types: `text/plain`, `text/markdown`, `text/csv`, `applicat
 **Evidence boundary:** This is a bounded *lexical* index, not the Semantic Garden grammar, full QualityRAG governed retrieval, an LLM answer, semantic vector search, or a validated evidence receipt. Source-origin independence and authenticity are not inferred from file count or matched lines. No candidate becomes an `ADMIT` result until an authorized PackSpec evaluation and customer source review happen separately.
 
 **Lifecycle limitations:** Remote Google file revocation and deletions are checked on the next explicit sync; an already encrypted local snapshot could remain searchable for up to its 60-minute freshness window after remote permission changes. This is not acceptable for high-sensitivity regulated tenants without an authorization recheck, event-driven deletion, and retention controls. The index is single-process, single-instance and local-file-based, not a hardened production multitenant storage service. Explicit deletion is local; it does not modify or delete the original Google files.
+
+See [Credibility = Visibility + Control](CREDIBILITY-VISIBILITY-CONTROL.md) for the customer acceptance test and exact boundaries between source selection, source custody and evidence admission.
 
 ## Tests and verification
 
