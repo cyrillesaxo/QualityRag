@@ -12,18 +12,30 @@ type Visibility={
   sources:Source[];inventory:Inventory[];activity:Activity[];
   sourceTruth:string;packSpecAdmission:string;activityLogScope?:string
 };
+type GovernedCheck={
+ schema:string;result:'REFUSE'|'INCONCLUSIVE';evaluationAdmitted:boolean;
+ decisionBoundary:string;meaningVerified:boolean;independentProvenanceVerified:boolean;
+ policy:{id:string;version:string;sha256:string};
+ observations:{sourceId:string;decision:string;reasons:string[];eligibleForReviewedEvidence:boolean}[];
+};
 type Props={token:string;folderId:string|null;connected:boolean;
-  indexEnabled:boolean;lastSyncedAt?:string};
+  indexEnabled:boolean;lastSyncedAt?:string;serviceId:string;environment:string};
 
-export function DriveTrustControls({token,folderId,connected,indexEnabled,lastSyncedAt}:Props){
+export function DriveTrustControls({token,folderId,connected,indexEnabled,
+ lastSyncedAt,serviceId,environment}:Props){
  const [report,setReport]=useState<Visibility|null>(null);
  const [error,setError]=useState('');
  const [busy,setBusy]=useState('');
  const [reason,setReason]=useState('OUT_OF_SCOPE');
  const [updated,setUpdated]=useState('');
+ const [requirements,setRequirements]=useState<string[]>([]);
+ const [requirement,setRequirement]=useState('');
+ const [requirementsError,setRequirementsError]=useState('');
+ const [gate,setGate]=useState<GovernedCheck|null>(null);
+ const [gateBusy,setGateBusy]=useState(false);
  useEffect(()=>{
    let mounted=true;
-   setReport(null);setError('');setUpdated('');
+   setReport(null);setError('');setUpdated('');setGate(null);
    if(!token||!connected||!indexEnabled||!folderId)return;
    fetch('/v1/drives/google/visibility',{
      headers:{Authorization:'Bearer '+token},cache:'no-store',redirect:'error'
@@ -34,8 +46,41 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,lastSy
    }).catch(e=>{if(mounted)setError(String(e))});
    return()=>{mounted=false};
  },[token,folderId,connected,indexEnabled,lastSyncedAt]);
+ useEffect(()=>{
+   let active=true;
+   setRequirements([]);setRequirement('');setGate(null);setRequirementsError('');
+   if(!token||!connected||!indexEnabled||!serviceId||!environment)return;
+   const query=new URLSearchParams({serviceId,environment});
+   fetch('/v1/drives/google/governed-requirements?'+query.toString(),{
+     headers:{Authorization:'Bearer '+token},redirect:'error',cache:'no-store'
+   }).then(async result=>{
+     const content=await result.json();
+     if(!result.ok)throw Error(String(content.error||'Unable to resolve approved requirements'));
+     const ids=(content.requirements||[]).map((r:{id:string})=>r.id);
+     if(active){setRequirements(ids);setRequirement(ids[0]||'');}
+   }).catch(e=>{if(active)setRequirementsError(String(e))});
+   return()=>{active=false};
+ },[token,connected,indexEnabled,serviceId,environment]);
+ async function checkGoverned(source:Source){
+   if(!requirement)return;
+   setGateBusy(true);setGate(null);setRequirementsError('');
+   try{
+     const result=await fetch('/v1/drives/google/governed-check',{
+       method:'POST',cache:'no-store',redirect:'error',
+       headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+       body:JSON.stringify({serviceId,environment,candidates:[{
+         sourceId:source.sourceId,revision:source.revision,
+         requirementId:requirement,lineNumber:1
+       }]})
+     });
+     const value=await result.json();
+     if(!result.ok)throw Error(String(value.error||'Governed source check failed'));
+     setGate(value);
+   }catch(e){setRequirementsError(String(e))}
+   finally{setGateBusy(false)}
+ }
  async function control(sourceId:string,searchable:boolean){
-   setBusy(sourceId);setError('');setUpdated('');
+   setBusy(sourceId);setError('');setUpdated('');setGate(null);
    try{
      const response=await fetch('/v1/drives/google/source-control',{
        method:'POST',cache:'no-store',redirect:'error',
@@ -100,13 +145,44 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,lastSy
          Export unsigned visibility report
        </button>
      </div>
-     <div style={{overflowX:'auto'}}>
+     <div style={{border:'1px solid #d6e7d8',padding:12,borderRadius:9,margin:'12px 0'}}>
+       <strong>Check source eligibility against an approved PackSpec</strong>
+       <p style={{fontSize:13,margin:'6px 0'}}>Selected service: <code>{serviceId}</code>;
+         environment: <code>{environment}</code>. Requires both
+         <code> drive.reader</code> and <code> evidence.reader</code>, plus access
+         to this service. No arbitrary browser-supplied PackSpec or verdict is accepted.</p>
+       <label>Approved governing requirement
+         <select value={requirement} onChange={e=>{
+           setRequirement(e.target.value);setGate(null);
+         }} disabled={!requirements.length||gateBusy}>
+           {requirements.length===0?<option value="">No approved requirement available</option>:
+             requirements.map(id=><option key={id} value={id}>{id}</option>)}
+         </select>
+       </label>
+       <p style={{fontSize:12}}>Use “Check candidate” next to a source. An excluded source
+         is refused; an included but unreviewed source remains inconclusive.
+         This is a server-side candidate gate, not a finalized business decision.</p>
+     </div>
+     {gate&&<div role="status" style={{padding:12,margin:'10px 0',
+       border:'1px solid #e6d7b6',background:'#fffaf0',borderRadius:8}}>
+       <strong>Governed source check: {gate.result}</strong>
+       <p>Policy {gate.policy.id} v{gate.policy.version}
+         {' · '} SHA-256 <code>{gate.policy.sha256.slice(0,18)}…</code></p>
+       <p>{gate.observations.flatMap(o=>o.reasons).join(', ')}</p>
+       <p style={{fontSize:12}}>Admitted: {gate.evaluationAdmitted?'yes':'no'};
+         meaning verified: {gate.meaningVerified?'yes':'no'};
+         independent provenance verified: {gate.independentProvenanceVerified?'yes':'no'}.
+         This check does not independently authenticate source content.</p>
+     </div>}
+     {requirementsError&&<p role="alert">{requirementsError}</p>}
+     <div style={{overflowX:'auto'}}> 
        <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
          <thead><tr>
            <th scope="col" align="left">Source</th>
            <th scope="col" align="left">Search control</th>
            <th scope="col" align="left">Review status</th>
            <th scope="col" align="left">Owner action</th>
+           <th scope="col" align="left">PackSpec check</th>
          </tr></thead>
          <tbody>{report.sources.map(source=><tr key={source.sourceId}>
            <td style={{borderTop:'1px solid #e2eae3',padding:9}}>
@@ -127,6 +203,10 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,lastSy
                onClick={()=>control(source.sourceId,!source.searchable)}>
                {source.searchable?'Exclude':'Include'}
              </button>
+           </td>
+           <td style={{borderTop:'1px solid #e2eae3',padding:9}}>
+             <button type="button" disabled={gateBusy||Boolean(busy)||!requirement}
+               onClick={()=>checkGoverned(source)}>Check candidate</button>
            </td>
          </tr>)}</tbody>
        </table>
