@@ -102,7 +102,7 @@ def read_evidence(root: str, source_id: str) -> dict:
         raise CatalogError("Invalid or modified evidence entry") from exc
 
 
-def search_evidence(root: str, query: str, *, limit: int = 10, modality: str = "all") -> dict:
+def search_evidence(root: str, query: str, *, limit: int = 10, modality: str = "all",\n                    source_ids: frozenset[str] | None = None) -> dict:
     if not isinstance(query, str) or not 2 <= len(query.strip()) <= 200:
         raise CatalogError("Query must be 2-200 characters")
     if type(limit) is not int or not 1 <= limit <= 30 or modality not in {"all", "audio", "video", "ocr", "sensor"}:
