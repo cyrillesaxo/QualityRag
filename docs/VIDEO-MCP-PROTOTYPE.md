@@ -211,3 +211,44 @@ A reproducible single-host staging package is now available in `tools/semantic_s
 The dedicated CI additionally tests the deployment constraints **without starting a public service or provisioning resources**. Actual TLS, issuer authorization-code/PKCE, production token handling, host security, source rights, and ChatGPT connection are pending. No preexisting customer-discovery host has been modified.
 
 Consult `tools/semantic_store/deploy/README.md` for operator steps. Avoid deploying to a shared or customer-serving host before a service isolation review.
+
+
+## Retrieval evaluations: synthetic plumbing vs reviewed media
+
+The bounded evaluation scripts are separate from the production MCP:
+
+- `video_benchmark.py` builds **six synthetic text witness fixtures** and compares lexical speech-only versus lexical all-modality retrieval over those descriptions. It performs **no video decoding or model inference**. This tests whether the indexing plumbing can expose visual descriptions at all and cannot justify marketing claims about real-world video understanding.
+- `video_eval.py` accepts an independently assembled operator manifest for an authorized local corpus, verifies the actual media file SHA-256 against each evidence catalog record, and scores retrieval of reviewer-selected visual witness IDs. The reviewer/rights fields are **self-attestations** and not independently verified. It still tests *retrieval from captions*, not whether the video model correctly described a frame or a human could answer a question. A genuinely persuasive evaluation must additionally grade user-facing answer correctness against separate human annotations.
+
+```sh
+PYTHONPATH=tools/semantic_store python tools/semantic_store/video_benchmark.py
+PYTHONPATH=tools/semantic_store python tools/semantic_store/video_eval.py \
+  --root /path/to/authorized-video-root \
+  --manifest /path/to/operator-reviewed-manifest.json \
+  --top-k 5
+```
+
+The real-corpus manifest has the following format, using **your own** approved source ID, original local media file and previously indexed visual witness ID. The example is illustrative and does not prove consent:
+
+```json
+{
+  "schema": "qualityrag.video-benchmark-manifest/v1",
+  "synthetic_only": false,
+  "reviewer": "Actual reviewer's full name",
+  "rights_confirmed": true,
+  "reviewed_original_video": true,
+  "sources": {"approved-video-001": "recording.mp4"},
+  "cases": [
+    {
+      "id": "visual-question-01",
+      "source_id": "approved-video-001",
+      "target_witness_id": "visual-frame-01",
+      "query": "wheelchair brake lever"
+    }
+  ]
+}
+```
+
+The scorer rejects inconsistent media hashes, missing source files, unsupported gold modalities, incomplete attestations and missing target witnesses. The test suite uses deliberately invalid media bytes as a hash-checking fixture; **that is not real-footage testing**.
+
+The current scoring target is a visual witness ID: speech-only retrieval cannot return that ID by definition. The results therefore quantify *visual witness accessibility*, not an end-to-end model advantage. For the commercial claim, compare **question-answer accuracy** and false factual conclusions against blinded human review, while keeping cost, latency and source access failures visible.
