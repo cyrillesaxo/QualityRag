@@ -36,7 +36,7 @@ store.bind(serviceId,environment,'claims-contract','1','publisher');
 
 const authenticate=async(token)=>{
   if(token!=='demo-user')return null;
-  return {subject,roles:new Set(['drive.reader','drive.manager','evidence.reader']),
+  return {subject,roles:new Set(['drive.reader','drive.manager','evidence.reader','evidence.reviewer']),
     evidenceServices:new Set([serviceId+'@'+environment])};
 };
 const ledger=new EvidenceLedger(path.join(directory,'evidence.jsonl'));
@@ -68,13 +68,18 @@ try{
   const before=await request('POST',uri,body);
   assert.equal(before.result,'INCONCLUSIVE');
   assert.equal(before.counters.eligibleForReview,1);
-  assert.equal(before.telemetry.recorded,true);
+  assert.equal(before.telemetry.recorded,false);
+  const initialReceipt=await request('POST','/v1/drives/google/record-check',body);
+  assert.equal(initialReceipt.telemetry.recorded,true);
   await request('POST','/v1/drives/google/source-control',{
     sourceId:hit.source_id,searchable:false,reason:'OUT_OF_SCOPE'});
   const afterExclusion=await request('POST',uri,body);
   assert.equal(afterExclusion.result,'REFUSE');
   assert.equal(afterExclusion.observations[0].reasons[0],'SOURCE_EXCLUDED_BY_OWNER');
-  assert.equal(afterExclusion.telemetry.recorded,true);
+  assert.equal(afterExclusion.telemetry.recorded,false);
+  const deniedReceipt=await request('POST','/v1/drives/google/record-check',body);
+  assert.equal(deniedReceipt.result,'REFUSE');
+  assert.equal(deniedReceipt.telemetry.recorded,true);
   await index.sync(subject,connector);
   const afterResync=await request('POST',uri,body);
   assert.equal(afterResync.result,'REFUSE');
@@ -87,8 +92,8 @@ try{
   assert.equal(afterDeletion.result,'INCONCLUSIVE');
   assert.equal(afterDeletion.observations[0].reasons[0],'NO_CURRENT_INDEX');
   const checks=ledger.list(serviceId,environment);
-  assert.equal(checks.summary.governedCandidateChecks,5);
-  assert.equal(checks.summary.governedCandidateRefusals,2);
+  assert.equal(checks.summary.governedCandidateChecks,2);
+  assert.equal(checks.summary.governedCandidateRefusals,1);
   assert.equal(checks.observedCount,0);
   const raw=fs.readFileSync(path.join(directory,'evidence.jsonl'),'utf8');
   assert.equal(raw.includes('The policy has an exception'),false);
