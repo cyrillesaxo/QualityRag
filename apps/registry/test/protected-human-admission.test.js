@@ -286,11 +286,11 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      reason:'REVIEW_DISPUTED'})).status,403);
    assert.equal((await request('POST',revokePath,'ownerReviewer',{
      reason:'arbitrary request'})).status,409);
-   const revoked=await request('POST',revokePath,'ownerReviewer',{
+   const decisionWithdrawal=await request('POST',revokePath,'ownerReviewer',{
      reason:'REVIEW_DISPUTED'});
-   assert.equal(revoked.status,200,JSON.stringify(revoked.body));
-   assert.equal(revoked.body.status,'REVOKED');
-   assert.equal(revoked.body.externallyAnchored,false);
+   assert.equal(decisionWithdrawal.status,200,JSON.stringify(decisionWithdrawal.body));
+   assert.equal(decisionWithdrawal.body.status,'REVOKED');
+   assert.equal(decisionWithdrawal.body.externallyAnchored,false);
    const statusAfter=await request('GET',statusPath,'owner');
    assert.equal(statusAfter.status,200);
    assert.equal(statusAfter.body.revoked,true);
