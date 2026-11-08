@@ -211,6 +211,49 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      requestId:'grounded-answer-001'});
    assert.equal(repeatedGrounded.status,409);
    assert.ok(!JSON.stringify(repeatedGrounded.body).includes(SOURCE));
+   const suffPath='/v1/evidence/protected-decisions/'+admit.body.id+'/sufficiency-check';
+   assert.equal(permissionFor('POST',suffPath),'evidence.ingest');
+   const cleanSuff=await request('POST',suffPath,'owner',{
+     requestId:'review-clean-001'});
+   assert.equal(cleanSuff.status,200,JSON.stringify(cleanSuff.body));
+   assert.equal(cleanSuff.body.candidateCount,0);
+   assert.equal(cleanSuff.body.documentWideSemanticCompletenessVerified,false);
+   assert.equal(cleanSuff.body.releasePermittedByThisPreview,false);
+   // Preserve an adversarial negative result: after source content changes,
+   // two valid role signatures on the primary clause do not establish that
+   // a distant exception has been semantically reviewed.
+   const farException='Except emergency cases, which require a separate review.';
+   content=SOURCE+Array(6).fill('Ordinary administrative provision.').join('\n')+
+     '\n'+farException;
+   await index.sync(subject,connector);
+   const riskHit=index.search(subject,connector.status(subject),
+     'Owner-approved policy').hits[0];
+   assert.ok(riskHit);
+   const riskAdmit=await request('POST',endpoint,'owner',
+     payload(att({revision:riskHit.revision})));
+   assert.equal(riskAdmit.status,201,JSON.stringify(riskAdmit.body));
+   const riskSuff='/v1/evidence/protected-decisions/'+riskAdmit.body.id+'/sufficiency-check';
+   const riskReport=await request('POST',riskSuff,'owner',{
+     requestId:'review-risk-001'});
+   assert.equal(riskReport.status,200,JSON.stringify(riskReport.body));
+   assert.equal(riskReport.body.status,'UNREVIEWED_LEXICAL_SIGNALS');
+   assert.equal(riskReport.body.candidateCount,1);
+   assert.equal(riskReport.body.candidates[0].category,'EXCEPTION');
+   assert.equal(riskReport.body.candidates[0].reviewStatus,
+     'NOT_SIGNED_FOR_THIS_SOURCE_LINE');
+   assert.equal(riskReport.body.releasePermittedByThisPreview,false);
+   assert.equal(riskReport.body.documentWideSemanticCompletenessVerified,false);
+   assert.ok(!JSON.stringify(riskReport.body).includes(farException));
+   const blockedRisk=await request('POST',
+     '/v1/evidence/protected-decisions/'+riskAdmit.body.id+'/grounded-deliver',
+     'owner',{requestId:'grounded-far-exception'});
+   assert.equal(blockedRisk.status,409,JSON.stringify(blockedRisk.body));
+   assert.equal(blockedRisk.body.error,'PROTECTED_SUFFICIENCY_UNREVIEWED_SIGNAL');
+   assert.ok(!JSON.stringify(blockedRisk.body).includes(farException));
+   // Return to the exact original signed bytes and owner selection; the
+   // unrelated follow-on live-use and revocation tests must remain valid.
+   content=SOURCE;
+   await index.sync(subject,connector);
    const usePath='/v1/evidence/protected-decisions/'+admit.body.id+'/use-check';
    const answerText='Synthetic reviewed response — not a claim of model correctness';
    const answerSha256=sha(answerText);
@@ -504,8 +547,8 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(freshness.body.error,'PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF');
 
    const list=ledger.list('claims','dev');
-   assert.equal(list.summary.protectedDecisions,3);
-   assert.equal(list.summary.protectedAdmitted,2);
+   assert.equal(list.summary.protectedDecisions,4);
+   assert.equal(list.summary.protectedAdmitted,3);
    assert.equal(list.summary.protectedRevocations,1);
    assert.equal(list.summary.protectedUses,3);
    assert.equal(list.summary.protectedGroundedReleases,1);
@@ -520,7 +563,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const persisted=fs.readFileSync(ledgerPath,'utf8');
    assert.equal(persisted.includes('Owner-approved policy: contractors'),false);
    assert.equal(persisted.includes('All other reimbursements need approval'),false);
-   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,2);
+   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,3);
  }finally{
    await new Promise(ok=>server.close(ok));
    fs.rmSync(dir,{recursive:true,force:true});
