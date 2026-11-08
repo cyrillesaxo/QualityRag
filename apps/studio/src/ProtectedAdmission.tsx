@@ -4,6 +4,10 @@ type Outcome={id:string;verdict:'ADMIT'|'REFUSE'|'INCONCLUSIVE';
  admissionStatus:string;at:string;sourceCount:number;policySha256:string;
  chainHash:string;meaningVerifiedByMachine:boolean;originalPublisherAuthenticated:boolean;
  independentOriginProven:boolean;result:{findings:{requirement_id:string;verdict:string;reasons:string[]}[]}};
+type UseCheck={schema:'qualityrag.protected-decision-use/v1';
+ permission:'PERMIT_SIGNED_ASSERTION_USE';decisionId:string;requestId:string;
+ answerSha256:string;checkedAt:string;receiptId:string;scope:string;
+ answerSemanticsVerified:false;globalEnforcement:false};
 type Props={token:string;serviceId:string;environment:string;enabled:boolean};
 
 export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
@@ -11,12 +15,16 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  const [outcome,setOutcome]=useState<Outcome|null>(null);
  const [error,setError]=useState('');
  const [busy,setBusy]=useState(false);
+ const [answer,setAnswer]=useState('');
+ const [useReceipt,setUseReceipt]=useState<UseCheck|null>(null);
+ const [useError,setUseError]=useState('');
  if(!enabled)return <p style={{fontSize:13,color:'#81571f'}}>
    Signed reviewer admission is not configured for this service. Generic unreviewed
    evidence remains blocked while this protection is active.
  </p>;
  async function submit(){
    setBusy(true);setError('');setOutcome(null);
+   setUseReceipt(null);setUseError('');setAnswer('');
    try{
      if(!token)throw Error('A signed registry identity is required.');
      if(json.length>60_000)throw Error('Signed request is too large.');
@@ -62,6 +70,34 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    }catch(e){setError(String(e))}
    finally{setBusy(false)}
  }
+ async function checkUse(){
+   if(!outcome||outcome.verdict!=='ADMIT'||!token)return;
+   setBusy(true);setUseError('');setUseReceipt(null);
+   try{
+     if(!answer.trim()||new TextEncoder().encode(answer).length>128000)
+       throw Error('Enter a short answer draft to compute its SHA-256 digest locally.');
+     const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(answer));
+     const answerSha256=Array.from(new Uint8Array(bytes))
+       .map(b=>b.toString(16).padStart(2,'0')).join('');
+     const requestId='use-'+crypto.randomUUID();
+     const response=await fetch('/v1/evidence/protected-decisions/'+outcome.id+'/use-check',{
+       method:'POST',cache:'no-store',redirect:'error',
+       headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+       body:JSON.stringify({requestId,answerSha256})
+     });
+     const receipt=await response.json();
+     if(!response.ok)throw Error(String(receipt.error||'Current evidence use is not permitted'));
+     if(receipt.schema!=='qualityrag.protected-decision-use/v1'||
+        receipt.permission!=='PERMIT_SIGNED_ASSERTION_USE'||
+        receipt.decisionId!==outcome.id||receipt.requestId!==requestId||
+        receipt.answerSha256!==answerSha256||
+        receipt.globalEnforcement!==false||
+        receipt.answerSemanticsVerified!==false)
+       throw Error('Registry did not return a valid request-specific permit.');
+     setUseReceipt(receipt);
+   }catch(e){setUseError(String(e))}
+   finally{setBusy(false)}
+ }
  return <section aria-label="Customer-signed protected review" style={{
    border:'1px solid #cddfcf',borderRadius:13,padding:16,margin:'14px 0',background:'#f7fbf7'}}>
    <h3 style={{marginTop:0}}>Customer-signed protected evidence review</h3>
@@ -100,6 +136,34 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
      <button type="button" disabled={busy} onClick={exportReceipt}>
        Export independently replayable signed receipt
      </button>
+     {outcome.verdict==='ADMIT'&&<div style={{marginTop:15,padding:12,
+       borderRadius:8,border:'1px solid #dedac7'}}>
+       <strong>Check whether this signed evidence may still be used</strong>
+       <p style={{fontSize:12}}>
+         A recorded ADMIT is historical, not a perpetual authorization.
+         The registry rechecks the signatures, approved PackSpec, current
+         Google bytes and your source exclusions on each use. The browser sends
+         only a SHA-256 digest of the drafted answer—not its text.
+       </p>
+       <label>Proposed answer (kept in this browser, not uploaded)
+         <textarea rows={3} value={answer} onChange={e=>{
+           setAnswer(e.target.value);setUseReceipt(null);setUseError('');
+         }} style={{width:'100%'}} maxLength={64000}/>
+       </label>
+       <button type="button" onClick={checkUse} disabled={busy||!answer.trim()}>
+         Check live evidence-use permission
+       </button>
+       {useReceipt&&<p role="status">
+         <strong>PERMITTED for this request and answer digest only.</strong>
+         {' '}Checked at {useReceipt.checkedAt}. Local receipt:
+         {' '}<code>{useReceipt.receiptId}</code>.
+         The answer's meaning was not checked and this is not a permit for
+         other applications or later requests.
+       </p>}
+       {useError&&<p role="alert" style={{color:'#a83224'}}>
+         No evidence-use permission: {useError}
+       </p>}
+     </div>}
    </div>}
    {error&&<p role="alert" style={{color:'#a83224'}}>{error}</p>}
  </section>;
