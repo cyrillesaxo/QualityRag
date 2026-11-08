@@ -5,12 +5,17 @@ import {RegistryStore} from './store.js';
 import {createPgSignedRegistryStore} from './pg-store.js';
 import {loadTrustedPolicyKeys} from './signed.js';
 import {createOidcAuthenticator,permissionFor} from './oidc.js';
+import {EvidenceLedger} from './evidence-ledger.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
 function fail(res,error) {
  const code=error.message;
- if(code==='SELF_APPROVAL_FORBIDDEN'||code==='SAME_ACTOR_PROMOTION_FORBIDDEN')return reply(res,403,{error:code});
+ if(['SELF_APPROVAL_FORBIDDEN','SAME_ACTOR_PROMOTION_FORBIDDEN','SELF_REVIEW_FORBIDDEN',
+     'EVIDENCE_SCOPE_FORBIDDEN'].includes(code))return reply(res,403,{error:code});
+ if(code==='EVIDENCE_LEDGER_INTEGRITY_FAILURE'||code==='EVIDENCE_LEDGER_CAPACITY_EXCEEDED')
+   return reply(res,503,{error:code});
+ if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
  return reply(res,code==='NOT_FOUND'||code==='UNKNOWN_SERVICE'||code==='UNBOUND_SERVICE'?404:
    code==='VERSION_EXISTS'||code==='NOT_DRAFT'||code==='SIGNED_SEQUENCE_EXISTS'||code==='SIGNED_SEQUENCE_ROLLBACK'||code==='SIGNED_NOT_STAGED'||code==='SIGNED_NOT_APPROVED'?409:400,{error:code});
 }
@@ -22,7 +27,8 @@ async function body(req) {
  }
  try {return JSON.parse(txt)}catch{throw new Error('INVALID_JSON')}
 }
-export function createHandler(store,token,{trustedPolicyKeys=new Map(),authenticate=null,enforceSeparation=false}={}) {
+export function createHandler(store,token,{trustedPolicyKeys=new Map(),authenticate=null,
+   enforceSeparation=false,evidenceLedger=null}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
  return async(req,res)=>{
@@ -38,6 +44,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
   }
   const provided=req.headers.authorization;
   let actor='registry-token';
+  let evidenceServices=null;
   if(authenticate){
    if(typeof provided!=='string'||!provided.startsWith('Bearer '))return reply(res,401,{error:'UNAUTHORIZED'});
    let identity=null;
@@ -48,8 +55,41 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    if(!permission)return reply(res,404,{error:'NOT_FOUND'});
    if(!identity.roles.has(permission))return reply(res,403,{error:'FORBIDDEN'});
    actor=identity.subject;
+   evidenceServices=identity.evidenceServices;
   }else if(provided!== 'Bearer '+token)return reply(res,401,{error:'UNAUTHORIZED'});
   try {
+   // The evidence ledger is explicitly opt-in; live monitoring is not inferred.
+   const parts=url.pathname.split('/').filter(Boolean);
+   if(parts[0]==='v1'&&parts[1]==='evidence'&&parts[2]==='evaluations'){
+     if(!evidenceLedger)return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
+     const authorize=(serviceId,environment)=>{
+       if(authenticate&&!evidenceServices?.has(serviceId+'@'+environment))
+         throw Error('EVIDENCE_SCOPE_FORBIDDEN');
+     };
+     if(parts.length===3&&req.method==='GET'){
+       const serviceId=url.searchParams.get('serviceId');
+       const environment=url.searchParams.get('environment');
+       authorize(serviceId,environment);
+       return reply(res,200,evidenceLedger.list(serviceId,environment));
+     }
+     if(parts.length===3&&req.method==='POST'){
+       const input=await body(req);
+       if(!input||typeof input!=='object')throw Error('INVALID_EVALUATION');
+       authorize(input.serviceId,input.environment);
+       const bound=await store.resolve(input.serviceId,input.environment);
+       return reply(res,201,evidenceLedger.ingest(input,bound.policy,bound.sha256,actor));
+     }
+     if(parts.length>=4&&parts.length<=5&&
+       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parts[3])){
+       const entry=evidenceLedger.snapshot(parts[3]);
+       authorize(entry.serviceId,entry.environment);
+       if(req.method==='GET'&&parts.length===4)return reply(res,200,entry);
+       if(req.method==='POST'&&parts[4]==='replay')return reply(res,200,evidenceLedger.replay(parts[3]));
+       if(req.method==='POST'&&parts[4]==='reviews')
+         return reply(res,201,evidenceLedger.review(parts[3],await body(req),actor));
+     }
+     return reply(res,404,{error:'NOT_FOUND'});
+   }
    if(req.method==='GET'&&url.pathname==='/v1/state'){
     return reply(res,200,store.state?await store.state():{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings)});
    }
@@ -96,11 +136,15 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
  const backend=process.env.QUALITYRAG_REGISTRY_BACKEND||'file';
  const authMode=process.env.QUALITYRAG_AUTH_MODE||'local';
  if(!['file','postgres'].includes(backend))throw new Error('UNSUPPORTED_REGISTRY_BACKEND');
+ if(backend!=='file'&&process.env.QUALITYRAG_EVIDENCE_LEDGER_FILE)
+   throw new Error('EVIDENCE_LEDGER_FILE_BACKEND_ONLY');
  if(!['oidc','local'].includes(authMode))throw new Error('UNSUPPORTED_AUTH_MODE');
  // PostgreSQL is not an opt-in weakening of governance: no shared token.
  if(backend==='postgres' && authMode!=='oidc')throw new Error('POSTGRES_REQUIRES_OIDC');
  const store=backend==='postgres'?createPgSignedRegistryStore(process.env.DATABASE_URL):
     new RegistryStore(process.env.QUALITYRAG_REGISTRY_FILE||'./.qualityrag/registry.json');
+ const evidenceLedger=process.env.QUALITYRAG_EVIDENCE_LEDGER_FILE?
+   new EvidenceLedger(process.env.QUALITYRAG_EVIDENCE_LEDGER_FILE):null;
  const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?
     loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
  if(backend==='postgres' && keys.size===0)throw new Error('TRUSTED_POLICY_KEYS_REQUIRED');
@@ -112,7 +156,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
-    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc}));
+    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
   server.listen(Number(process.env.PORT||5055),host,
     ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));
