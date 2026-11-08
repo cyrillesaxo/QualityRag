@@ -19,6 +19,18 @@ export default function EnterpriseEngines(){
  const [contactCompany,setContactCompany]=useState('');
  const [contactRole,setContactRole]=useState('');
  const [contactChallenge,setContactChallenge]=useState('');
+ const [leadStatus,setLeadStatus]=useState('');
+ const [submitting,setSubmitting]=useState(false);
+ const leadEndpoint=(import.meta.env.VITE_ENTERPRISE_LEAD_ENDPOINT||'').trim();
+ async function requestWalkthrough(engine:string){
+  if(!leadEndpoint)return;
+  setSubmitting(true);setLeadStatus('');
+  try{
+   const response=await fetch(leadEndpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({engine,email:contactEmail,organization:contactCompany,role:contactRole,challenge:contactChallenge,source:'qualityrag_studio'})});
+   if(!response.ok)throw new Error('SUBMISSION_FAILED');
+   setLeadStatus('Request received. Dodo LLC will follow up by email.');
+  }catch{setLeadStatus('Unable to submit securely. Please use the email option instead.')}finally{setSubmitting(false)}
+ }
  function contact(engine:string){
   const url=new URL(CONTACT);
   url.searchParams.set('utm_source','qualityrag_studio');
@@ -53,13 +65,15 @@ export default function EnterpriseEngines(){
       <label>Organization <input type="text" autoComplete="organization" value={contactCompany} onChange={e=>setContactCompany(e.target.value)} placeholder="Organization (optional)" maxLength={100}/></label>
       <label>Your role <select value={contactRole} onChange={e=>setContactRole(e.target.value)}><option value="">Select role (optional)</option><option>Security / Compliance</option><option>Engineering / Architecture</option><option>Data / AI</option><option>Business / Procurement</option><option>Other</option></select></label>
       <label>What is your biggest challenge? <textarea value={contactChallenge} maxLength={500} onChange={e=>setContactChallenge(e.target.value)} placeholder="For example: keeping PCI data out of model prompts" rows={3}/></label>
+      {leadEndpoint&&<button type="button" disabled={submitting||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)} onClick={()=>requestWalkthrough(engine)}>Submit request securely</button>}
+      {leadStatus&&<p role="status">{leadStatus}</p>}
       <button type="button" disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)} onClick={()=>{
        const subject='QualityRAG Enterprise walkthrough — '+engine.name;
        const body=['I would like to discuss '+engine.name+'.','Work email: '+contactEmail,'Organization: '+contactCompany,'Role: '+contactRole,'Challenge: '+contactChallenge,'Source: QualityRAG Studio','Engine: '+engine.name].join('\n');
        window.location.href='mailto:cyrille.eloundou@dodollc.net?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
       }}>Request walkthrough by email</button>
       <button type="button" onClick={()=>contact(engine.name)}>Explore Dodo LLC website</button>
-      <small>Opens your email application; no form data is transmitted by Studio.</small>
+      <small>{leadEndpoint?"Secure submission sends your request to the configured enterprise lead service. The email option opens your mail application.":"Opens your email application; no form data is transmitted by Studio."}</small>
      </div>
     </div>}
    </article>)}
