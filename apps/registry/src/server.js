@@ -474,7 +474,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      // This is syntactic/byte-grounded coverage, not semantic entailment.
      const extract=grounded?buildSourceGroundedAnswer({
        policy:refreshed.policy,witnesses:verified.payload.witnesses,
-       verifiedLines:live.verifiedLines}):null;
+       verifiedLines:live.verifiedLines,
+       constraintScan:live.constraintScan}):null;
      if(grounded)answerSha256=createHash('sha256')
        .update(extract.answer,'utf8').digest('hex');
      // Final append checks decision withdrawal and replay synchronously.
