@@ -59,6 +59,9 @@ def _config(environ):
                 parsed.query or parsed.fragment or parsed.path != "/mcp" or
                 len(resource_url) > 512):
             raise RemoteConfigurationError("JWT mode needs canonical HTTPS /mcp resource URL")
+        if environ.get("QUALITYRAG_VIDEO_MCP_AUDIENCE") != resource_url:
+            raise RemoteConfigurationError(
+                "JWT audience must equal the advertised MCP resource URL")
         issuer=environ.get("QUALITYRAG_VIDEO_MCP_ISSUER", "")
         if not issuer.startswith("https://"):
             raise RemoteConfigurationError("HTTPS OAuth authorization server required")
