@@ -99,6 +99,16 @@ try{
  const receipt=await request('GET','/v1/evidence/protected-decisions/'+
    accepted.body.id+'/export');
  assert.equal(receipt.status,200);
+ const usePath='/v1/evidence/protected-decisions/'+accepted.body.id+'/use-check';
+ const answer='Synthetic model result guarded by customer-signed evidence.';
+ const answerSha256=sha(answer);
+ const useInput={requestId:'example-answer-001',answerSha256};
+ const allowedUse=await request('POST',usePath,useInput);
+ assert.equal(allowedUse.status,200,JSON.stringify(allowedUse.body));
+ assert.equal(allowedUse.body.permission,'PERMIT_SIGNED_ASSERTION_USE');
+ assert.equal(allowedUse.body.answerSha256,answerSha256);
+ const doubleUse=await request('POST',usePath,useInput);
+ assert.equal(doubleUse.status,409);
  index.controlSource(owner,connector.status(owner),{
    sourceId:hit.source_id,searchable:false,reason:'OUT_OF_SCOPE'
  });
@@ -106,8 +116,13 @@ try{
    signedRequest(hit,'second-attestation-nonce'));
  assert.equal(excluded.status,409);
  assert.equal(excluded.body.error,'PROTECTED_OWNER_EXCLUDED_SOURCE');
+ const useAfterExclusion=await request('POST',usePath,
+   {requestId:'example-answer-002',answerSha256});
+ assert.equal(useAfterExclusion.status,409);
+ assert.equal(useAfterExclusion.body.error,'PROTECTED_OWNER_EXCLUDED_SOURCE');
  const persisted=fs.readFileSync(path.join(dir,'evidence.jsonl'),'utf8');
  assert.equal(persisted.includes(SOURCE.trim()),false);
+ assert.equal(persisted.includes(answer),false);
 
  // Independent Python validation sees the same two signatures, original
  // source bytes and a separately computed PackSpec decision.
@@ -139,6 +154,10 @@ try{
    liveGoogleBytesChecked:true,
    signedCustomerAssertion:{http:accepted.status,verdict:accepted.body.verdict},
    ownerExclusion:{http:excluded.status,reason:excluded.body.error},
+   answerUseBeforeExclusion:{http:allowedUse.status,
+     permission:allowedUse.body.permission,answerTextUploaded:false},
+   answerUseAfterExclusion:{http:useAfterExclusion.status,
+     reason:useAfterExclusion.body.error},
    independentPython:{signatures:result.signatureCount,sourceBytesMatched:true,
      metadataVerdictReproduced:result.reportedVerdict},
    offlineTamperedFile:'REJECTED',
