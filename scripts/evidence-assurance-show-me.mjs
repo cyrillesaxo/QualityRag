@@ -67,7 +67,7 @@ try{
    exportFile=path.resolve(process.argv[exportArg+1]);
    if(exportFile.startsWith(dir+path.sep))throw Error('Export path must outlive the demo directory');
    const pkg=await request('GET','/v1/evidence/evaluations/'+before.id+'/export','reader');
-   writeFileSync(exportFile,JSON.stringify(pkg,null,2)+'\\n',{encoding:'utf8',mode:0o600,flag:'wx'});
+   writeFileSync(exportFile,JSON.stringify(pkg,null,2),{encoding:'utf8',mode:0o600,flag:'wx'});
    exportHash=pkg.integrity.sha256;
  }
  const summary=await request('GET',
