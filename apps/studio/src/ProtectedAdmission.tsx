@@ -8,6 +8,12 @@ type UseCheck={schema:'qualityrag.protected-decision-use/v1';
  permission:'PERMIT_SIGNED_ASSERTION_USE';decisionId:string;requestId:string;
  answerSha256:string;checkedAt:string;receiptId:string;scope:string;
  answerSemanticsVerified:false;globalEnforcement:false};
+type Grounded={schema:'qualityrag.source-grounded-extract/v1';
+ answer:string;delivery:'SERVER_GENERATED_EXTRACT_ONLY';
+ coverage:{requiredPolicyObligations:number;humanSignedSupports:number;
+   allSignedAnchorsIncluded:true;fullDocumentExaminedForExceptions:false};
+ assertions:{modelGeneratedParaphrase:false;freeFormAnswerEntailmentVerified:false};
+ receipt:{answerSha256:string;deliveryMode:'SOURCE_GROUNDED_EXTRACT'}};
 type Props={token:string;serviceId:string;environment:string;enabled:boolean};
 
 export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
@@ -21,6 +27,8 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  const [sendDraftToGateway,setSendDraftToGateway]=useState(false);
  const [delivered,setDelivered]=useState(false);
  const [deliveryError,setDeliveryError]=useState('');
+ const [grounded,setGrounded]=useState<Grounded|null>(null);
+ const [groundingError,setGroundingError]=useState('');
  const [revocationReason,setRevocationReason]=useState('OWNER_WITHDRAWN');
  const [revoked,setRevoked]=useState(false);
  const [revocationResult,setRevocationResult]=useState('');
@@ -32,6 +40,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    setBusy(true);setError('');setOutcome(null);
    setUseReceipt(null);setUseError('');setAnswer('');
    setDelivered(false);setDeliveryError('');setSendDraftToGateway(false);
+   setGrounded(null);setGroundingError('');
    setRevoked(false);setRevocationResult('');
    try{
      if(!token)throw Error('A signed registry identity is required.');
@@ -95,6 +104,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        throw Error('Unexpected revocation response');
      setRevoked(true);setUseReceipt(null);setUseError('');
      setDelivered(false);setDeliveryError('');
+     setGrounded(null);setGroundingError('');
      setRevocationResult('Approval withdrawn at '+result.revokedAt+
        '. Historical audit remains, but future evidence-use checks are blocked.');
    }catch(e){setError(String(e))}
@@ -163,6 +173,36 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    }catch(e){setDeliveryError(String(e))}
    finally{setBusy(false)}
  }
+ async function extractGrounded(){
+   if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token)return;
+   setBusy(true);setGroundingError('');setGrounded(null);
+   try{
+     const requestId='extract-'+crypto.randomUUID();
+     const response=await fetch(
+       '/v1/evidence/protected-decisions/'+outcome.id+'/grounded-deliver',{
+         method:'POST',cache:'no-store',redirect:'error',
+         headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+         body:JSON.stringify({requestId})
+       });
+     const result=await response.json();
+     if(!response.ok)throw Error(String(result.error||'Source-grounded extraction refused'));
+     const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(
+       String(result.answer||'')));
+     const answerSha256=Array.from(new Uint8Array(bytes))
+       .map(b=>b.toString(16).padStart(2,'0')).join('');
+     if(result.schema!=='qualityrag.source-grounded-extract/v1'||
+       result.delivery!=='SERVER_GENERATED_EXTRACT_ONLY'||
+       result.coverage?.allSignedAnchorsIncluded!==true||
+       result.coverage.fullDocumentExaminedForExceptions!==false||
+       result.assertions?.modelGeneratedParaphrase!==false||
+       result.assertions?.freeFormAnswerEntailmentVerified!==false||
+       result.receipt?.deliveryMode!=='SOURCE_GROUNDED_EXTRACT'||
+       result.receipt.answerSha256!==answerSha256)
+       throw Error('Source-grounded response has inconsistent coverage or digest.');
+     setGrounded(result);
+   }catch(e){setGroundingError(String(e))}
+   finally{setBusy(false)}
+ }
  return <section aria-label="Customer-signed protected review" style={{
    border:'1px solid #cddfcf',borderRadius:13,padding:16,margin:'14px 0',background:'#f7fbf7'}}>
    <h3 style={{marginTop:0}}>Customer-signed protected evidence review</h3>
@@ -201,6 +241,34 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
      <button type="button" disabled={busy} onClick={exportReceipt}>
        Export independently replayable signed receipt
      </button>
+     {outcome.verdict==='ADMIT'&&<div style={{marginTop:15,padding:12,
+       borderRadius:8,border:'1px solid #b7d8c4',background:'#f3faf6'}}>
+       <strong>Show exact source-grounded clauses</strong>
+       <p style={{fontSize:12}}>
+         QualityRAG rechecks the current approved source and PackSpec, includes
+         every signed SUPPORTS anchor for the required obligations, and preserves
+         the exact source wording. The adjacent lines are marked as unreviewed
+         context so nearby exceptions remain visible.
+         <strong> This does not search the entire document for hidden exceptions
+         or prove paraphrase entailment.</strong> Excerpts are returned only
+         to the authenticated owner and are not written into the evidence ledger.
+       </p>
+       <button type="button" disabled={busy||revoked} onClick={extractGrounded}>
+         Generate exact-source extract
+       </button>
+       {grounded&&<div role="status" style={{marginTop:8}}>
+         <p><strong>{grounded.coverage.humanSignedSupports} signed anchors</strong>
+           {' '}cover {grounded.coverage.requiredPolicyObligations} required
+           obligations in the selected reviewed source scope.
+           Document-wide exception completeness: <strong>not established</strong>.
+         </p>
+         <pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',
+           fontSize:12,maxHeight:400,overflow:'auto'}}>{grounded.answer}</pre>
+       </div>}
+       {groundingError&&<p role="alert" style={{color:'#a83224'}}>
+         Extract denied: {groundingError}
+       </p>}
+     </div>}
      {outcome.verdict==='ADMIT'&&<div style={{marginTop:15,padding:12,
        borderRadius:8,border:'1px solid #e6d6bd',background:'#fffaf5'}}>
        <strong>Withdraw this signed approval</strong>
