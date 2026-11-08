@@ -10,6 +10,8 @@ import hmac
 import os
 import re
 from contextvars import ContextVar
+import json
+from urllib.parse import urlsplit
 from video_auth import TokenVerifier, TokenAccessError
 
 REQUEST_SOURCES = ContextVar('qualityrag_video_request_sources', default=None)
@@ -48,6 +50,24 @@ def _config(environ):
     if not ids or len(ids)>1000 or len(ids)!=len(set(ids)) or any(
             not re.fullmatch(r"[A-Za-z0-9_-]{1,80}",value) for value in ids):
         raise RemoteConfigurationError("Configure an explicit nonempty source allowlist")
+    resource_url = environ.get("QUALITYRAG_VIDEO_MCP_RESOURCE_URL", "")
+    metadata = None
+    if mode == "jwt":
+        parsed = urlsplit(resource_url)
+        if (parsed.scheme != "https" or not parsed.hostname or
+                parsed.username or parsed.password or parsed.port or
+                parsed.query or parsed.fragment or parsed.path != "/mcp" or
+                len(resource_url) > 512):
+            raise RemoteConfigurationError("JWT mode needs canonical HTTPS /mcp resource URL")
+        issuer=environ.get("QUALITYRAG_VIDEO_MCP_ISSUER", "")
+        if not issuer.startswith("https://"):
+            raise RemoteConfigurationError("HTTPS OAuth authorization server required")
+        metadata = {
+            "resource": resource_url,
+            "authorization_servers": [issuer],
+            "scopes_supported": ["video:read"],
+            "bearer_methods_supported": ["header"],
+        }
     verifier = None
     if mode == "jwt":
         try:
@@ -59,7 +79,7 @@ def _config(environ):
                 operator_source_ids=frozenset(ids))
         except (TokenAccessError, OSError) as exc:
             raise RemoteConfigurationError("Invalid JWT configuration") from exc
-    return {"secret":secret,"auth_mode":mode,"verifier":verifier,"root":root,"host":host,"source_ids":frozenset(ids),
+    return {"secret":secret,"auth_mode":mode,"verifier":verifier,"root":root,"host":host,"source_ids":frozenset(ids),"metadata":metadata,
             "allowed_hosts":allowed_hosts,"origins":origins}
 
 
@@ -69,17 +89,37 @@ class BearerGate:
     Non-MCP requests are also gated; no unauthenticated diagnostic endpoint.
     All credentials and request headers remain out of response bodies.
     """
-    def __init__(self, app, *, secret="", origins=(), verifier=None):
+    def __init__(self, app, *, secret="", origins=(), verifier=None,
+                 metadata=None):
         self.app=app
         self.secret=secret.encode("utf-8")
         self.origins=set(origins)
         self.verifier=verifier
+        self.metadata=metadata
+        self.resource_metadata_url=(
+            metadata["resource"].removesuffix("/mcp")+
+            "/.well-known/oauth-protected-resource/mcp"
+            if metadata is not None else None)
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "lifespan":
             return await self.app(scope,receive,send)
         if scope["type"] not in ("http","websocket"):
             return await self.app(scope,receive,send)
+        # OAuth protected resource metadata is public. It never includes any
+        # access token, private media record, subject ACL, or source ID.
+        if (self.metadata is not None and scope["type"] == "http" and
+                scope.get("method") == "GET" and
+                scope.get("path") in (
+                    "/.well-known/oauth-protected-resource",
+                    "/.well-known/oauth-protected-resource/mcp")):
+            payload=json.dumps(self.metadata,separators=(",",":")).encode("utf-8")
+            await send({"type":"http.response.start","status":200,
+                        "headers":[(b"content-type",b"application/json"),
+                                   (b"cache-control",b"no-store"),
+                                   (b"content-length",str(len(payload)).encode())]})
+            await send({"type":"http.response.body","body":payload})
+            return
         headers={k.lower():v for k,v in scope.get("headers",[])}
         auth=headers.get(b"authorization",b"")
         sources=None
@@ -101,9 +141,16 @@ class BearerGate:
             if scope["type"]=="websocket":
                 await send({"type":"websocket.close","code":1008})
                 return
+            response_headers=[(b"content-type",b"application/json"),
+                              (b"cache-control",b"no-store")]
+            if self.resource_metadata_url is not None:
+                challenge=(
+                    'Bearer realm="QualityRAG Video", '+
+                    'resource_metadata="'+self.resource_metadata_url+'", '+
+                    'scope="video:read"')
+                response_headers.append((b"www-authenticate",challenge.encode()))
             await send({"type":"http.response.start","status":401,
-                        "headers":[(b"content-type",b"application/json"),
-                                   (b"cache-control",b"no-store")]})
+                        "headers":response_headers})
             await send({"type":"http.response.body",
                         "body":b'{"error":"unauthorized"}'})
             return
@@ -162,7 +209,8 @@ def create_remote_app(environ=None):
     )
     mcp_app=server.streamable_http_app(transport_security=transport, json_response=True, stateless_http=True)
     return BearerGate(mcp_app,secret=settings["secret"],
-                      origins=settings["origins"],verifier=settings["verifier"])
+                      origins=settings["origins"],verifier=settings["verifier"],
+                      metadata=settings["metadata"])
 
 
 def main():
