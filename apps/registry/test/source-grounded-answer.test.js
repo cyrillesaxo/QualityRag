@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {buildSourceGroundedAnswer} from '../src/source-grounded-answer.js';
+import {scanReviewedSourceConstraints} from '../src/constraint-sufficiency.js';
 
 const digest=x=>createHash('sha256').update(x,'utf8').digest('hex');
 const source='google_drive/'+'a'.repeat(32);
@@ -25,8 +26,11 @@ const verifiedLines=[
   lineSha256:digest(exception),text:exception,
   context:[{lineNumber:1,text:primary}]}
 ];
+const cleanScan=scanReviewedSourceConstraints({
+ sources:[{sourceId:source,lines:[primary,exception]}],witnesses
+});
 const build=(changes={})=>buildSourceGroundedAnswer({
- policy,witnesses,verifiedLines,...changes
+ policy,witnesses,verifiedLines,constraintScan:cleanScan,...changes
 });
 
 test('all signed requirements and exception text appear unchanged, without AI paraphrase',()=>{
@@ -40,6 +44,8 @@ test('all signed requirements and exception text appear unchanged, without AI pa
  assert.equal(result.coverage.humanSignedSupports,2);
  assert.equal(result.coverage.allSignedAnchorsIncluded,true);
  assert.equal(result.coverage.fullDocumentExaminedForExceptions,false);
+ assert.equal(result.coverage.referencedFilesLexicallyScanned,true);
+ assert.equal(result.coverage.unreviewedLexicalSignalsFound,0);
  assert.equal(result.assertions.freeFormAnswerEntailmentVerified,false);
  assert.equal(result.assertions.documentWideCompletenessVerified,false);
  assert.equal(result.assertions.modelGeneratedParaphrase,false);
@@ -90,6 +96,23 @@ test('excessive lines refuse rather than truncate exceptions',()=>{
  // The first line has one neighbor to keep context well-formed.
  eightLines[0].context=[{lineNumber:2,text:long}];
  assert.throws(()=>buildSourceGroundedAnswer({
-   policy:eightPolicy,witnesses:eightWitnesses,verifiedLines:eightLines
+   policy:eightPolicy,witnesses:eightWitnesses,verifiedLines:eightLines,
+   constraintScan:scanReviewedSourceConstraints({
+     sources:[{sourceId:source,lines:Array(8).fill(long)}],
+     witnesses:eightWitnesses
+   })
  }),/PROTECTED_GROUNDED_OUTPUT_TOO_LARGE/);
+});
+
+test('extract builder requires verified file-wide signal screening, never a guessed flag',()=>{
+ assert.throws(()=>build({constraintScan:null}),
+   /PROTECTED_GROUNDED_SUFFICIENCY_CHECK_REQUIRED/);
+ const unreviewed=scanReviewedSourceConstraints({
+   sources:[{sourceId:source,lines:[primary,exception,
+     'However, this rule is superseded for international transfers.']}],
+   witnesses
+ });
+ assert.equal(unreviewed.candidateCount,1);
+ assert.throws(()=>build({constraintScan:unreviewed}),
+   /PROTECTED_GROUNDED_SUFFICIENCY_CHECK_REQUIRED/);
 });
