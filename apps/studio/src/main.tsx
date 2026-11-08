@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './style.css';
+import CloudDrives from './CloudDrives';
 
 type Service={id:string;displayName:string};
 type Policy={policy:{id:string;version:string;requirements:unknown[]};status:string;sha256:string};
@@ -195,6 +196,7 @@ function Studio(){
     Similarity: {hit.similarity.toFixed(3)} (not probability) · Unverified model candidate
    </li>)}</ul>
    </section>
+   <CloudDrives token={token}/>
    <footer>QualityRag v0.1 · deterministic policy enforcement · policies are not proof of source truth</footer>
  </main>;
 }
