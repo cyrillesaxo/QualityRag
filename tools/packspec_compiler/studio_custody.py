@@ -207,7 +207,9 @@ def verify_customer_manifest(*, receipt, signed_custody, public_key, source_file
     """
     _require(isinstance(public_key, Ed25519PublicKey), "INVALID_CUSTODIAN_PUBLIC_KEY")
     _require(isinstance(signed_custody, dict), "INVALID_CUSTODY_ATTESTATION")
-    observations = signed_custody.get("payload", {}).get("observations")
+    signed_payload = signed_custody.get("payload")
+    _require(isinstance(signed_payload, dict), "INVALID_SIGNED_CUSTODY_PAYLOAD")
+    observations = signed_payload.get("observations")
     _require(isinstance(observations, dict) and set(observations) == {"studio_custody"},
              "INVALID_CUSTODY_OBSERVATIONS")
     manifest = observations["studio_custody"]
