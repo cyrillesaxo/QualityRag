@@ -44,6 +44,18 @@ class RemoteSecurityTests(unittest.TestCase):
             scoped=_config({**base,"QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1,lesson-2"})
             self.assertEqual(scoped["source_ids"],frozenset({"lesson-1","lesson-2"}))
 
+    def test_jwt_mode_requires_valid_canonical_resource_url(self):
+        with tempfile.TemporaryDirectory() as root:
+            base={"QUALITYRAG_VIDEO_ROOT":root,
+                  "QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1",
+                  "QUALITYRAG_VIDEO_MCP_AUTH_MODE":"jwt",
+                  "QUALITYRAG_VIDEO_MCP_ISSUER":"https://issuer.example"}
+            for resource in ["", "http://video.example/mcp",
+                             "https://video.example/mcp?token=x",
+                             "https://video.example/other",
+                             "https://username:secret@video.example/mcp"]:
+                with self.subTest(resource=resource),self.assertRaises(RemoteConfigurationError):
+                    _config({**base,"QUALITYRAG_VIDEO_MCP_RESOURCE_URL":resource})
     def test_bearer_gate_checks_token_and_origin_before_dispatch(self):
         async def behind(scope,receive,send):
             await send({"type":"http.response.start","status":200,"headers":[]})
