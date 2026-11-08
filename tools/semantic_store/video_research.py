@@ -6,6 +6,7 @@ Search remains lexical until a separately evaluated semantic index is added.
 from __future__ import annotations
 
 from video_catalog import CatalogError, search_evidence, read_evidence
+from video_sources import source_reference
 
 MAX_WINDOW_MS = 60000
 MAX_RESULTS = 20
@@ -87,6 +88,7 @@ def research_video_evidence(root: str, query: str, *, intent: str = "cross_modal
                 "end_ms": anchor["interval"]["end_ms"],
                 "media_sha256": source["media_sha256"],
             },
+            "source_reference": source_reference(root, source_id, anchor["interval"]["start_ms"]),
             "admission": "CANDIDATE_REQUIRES_REVIEW",
         })
         if len(bundles) >= limit:
