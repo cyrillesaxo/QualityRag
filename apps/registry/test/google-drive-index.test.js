@@ -121,6 +121,8 @@ test('separate encrypted Drive text indexes enforce OIDC user isolation and purg
    assert.equal(searched.status,200);
    assert.equal(searched.body.hits.length,1);
    assert.equal(searched.body.hits[0].anchor.kind,'text_line');
+   assert.equal(searched.body.hits[0].source_url,
+     'https://drive.google.com/file/d/alice-text/view');
    assert.equal(searched.body.hits[0].anchor.line_number,1);
    assert.equal(searched.body.assurance,'NOT_EVALUATED_BY_PACKSPEC');
    const bobOnly=await request('POST','/v1/drives/google/search','bob',{query:'vendor rule'});
