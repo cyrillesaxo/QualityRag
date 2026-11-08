@@ -31,6 +31,23 @@ function endpoint(value:string):string {
    throw Error('Protected use requires trusted HTTPS or loopback registry URL');
  return url.toString().replace(/\/$/,'');
 }
+export type SourceGroundedExtract={
+ schema:'qualityrag.source-grounded-extract/v1';
+ answer:string;
+ sections:Array<{
+   requirementId:string;sourceId:string;lineNumber:number;
+   reviewedStatus:'HUMAN_SIGNED_SUPPORTS';exactSourceLine:string;
+   adjacentContext:Array<{lineNumber:number;text:string;semantics:'UNREVIEWED_ADJACENT_CONTEXT'}>
+ }>;
+ coverage:{requiredPolicyObligations:number;humanSignedSupports:number;
+   allSignedAnchorsIncluded:true;adjacentContextWindowLines:1;
+   fullDocumentExaminedForExceptions:false};
+ assertions:{exactLinesRevalidated:true;humanReviewedAnchorSemantics:true;
+   modelGeneratedParaphrase:false;freeFormAnswerEntailmentVerified:false;
+   documentWideCompletenessVerified:false;independentPublisherVerified:false};
+ receipt:UseCheckReceipt;delivery:'SERVER_GENERATED_EXTRACT_ONLY';
+ answerSemanticsVerified:false;globalEnforcement:false;externallyAnchored:false;
+};
 export class ProtectedUseClient {
  private base:string;
  private bearer:string;
@@ -127,5 +144,66 @@ export class ProtectedUseClient {
      throw Error('Protected gateway denied delivery: mismatched permit');
    return {answer:result.answer,receipt:receipt as UseCheckReceipt,
      delivery:'BUFFERED_SINGLE_RESPONSE'};
+ }
+ /** The registry constructs a verbatim extract from all signed witness anchors.
+  * No caller-supplied prose is allowed. Not document-wide semantic entailment.
+  */
+ async extractFromReviewedSources(decisionId:string,requestId:string):
+   Promise<SourceGroundedExtract>{
+   if(typeof decisionId!=='string'||!UUID.test(decisionId)||
+      typeof requestId!=='string'||!ID.test(requestId))
+     throw Error('Invalid grounded extraction request');
+   const response=await fetch(this.base+'/v1/evidence/protected-decisions/'+
+     decisionId+'/grounded-deliver',{
+       method:'POST',cache:'no-store',redirect:'error',
+       headers:{Authorization:'Bearer '+this.bearer,'Content-Type':'application/json'},
+       body:JSON.stringify({requestId}),signal:AbortSignal.timeout(10000)
+     });
+   let result:SourceGroundedExtract;
+   try{
+     const raw=await response.text();
+     if(raw.length>100000)throw Error('Response too large');
+     result=JSON.parse(raw) as SourceGroundedExtract;
+   }catch{throw Error('Grounded extraction denied: invalid registry response')}
+   if(!response.ok)throw Error('Grounded extraction denied');
+   if(result?.schema!=='qualityrag.source-grounded-extract/v1'||
+      result.delivery!=='SERVER_GENERATED_EXTRACT_ONLY'||
+      typeof result.answer!=='string'||!result.answer||
+      new TextEncoder().encode(result.answer).length>16384||
+      !Array.isArray(result.sections)||result.sections.length<1||
+      !Number.isSafeInteger(result.coverage?.requiredPolicyObligations)||
+      result.coverage.requiredPolicyObligations<1||
+      result.coverage.allSignedAnchorsIncluded!==true||
+      result.coverage.fullDocumentExaminedForExceptions!==false||
+      result.coverage.humanSignedSupports!==result.sections.length||
+      result.assertions?.exactLinesRevalidated!==true||
+      result.assertions?.humanReviewedAnchorSemantics!==true||
+      result.assertions?.modelGeneratedParaphrase!==false||
+      result.assertions?.freeFormAnswerEntailmentVerified!==false||
+      result.assertions?.documentWideCompletenessVerified!==false||
+      result.assertions?.independentPublisherVerified!==false||
+      result.answerSemanticsVerified!==false||
+      result.globalEnforcement!==false||
+      result.externallyAnchored!==false)
+     throw Error('Grounded extraction denied: unsupported coverage claims');
+   const digest=await crypto.subtle.digest('SHA-256',
+     new TextEncoder().encode(result.answer));
+   const actualSha=Array.from(new Uint8Array(digest))
+      .map(x=>x.toString(16).padStart(2,'0')).join('');
+   const receipt=result.receipt;
+   if(receipt?.schema!=='qualityrag.protected-decision-use/v1'||
+      receipt.permission!=='PERMIT_SIGNED_ASSERTION_USE'||
+      receipt.decisionId!==decisionId||receipt.requestId!==requestId||
+      receipt.answerSha256!==actualSha||
+      receipt.deliveryMode!=='SOURCE_GROUNDED_EXTRACT'||
+      !HEX.test(receipt.policySha256||'')||
+      !HEX.test(receipt.chainHash||'')||
+      !UUID.test(receipt.receiptId||'')||
+      receipt.globalEnforcement!==false||
+      receipt.answerSemanticsVerified!==false||
+      receipt.externallyAnchored!==false||
+      receipt.scope!=='THIS_REGISTRY_CHECK_ONLY')
+     throw Error('Grounded extraction denied: invalid permit');
+   return result;
  }
 }
