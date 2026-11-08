@@ -15,6 +15,7 @@ import {createHandler} from '../src/server.js';
 import {loadProtectedReviewTrust,reviewCanonical,
  verifyHumanReviewAttestations} from '../src/protected-admission.js';
 import {permissionFor} from '../src/oidc.js';
+import {scanReviewedSourceConstraints} from '../src/constraint-sufficiency.js';
 
 const DOMAIN=Buffer.from('QUALITYRAG/qualityrag.signed-observations/v1\0','ascii');
 const sha=str=>createHash('sha256').update(str).digest('hex');
@@ -623,5 +624,99 @@ test('customer offline preparation and two independent Python signing commands p
      {encoding:'utf8'});
    assert.equal(denied.status,2);
    assert.equal(fs.existsSync(unsignedPath),false);
+ }finally{fs.rmSync(dir,{recursive:true,force:true})}
+});
+
+
+test('customer can independently sign a bounded multi-line review that closes a distant exception signal',()=>{
+ const pythonReady=spawnSync('python',['--version'],{encoding:'utf8'});
+ if(pythonReady.status!==0)return;
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-manifest-review-'));
+ const script=fileURLToPath(new URL(
+   '../../../tools/packspec_compiler/prepare_protected_drive_review.py',import.meta.url));
+ const original='Approval is required for ordinary claims.\\n'+
+   Array(4).fill('Routine administrative procedure.').join('\\n')+
+   '\\nExcept emergencies, which require a separate notice.';
+ const sourceFile=path.join(dir,'reviewed-policy.txt');
+ const manifestFile=path.join(dir,'witnesses.json');
+ const preparedFile=path.join(dir,'prepared.json');
+ const custodyFile=path.join(dir,'custody.json');
+ const meaningFile=path.join(dir,'meaning.json');
+ const requestFile=path.join(dir,'request.json');
+ const custKey=path.join(dir,'cust-private.pem');
+ const reviewerKey=path.join(dir,'review-private.pem');
+ const src='google_drive/'+'b'.repeat(32);
+ const digest='d'.repeat(64);
+ const folder='manifest-customer-folder';
+ fs.writeFileSync(sourceFile,original);
+ fs.writeFileSync(custKey,custodial.privateKey.export({type:'pkcs8',format:'pem'}),
+   {mode:0o600});
+ fs.writeFileSync(reviewerKey,meaningReview.privateKey.export({type:'pkcs8',format:'pem'}),
+   {mode:0o600});
+ const witnesses=[
+   {sourceId:src,requirementId:'approval',origin:witnessOrigin,
+     status:'SUPPORTS',lineNumber:1,sourcePath:sourceFile},
+   {sourceId:src,requirementId:'exception',origin:witnessOrigin,
+     status:'SUPPORTS',lineNumber:6,sourcePath:sourceFile}
+ ];
+ const run=args=>spawnSync('python',[script,...args],{encoding:'utf8'});
+ try{
+   fs.writeFileSync(manifestFile,JSON.stringify({witnesses}));
+   const prepare=run(['prepare-manifest','--service','claims',
+     '--environment','dev','--policy-sha',digest,
+     '--owner-subject',subject,'--folder-id',folder,
+     '--manifest',manifestFile,'--out',preparedFile]);
+   assert.equal(prepare.status,0,prepare.stdout+'\\n'+prepare.stderr);
+   const prepared=JSON.parse(fs.readFileSync(preparedFile,'utf8'));
+   assert.equal(prepared.witnesses.length,2);
+   assert.equal(prepared.witnesses[1].lineNumber,6);
+   assert.ok(!JSON.stringify(prepared).includes(sourceFile));
+   const custody=run(['sign','--role','custodian','--payload',preparedFile,
+     '--private-key',custKey,'--key-id','customer-custodian-2026',
+     '--attest-reviewed','--out',custodyFile]);
+   assert.equal(custody.status,0,custody.stdout+'\\n'+custody.stderr);
+   const meaning=run(['sign','--role','meaningReviewer','--payload',preparedFile,
+     '--private-key',reviewerKey,'--key-id','customer-meaning-reviewer-2026',
+     '--attest-reviewed','--out',meaningFile]);
+   assert.equal(meaning.status,0,meaning.stdout+'\\n'+meaning.stderr);
+   const transport=run(['build-request','--custody',custodyFile,
+     '--meaning',meaningFile,'--request-id','approved-exception-001',
+     '--trace-id','trace-exception-001','--out',requestFile]);
+   assert.equal(transport.status,0,transport.stdout+'\\n'+transport.stderr);
+   const payload=JSON.parse(fs.readFileSync(requestFile,'utf8'));
+   const verified=verifyHumanReviewAttestations(
+     payload.custody,payload.meaning,trust(),{
+       serviceId:'claims',environment:'dev',policySha256:digest,
+       subject,folderId:folder
+     });
+   assert.equal(verified.payload.witnesses.length,2);
+   const lines=original.split('\\n');
+   const screening=scanReviewedSourceConstraints({
+     sources:[{sourceId:src,lines}],witnesses:verified.payload.witnesses
+   });
+   assert.equal(screening.candidateCount,0);
+   assert.equal(screening.reviewedSignalCount,1);
+   const unsigned=scanReviewedSourceConstraints({
+     sources:[{sourceId:src,lines}],witnesses:[verified.payload.witnesses[0]]
+   });
+   assert.equal(unsigned.candidateCount,1);
+   // No silent SUPPORTS default or duplicate signed line identity.
+   const invalidPath=path.join(dir,'invalid-manifest.json');
+   fs.writeFileSync(invalidPath,JSON.stringify({witnesses:[
+     {...witnesses[0],status:'SUPPORTS'},
+     {...witnesses[1],status:undefined}
+   ]}));
+   const rejected=run(['prepare-manifest','--service','claims',
+     '--environment','dev','--policy-sha',digest,
+     '--owner-subject',subject,'--folder-id',folder,
+     '--manifest',invalidPath,'--out',path.join(dir,'invalid-output.json')]);
+   assert.equal(rejected.status,2);
+   const dupePath=path.join(dir,'duplicate-manifest.json');
+   fs.writeFileSync(dupePath,JSON.stringify({witnesses:[witnesses[0],witnesses[0]]}));
+   const duped=run(['prepare-manifest','--service','claims',
+     '--environment','dev','--policy-sha',digest,
+     '--owner-subject',subject,'--folder-id',folder,
+     '--manifest',dupePath,'--out',path.join(dir,'duplicate-output.json')]);
+   assert.equal(duped.status,2);
  }finally{fs.rmSync(dir,{recursive:true,force:true})}
 });
