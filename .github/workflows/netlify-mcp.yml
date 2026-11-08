@@ -21,3 +21,8 @@ jobs:
         run: node --check netlify/mcp/netlify/functions/mcp.mjs
       - name: Adapter contract tests
         run: node --test netlify/mcp/tests/*.test.mjs
+      - name: Live Netlify preview authentication and readiness smoke
+        if: github.event_name == 'pull_request'
+        env:
+          QUALITYRAG_MCP_PREVIEW_URL: https://deploy-preview-${{ github.event.pull_request.number }}--qualityrag-mcp.netlify.app/
+        run: node netlify/mcp/tests/live-preview-smoke.mjs
