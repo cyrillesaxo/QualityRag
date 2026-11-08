@@ -239,6 +239,8 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const racedUse=await racePending;
    assert.equal(racedUse.status,409);
    assert.equal(racedUse.body.error,'PROTECTED_OWNER_CONTEXT_CHANGED');
+   index.controlSource(subject,connector.status(subject),{
+     sourceId:hit.source_id,searchable:true,reason:'OWNER_SELECTION'});
    let resumeGateway;
    pendingLive=new Promise(resolve=>{resumeGateway=resolve});
    const gatewayRace=request('POST',deliverPath,'owner',{
@@ -246,9 +248,12 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    for(let i=0;i<100&&pendingLive;i++)
      await new Promise(resolve=>setTimeout(resolve,5));
    assert.equal(pendingLive,null,'Gateway must enter live download');
+   index.controlSource(subject,connector.status(subject),{
+     sourceId:hit.source_id,searchable:false,reason:'NEEDS_REVIEW'});
    resumeGateway();
    const afterRace=await gatewayRace;
    assert.equal(afterRace.status,409);
+   assert.equal(afterRace.body.error,'PROTECTED_OWNER_CONTEXT_CHANGED');
    assert.ok(!JSON.stringify(afterRace.body).includes(deliveryText));
    index.controlSource(subject,connector.status(subject),{
      sourceId:hit.source_id,searchable:true,reason:'OWNER_SELECTION'});
