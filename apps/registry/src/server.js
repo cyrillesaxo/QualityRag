@@ -58,6 +58,17 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
  if(protectedDriveServices.size>0&&
     (!authenticate||!driveIndex||!driveManager||!evidenceLedger))
    throw Error('PROTECTED_DRIVE_RUNTIME_REQUIREMENTS_UNMET');
+ // A protected service cannot silently become unprotected on a restart.
+ // File-backed activation records are locally hash-chained, not externally anchored.
+ const configured=new Set(protectedDriveServices);
+ for(const previous of evidenceLedger?.protectedScopes?.()||[]){
+   if(!configured.has(previous))throw Error('PROTECTED_DRIVE_CONFIGURATION_DOWNGRADE');
+ }
+ for(const scope of configured){
+   const [serviceId,environment]=scope.split('@');
+   evidenceLedger.recordProtectionActivation(serviceId,environment);
+ }
+ protectedDriveServices=configured;
  return async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
   if (url.pathname==='/health') return reply(res,200,{ok:true,service:'qualityrag-registry'});
