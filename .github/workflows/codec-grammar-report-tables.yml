@@ -1,0 +1,22 @@
+name: Codec grammar research table verification
+
+on:
+  push:
+    paths:
+      - 'docs/research/codec-grammar/**'
+      - '.github/workflows/codec-grammar-report-tables.yml'
+  pull_request:
+    paths:
+      - 'docs/research/codec-grammar/**'
+      - '.github/workflows/codec-grammar-report-tables.yml'
+
+jobs:
+  verify-reported-tables:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check reported result arithmetic (not codec replay)
+        run: python3 docs/research/codec-grammar/verify_reported_tables.py
