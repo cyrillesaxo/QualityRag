@@ -24,6 +24,10 @@ function fail(res,error) {
    return reply(res,503,{error:code});
  if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
  if(code==='PROTECTED_USE_RATE_LIMITED')return reply(res,429,{error:code,permission:'DENIED'});
+ if(code==='PROTECTED_SUFFICIENCY_RECORD_RATE_LIMITED')
+   return reply(res,429,{error:code,permission:'DENIED'});
+ if(code==='PROTECTED_SUFFICIENCY_BLOCK_REPLAY')
+   return reply(res,409,{error:code,permission:'DENIED'});
  if(code==='PROTECTED_USE_REPLAY')return reply(res,409,{error:code,permission:'DENIED'});
  if(code==='PROTECTED_DECISION_REVOKED'||code==='PROTECTED_DECISION_ALREADY_REVOKED')
    return reply(res,409,{error:code,permission:'DENIED'});
@@ -53,6 +57,7 @@ function fail(res,error) {
      'PROTECTED_SUFFICIENCY_UNREVIEWED_SIGNAL',
      'PROTECTED_SUFFICIENCY_SOURCE_UNAVAILABLE',
      'PROTECTED_SUFFICIENCY_INPUT_INVALID',
+     'PROTECTED_SUFFICIENCY_RECORD_INVALID',
      'PROTECTED_REVOCATION_REASON_INVALID'
    ].includes(code)?code:'PROTECTED_ADMISSION_REJECTED';
    const status=safe==='PROTECTED_DECISION_NOT_FOUND'?404:
@@ -467,8 +472,14 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      });
      // The extractive route is deliberately fail-closed if any potentially
      // material language signal exists outside the reviewed signed lines.
-     if(grounded&&live.constraintScan.candidateCount>0)
+     if(grounded&&live.constraintScan.candidateCount>0){
+       evidenceLedger.recordSufficiencyBlock({
+         decision:row,actor,requestId:input.requestId,
+         signalCount:live.constraintScan.candidateCount,
+         checkedAt:live.checkedAt
+       });
        throw Error('PROTECTED_SUFFICIENCY_UNREVIEWED_SIGNAL');
+     }
      // No free-form AI prose is accepted on the extractive path: all required
      // approved witness anchors are rendered verbatim with adjacent context.
      // This is syntactic/byte-grounded coverage, not semantic entailment.
