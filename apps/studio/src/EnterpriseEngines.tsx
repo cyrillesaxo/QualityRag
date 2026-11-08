@@ -49,9 +49,9 @@ export default function EnterpriseEngines(){
       <p><strong>Want to see this in your environment?</strong> Request a technical walkthrough. No customer data is needed.</p>
       <label>Work email <input type="email" autoComplete="email" value={contactEmail} onChange={e=>setContactEmail(e.target.value)} placeholder="you@company.com" /></label>
       <label>Organization <input type="text" autoComplete="organization" value={contactCompany} onChange={e=>setContactCompany(e.target.value)} placeholder="Organization (optional)" maxLength={100}/></label>
-      <button type="button" disabled={!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(contactEmail)} onClick={()=>{
+      <button type="button" disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)} onClick={()=>{
        const subject='QualityRAG Enterprise walkthrough — '+engine.name;
-       const body=['I would like to discuss '+engine.name+'.','Work email: '+contactEmail,'Organization: '+contactCompany,'Source: QualityRAG Studio','Engine: '+engine.name].join('\\n');
+       const body=['I would like to discuss '+engine.name+'.','Work email: '+contactEmail,'Organization: '+contactCompany,'Source: QualityRAG Studio','Engine: '+engine.name].join('\n');
        window.location.href='mailto:cyrille.eloundou@dodollc.net?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
       }}>Request walkthrough by email</button>
       <button type="button" onClick={()=>contact(engine.name)}>Explore Dodo LLC website</button>
