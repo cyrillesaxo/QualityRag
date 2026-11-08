@@ -3,6 +3,8 @@ import contextlib
 import copy
 import io
 import json
+import shutil
+import subprocess
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -140,6 +142,42 @@ class OfflineReceiptTest(unittest.TestCase):
                 result = main([str(source)])
             self.assertEqual(result, 2)
             self.assertIn("DUPLICATE_JSON_KEY", captured.getvalue())
+
+    def test_actual_javascript_registry_export_replays_in_python(self):
+        """Cross-runtime proof: generate in registry JS, independently replay in Python."""
+        if not shutil.which("node"):
+            self.skipTest("Node.js runtime unavailable; cross-runtime test not executed")
+        root = Path(__file__).resolve().parents[3]
+        with tempfile.TemporaryDirectory() as d:
+            scratch = str(Path(d) / "ledger.jsonl")
+            # The registry module creates an actual ledger event and exports it.
+            js = """
+import {createHash} from 'node:crypto';
+import {EvidenceLedger} from './apps/registry/src/evidence-ledger.js';
+const sha=o=>createHash('sha256').update(JSON.stringify(o)).digest('hex');
+const policy={id:'portable',version:'1',requirements:[{id:'two-source',min_independent_sources:2}]};
+const at=new Date(Date.now()-1000).toISOString();
+const sources=[1,2].map(i=>({
+  id:'ev_'+i.toString(16).padStart(32,'0'),requirement_id:'two-source',
+  origin:'org_'+(1).toString(16).padStart(32,'0'),
+  source_ref:'src_'+i.toString(16).padStart(32,'0'),
+  observed_at:at,status:'SUPPORTS'
+}));
+const ledger=new EvidenceLedger(process.argv[1]);
+const event=ledger.ingest({serviceId:'claims-api',environment:'dev',
+  requestId:'portable-001',traceId:'trace-001',evidence:sources},
+  policy,sha(policy),'test-writer');
+console.log(JSON.stringify(ledger.exportReplay(event.id)));
+"""
+            result = subprocess.run(
+                ["node", "--input-type=module", "-e", js, scratch],
+                cwd=root, text=True, capture_output=True, timeout=15, check=True,
+            )
+            package = json.loads(result.stdout)
+            checked = verify_package(package)
+            self.assertEqual(checked["verdict"], "INCONCLUSIVE")
+            self.assertTrue(checked["policyDigestMatched"])
+            self.assertTrue(checked["exportDigestMatched"])
 
     def test_cli_works_offline(self):
         pkg = make_package()
