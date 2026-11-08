@@ -236,6 +236,83 @@ export class UserDriveIndex {
   this.save(subject,snap);
   return {changed:true,visibility:this.visibility(subject,connection)};
  }
+ checkGovernedCandidates(subject,connection,policy,policySha256,candidates){
+  // Guarded route from Drive *candidates* to governed evaluation. It deliberately
+  // cannot ADMIT because lexical text and owner consent do not attest semantics
+  // or independent source provenance.
+  check(policy&&typeof policy.id==='string'&&
+    typeof policy.version==='string'&&Array.isArray(policy.requirements)&&
+    typeof policySha256==='string'&&/^[0-9a-f]{64}$/.test(policySha256),
+    'INVALID_DRIVE_GATE_POLICY');
+  check(Array.isArray(candidates)&&candidates.length>=1&&candidates.length<=25,
+    'INVALID_DRIVE_GATE_CANDIDATES');
+  const reqs=new Set(policy.requirements.map(r=>r.id));
+  const seen=new Set();
+  for(const candidate of candidates){
+    check(candidate&&typeof candidate==='object'&&!Array.isArray(candidate)&&
+      Object.keys(candidate).length===4&&
+      ['sourceId','revision','requirementId','lineNumber'].every(k=>
+        Object.hasOwn(candidate,k))&&
+      typeof candidate.sourceId==='string'&&
+      /^google_drive[/][a-f0-9]{32}$/.test(candidate.sourceId)&&
+      typeof candidate.revision==='string'&&/^[a-f0-9]{64}$/.test(candidate.revision)&&
+      typeof candidate.requirementId==='string'&&
+      reqs.has(candidate.requirementId)&&
+      Number.isSafeInteger(candidate.lineNumber)&&
+      candidate.lineNumber>=1&&candidate.lineNumber<=6000,
+      'INVALID_DRIVE_GATE_CANDIDATE');
+    const key=candidate.sourceId+':'+candidate.revision+':'+
+      candidate.requirementId+':'+candidate.lineNumber;
+    check(!seen.has(key),'DRIVE_GATE_DUPLICATE_CANDIDATE');
+    seen.add(key);
+  }
+  const snapshot=this.bound(subject,connection);
+  const age=snapshot?this.now()-Date.parse(snapshot.syncedAt):NaN;
+  const fresh=Number.isFinite(age)&&age>=0&&age<=MAX_AGE_MS;
+  const observations=candidates.map(candidate=>{
+    const source=snapshot?.entries.find(e=>e.sourceId===candidate.sourceId);
+    const reasons=[];
+    if(!snapshot)reasons.push('NO_CURRENT_INDEX');
+    else if(!fresh)reasons.push('INDEX_STALE');
+    else if(!source)reasons.push('SOURCE_NOT_IN_SELECTED_INDEX');
+    else if(source.searchEnabled===false)reasons.push('SOURCE_EXCLUDED_BY_OWNER');
+    else if(source.revision!==candidate.revision)reasons.push('SOURCE_REVISION_MISMATCH');
+    else if(candidate.lineNumber>source.lines.length)reasons.push('ANCHOR_NOT_IN_EXTRACTED_TEXT');
+    else reasons.push('SEMANTIC_SUPPORT_NOT_VERIFIED','SOURCE_PROVENANCE_NOT_VERIFIED');
+    return {
+      sourceId:candidate.sourceId,revision:candidate.revision,
+      requirementId:candidate.requirementId,lineNumber:candidate.lineNumber,
+      eligibleForReviewedEvidence:reasons.length===2&&
+        reasons.includes('SEMANTIC_SUPPORT_NOT_VERIFIED'),
+      decision:reasons.includes('SOURCE_EXCLUDED_BY_OWNER')?'REFUSE':'INCONCLUSIVE',
+      reasons
+    };
+  });
+  const explicitlyExcluded=observations.some(o=>o.reasons.includes('SOURCE_EXCLUDED_BY_OWNER'));
+  return {
+    schema:'qualityrag.drive-governed-candidate-check/v1',
+    result:explicitlyExcluded?'REFUSE':'INCONCLUSIVE',
+    decisionBoundary:'OWNER_SOURCE_CONTROL_AND_PACKSPEC_MEMBERSHIP_ONLY',
+    evaluationAdmitted:false,meaningVerified:false,
+    independentProvenanceVerified:false,
+    asOf:new Date(this.now()).toISOString(),
+    policy:{id:policy.id,version:policy.version,sha256:policySha256},
+    index:{
+      selectedFolder:connection?.folderId||null,
+      asOf:snapshot?.syncedAt||null,
+      coverage:snapshot?.coverage||'UNKNOWN',
+      freshness:fresh?'CURRENT':'NOT_CURRENT'
+    },
+    counters:{
+      submitted:candidates.length,
+      ownerExcluded:observations.filter(o=>o.reasons.includes('SOURCE_EXCLUDED_BY_OWNER')).length,
+      eligibleForReview:observations.filter(o=>o.eligibleForReviewedEvidence).length,
+      otherUnresolved:observations.filter(o=>!o.eligibleForReviewedEvidence&&
+        !o.reasons.includes('SOURCE_EXCLUDED_BY_OWNER')).length
+    },
+    observations
+  };
+ }
  search(subject,connection,query){
   check(typeof query==='string'&&query.trim().length>1&&query.length<=MAX_QUERY,
     'INVALID_DRIVE_SEARCH_QUERY');
