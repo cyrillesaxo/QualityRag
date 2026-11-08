@@ -1,0 +1,85 @@
+{
+  "grammar": {
+    "schema": "qualityrag.activation-grammar/v0.1",
+    "regimes": {
+      "raw": {
+        "preserves": [
+          "symptom",
+          "context",
+          "exact_words"
+        ],
+        "exact_fields": [
+          "exact_words"
+        ],
+        "payload_bytes": 5000,
+        "activation_ms": 1,
+        "model_bytes": 0
+      },
+      "clinical": {
+        "preserves": [
+          "symptom",
+          "context"
+        ],
+        "payload_bytes": 100,
+        "activation_ms": 3,
+        "model_bytes": 200
+      },
+      "partial": {
+        "preserves": [
+          "symptom"
+        ],
+        "unknown_fields": [
+          "context"
+        ],
+        "payload_bytes": 30,
+        "activation_ms": 1,
+        "model_bytes": 0
+      }
+    },
+    "operators": [
+      {
+        "op": "TRANSITION",
+        "from": "raw",
+        "to": "clinical"
+      },
+      {
+        "op": "PRESERVE",
+        "fields": [
+          "symptom",
+          "context"
+        ]
+      },
+      {
+        "op": "ACTIVATE",
+        "regime": "clinical",
+        "modules": [
+          "clinical-v1"
+        ]
+      },
+      {
+        "op": "VERIFY",
+        "fields": [
+          "symptom"
+        ]
+      },
+      {
+        "op": "FALLBACK",
+        "regime": "raw"
+      }
+    ]
+  },
+  "contract": {
+    "schema": "qualityrag.activation-contract/v0.1",
+    "task": "triage-representation-only",
+    "source_id": "synthetic-child-description-001",
+    "required_fields": [
+      "symptom",
+      "context"
+    ],
+    "exact_fields": []
+  },
+  "observations": {
+    "symptom": "chest discomfort",
+    "context": "during running"
+  }
+}

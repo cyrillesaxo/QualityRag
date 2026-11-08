@@ -1,0 +1,110 @@
+{
+  "grammar": {
+    "schema": "qualityrag.activation-grammar/v0.1",
+    "regimes": {
+      "av1-reference": {
+        "preserves": [
+          "scene_action",
+          "subtitle_text",
+          "timeline",
+          "license_plate"
+        ],
+        "exact_fields": [
+          "subtitle_text",
+          "timeline",
+          "license_plate"
+        ],
+        "payload_bytes": 14500000,
+        "activation_ms": 4,
+        "model_bytes": 0
+      },
+      "generative": {
+        "preserves": [
+          "scene_action",
+          "timeline"
+        ],
+        "unknown_fields": [
+          "subtitle_text",
+          "license_plate"
+        ],
+        "exact_fields": [
+          "timeline"
+        ],
+        "payload_bytes": 800000,
+        "activation_ms": 18,
+        "model_bytes": 500000000
+      },
+      "generative-with-residuals": {
+        "preserves": [
+          "scene_action",
+          "subtitle_text",
+          "timeline",
+          "license_plate"
+        ],
+        "exact_fields": [
+          "subtitle_text",
+          "license_plate",
+          "timeline"
+        ],
+        "payload_bytes": 1200000,
+        "activation_ms": 22,
+        "model_bytes": 500000000
+      }
+    },
+    "operators": [
+      {
+        "op": "TRANSITION",
+        "from": "av1-reference",
+        "to": "generative-with-residuals"
+      },
+      {
+        "op": "PRESERVE",
+        "fields": [
+          "subtitle_text",
+          "timeline",
+          "license_plate"
+        ]
+      },
+      {
+        "op": "ACTIVATE",
+        "regime": "generative-with-residuals",
+        "modules": [
+          "shared-video-decoder-v0"
+        ]
+      },
+      {
+        "op": "VERIFY",
+        "fields": [
+          "subtitle_text",
+          "license_plate"
+        ]
+      },
+      {
+        "op": "FALLBACK",
+        "regime": "av1-reference"
+      }
+    ]
+  },
+  "contract": {
+    "schema": "qualityrag.activation-contract/v0.1",
+    "task": "synthetic-video-fidelity",
+    "source_id": "synthetic-video-001",
+    "required_fields": [
+      "scene_action",
+      "subtitle_text",
+      "timeline",
+      "license_plate"
+    ],
+    "exact_fields": [
+      "subtitle_text",
+      "timeline",
+      "license_plate"
+    ]
+  },
+  "observations": {
+    "scene_action": "car enters intersection",
+    "subtitle_text": "Stop",
+    "timeline": "t0-t120",
+    "license_plate": "ABC123"
+  }
+}
