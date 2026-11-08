@@ -1,0 +1,33 @@
+name: Video MCP candidate catalog
+on:
+  pull_request:
+    paths:
+      - 'tools/semantic_store/video_catalog.py'
+      - 'tools/semantic_store/video_mcp.py'
+      - 'tools/semantic_store/video_evidence.py'
+      - 'tools/semantic_store/tests/test_video_catalog.py'
+      - '.github/workflows/video-mcp.yml'
+  push:
+    paths:
+      - 'tools/semantic_store/video_catalog.py'
+      - 'tools/semantic_store/video_mcp.py'
+      - 'tools/semantic_store/tests/test_video_catalog.py'
+      - '.github/workflows/video-mcp.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalog-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile video MCP adapter
+        run: python -m py_compile tools/semantic_store/video_catalog.py tools/semantic_store/video_mcp.py
+      - name: Test evidence catalog without external providers
+        run: PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_catalog.py -v
