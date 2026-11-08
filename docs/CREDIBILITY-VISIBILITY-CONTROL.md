@@ -58,6 +58,35 @@ npm --prefix apps/registry run drive:governed-demo
 
 It shows `INCONCLUSIVE` for an included-but-unreviewed source, `REFUSE` after owner exclusion (even after resync), `INCONCLUSIVE` after explicit re-inclusion, and `INCONCLUSIVE` after index deletion.
 
+### Protected service ingress: enforce beyond the Studio preview
+
+The per-source Drive check is **not** enough on its own: an authorized
+downstream application could previously bypass the owner’s exclusion by
+submitting synthetic source-origin metadata directly to the generic registry
+evidence endpoint.
+
+For a specifically configured `serviceId@environment`, the new
+`BLOCK_UNATTESTED_GENERIC_EVIDENCE` mode now **fails closed** on
+`POST /v1/evidence/evaluations`. No client-supplied `src_` or `org_`
+token, request ID, override flag or unverified citation can reach the
+metadata evaluator and obtain `ADMIT` for that protected scope.
+
+Customers with signed `evidence.reader` permission and scope can see the
+configured mode, observed ingress denials, pinned PackSpec and unresolved
+safety boundaries in **Recorded Evidence Assurance**. A locally
+hash-chained, metadata-only protection activation record prevents silent
+configuration downgrade when the same ledger is reused on restart.
+
+**What is not yet controlled:** alternate registries, independent model
+inference endpoints, external SDK consumers and historical admissions
+recorded before protection. The protected service's generic path
+intentionally blocks even legitimate candidates until a separately
+verified source-attestation/semantic-review workflow exists. The
+`governed-check` route remains an **INCONCLUSIVE/REFUSE-only** candidate
+review, not an authorized `ADMIT` API.
+
+[Protected Drive ingress — setup and runnable proof](PROTECTED-DRIVE-INGRESS.md)
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
