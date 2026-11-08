@@ -9,6 +9,7 @@ export type UseCheckReceipt={
  decisionId:string;requestId:string;answerSha256:string;
  policySha256:string;checkedAt:string;at:string;
  receiptId:string;chainHash:string;
+ deliveryMode?:'DIGEST_ONLY_CLIENT_RELEASE'|'SERVER_BUFFERED_RELEASE';
  globalEnforcement:false;answerSemanticsVerified:false;
  independentPublisherVerified:false;externallyAnchored:false;
  scope:'THIS_REGISTRY_CHECK_ONLY'
@@ -115,6 +116,7 @@ export class ProtectedUseClient {
       receipt.permission!=='PERMIT_SIGNED_ASSERTION_USE'||
       receipt.decisionId!==decisionId||receipt.requestId!==requestId||
       receipt.answerSha256!==answerSha256||
+      receipt.deliveryMode!=='SERVER_BUFFERED_RELEASE'||
       !HEX.test(receipt.policySha256||'')||
       !UUID.test(receipt.receiptId||'')||
       !HEX.test(receipt.chainHash||'')||
