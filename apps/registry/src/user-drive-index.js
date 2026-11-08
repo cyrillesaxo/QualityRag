@@ -216,7 +216,8 @@ export class UserDriveIndex {
   check(typeof input.sourceId==='string'&&
     /^google_drive[/][a-f0-9]{32}$/.test(input.sourceId)&&
     typeof input.searchable==='boolean'&&
-    ['OWNER_SELECTION','SENSITIVE','OUT_OF_SCOPE','NEEDS_REVIEW'].includes(input.reason),
+    (input.searchable?input.reason==='OWNER_SELECTION':
+      ['SENSITIVE','OUT_OF_SCOPE','NEEDS_REVIEW'].includes(input.reason)),
     'INVALID_DRIVE_SOURCE_CONTROL');
   const location=this.location(subject);
   check(!this.activeSyncs.has(location),'DRIVE_SYNC_IN_PROGRESS');
