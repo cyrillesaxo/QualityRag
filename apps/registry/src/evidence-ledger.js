@@ -139,8 +139,23 @@ export class EvidenceLedger {
   list(serviceId,environment,limit=50) {
     if(!limited(serviceId)||!limited(environment)||!Number.isInteger(limit)||limit<1||limit>50)
       throw Error('INVALID_EVIDENCE_QUERY');
-    const entries=this.readAll().filter(x=>x.type==='evaluation'&&x.serviceId===serviceId&&x.environment===environment);
-    return {observedCount:entries.length,coverage:'UNKNOWN',
+    const rows=this.readAll();
+    const entries=rows.filter(x=>x.type==='evaluation'&&x.serviceId===serviceId&&x.environment===environment);
+    const matching=new Set(entries.map(x=>x.id));
+    const latestReviews=new Map();
+    for(const review of rows)if(review.type==='review'&&matching.has(review.evaluationId))
+      latestReviews.set(review.evaluationId,review);
+    const dispositions=[...latestReviews.values()];
+    const summary={
+      admit:entries.filter(x=>x.result.verdict==='ADMIT').length,
+      refuse:entries.filter(x=>x.result.verdict==='REFUSE').length,
+      inconclusive:entries.filter(x=>x.result.verdict==='INCONCLUSIVE').length,
+      accepted:dispositions.filter(x=>x.decision==='ACCEPTED').length,
+      disputed:dispositions.filter(x=>x.decision==='DISPUTED').length,
+      unreviewed:entries.length-dispositions.length,
+      reviewedFalseBlocks:dispositions.filter(x=>x.reasonCode==='FALSE_BLOCK').length
+    };
+    return {observedCount:entries.length,coverage:'UNKNOWN',summary,
       evaluations:entries.slice(-limit).reverse().map(x=>this.snapshot(x.id))};
   }
   replay(id){
