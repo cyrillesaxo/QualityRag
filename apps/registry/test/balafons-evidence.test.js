@@ -5,7 +5,7 @@ import {acceptBalafonsEvidence,PgEvidenceReplayStore} from '../src/balafons-evid
 const secret='x'.repeat(64),now=Date.now();
 function signed(owner='alice'){
  const e={schema:'qualityrag.balafons.source/v1',event_id:randomUUID(),tenant_id:'balafons:'+owner,principal_id:owner,
- source_id:'balafons:'+owner+':s1',action:'index',revision:'a'.repeat(64),content:'hello',metadata:{title:'Test'},acl:{owner_id:owner,visibility:'private'},occurred_at:new Date(now).toISOString()};
+ source_id:'balafons:'+owner+':s1',source_sequence:1,action:'index',revision:'a'.repeat(64),content:'hello',metadata:{title:'Test'},acl:{owner_id:owner,visibility:'private'},occurred_at:new Date(now).toISOString()};
  const payload=JSON.stringify(e);return {payload,signature:createHmac('sha256',secret).update(payload).digest('hex')};
 }
 test('accepts authenticated owner only once',async()=>{

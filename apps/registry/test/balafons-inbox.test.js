@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PgBalafonsEvidenceInbox} from '../src/balafons-inbox.js';
-const e={event_id:'00000000-0000-4000-8000-000000000001',tenant_id:'balafons:alice',principal_id:'alice',source_id:'balafons:alice:s',action:'index',revision:'a'.repeat(64),content:'private',metadata:{},acl:{owner_id:'alice',visibility:'private'}};
+const e={event_id:'00000000-0000-4000-8000-000000000001',tenant_id:'balafons:alice',principal_id:'alice',source_id:'balafons:alice:s',source_sequence:1,action:'index',revision:'a'.repeat(64),content:'private',metadata:{},acl:{owner_id:'alice',visibility:'private'}};
 test('replay and inbox insertion share a transaction',async()=>{
  const calls=[],pool={connect:async()=>({query:async(q)=>{calls.push(q);return {rowCount:1}},release:()=>{}})};
  assert.equal(await new PgBalafonsEvidenceInbox(pool).accept(e),true);

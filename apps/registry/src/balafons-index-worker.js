@@ -16,7 +16,7 @@ export class BalafonsIndexWorker{
       e.acl?.owner_id!==e.principal_id||e.acl?.visibility!=='private'||!['index','delete'].includes(e.action))
     {await c.query(`UPDATE qr_balafons_evidence_inbox SET state='failed',attempts=attempts+1,content=NULL,updated_at=now() WHERE event_id=$1 AND state='pending'`,[e.event_id]);continue;}
     // Missing monotonic sequence cannot safely establish source order.
-    if(!Number.isSafeInteger(Number(e.source_sequence))||e.source_sequence===null||Number(e.source_sequence)<0){
+    if(!((typeof e.source_sequence==='number'&&Number.isSafeInteger(e.source_sequence)&&e.source_sequence>=0)||(typeof e.source_sequence==='string'&&/^(0|[1-9][0-9]*)$/.test(e.source_sequence)&&BigInt(e.source_sequence)<=BigInt(Number.MAX_SAFE_INTEGER)))){
      await c.query(`UPDATE qr_balafons_evidence_inbox SET state='failed',attempts=attempts+1,content=NULL,updated_at=now() WHERE event_id=$1 AND state='pending'`,[e.event_id]);continue;
     }
     // Lock by source so concurrent workers cannot interleave revisions.
