@@ -67,6 +67,12 @@ The final animation frame shows the **separate, experimental Semantic Garden** r
 [Read the walkthrough and regenerate the GIF](docs/README-ANIMATION.md)
 
 
+## Credibility is visibility and control
+
+QualityRAG Studio's evidence-assurance promise is **inspectable source coverage, owner-controlled retrieval, and independently challengeable verdicts**—not a persuasive AI confidence score. For personal Drive sources, users can inspect which files were indexed or skipped, exclude an indexed source from private lexical search, preserve that exclusion across resync, review a local control history, and export an unsigned visibility report. **Exclusion is not erasure and search inclusion is not evidence approval.**
+
+[Customer visibility and control acceptance contract](docs/CREDIBILITY-VISIBILITY-CONTROL.md)
+
 ## Personal Google Drive configuration in QualityRAG Studio
 
 Studio now includes **My cloud drives**: a per-user Google OAuth connection, encrypted server-side account records, folder browsing, explicit source-folder selection, metadata preview, and disconnect. **After explicitly choosing a folder**, a user can opt into a separate encrypted, per-user text index, sync up to 40 eligible Google Docs/TXT/Markdown/CSV/JSON files, search for anchored lexical matches, and open the original Google file. The existing Semantic Store remains a single-user research worker; this private text index is **not yet its full semantic grammar or embeddings**.
