@@ -148,6 +148,11 @@ def search_hybrid(root, query, *, embedder, model_id, limit=10, lexical_weight=0
     records=payload.get("records")
     if not isinstance(records,list) or not 1<=len(records)<=MAX_DOCUMENTS:
         raise CatalogError("Invalid indexed witnesses")
+    # New sources make an index incomplete just as changed sources make it stale.
+    current_ids={p.stem for p in _catalog_dir(root).glob("*.json")
+                 if p.name not in {"hybrid-index.json","sources.json"} and not p.name.startswith(".")}
+    if current_ids != set(payload.get("fingerprints",{})):
+        raise CatalogError("Catalog membership changed; rebuild hybrid index")
     # Fail closed if indexed content is stale or underlying source removed.
     for source_id, fingerprint in payload.get("fingerprints",{}).items():
         if read_evidence(root,source_id)["fingerprint"]!=fingerprint:
