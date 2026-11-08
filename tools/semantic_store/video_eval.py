@@ -41,7 +41,8 @@ def evaluate_manifest(root: str, manifest: dict, *, top_k=5) -> dict:
     for source_id,relative_path in source_paths.items():
         artifact=read_evidence(root,source_id)
         media=permitted_media(root,relative_path)
-        digest=hashlib.file_digest(media.open("rb"),"sha256").hexdigest()
+        with media.open("rb") as handle:
+            digest=hashlib.file_digest(handle,"sha256").hexdigest()
         if digest!=artifact["source"]["media_sha256"]:
             raise CatalogError("Original media digest does not match source catalog")
         allow.add(source_id)
