@@ -93,6 +93,11 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
  const actors={
    owner:{subject,roles:new Set(['drive.reader','drive.manager','evidence.ingest','evidence.reader']),
      evidenceServices:new Set(['claims@dev','claims@legacy'])},
+   ownerReviewer:{subject,roles:new Set(['drive.reader','drive.manager',
+     'evidence.reader','evidence.reviewer']),evidenceServices:new Set(['claims@dev'])},
+   foreignReviewer:{subject:'trusted-issuer#owner-bob',roles:new Set([
+     'drive.reader','drive.manager','evidence.reader','evidence.reviewer']),
+     evidenceServices:new Set(['claims@dev'])},
    other:{subject:'trusted-issuer#owner-bob',
      roles:new Set(['drive.reader','evidence.ingest','evidence.reader']),
      evidenceServices:new Set(['claims@dev'])},
@@ -165,6 +170,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(admit.body.sourceCount,1);
    assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/use-check'),
      'evidence.ingest');
+   assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/revoke'),
+     'evidence.reviewer');
+   assert.equal(permissionFor('GET','/v1/evidence/protected-decisions/'+admit.body.id+'/status'),
+     'evidence.reader');
    const usePath='/v1/evidence/protected-decisions/'+admit.body.id+'/use-check';
    const answerText='Synthetic reviewed response — not a claim of model correctness';
    const answerSha256=sha(answerText);
@@ -260,6 +269,38 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const neverAllowed=await request('POST',refusedUse,'owner',useInput());
    assert.equal(neverAllowed.status,409);
    assert.equal(neverAllowed.body.error,'PROTECTED_USE_DECISION_NOT_ADMITTED');
+   // A different accepted claim can be withdrawn by an owner *reviewer*
+   // without excluding the entire source from private retrieval.
+   const secondAdmit=await request('POST',endpoint,'owner',payload(att()));
+   assert.equal(secondAdmit.status,201,JSON.stringify(secondAdmit.body));
+   const revokePath='/v1/evidence/protected-decisions/'+secondAdmit.body.id+'/revoke';
+   const statusPath='/v1/evidence/protected-decisions/'+secondAdmit.body.id+'/status';
+   const revokedUse='/v1/evidence/protected-decisions/'+secondAdmit.body.id+'/use-check';
+   const statusBefore=await request('GET',statusPath,'owner');
+   assert.equal(statusBefore.status,200);
+   assert.equal(statusBefore.body.revoked,false);
+   assert.equal(statusBefore.body.currentUseAuthorized,false);
+   assert.equal((await request('POST',revokePath,'owner',{
+     reason:'REVIEW_DISPUTED'})).status,403);
+   assert.equal((await request('POST',revokePath,'foreignReviewer',{
+     reason:'REVIEW_DISPUTED'})).status,403);
+   assert.equal((await request('POST',revokePath,'ownerReviewer',{
+     reason:'arbitrary request'})).status,409);
+   const revoked=await request('POST',revokePath,'ownerReviewer',{
+     reason:'REVIEW_DISPUTED'});
+   assert.equal(revoked.status,200,JSON.stringify(revoked.body));
+   assert.equal(revoked.body.status,'REVOKED');
+   assert.equal(revoked.body.externallyAnchored,false);
+   const statusAfter=await request('GET',statusPath,'owner');
+   assert.equal(statusAfter.status,200);
+   assert.equal(statusAfter.body.revoked,true);
+   assert.equal(statusAfter.body.reason,'REVIEW_DISPUTED');
+   const blockedRecalled=await request('POST',revokedUse,'owner',useInput());
+   assert.equal(blockedRecalled.status,409);
+   assert.equal(blockedRecalled.body.error,'PROTECTED_DECISION_REVOKED');
+   assert.equal((await request('POST',revokePath,'ownerReviewer',{
+     reason:'OWNER_WITHDRAWN'})).status,409);
+   assert.equal((await request('GET',statusPath,'foreignReviewer')).status,403);
    // An explicitly blocked source cannot be admitted even with two real signatures.
    index.controlSource(subject,connector.status(subject),{
      sourceId:hit.source_id,searchable:false,reason:'OUT_OF_SCOPE'});
@@ -339,8 +380,9 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(freshness.body.error,'PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF');
 
    const list=ledger.list('claims','dev');
-   assert.equal(list.summary.protectedDecisions,2);
-   assert.equal(list.summary.protectedAdmitted,1);
+   assert.equal(list.summary.protectedDecisions,3);
+   assert.equal(list.summary.protectedAdmitted,2);
+   assert.equal(list.summary.protectedRevocations,1);
    assert.equal(list.summary.protectedUses,1);
    const auditBytes=fs.readFileSync(ledgerPath,'utf8');
    assert.ok(!auditBytes.includes(answerText));
