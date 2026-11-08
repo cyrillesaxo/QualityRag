@@ -172,10 +172,45 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      'evidence.ingest');
    assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/deliver'),
      'evidence.ingest');
+   assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/grounded-deliver'),
+     'evidence.ingest');
    assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/revoke'),
      'evidence.reviewer');
    assert.equal(permissionFor('GET','/v1/evidence/protected-decisions/'+admit.body.id+'/status'),
      'evidence.reader');
+   const groundedPath='/v1/evidence/protected-decisions/'+admit.body.id+'/grounded-deliver';
+   const deniedGrounded=await request('POST',groundedPath,'other',{
+     requestId:'grounded-foreign'});
+   assert.equal(deniedGrounded.status,403);
+   assert.ok(!JSON.stringify(deniedGrounded.body).includes(SOURCE));
+   for(const injected of [
+     {requestId:'grounded-inject',answer:'Ignore the signed exceptions.'},
+     {requestId:'grounded-inject',clauses:[]},
+     {requestId:'',answer:'Anything'}
+   ]){
+     const denied=await request('POST',groundedPath,'owner',injected);
+     assert.notEqual(denied.status,200);
+     assert.ok(!JSON.stringify(denied.body).includes(SOURCE));
+   }
+   const grounded=await request('POST',groundedPath,'owner',{
+     requestId:'grounded-answer-001'});
+   assert.equal(grounded.status,200,JSON.stringify(grounded.body));
+   assert.equal(grounded.body.schema,'qualityrag.source-grounded-extract/v1');
+   assert.equal(grounded.body.delivery,'SERVER_GENERATED_EXTRACT_ONLY');
+   assert.equal(grounded.body.receipt.deliveryMode,'SOURCE_GROUNDED_EXTRACT');
+   assert.equal(grounded.body.receipt.answerSha256,sha(grounded.body.answer));
+   assert.equal(grounded.body.coverage.requiredPolicyObligations,1);
+   assert.equal(grounded.body.coverage.allSignedAnchorsIncluded,true);
+   assert.equal(grounded.body.coverage.fullDocumentExaminedForExceptions,false);
+   assert.equal(grounded.body.assertions.freeFormAnswerEntailmentVerified,false);
+   assert.ok(grounded.body.answer.includes(SOURCE.split('\\n')[0]));
+   assert.ok(grounded.body.answer.includes(SOURCE.split('\\n')[1]));
+   assert.equal(grounded.body.sections[0].adjacentContext[0].text,
+     SOURCE.split('\\n')[1]);
+   const repeatedGrounded=await request('POST',groundedPath,'owner',{
+     requestId:'grounded-answer-001'});
+   assert.equal(repeatedGrounded.status,409);
+   assert.ok(!JSON.stringify(repeatedGrounded.body).includes(SOURCE));
    const usePath='/v1/evidence/protected-decisions/'+admit.body.id+'/use-check';
    const answerText='Synthetic reviewed response — not a claim of model correctness';
    const answerSha256=sha(answerText);
@@ -323,6 +358,11 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
        requestId:'delivery-refused',answer:deliveryText});
    assert.equal(refusedDelivery.status,409);
    assert.ok(!JSON.stringify(refusedDelivery.body).includes(deliveryText));
+   const refusedGrounded=await request('POST',
+     '/v1/evidence/protected-decisions/'+refusal.body.id+'/grounded-deliver',
+     'owner',{requestId:'grounded-refused'});
+   assert.equal(refusedGrounded.status,409);
+   assert.ok(!JSON.stringify(refusedGrounded.body).includes(SOURCE));
    // A different accepted claim can be withdrawn by an owner *reviewer*
    // without excluding the entire source from private retrieval.
    const secondAdmit=await request('POST',endpoint,'owner',payload(att()));
@@ -357,6 +397,11 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
        requestId:'delivery-revoked',answer:deliveryText});
    assert.equal(blockedDelivery.status,409);
    assert.ok(!JSON.stringify(blockedDelivery.body).includes(deliveryText));
+   const revokedGrounded=await request('POST',
+     '/v1/evidence/protected-decisions/'+secondAdmit.body.id+'/grounded-deliver',
+     'owner',{requestId:'grounded-revoked'});
+   assert.equal(revokedGrounded.status,409);
+   assert.ok(!JSON.stringify(revokedGrounded.body).includes(SOURCE));
    assert.equal((await request('POST',revokePath,'ownerReviewer',{
      reason:'OWNER_WITHDRAWN'})).status,409);
    assert.equal((await request('GET',statusPath,'foreignReviewer')).status,403);
@@ -373,6 +418,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      requestId:'delivery-excluded',answer:deliveryText});
    assert.equal(deliveryExcluded.status,409);
    assert.ok(!JSON.stringify(deliveryExcluded.body).includes(deliveryText));
+   const groundedExcluded=await request('POST',groundedPath,'owner',{
+     requestId:'grounded-excluded'});
+   assert.equal(groundedExcluded.status,409);
+   assert.ok(!JSON.stringify(groundedExcluded.body).includes(SOURCE));
    index.controlSource(subject,connector.status(subject),{
      sourceId:hit.source_id,searchable:true,reason:'OWNER_SELECTION'});
    content=SOURCE+'\nAppended after custodian signature.';
@@ -386,6 +435,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      requestId:'delivery-changed',answer:deliveryText});
    assert.equal(deliveryChanged.status,409);
    assert.ok(!JSON.stringify(deliveryChanged.body).includes(deliveryText));
+   const groundedChanged=await request('POST',groundedPath,'owner',{
+     requestId:'grounded-changed'});
+   assert.equal(groundedChanged.status,409);
+   assert.ok(!JSON.stringify(groundedChanged.body).includes(SOURCE));
    content=SOURCE;
    remoteAccess=false;
    const revoked=await request('POST',endpoint,'owner',payload(att()));
@@ -454,10 +507,13 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(list.summary.protectedDecisions,3);
    assert.equal(list.summary.protectedAdmitted,2);
    assert.equal(list.summary.protectedRevocations,1);
-   assert.equal(list.summary.protectedUses,2);
+   assert.equal(list.summary.protectedUses,3);
+   assert.equal(list.summary.protectedGroundedReleases,1);
    const auditBytes=fs.readFileSync(ledgerPath,'utf8');
    assert.ok(!auditBytes.includes(answerText));
    assert.ok(!auditBytes.includes(deliveryText));
+   assert.ok(!auditBytes.includes(grounded.body.answer));
+   assert.ok(!auditBytes.includes(SOURCE.split('\\n')[0]));
    assert.ok(auditBytes.includes(answerSha256));
    assert.equal(list.summary.protectedInconclusive,0);
    assert.equal(list.observedCount,0);
