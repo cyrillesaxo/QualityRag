@@ -8,6 +8,9 @@ import {EvidenceLedger,evaluateEvidence} from '../src/evidence-ledger.js';
 import {RegistryStore} from '../src/store.js';
 import {createHandler} from '../src/server.js';
 import {permissionFor} from '../src/oidc.js';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 
 const E=(i,req,org='org_'+('a'.repeat(32)),status='SUPPORTS',ago=60000)=>({
   id:'ev_'+i.toString(16).padStart(32,'0'),requirement_id:req,origin:org,
@@ -124,6 +127,28 @@ test('role authorization, real HTTP ingestion, replay, review, idempotency and c
   tampered.result.verdict='ADMIT';rows[0]=JSON.stringify(tampered);
   fs.writeFileSync(file,rows.join('\n')+'\n');
   assert.throws(()=>new EvidenceLedger(file),/EVIDENCE_LEDGER_INTEGRITY_FAILURE/);
+  fs.rmSync(dir,{recursive:true,force:true});
+ }
+});
+
+test('one-command customer demo writes an independently replayable JSON package',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-demo-export-'));
+ try{
+  const output=path.join(dir,'customer-replay.json');
+  const script=path.resolve(path.dirname(fileURLToPath(import.meta.url)),
+    '../../../scripts/evidence-assurance-show-me.mjs');
+  const cmd=spawnSync(process.execPath,[script,'--export',output],
+    {encoding:'utf8',timeout:15000});
+  assert.equal(cmd.status,0,cmd.stderr||cmd.stdout);
+  const exported=JSON.parse(fs.readFileSync(output,'utf8'));
+  assert.equal(exported.payload.schema,'qualityrag.evidence-replay/v1');
+  assert.equal(exported.payload.expectedResult.verdict,'INCONCLUSIVE');
+  assert.equal(exported.payload.policy.requirements[0].min_independent_sources,2);
+  const digest=createHash('sha256').update(JSON.stringify(exported.payload)).digest('hex');
+  assert.equal(exported.integrity.sha256,digest);
+  assert.equal(exported.integrity.authenticityVerified,false);
+  assert.match(cmd.stdout,/portable_export/);
+ }finally{
   fs.rmSync(dir,{recursive:true,force:true});
  }
 });
