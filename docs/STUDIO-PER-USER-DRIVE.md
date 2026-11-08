@@ -1,6 +1,6 @@
 # QualityRAG Studio — Personal cloud-drive connections
 
-**Status:** Google Drive **connection + folder configuration** implemented on the draft Studio branch. Requires administrator-managed Google OAuth credentials and signed per-user OIDC identities. No production Google credentials were supplied or connected by this PR. Microsoft OneDrive and Dropbox remain future provider adapters. **No automatic download or ingestion occurs.**
+**Status:** Google Drive **connection, folder configuration, and opt-in isolated text indexing** implemented on the draft Studio branch. Requires administrator-managed Google OAuth credentials and signed per-user OIDC identities. No production Google credentials were supplied or connected by this PR. Microsoft OneDrive and Dropbox remain future provider adapters. **Connection alone never downloads or indexes content; sync requires an explicit user action.**
 
 ## What the user can configure in Studio
 
@@ -14,7 +14,7 @@ The **My cloud drives** panel appears immediately under the registry connection 
 - Reconnect, refresh or disconnect without viewing/storing provider tokens in the browser.
 - Detect a disabled/misconfigured registry with a clear operator-facing message.
 
-This is **read-only connectivity and configuration**, not a full ingestion pipeline. The existing Semantic Store indexes a **server-selected local directory**, and does not yet have a tenant-isolated cloud source importer. **Never put one user's Google documents into a shared local Semantic Store.**
+This is read-only connectivity and folder configuration plus a **separate encrypted, per-user text index**. Unlike the existing Semantic Store, this pilot index does not provide semantic embeddings or the full Codex grammar. **Never put one user's Google documents into the shared local Semantic Store workbench.**
 
 ### Critical Google permission scope
 
@@ -38,6 +38,7 @@ export QUALITYRAG_OIDC_AUDIENCE="qualityrag-registry"
 export QUALITYRAG_OIDC_JWKS_URI="https://YOUR-TRUSTED-ISSUER/.well-known/jwks.json"
 
 export QUALITYRAG_DRIVE_FILE="$PWD/.qualityrag/private-user-drives.json"
+export QUALITYRAG_DRIVE_INDEX_DIR="$PWD/.qualityrag/private-drive-indices"
 export QUALITYRAG_DRIVE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
 export QUALITYRAG_GOOGLE_OAUTH_CLIENT_ID="YOUR_WEB_OAUTH_CLIENT_ID"
 export QUALITYRAG_GOOGLE_OAUTH_CLIENT_SECRET="YOUR_WEB_OAUTH_CLIENT_SECRET"
@@ -79,7 +80,11 @@ The registry currently takes an authenticated bearer token pasted into Studio; i
 | `GET` | `/v1/drives/google/folders?parentId=root` | Lists accessible folders for this user's account |
 | `POST` | `/v1/drives/google/folder` | Selects a validated folder using `{"folderId":"ID"}` |
 | `GET` | `/v1/drives/google/files` | Returns at most 100 file-metadata entries directly inside the selected folder |
-| `POST` | `/v1/drives/google/disconnect` | Deletes the local encrypted credential; attempts remote Google token revocation |
+| `POST` | `/v1/drives/google/disconnect` | Deletes local encrypted credentials **and the subject's index**; attempts remote Google token revocation |
+| `GET` | `/v1/drives/google/index` | Index status, coverage, counts and freshness; read role |
+| `POST` | `/v1/drives/google/sync` | With empty JSON object, explicitly build/replace only the current subject's selected-folder text index; manage role |
+| `POST` | `/v1/drives/google/search` | Lexical candidate search with `{"query":"hidden exception"}`; read role |
+| `POST` | `/v1/drives/google/clear-index` | Immediately delete that user's local index without changing Drive files; manage role |
 
 The OAuth callback is the only route not requiring a bearer token. It consumes a cryptographically random 10-minute, single-use server-side state and uses a PKCE code verifier. No access/refresh tokens are returned to Studio. On callback failure, no credential is stored and the user sees a generic failure URL.
 
@@ -88,6 +93,26 @@ The OAuth callback is the only route not requiring a bearer token. It consumes a
 Every user's provider token and folder selection is encrypted in a separate AES-256-GCM payload, with associated data binding the token to the verified OIDC subject. The on-disk lookup key is the SHA-256 digest of that subject. Storage is a local file with restrictive permissions, and the encryption key is configured **out of band**. All Google API requests run from the registry; the browser cannot send arbitrary Google API URLs.
 
 This is appropriate for a **local single-instance research prototype**, not for public multi-tenant durability or regulatory assurance. It still needs a proper secret manager, database isolation, backoff/rate limits, stronger OAuth/CSRF hardening, signed user-session UX, backup/recovery, token lifecycle and retention reviews before production.
+
+## Explicit per-user text indexing — pilot only
+
+Setting `QUALITYRAG_DRIVE_INDEX_DIR` opt-in enables the new **My private Drive text index** subpanel. It requires the same verified OIDC user identity as the connection, and a selected **non-root** folder.
+
+1. Connect your own Google account and explicitly select a specific folder (not the whole Drive root).
+2. Choose **Sync selected folder now**. This retrieves only direct-child text files in that folder; no recursive subtree traversal.
+3. Studio reports files listed, indexed, unsupported, failed, oversized, truncated, and last synced. Coverage is `PARTIAL` whenever files cannot be included. This is not a guarantee of full Drive discovery.
+4. Search with text such as `hidden exception`. The index produces lexical matches with a stable pseudonymous source ID, source revision, file name, and exact text-line anchor.
+5. Use **Delete my local index** to erase cached text. Selecting a different folder, replacing the Google connection, or disconnecting purges the prior per-subject index. A successful resync atomically replaces the old snapshot and removes deleted/moved files.
+
+Supported pilot MIME types: `text/plain`, `text/markdown`, `text/csv`, `application/json`, `application/vnd.google-apps.document` (exported by Drive as `text/plain`). PDF, DOCX, Sheets, Slides, media, OCR, image embeddings and video scene indexing are **not** included in this per-user Drive importer.
+
+**Bounds:** at most 40 supported text files per folder and at most the first 100 direct-child metadata entries; if Google indicates more files, the sync fails rather than claiming complete coverage. Maximum content per text file is 96 KB, with a total retained text limit of 1.5 MB. The index becomes **STALE** after 60 minutes, and search will return no matches until an explicit resync. Unsupported, failed, oversized, or line-truncated sources are counted separately. Exact source content and filenames are stored encrypted with AES-256-GCM in a user-keyed, subject-authenticated local file, with restrictive OS permissions.
+
+**Security boundary:** Every content fetch independently requests Google file metadata and confirms the actual parent folder is the user's selected folder. The code never accepts a browser-submitted arbitrary file ID or download URL for indexing. Requests go only to hard-coded Google Drive API endpoints, and downloads have strict byte limits. The result is isolated from other users through OIDC subject scoping and per-subject encrypted snapshots.
+
+**Evidence boundary:** This is a bounded *lexical* index, not the Semantic Garden grammar, full QualityRAG governed retrieval, an LLM answer, semantic vector search, or a validated evidence receipt. Source-origin independence and authenticity are not inferred from file count or matched lines. No candidate becomes an `ADMIT` result until an authorized PackSpec evaluation and customer source review happen separately.
+
+**Lifecycle limitations:** Remote Google file revocation and deletions are checked on the next explicit sync; an already encrypted local snapshot could remain searchable for up to its 60-minute freshness window after remote permission changes. This is not acceptable for high-sensitivity regulated tenants without an authorization recheck, event-driven deletion, and retention controls. The index is single-process, single-instance and local-file-based, not a hardened production multitenant storage service. Explicit deletion is local; it does not modify or delete the original Google files.
 
 ## Tests and verification
 
@@ -107,7 +132,7 @@ The registry tests use a fake Google provider (no real tokens) to assert:
 - Disconnect removes the local token without changing the other user's account.
 - Studio visibly distinguishes connection/metadata preview from actual indexing.
 
-No live Google OAuth end-to-end test has been completed without project-specific client credentials and a verified consent screen.
+The tests also exercise per-user isolated encrypted indexing, text-export source anchors, selected-folder parent checks, stale searches, file replacement on resync, and local index deletion. No live Google OAuth end-to-end test has been completed without project-specific client credentials and a verified consent screen.
 
 ## Next production milestones
 
