@@ -2,7 +2,7 @@
 // A signal is a *candidate review task*, not a factual contradiction or proof
 // that all exceptions were found. No source text is returned or logged.
 const patterns=[
- ['EXCEPTION',/\b(?:except|excepting|excluding|other than)\b/i],
+ ['EXCEPTION',/\b(?:except|excepted|excepting|exception|exceptions|excluding|other than)\b/i],
  ['CONDITIONAL',/\b(?:unless|only if|provided that|subject to|conditioned on)\b/i],
  ['OVERRIDE',/\b(?:notwithstanding|however|in spite of|despite)\b/i],
  ['NEGATION',/\b(?:must not|may not|does not apply|do not apply|shall not|no longer)\b/i]
@@ -23,6 +23,10 @@ export function scanReviewedSourceConstraints({sources,witnesses,maxCandidates=3
      'PROTECTED_SUFFICIENCY_INPUT_INVALID');
    if(w.status==='SUPPORTS')reviews.add(w.sourceId+':'+w.lineNumber);
  }
+ // Validate before sorting: a malformed source must return a bounded
+ // fail-closed code rather than triggering an unexpected TypeError.
+ check(sources.every(x=>x&&typeof x==='object'&&
+   sourceRe.test(x.sourceId)),'PROTECTED_SUFFICIENCY_SOURCE_UNAVAILABLE');
  let reviewedCount=0,unreviewedCount=0,linesScanned=0;
  const candidates=[],seenSources=new Set();
  for(const source of [...sources].sort((a,b)=>a.sourceId.localeCompare(b.sourceId))){
