@@ -203,7 +203,7 @@ export class GoogleDriveConnections{
     assert(this.now()-pending.at<=600_000,'DRIVE_OAUTH_STATE_EXPIRED');
     if(error||typeof code!=='string'||code.length<1||code.length>2500)fail('GOOGLE_OAUTH_FAILED');
     await this.exchange(pending.subject,code,pending.verifier);
-    return {connected:true,origin:this.studioOrigin};
+    return {connected:true,origin:this.studioOrigin,subject:pending.subject};
   }
   async refresh(subject,stored){
     const params=new URLSearchParams({
