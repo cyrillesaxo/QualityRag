@@ -18,6 +18,9 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  const [answer,setAnswer]=useState('');
  const [useReceipt,setUseReceipt]=useState<UseCheck|null>(null);
  const [useError,setUseError]=useState('');
+ const [revocationReason,setRevocationReason]=useState('OWNER_WITHDRAWN');
+ const [revoked,setRevoked]=useState(false);
+ const [revocationResult,setRevocationResult]=useState('');
  if(!enabled)return <p style={{fontSize:13,color:'#81571f'}}>
    Signed reviewer admission is not configured for this service. Generic unreviewed
    evidence remains blocked while this protection is active.
@@ -25,6 +28,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  async function submit(){
    setBusy(true);setError('');setOutcome(null);
    setUseReceipt(null);setUseError('');setAnswer('');
+   setRevoked(false);setRevocationResult('');
    try{
      if(!token)throw Error('A signed registry identity is required.');
      if(json.length>60_000)throw Error('Signed request is too large.');
@@ -70,8 +74,29 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    }catch(e){setError(String(e))}
    finally{setBusy(false)}
  }
+ async function revokeDecision(){
+   if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token)return;
+   setBusy(true);setError('');setRevocationResult('');
+   try{
+     const response=await fetch(
+       '/v1/evidence/protected-decisions/'+outcome.id+'/revoke',{
+         method:'POST',cache:'no-store',redirect:'error',
+         headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+         body:JSON.stringify({reason:revocationReason})
+       });
+     const result=await response.json();
+     if(!response.ok)throw Error(String(result.error||'Revocation not authorized'));
+     if(result.schema!=='qualityrag.protected-decision-revocation/v1'||
+        result.decisionId!==outcome.id||result.status!=='REVOKED')
+       throw Error('Unexpected revocation response');
+     setRevoked(true);setUseReceipt(null);setUseError('');
+     setRevocationResult('Approval withdrawn at '+result.revokedAt+
+       '. Historical audit remains, but future evidence-use checks are blocked.');
+   }catch(e){setError(String(e))}
+   finally{setBusy(false)}
+ }
  async function checkUse(){
-   if(!outcome||outcome.verdict!=='ADMIT'||!token)return;
+   if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token)return;
    setBusy(true);setUseError('');setUseReceipt(null);
    try{
      if(!answer.trim()||new TextEncoder().encode(answer).length>128000)
@@ -137,6 +162,27 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        Export independently replayable signed receipt
      </button>
      {outcome.verdict==='ADMIT'&&<div style={{marginTop:15,padding:12,
+       borderRadius:8,border:'1px solid #e6d6bd',background:'#fffaf5'}}>
+       <strong>Withdraw this signed approval</strong>
+       <p style={{fontSize:12}}>An authorized <code>evidence.reviewer</code> and
+         <code> drive.manager</code> acting as the same source owner may permanently
+         withdraw this decision. The source can remain searchable. Withdrawal is
+         recorded; older independent replay still reproduces what happened then,
+         but future use is blocked.</p>
+       <label>Reason for withdrawal
+         <select disabled={busy||revoked} value={revocationReason}
+           onChange={e=>setRevocationReason(e.target.value)}>
+           <option value="OWNER_WITHDRAWN">Owner withdrew approval</option>
+           <option value="REVIEW_DISPUTED">Meaning review disputed</option>
+           <option value="CUSTODY_DISPUTED">Source custody disputed</option>
+         </select>
+       </label>
+       <button type="button" disabled={busy||revoked} onClick={revokeDecision}>
+         {revoked?'Approval withdrawn':'Revoke signed approval (owner reviewer)'}
+       </button>
+       {revocationResult&&<p role="status">{revocationResult}</p>}
+     </div>}
+     {outcome.verdict==='ADMIT'&&<div style={{marginTop:15,padding:12,
        borderRadius:8,border:'1px solid #dedac7'}}>
        <strong>Check whether this signed evidence may still be used</strong>
        <p style={{fontSize:12}}>
@@ -150,7 +196,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
            setAnswer(e.target.value);setUseReceipt(null);setUseError('');
          }} style={{width:'100%'}} maxLength={64000}/>
        </label>
-       <button type="button" onClick={checkUse} disabled={busy||!answer.trim()}>
+       <button type="button" onClick={checkUse} disabled={busy||revoked||!answer.trim()}>
          Check live evidence-use permission
        </button>
        {useReceipt&&<p role="status">
