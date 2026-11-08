@@ -102,6 +102,25 @@ export class EvidenceLedger {
     try{fs.writeSync(fd,JSON.stringify(entry)+'\n');fs.fsyncSync(fd)}finally{fs.closeSync(fd)}
     return entry;
   }
+  protectedScopes(){
+    return new Set(this.readAll().filter(x=>
+      x.type==='protection'&&x.mode==='BLOCK_UNATTESTED_GENERIC_EVIDENCE'
+    ).map(x=>x.serviceId+'@'+x.environment));
+  }
+  protectedSince(serviceId,environment){
+    return this.readAll().find(x=>x.type==='protection'&&
+      x.serviceId===serviceId&&x.environment===environment)?.at||null;
+  }
+  recordProtectionActivation(serviceId,environment){
+    if(!limited(serviceId)||!limited(environment))
+      throw Error('INVALID_PROTECTED_DRIVE_SERVICES');
+    if(this.protectedScopes().has(serviceId+'@'+environment))return false;
+    this.append({id:randomUUID(),type:'protection',
+      at:new Date().toISOString(),serviceId,environment,
+      mode:'BLOCK_UNATTESTED_GENERIC_EVIDENCE',
+      caveat:'REGISTRY_INGRESS_ONLY_UNATTESTED_METADATA_REJECTED'});
+    return true;
+  }
   recordBlockedIngress(serviceId,environment,actor,policySha256){
     if(!limited(serviceId)||!limited(environment)||
        typeof actor!=='string'||!actor||
@@ -178,6 +197,7 @@ export class EvidenceLedger {
       guardTelemetry:{
         observedBlockedAttempts:summary.blockedUnattestedIngress,
         lastBlockedAt:latestBlocked?.at||null,
+        protectedSince:this.protectedSince(serviceId,environment),
         externallyAnchored:false,coverage:'REGISTRY_INGRESS_ONLY'
       },
       evaluations:entries.slice(-limit).reverse().map(x=>this.snapshot(x.id))};
