@@ -114,6 +114,30 @@ counting the denied ingress, while `claims-api@test` still uses the legacy
 metadata evaluator and can return `ADMIT`. The contrast makes both the
 effective control and the legacy exposure observable.
 
+## Separately authorized candidate challenge telemetry
+
+The per-user Drive source check has two deliberately distinct operations:
+
+- `POST /v1/drives/google/governed-check` is a **read-only candidate preview**.
+  Requires `drive.reader`, `evidence.reader` and service scope.
+  It does not append a ledger record and returns `telemetry.recorded=false`.
+- `POST /v1/drives/google/record-check` recomputes the **same server-side**
+  PackSpec-bound check and records its result. It additionally requires
+  `evidence.reviewer`; merely possessing `evidence.reader` cannot mutate
+  the ledger. Recording is limited to **20 checks per reviewer identity per
+  rolling 60 seconds** (HTTP 429 after the limit).
+
+A recorded check stores only the time, service/environment, actor hash,
+approved PackSpec digest, result and bounded aggregate reason counts.
+It does **not** store source text, source IDs or file revision strings.
+Studio shows its local unsigned receipt ID and the counts of recorded
+checks and refusals. These are **recorded reviewer actions**, not signed
+customer approval or full request-coverage metrics.
+
+The `drive:governed-demo` script explicitly previews a check and then
+records it with a mock reviewer identity, showing the difference in
+ledger state.
+
 ## Non-negotiable limits
 
 1. This protects **one registry's generic evaluation-ingestion endpoint** for
