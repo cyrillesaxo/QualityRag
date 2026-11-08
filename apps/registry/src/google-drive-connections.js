@@ -243,7 +243,7 @@ export class GoogleDriveConnections{
   async folders(subject,parentId='root',pageToken=null){
     validateFolderId(parentId);
     assert(pageToken===null||typeof pageToken==='string'&&pageToken.length<=1024&&
-      /^[A-Za-z0-9._~/-]+$/.test(pageToken),'INVALID_DRIVE_PAGE_TOKEN');
+      /^[A-Za-z0-9._~+/=-]+$/.test(pageToken),'INVALID_DRIVE_PAGE_TOKEN');
     const token=await this.getToken(subject);
     const query="'"+parentId+"' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
     const data=await this.googleGet(token,'/files',{
