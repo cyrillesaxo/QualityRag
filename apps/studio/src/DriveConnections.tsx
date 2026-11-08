@@ -13,6 +13,8 @@ function DriveConnections({token}:{token:string}){
  const [authUrl,setAuthUrl]=useState('');
  const [folders,setFolders]=useState<Folder[]>([]);
  const [parentId,setParentId]=useState('root');
+ const [currentName,setCurrentName]=useState('My Drive');
+ const [browsing,setBrowsing]=useState(false);
  const [parents,setParents]=useState<{id:string;name:string}[]>([]);
  const [pageToken,setPageToken]=useState<string|null>(null);
  const [files,setFiles]=useState<FileRow[]>([]);
@@ -41,7 +43,8 @@ function DriveConnections({token}:{token:string}){
    }
  },[api,token]);
  useEffect(()=>{setConnection(null);setAuthUrl('');setFolders([]);
-   setFiles([]);setParents([]);setParentId('root');setPageToken(null);refresh();
+   setFiles([]);setParents([]);setParentId('root');setCurrentName('My Drive');
+   setBrowsing(false);setPageToken(null);refresh();
  },[refresh]);
  useEffect(()=>{
    function receive(event:MessageEvent){
@@ -80,7 +83,7 @@ function DriveConnections({token}:{token:string}){
      const q=new URLSearchParams({parentId:id});
      const result=await api('/v1/drives/google/folders?'+q);
      setFolders(result.folders||[]);setPageToken(result.nextPageToken||null);
-     setParentId(id);setParents(previous||[]);setError('');
+     setParentId(id);setCurrentName(name);setParents(previous||[]);setBrowsing(true);setError('');
    }catch(e){setError(String(e))}finally{setLoading(false)}
  }
  async function select(){
@@ -123,7 +126,11 @@ function DriveConnections({token}:{token:string}){
  return <section className="panel" aria-label="Personal cloud drive connections" style={{borderTop:'4px solid #038112'}}>
    <h2>My cloud drives</h2>
    <p>Connect your own account. QualityRAG never shares a Drive authorization between users.
-     Choose the folder you permit this workspace to browse.</p>
+     Choose a folder this local Studio preview can list.</p>
+   <p style={{fontSize:13,color:'#8b5c21'}}><strong>Google permission disclosure:</strong>
+     Google requests read-only access to your <em>whole Drive</em>, not a folder-scoped OAuth grant.
+     This preview only lists folder metadata and the immediate files in the folder you select;
+     it does not ingest or index files. Do not connect a confidential Drive to an unreviewed deployment.</p>
    <p style={{fontSize:13}}><strong>Google Drive:</strong> read-only connection and folder selection.
      <span style={{marginLeft:10,color:'#587064'}}>OneDrive / Dropbox adapters: not yet implemented.</span></p>
    {!token&&<p role="status">Connect with your OIDC bearer token above to configure your Drive.</p>}
@@ -153,17 +160,17 @@ function DriveConnections({token}:{token:string}){
            Preview permitted files
          </button>
        </div>
-       {(folders.length>0||parentId!=='root'||parents.length>0)&&
+       {browsing&&
          <div style={{border:'1px solid #d3e3d5',padding:15,borderRadius:12,marginTop:12}}>
            <p>Choose a folder in your own Drive. Current location:
-             <strong> {parents.at(-1)?.name||'My Drive'} </strong></p>
+             <strong> {currentName} </strong></p>
            {parents.length>0&&<button type="button" disabled={loading} onClick={()=>{
              const previous=parents[parents.length-1];
              browse(previous.id,previous.name,parents.slice(0,-1));
            }}>Back</button>}
            <ul>{folders.map(folder=><li key={folder.id}>
              <button type="button" disabled={loading} onClick={()=>browse(folder.id,folder.name,
-               [...parents,{id:parentId,name:parents.length?parents.at(-1)!.name:'My Drive'}])}>
+               [...parents,{id:parentId,name:currentName}])}>
                Open folder: {folder.name}
              </button>
            </li>)}</ul>
