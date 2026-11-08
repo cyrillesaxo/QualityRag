@@ -21,6 +21,8 @@ function fail(res,error) {
  if(code==='EVIDENCE_LEDGER_INTEGRITY_FAILURE'||code==='EVIDENCE_LEDGER_CAPACITY_EXCEEDED')
    return reply(res,503,{error:code});
  if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
+ if(code==='PROTECTED_USE_RATE_LIMITED')return reply(res,429,{error:code,permission:'DENIED'});
+ if(code==='PROTECTED_USE_REPLAY')return reply(res,409,{error:code,permission:'DENIED'});
  if(code.startsWith('PROTECTED_')&&code!=='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED'){
    const safe=[
      'PROTECTED_REVIEW_KEYS_NOT_CONFIGURED','PROTECTED_REVIEW_KEYS_REQUIRED',
@@ -40,7 +42,10 @@ function fail(res,error) {
      'PROTECTED_SOURCE_SYNC_IN_PROGRESS','PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF',
      'PROTECTED_ATTESTATION_REPLAY','PROTECTED_REQUEST_REPLAY',
      'PROTECTED_DECISION_RATE_LIMITED','PROTECTED_DECISION_NOT_FOUND',
-     'PROTECTED_DECISION_OWNER_FORBIDDEN'
+     'PROTECTED_DECISION_OWNER_FORBIDDEN',
+     'PROTECTED_USE_POLICY_CHANGED','PROTECTED_USE_DECISION_NOT_ADMITTED',
+     'PROTECTED_USE_SERVICE_UNPROTECTED','PROTECTED_USE_SIGNATURE_RECORD_MISMATCH',
+     'PROTECTED_USE_EVIDENCE_CHANGED','PROTECTED_USE_INVALID'
    ].includes(code)?code:'PROTECTED_ADMISSION_REJECTED';
    const status=safe==='PROTECTED_DECISION_NOT_FOUND'?404:
      safe==='PROTECTED_DECISION_OWNER_FORBIDDEN'?403:
@@ -322,6 +327,65 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      if(!evidenceServices?.has(receipt.serviceId+'@'+receipt.environment))
        return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
      return reply(res,200,receipt);
+   }
+   if(req.method==='POST'&&
+     /^\\/v1\\/evidence\\/protected-decisions\\/[0-9a-f-]{36}\\/use-check$/.test(url.pathname)){
+     if(!authenticate||!evidenceLedger||!driveIndex||!driveManager||
+        !protectedReviewTrust)
+       return reply(res,404,{error:'PROTECTED_USE_NOT_CONFIGURED'});
+     // The same source owner must initiate each use check. A protected
+     // service cannot rely on an old exported receipt as a durable permit.
+     if(!actorRoles?.has('drive.reader'))
+       return reply(res,403,{error:'FORBIDDEN'});
+     const decisionId=url.pathname.split('/')[4];
+     const input=await body(req);
+     if(!input||typeof input!=='object'||Array.isArray(input)||
+        Object.keys(input).length!==2||
+        !Object.hasOwn(input,'requestId')||!Object.hasOwn(input,'answerSha256')||
+        typeof input.requestId!=='string'||
+        !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(input.requestId)||
+        typeof input.answerSha256!=='string'||
+        !/^[0-9a-f]{64}$/.test(input.answerSha256))
+       throw Error('PROTECTED_USE_INVALID');
+     const row=evidenceLedger.protectedDecisionForOwner(decisionId,actor);
+     if(!evidenceServices?.has(row.serviceId+'@'+row.environment))
+       return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+     if(!protectedDriveServices.has(row.serviceId+'@'+row.environment))
+       throw Error('PROTECTED_USE_SERVICE_UNPROTECTED');
+     if(row.result?.verdict!=='ADMIT')
+       throw Error('PROTECTED_USE_DECISION_NOT_ADMITTED');
+     const current=await store.resolve(row.serviceId,row.environment);
+     if(current.sha256!==row.policySha256)
+       throw Error('PROTECTED_USE_POLICY_CHANGED');
+     const connection=driveManager.status(actor);
+     if(!connection?.connected||!connection.folderId||connection.folderId==='root')
+       throw Error('PROTECTED_OWNER_CONTEXT_CHANGED');
+     const verified=verifyHumanReviewAttestations(
+       row.signedCustody,row.signedMeaning,protectedReviewTrust,{
+         serviceId:row.serviceId,environment:row.environment,
+         policySha256:current.sha256,subject:actor,
+         folderId:connection.folderId
+       });
+     if(verified.signedPayloadSha256!==row.signedPayloadSha256)
+       throw Error('PROTECTED_USE_SIGNATURE_RECORD_MISMATCH');
+     // Independently recompute the decision, never trust the stored ADMIT
+     // field without confirming the original assertions and current policy.
+     const live=await driveIndex.verifyLiveApprovedWitnesses(
+       actor,driveManager,verified.payload.witnesses);
+     const refreshed=await store.resolve(row.serviceId,row.environment);
+     if(refreshed.sha256!==current.sha256)
+       throw Error('PROTECTED_USE_POLICY_CHANGED');
+     const replay=humanReviewDecision(
+       refreshed.policy,refreshed.sha256,verified.payload.witnesses,
+       live.checkedAt);
+     if(replay.result.verdict!=='ADMIT'||
+        JSON.stringify(replay.result)!==JSON.stringify(row.result))
+       throw Error('PROTECTED_USE_EVIDENCE_CHANGED');
+     const permit=evidenceLedger.recordProtectedUse({
+       decision:row,actor,requestId:input.requestId,
+       answerSha256:input.answerSha256,checkedAt:live.checkedAt
+     });
+     return reply(res,200,permit);
    }
    if(req.method==='GET'&&url.pathname==='/v1/evidence/enforcement'){
      if(!evidenceLedger)return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
