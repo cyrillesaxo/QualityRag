@@ -73,6 +73,17 @@ QualityRAG Studio's evidence-assurance promise is **inspectable source coverage,
 
 [Customer visibility and control acceptance contract](docs/CREDIBILITY-VISIBILITY-CONTROL.md)
 
+### Owner source controls reach the policy boundary
+
+Beyond suppressing private search hits, Studio now offers a **server-side governed candidate check**: an authorized Drive user selects an indexed source and an approved PackSpec requirement for the active service/environment. The registry checks the *actual owner-controlled index*, source revision, anchor and source-exclusion status against the server-resolved PackSpec. Excluded sources return `REFUSE`. Included-but-unreviewed sources return `INCONCLUSIVE`, not `ADMIT`, because semantic support and source provenance have not been independently authenticated.
+
+```sh
+npm --prefix apps/registry install
+npm --prefix apps/registry run drive:governed-demo
+```
+
+[Policy-bound gate semantics, limits and customer acceptance challenge](docs/CREDIBILITY-VISIBILITY-CONTROL.md). **This gate applies to the dedicated per-user Drive path, not to arbitrary external RAG applications or generic telemetry events.**
+
 ## Personal Google Drive configuration in QualityRAG Studio
 
 Studio now includes **My cloud drives**: a per-user Google OAuth connection, encrypted server-side account records, folder browsing, explicit source-folder selection, metadata preview, and disconnect. **After explicitly choosing a folder**, a user can opt into a separate encrypted, per-user text index, sync up to 40 eligible Google Docs/TXT/Markdown/CSV/JSON files, search for anchored lexical matches, and open the original Google file. The existing Semantic Store remains a single-user research worker; this private text index is **not yet its full semantic grammar or embeddings**.
