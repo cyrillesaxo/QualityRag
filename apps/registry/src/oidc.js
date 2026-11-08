@@ -72,7 +72,8 @@ export function permissionFor(method,pathname){
      if(method==='GET'&&pathname.endsWith('/status'))return ROLE.evidenceRead;
   }
   if(method==='POST'&&pathname.startsWith('/v1/evidence/protected-decisions/')&&
-     (pathname.endsWith('/use-check')||pathname.endsWith('/deliver'))&&
+     (pathname.endsWith('/use-check')||pathname.endsWith('/deliver')||
+      pathname.endsWith('/grounded-deliver'))&&
      pathname.split('/').length===6&&
      /^[0-9a-f-]{36}$/.test(pathname.split('/')[4]))return ROLE.evidenceIngest;
   if(method==='GET'&&
