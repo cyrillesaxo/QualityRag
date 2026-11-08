@@ -5,7 +5,9 @@ import {createHash} from 'node:crypto';
 const sha=text=>createHash('sha256').update(text,'utf8').digest('hex');
 const validId=/^[A-Za-z0-9._-]{1,128}$/;
 function require_(okay,code){if(!okay)throw Error(code)}
-export function buildSourceGroundedAnswer({policy,witnesses,verifiedLines}){
+export function buildSourceGroundedAnswer({
+ policy,witnesses,verifiedLines,constraintScan
+}){
  require_(policy&&Array.isArray(policy.requirements)&&policy.requirements.length>0&&
    policy.requirements.length<=8&&Array.isArray(witnesses)&&
    witnesses.length>0&&witnesses.length<=8&&Array.isArray(verifiedLines)&&
@@ -51,6 +53,17 @@ export function buildSourceGroundedAnswer({policy,witnesses,verifiedLines}){
    });
  }
  require_(seen.size===expected.size,'PROTECTED_GROUNDED_COVERAGE_INVALID');
+ require_(constraintScan&&
+   constraintScan.schema==='qualityrag.constraint-signal-scan/v1'&&
+   constraintScan.scope==='LIVE_VERIFIED_SIGNED_SOURCE_FILES_ONLY'&&
+   constraintScan.sourcesScanned>=1&&
+   Number.isSafeInteger(constraintScan.linesScanned)&&
+   constraintScan.linesScanned>0&&
+   constraintScan.candidateCount===0&&
+   constraintScan.candidatesTruncated===false&&
+   constraintScan.documentWideSemanticCompletenessVerified===false,
+   'PROTECTED_GROUNDED_SUFFICIENCY_CHECK_REQUIRED');
+
  const chunks=['Source-grounded extract — not a complete policy interpretation.'];
  const ordered=[];
  for(const id of ids){
@@ -76,7 +89,8 @@ export function buildSourceGroundedAnswer({policy,witnesses,verifiedLines}){
      humanSignedSupports:ordered.length,
      allSignedAnchorsIncluded:true,
      adjacentContextWindowLines:1,
-     fullDocumentExaminedForExceptions:false},
+     fullDocumentExaminedForExceptions:false,
+     referencedFilesLexicallyScanned:true,unreviewedLexicalSignalsFound:0},
    assertions:{exactLinesRevalidated:true,
      humanReviewedAnchorSemantics:true,
      modelGeneratedParaphrase:false,
