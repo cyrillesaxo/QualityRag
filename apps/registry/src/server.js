@@ -451,7 +451,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      // replay synchronously; no async work can interleave before output.
      const permit=evidenceLedger.recordProtectedUse({
        decision:row,actor,requestId:input.requestId,
-       answerSha256,checkedAt:live.checkedAt
+       answerSha256,checkedAt:live.checkedAt,
+       mode:gateway?'SERVER_BUFFERED_RELEASE':'DIGEST_ONLY_CLIENT_RELEASE'
      });
      if(!gateway)return reply(res,200,permit);
      return reply(res,200,{
