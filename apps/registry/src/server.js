@@ -329,7 +329,10 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      return reply(res,200,receipt);
    }
    if(req.method==='POST'&&
-     /^\\/v1\\/evidence\\/protected-decisions\\/[0-9a-f-]{36}\\/use-check$/.test(url.pathname)){
+     url.pathname.startsWith('/v1/evidence/protected-decisions/')&&
+     url.pathname.endsWith('/use-check')&&
+     url.pathname.split('/').length===6&&
+     /^[0-9a-f-]{36}$/.test(url.pathname.split('/')[4])){
      if(!authenticate||!evidenceLedger||!driveIndex||!driveManager||
         !protectedReviewTrust)
        return reply(res,404,{error:'PROTECTED_USE_NOT_CONFIGURED'});
