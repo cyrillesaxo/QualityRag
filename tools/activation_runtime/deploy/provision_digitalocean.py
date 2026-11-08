@@ -51,28 +51,23 @@ packages:
   - python3-venv
   - python3-pip
   - ufw
-  - caddy
 runcmd:
   - [ "ufw", "default", "deny", "incoming" ]
   - [ "ufw", "default", "allow", "outgoing" ]
   - [ "ufw", "allow", "from", "{admin}", "to", "any", "port", "22", "proto", "tcp" ]
-  - [ "ufw", "allow", "80/tcp" ]
-  - [ "ufw", "allow", "443/tcp" ]
   - [ "ufw", "--force", "enable" ]
   - [ "useradd", "--system", "--no-create-home", "--shell", "/usr/sbin/nologin", "qualityrag-governance" ]
   - [ "mkdir", "-p", "/etc/qualityrag-governance", "/var/lib/qualityrag-governance", "/opt/qualityrag" ]
   - [ "chown", "qualityrag-governance:qualityrag-governance", "/var/lib/qualityrag-governance" ]
   - [ "chmod", "0700", "/var/lib/qualityrag-governance" ]
   - [ "chmod", "0750", "/etc/qualityrag-governance" ]
-  - [ "systemctl", "disable", "--now", "caddy" ]
 final_message: "Hardened base host only; QualityRAG API remains unconfigured and stopped."
 """
 
 def firewall_payload(admin: str):
+    # No HTTP/TLS ports open until app, hostname and certificates are ready.
     inbound = [
         {"protocol":"tcp","ports":"22","sources":{"addresses":[admin]}},
-        {"protocol":"tcp","ports":"80","sources":{"addresses":["0.0.0.0/0","::/0"]}},
-        {"protocol":"tcp","ports":"443","sources":{"addresses":["0.0.0.0/0","::/0"]}},
     ]
     outgoing = [
         {"protocol":"tcp","ports":"all","destinations":{"addresses":["0.0.0.0/0","::/0"]}},
