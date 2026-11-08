@@ -46,6 +46,7 @@ class IdentityIsolationTests(unittest.TestCase):
                 env={
                     "QUALITYRAG_VIDEO_ROOT":root,
                     "QUALITYRAG_VIDEO_MCP_AUTH_MODE":"jwt",
+                    "QUALITYRAG_VIDEO_MCP_RESOURCE_URL":"https://video.example.test/mcp",
                     "QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"video-a,video-b",
                     "QUALITYRAG_VIDEO_MCP_ALLOWED_HOSTS":"testserver",
                     "QUALITYRAG_VIDEO_MCP_ISSUER":"https://issuer.example",
@@ -91,11 +92,21 @@ class IdentityIsolationTests(unittest.TestCase):
                             serialized=json.dumps(researched)
                             self.assertIn(allowed,serialized)
                             self.assertNotIn(denied,serialized)
+                        metadata=await client.get(
+                            "/.well-known/oauth-protected-resource/mcp")
+                        self.assertEqual(metadata.status_code,200,metadata.text)
+                        self.assertEqual(metadata.json()["resource"],
+                                         "https://video.example.test/mcp")
+                        self.assertEqual(metadata.json()["authorization_servers"],
+                                         ["https://issuer.example"])
+                        self.assertNotIn("subjects",metadata.text)
                         invalid=await client.post("/mcp",headers={
                             "Authorization":"Bearer invalid","Host":"testserver",
                             "Accept":"application/json, text/event-stream"},
                             json={"jsonrpc":"2.0","id":4,"method":"tools/list"})
                         self.assertEqual(invalid.status_code,401)
+                        challenge=invalid.headers.get("www-authenticate","")
+                        self.assertIn('resource_metadata="https://video.example.test/.well-known/oauth-protected-resource/mcp"',challenge)
         asyncio.run(check())
 
 
