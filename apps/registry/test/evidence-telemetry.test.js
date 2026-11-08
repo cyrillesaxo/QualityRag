@@ -70,6 +70,8 @@ test('role authorization, real HTTP ingestion, replay, review, idempotency and c
   const read=await request('GET',query,'reader');
   assert.equal(read.status,200);
   assert.equal(read.body.observedCount,1);
+  assert.equal(read.body.summary.inconclusive,1);
+  assert.equal(read.body.summary.accepted,0);
   assert.equal(read.body.coverage,'UNKNOWN');
   assert.equal((await request('POST','/v1/evidence/evaluations','ingester',data)).body.id,x.body.id);
   assert.equal((await request('POST','/v1/evidence/evaluations','ingester',
@@ -89,6 +91,9 @@ test('role authorization, real HTTP ingestion, replay, review, idempotency and c
   const revised=await request('GET','/v1/evidence/evaluations/'+x.body.id,'reader');
   assert.equal(revised.body.reviewHistory[0].decision,'DISPUTED');
   assert.equal(revised.body.verdict,'INCONCLUSIVE'); // adjudication never changes deterministic verdict
+  const afterReview=await request('GET',query,'reader');
+  assert.equal(afterReview.body.summary.disputed,1);
+  assert.equal(afterReview.body.summary.unreviewed,0);
   assert.equal((await request('GET','/v1/evidence/evaluations/'+x.body.id,'other')).status,403);
   const selfData={...data,requestId:'request-super'};
   const self=await request('POST','/v1/evidence/evaluations','super_ingester',selfData);
