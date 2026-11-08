@@ -102,6 +102,28 @@ npm --prefix apps/registry run admission:demo
 The pilot supports one asserted origin per requirement and does not claim original
 publication freshness; stronger PackSpecs fail closed.
 
+### Customer-controlled buffered response gateway
+
+The protected registry can now **hold a proposed answer** and return
+it only after its own just-in-time source, owner, signature and PackSpec
+checks succeed. `POST /v1/evidence/protected-decisions/{id}/deliver`
+issues a request-specific permit and **the exact buffered answer** in
+one response; denied requests never echo the draft. The TypeScript SDK
+provides `ProtectedUseClient.deliverViaGateway()`.
+
+Unlike digest-only checking, **the complete draft is sent to the
+customer-operated registry**. Studio requires explicit acknowledgement
+before using this path. Telemetry distinguishes buffered gateway
+authorizations from digest-only permits; neither proves the AI answer
+is semantically correct or that the network client received it.
+
+```sh
+npm --prefix apps/registry run admission:demo
+npm --prefix sdk/typescript test
+```
+
+[Gateway acceptance tests, privacy boundary and production limitations](docs/PROTECTED-RESPONSE-GATEWAY.md).
+
 ### Evidence is approved once, but authorization is checked **every time**
 
 A signed historical `ADMIT` cannot override a later customer exclusion.
