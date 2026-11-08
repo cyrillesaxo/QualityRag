@@ -89,7 +89,19 @@ PYTHONPATH=sdk/python python -m qualityrag.verify_receipt /tmp/qualityrag-review
 The verifier recomputes the result from the exported policy, opaque source metadata and original evaluation time. The embedded digest is not proof of authenticity; an out-of-band trusted digest is needed to authenticate the package. This is a synthetic evidence-verification demonstration, **not** a source-authenticity or regulatory-compliance certification.
  This is a runnable demonstration with mock identities, **not** live customer telemetry or independently attested evidence.
 
-**[Telemetry API, Studio setup, and production limitations](docs/EVIDENCE-TELEMETRY-REGISTRY.md)** · **[Acceptance-workflow design](docs/EVIDENCE-ASSURANCE-TELEMETRY.md)**
+### Adversarial custody challenge: a fake independent source
+
+The registry's original metadata-only replay can reproduce an **invented origin label**. Run the source custody challenge to see an attacker change a one-origin `INCONCLUSIVE` result into a self-consistent `ADMIT` that **passes ordinary replay**, while a separately signed customer-reviewed source mapping rejects the forged origin:
+
+```sh
+python -m pip install -r tools/packspec_compiler/requirements.txt
+npm --prefix apps/registry install
+python scripts/evidence-custody-show-me.py
+```
+
+This reuses QualityRAG's existing QR-CJSON-1 Ed25519 signed-attestation mechanism and RCT v1.9 exact-byte custody concepts. The demonstration uses **synthetic data and ephemeral keys**. A signed claim does not prove an original publisher, real-world source independence or semantic truth.
+
+**[Customer-controlled source custody challenge](docs/EVIDENCE-CUSTOMER-SOURCE-CUSTODY.md)** · **[Telemetry API, Studio setup, and production limitations](docs/EVIDENCE-TELEMETRY-REGISTRY.md)** · **[Acceptance-workflow design](docs/EVIDENCE-ASSURANCE-TELEMETRY.md)**
 
 ## PackSpec configuration choices
 
