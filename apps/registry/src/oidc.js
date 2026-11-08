@@ -49,7 +49,8 @@ export function permissionFor(method,pathname){
   const ev='/v1/evidence/evaluations';
   if(method==='POST'&&pathname===ev)return ROLE.evidenceIngest;
   if(method==='GET'&&(pathname===ev||
-    (pathname.startsWith(ev+'/')&&pathname.split('/').length===5)))return ROLE.evidenceRead;
+    (pathname.startsWith(ev+'/')&&[5,6].includes(pathname.split('/').length))))
+    return ROLE.evidenceRead;
   if(method==='POST'&&pathname.startsWith(ev+'/')&&
     pathname.split('/').length===6&&pathname.endsWith('/replay'))return ROLE.evidenceRead;
   if(method==='POST'&&pathname.startsWith(ev+'/')&&
