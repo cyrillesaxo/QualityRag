@@ -128,7 +128,7 @@ PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_st
 It uses an operator-supplied 32+ character bearer token checked before any MCP request, exact Origin filtering, explicit SDK Host allowlisting, and loopback-only process binding. It does **not** provide OAuth 2.1, multi-tenant auth, token rotation/revocation, quota management, inference sandboxing, or a public ChatGPT connector. Bearer tokens are a single-operator staging measure, not a replacement for proper OAuth in a customer service.
 
 ```sh
-python -m pip install 'mcp>=1.28,<2' 'uvicorn>=0.30,<1'
+python -m pip install 'mcp>=2.3,<3' 'uvicorn>=0.30,<1'
 export QUALITYRAG_VIDEO_ROOT="$HOME/qualityrag-authorized-video"
 export QUALITYRAG_VIDEO_MCP_TOKEN="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
 # Optional exact origin/host allowlists for a protected HTTPS reverse proxy:
@@ -139,4 +139,4 @@ PYTHONPATH=tools/semantic_store python tools/semantic_store/video_mcp_remote.py
 
 The internal ASGI service binds only to `127.0.0.1:8039` by default. Its MCP endpoint is `/mcp`, requiring the header `Authorization: Bearer <configured token>` for all calls. To use off-host, put it **behind an independently secured HTTPS reverse proxy** that preserves authentication and enforces host/origin restrictions. Never expose port 8039 directly or commit secrets.
 
-The dedicated workflow tests security denials and authentic MCP initialization/tool discovery through the SDK. No actual server has been deployed or connected to ChatGPT yet; check the latest workflow before treating protocol compatibility as verified. To use this as a ChatGPT-connected remote service, the next milestone is OAuth with scoped access, deployment isolation and supported plugin connection—not just a reverse-proxied static token.
+The dedicated workflow tests security denials and authentic MCP initialization/tool discovery through the current Python v2 SDK. The original v1 integration failed because its FastMCP app factory does not accept transport_security; the protected HTTP adapter now uses the supported v2 MCPServer API. The standalone stdio prototype is currently based on the older v1 SDK; install its dependencies in a separate virtual environment until it is migrated. No actual server has been deployed or connected to ChatGPT yet; check the latest workflow before treating protocol compatibility as verified. To use this as a ChatGPT-connected remote service, the next milestone is OAuth with scoped access, deployment isolation and supported plugin connection—not just a reverse-proxied static token.
