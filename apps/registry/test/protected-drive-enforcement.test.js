@@ -84,7 +84,7 @@ test('protected services reject forged metadata, record blocked attempts without
    assert.equal(status.body.protected,true);
    assert.equal(status.body.mode,'BLOCK_UNATTESTED_GENERIC_EVIDENCE');
    assert.equal(status.body.genericEvidenceIngress,'BLOCKED');
-   assert.equal(status.body.sourceAdmission,'NOT_IMPLEMENTED');
+   assert.equal(status.body.sourceAdmission,'NOT_ENABLED');
    assert.equal(status.body.guardTelemetry.observedBlockedAttempts,0);
    assert.ok(status.body.guardTelemetry.protectedSince);
    assert.equal(ledger.protectedScopes().has(service+'@'+environment),true);
