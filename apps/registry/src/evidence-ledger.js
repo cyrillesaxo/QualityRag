@@ -135,9 +135,14 @@ export class EvidenceLedger {
     const c=check.counters;
     if(c.submitted!==c.ownerExcluded+c.eligibleForReview+c.otherUnresolved)
       throw Error('INVALID_DRIVE_CANDIDATE_TELEMETRY');
+    const actorHash=hex(actor);
+    const cutoff=Date.now()-60_000;
+    const recent=this.readAll().filter(x=>x.type==='drive-check'&&
+      x.actorHash===actorHash&&Date.parse(x.at)>=cutoff);
+    if(recent.length>=20)throw Error('DRIVE_CHALLENGE_RATE_LIMITED');
     const item=this.append({id:randomUUID(),type:'drive-check',
       at:new Date().toISOString(),serviceId,environment,
-      actorHash:hex(actor),policySha256,
+      actorHash,policySha256,
       verdict:check.result,submitted:c.submitted,ownerExcluded:c.ownerExcluded,
       eligibleForReview:c.eligibleForReview,otherUnresolved:c.otherUnresolved,
       admission:false,sourceAuthenticityVerified:false});
