@@ -140,3 +140,15 @@ PYTHONPATH=tools/semantic_store python tools/semantic_store/video_mcp_remote.py
 The internal ASGI service binds only to `127.0.0.1:8039` by default. Its MCP endpoint is `/mcp`, requiring the header `Authorization: Bearer <configured token>` for all calls. To use off-host, put it **behind an independently secured HTTPS reverse proxy** that preserves authentication and enforces host/origin restrictions. Never expose port 8039 directly or commit secrets.
 
 The dedicated workflow tests security denials and authentic MCP initialization/tool discovery through the current Python v2 SDK. The original v1 integration failed because its FastMCP app factory does not accept transport_security; the protected HTTP adapter now uses the supported v2 MCPServer API. The standalone stdio prototype is currently based on the older v1 SDK; install its dependencies in a separate virtual environment until it is migrated. No actual server has been deployed or connected to ChatGPT yet; check the latest workflow before treating protocol compatibility as verified. To use this as a ChatGPT-connected remote service, the next milestone is OAuth with scoped access, deployment isolation and supported plugin connection—not just a reverse-proxied static token.
+
+## Mandatory source allowlist for remote MCP staging
+
+The read-only HTTP server now refuses to start unless `QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS` is explicitly populated with a comma-separated list of indexed source IDs. Every remote search restricts source membership **before ranking and before selecting nearby cross-modal witnesses**. Direct `inspect_video_evidence` on a disallowed source fails without revealing whether the ID exists.
+
+```sh
+export QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS="lesson-001,lesson-002"
+# Only these indexed, authorized videos may be read over the HTTP MCP.
+PYTHONPATH=tools/semantic_store python tools/semantic_store/video_mcp_remote.py
+```
+
+This is a static source scope for a **single operator**, not per-user OAuth authorization or robust multi-tenancy. Do not share its token between tenants or expose it to public internet clients. Production needs a trusted identity provider, audience/scopes, per-tenant source ACL enforcement, token expiry/revocation, audit logs and load-shedding; those pieces are not completed here. Source permission declarations are not independently verified legal grants. Existing MCP connections remain unavailable from this conversation until the user installs/connects an approved, actually deployed connector.
