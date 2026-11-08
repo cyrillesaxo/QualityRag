@@ -29,6 +29,7 @@ jobs:
       - run: npm --prefix apps/registry install --no-audit --no-fund
       - run: DATABASE_URL="$PG_TEST_DATABASE_URL" node apps/registry/src/migrate.js
       - run: npm --prefix apps/registry test
+      - run: python scripts/evidence-custody-show-me.py
   studio:
     runs-on: ubuntu-latest
     defaults: {run: {working-directory: apps/studio}}
