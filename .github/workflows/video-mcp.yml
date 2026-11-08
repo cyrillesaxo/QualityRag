@@ -5,6 +5,7 @@ on:
       - 'tools/semantic_store/video_catalog.py'
       - 'tools/semantic_store/video_mcp.py'
       - 'tools/semantic_store/video_mcp_remote.py'
+      - 'tools/semantic_store/video_auth.py'
       - 'tools/semantic_store/video_research.py'
       - 'tools/semantic_store/video_sources.py'
       - 'tools/semantic_store/video_hybrid.py'
@@ -17,6 +18,8 @@ on:
       - 'tools/semantic_store/tests/test_video_mcp_remote.py'
       - 'tools/semantic_store/tests/test_video_mcp_protocol.py'
       - 'tools/semantic_store/tests/test_video_scope.py'
+      - 'tools/semantic_store/tests/test_video_auth.py'
+      - 'tools/semantic_store/tests/test_video_mcp_identity.py'
       - '.github/workflows/video-mcp.yml'
   push:
     paths:
@@ -39,7 +42,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile video MCP adapter
-        run: python -m py_compile tools/semantic_store/video_catalog.py tools/semantic_store/video_mcp_remote.py tools/semantic_store/video_mcp.py tools/semantic_store/video_research.py tools/semantic_store/video_sources.py tools/semantic_store/video_hybrid.py tools/semantic_store/video_hybrid_cli.py
+        run: python -m py_compile tools/semantic_store/video_auth.py tools/semantic_store/video_catalog.py tools/semantic_store/video_mcp_remote.py tools/semantic_store/video_mcp.py tools/semantic_store/video_research.py tools/semantic_store/video_sources.py tools/semantic_store/video_hybrid.py tools/semantic_store/video_hybrid_cli.py
       - name: Test evidence catalog without external providers
         run: |
           PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_catalog.py -v
@@ -51,4 +54,7 @@ jobs:
       - name: Install current MCP v2 and HTTP test transport
         run: python -m pip install 'mcp>=2.3,<3' 'httpx>=0.27,<1'
       - name: Verify actual authenticated MCP protocol
-        run: PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_mcp_protocol.py -v
+        run: |
+          PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_mcp_protocol.py -v
+          PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_auth.py -v
+          PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_mcp_identity.py -v
