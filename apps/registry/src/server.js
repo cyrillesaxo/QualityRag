@@ -40,6 +40,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    enforceSeparation=false,evidenceLedger=null,driveManager=null}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
+ if(driveManager&&!authenticate)throw new Error('DRIVE_REQUIRES_OIDC');
  return async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
   if (url.pathname==='/health') return reply(res,200,{ok:true,service:'qualityrag-registry'});
