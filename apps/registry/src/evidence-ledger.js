@@ -358,6 +358,9 @@ export class EvidenceLedger {
       protectedBufferedReleases:rows.filter(x=>x.type==='protected-use'&&
         x.serviceId===serviceId&&x.environment===environment&&
         x.deliveryMode==='SERVER_BUFFERED_RELEASE').length,
+      protectedGroundedReleases:rows.filter(x=>x.type==='protected-use'&&
+        x.serviceId===serviceId&&x.environment===environment&&
+        x.deliveryMode==='SOURCE_GROUNDED_EXTRACT').length,
       protectedRevocations:rows.filter(x=>x.type==='protected-revocation'&&
         x.serviceId===serviceId&&x.environment===environment).length
     };
@@ -377,6 +380,7 @@ export class EvidenceLedger {
         protectedInconclusive:summary.protectedInconclusive,
         protectedUses:summary.protectedUses,
         protectedBufferedReleases:summary.protectedBufferedReleases,
+        protectedGroundedReleases:summary.protectedGroundedReleases,
         protectedRevocations:summary.protectedRevocations,
         lastCandidateCheckAt:latestCandidate?.at||null,
         externallyAnchored:false,coverage:'REGISTRY_EVENT_ENDPOINTS_ONLY'
