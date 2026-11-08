@@ -21,7 +21,7 @@ export default function EnterpriseEngines(){
  const [contactChallenge,setContactChallenge]=useState('');
  const [leadStatus,setLeadStatus]=useState('');
  const [submitting,setSubmitting]=useState(false);
- const leadEndpoint=(import.meta.env.VITE_ENTERPRISE_LEAD_ENDPOINT||'').trim();
+ const leadEndpoint=((import.meta as ImportMeta & {env?:{VITE_ENTERPRISE_LEAD_ENDPOINT?:string}}).env?.VITE_ENTERPRISE_LEAD_ENDPOINT||'').trim();
  async function requestWalkthrough(engine:string){
   if(!leadEndpoint)return;
   setSubmitting(true);setLeadStatus('');
@@ -65,7 +65,7 @@ export default function EnterpriseEngines(){
       <label>Organization <input type="text" autoComplete="organization" value={contactCompany} onChange={e=>setContactCompany(e.target.value)} placeholder="Organization (optional)" maxLength={100}/></label>
       <label>Your role <select value={contactRole} onChange={e=>setContactRole(e.target.value)}><option value="">Select role (optional)</option><option>Security / Compliance</option><option>Engineering / Architecture</option><option>Data / AI</option><option>Business / Procurement</option><option>Other</option></select></label>
       <label>What is your biggest challenge? <textarea value={contactChallenge} maxLength={500} onChange={e=>setContactChallenge(e.target.value)} placeholder="For example: keeping PCI data out of model prompts" rows={3}/></label>
-      {leadEndpoint&&<button type="button" disabled={submitting||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)} onClick={()=>requestWalkthrough(engine)}>Submit request securely</button>}
+      {leadEndpoint&&<button type="button" disabled={submitting||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)} onClick={()=>requestWalkthrough(engine.name)}>Submit request securely</button>}
       {leadStatus&&<p role="status">{leadStatus}</p>}
       <button type="button" disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)} onClick={()=>{
        const subject='QualityRAG Enterprise walkthrough — '+engine.name;
