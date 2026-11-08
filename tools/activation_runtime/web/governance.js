@@ -258,8 +258,13 @@ function govCurrentCase(){
   if(!gov.docs)return null;
   const chosen=new Set(govIds(byId('gov-retrieved').value)),evidence=[];
   const at=gov.usingSample?gov.example.as_of:new Date().toISOString().replace(/\.\d+Z$/,'Z');
+  // A missing date is never "now" under a max age (same rule as the server's policy tester): leave it
+  // empty so the gate rejects the row as invalid instead of counting it as fresh.
+  const aged=new Set();
+  for(const id of ['gov-pack','gov-branch']){try{for(const r of JSON.parse(byId(id).value||'{}').requirements||[])if(r.max_age_seconds!==undefined)aged.add(r.id);}catch(_e){}}
   for(const doc of gov.docs)for(const c of doc.chunks||[])if(chosen.has(c.id)&&c.requirement_id&&c.status)
-    evidence.push({id:c.id,requirement_id:c.requirement_id,origin:doc.origin,source_ref:doc.id+'#'+c.id,status:c.status,observed_at:c.observed_at||doc.observed_at||at});
+    evidence.push({id:c.id,requirement_id:c.requirement_id,origin:doc.origin,source_ref:doc.id+'#'+c.id,status:c.status,
+      observed_at:c.observed_at||doc.observed_at||(aged.has(c.requirement_id)?'':at)});
   const q=byId('gov-question').value.trim();
   return {id:'your-current-check',...(q?{question:q}:{}),evidence};
 }

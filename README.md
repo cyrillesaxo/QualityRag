@@ -126,6 +126,21 @@ No private infrastructure, credentials, customer records, or private APX source 
 
 Only metadata and bounded evidence identifiers belong in receipts. Validate upstream source authority; do not count repeated copies as independent corroboration. Apply access control to documents before indexing/retrieval. Avoid logging retrieved content or sensitive data.
 
+**Prompt injection as a confused-deputy problem (research reference).** [ADR-0002](docs/ADR-0002-contract-governed-information-flow.md) applies the IAM rule that authority never travels inside the payload:
+- Documents are signed by the resource that owns them, and origin comes from the verified key.
+- The owner's signed data contract classifies every field. Card numbers and other declared fields become opaque tokens before indexing, and anything unclassified is quarantined.
+- The gate admits only sealed, same-tenant evidence.
+- Every output leaves through one gateway. A release is bound to principal, tenant, purpose, operation and destination; it needs a signed independent review where required, and is recorded in a ledger that holds no plaintext.
+- Only an isolated detokenizer can open a token.
+
+Signed text can still carry injected instructions: it is treated as evidence, never as instructions. No PCI scope reduction is claimed without a scoping assessment.
+
+Where it runs:
+- the registry stores and publishes signed data contracts ([DATA-CONTRACTS.md](apps/registry/DATA-CONTRACTS.md));
+- Studio has a data-contracts panel;
+- the console has a **Protected data** screen;
+- AI agents get `evidence_admit` and `release_output` over MCP.
+
 ## Research lineage and references
 
 **Cyrille Eloundou** — APX framework author and research reference for the PackSpec, semantic governance, constraint-verification, and provenance concepts that informed QualityRag.

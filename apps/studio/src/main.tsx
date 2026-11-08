@@ -7,12 +7,61 @@ type Policy={policy:{id:string;version:string;requirements:unknown[]};status:str
 type Binding={serviceId:string;environment:string;policyId:string;version:string};
 type SignedPromotion={serviceId:string;environment:string;sequence:number;keyId:string;status:string;irSha256:string};
 type SignedBinding={serviceId:string;environment:string;sequence:number;irSha256:string};
+type ContractPromotion={contractId:string;kind:string;tenant:string;sequence:number;status:string;sha256:string;keyId:string;stagedBy?:string;approvedBy?:string};
+type ContractBinding={contractId:string;kind:string;tenant:string;sequence:number;sha256:string};
+type Rule={destination:string;purposes:string[];operations:string[];class?:string};
+const sourceStarter={schema:'qualityrag.data-contract/v1',kind:'source',id:'billing-contracts',tenant:'acme-bank',
+ publisher_key_id:'billing-ledger',text:'OWNER_CLASSIFIED',scan:['PAN'],
+ fields:{public:['customer','due_date'],sensitive:[{field:'card_number',class:'PAN',token:'deterministic'}]},
+ derive:{PAN:['brand','last4']},
+ release:[{destination:'customer-email',purposes:['customer-service'],operations:['notify']},
+          {destination:'card-processor',purposes:['payment'],operations:['charge']}],
+ detokenize:[{class:'PAN',destination:'card-processor',purposes:['payment'],operations:['charge']}]};
+const destinationStarter={schema:'qualityrag.data-contract/v1',kind:'destination',id:'card-processor',tenant:'acme-bank',
+ channel:'api',accepts:{sources:['billing-contracts'],classes:['PAN'],operations:['charge']},link_hosts:[],
+ max_bytes:20000,requires_review:false,review_classes:['PAN']};
+function ContractSummary({text}:{text:string}){
+ let c:any;
+ try{c=JSON.parse(text)}catch{return <p className="status">Not valid JSON yet.</p>}
+ const rules=(rs:Rule[]|undefined)=>!Array.isArray(rs)||!rs.length?<p>None.</p>:<table><thead><tr>{rs[0].class!==undefined&&<th>Class</th>}<th>Destination</th><th>Purposes</th><th>Operations</th></tr></thead>
+  <tbody>{rs.map((r,i)=><tr key={i}>{r.class!==undefined&&<td><code>{r.class}</code></td>}<td><code>{r.destination}</code></td><td>{(r.purposes||[]).join(', ')}</td><td>{(r.operations||[]).join(', ')}</td></tr>)}</tbody></table>;
+ if(c?.kind==='source')return <div className="summary" aria-label="What this source contract allows">
+  <p><strong>{c.id}</strong> · tenant <code>{c.tenant}</code> · documents must be signed by <code>{c.publisher_key_id}</code></p>
+  <p>Visible to the model as-is: {(c.fields?.public||[]).map((f:string)=><code key={f}>{f}</code>)}</p>
+  <p>Replaced by opaque tokens before indexing: {(c.fields?.sensitive||[]).map((f:any)=><code key={f.field}>{f.field} → {f.class}</code>)}</p>
+  <p>Approved derived attributes: {Object.entries(c.derive||{}).map(([k,v])=><code key={k}>{k}: {(v as string[]).join(', ')||'none'}</code>)}</p>
+  <p>Free text: {c.text==='OWNER_CLASSIFIED'?'classified by the owner (card numbers are also scanned and tokenized)':'unclassified — quarantined, never shown to a model'}. Any field not listed above is quarantined.</p>
+  <h4>May be released to</h4>{rules(c.release)}
+  <h4>May be detokenized for (only by the isolated detokenizer)</h4>{rules(c.detokenize)}
+ </div>;
+ if(c?.kind==='destination')return <div className="summary" aria-label="What this destination accepts">
+  <p><strong>{c.id}</strong> · tenant <code>{c.tenant}</code> · channel <code>{c.channel}</code></p>
+  <p>Accepts data from: {(c.accepts?.sources||[]).map((x:string)=><code key={x}>{x}</code>)} · operations: {(c.accepts?.operations||[]).map((x:string)=><code key={x}>{x}</code>)}</p>
+  <p>May receive in clear: {(c.accepts?.classes||[]).length?(c.accepts.classes).map((x:string)=><code key={x}>{x}</code>):'nothing — every token stays masked'}</p>
+  <p>Links allowed to: {(c.link_hosts||[]).length?c.link_hosts.map((h:string)=><code key={h}>{h}</code>):'no hosts — all links and URLs are removed'} · limit {c.max_bytes} bytes</p>
+  <p>Signed independent review: {c.requires_review?'required for every release':(c.review_classes||[]).length?'required when releasing '+c.review_classes.join(', ')+' in clear':'not required'}</p>
+ </div>;
+ return <p className="status">Set "kind" to "source" or "destination".</p>;
+}
 const starter={id:'eligibility',version:'1.0.0',requirements:[{id:'governing-rule',min_independent_sources:2,max_age_seconds:86400}]};
 function Studio(){
- const [token,setToken]=useState(''),[state,setState]=useState<{services:Service[];policies:Policy[];bindings:Binding[];signedPromotions:SignedPromotion[];signedBindings:SignedBinding[]}>({services:[],policies:[],bindings:[],signedPromotions:[],signedBindings:[]});
+ const [token,setToken]=useState(''),[state,setState]=useState<{services:Service[];policies:Policy[];bindings:Binding[];signedPromotions:SignedPromotion[];signedBindings:SignedBinding[];contractPromotions?:ContractPromotion[];contractBindings?:ContractBinding[]}>({services:[],policies:[],bindings:[],signedPromotions:[],signedBindings:[],contractPromotions:[],contractBindings:[]});
  const [serviceId,setServiceId]=useState('claims-api'),[name,setName]=useState('Claims API'),[environment,setEnvironment]=useState('dev');
  const [policyId,setPolicyId]=useState('eligibility'),[version,setVersion]=useState('1.0.0'),[editor,setEditor]=useState(JSON.stringify(starter,null,2)),[message,setMessage]=useState('');
  const [signedBundle,setSignedBundle]=useState('');
+ const [contractText,setContractText]=useState(JSON.stringify(sourceStarter,null,2));
+ const [contractCheck,setContractCheck]=useState('');
+ const [signedContract,setSignedContract]=useState('');
+ async function validateContract(){
+  try{const r=await request('/v1/contracts/validate','POST',JSON.parse(contractText));
+   setContractCheck('Valid '+r.kind+' contract '+r.contractId+' for tenant '+r.tenant+' · sha256 '+r.sha256.slice(0,16)+'…');
+  }catch(e){setContractCheck('Not valid: '+String(e).replace('Error: ',''))}
+ }
+ function downloadContract(){
+  let c:any;try{c=JSON.parse(contractText)}catch{setContractCheck('Not valid JSON');return}
+  const url=URL.createObjectURL(new Blob([JSON.stringify(c,null,2)],{type:'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download=(c.id||'contract')+'.contract.json';a.click();URL.revokeObjectURL(url);
+ }
  const [semanticToken,setSemanticToken]=useState('');
  const [semanticStatus,setSemanticStatus]=useState('Not connected');
  const [semanticNamespace,setSemanticNamespace]=useState('local');
@@ -194,6 +243,35 @@ function Studio(){
      'At '+((hit.anchor.timestamp_ms||0)/1000).toFixed(1)+'s':'Image'} ·
     Similarity: {hit.similarity.toFixed(3)} (not probability) · Unverified model candidate
    </li>)}</ul>
+   </section>
+   <section className="panel" aria-label="Data contracts">
+   <h2>6. Data contracts · what each resource releases (ADR-0002)</h2>
+   <p>Each resource owns its data. A <strong>source contract</strong> classifies every field (public, sensitive → opaque token, or quarantined), says where its data may be released, for which purpose and operation, and who may ever see a protected value in clear. A <strong>destination contract</strong> says what a channel accepts. The outbound gateway releases only when the user, the source and the destination all say yes. The model never sees a card number and never holds detokenization rights.</p>
+   <div className="line">
+    <button className="secondary" onClick={()=>setContractText(JSON.stringify(sourceStarter,null,2))}>Start a source contract</button>
+    <button className="secondary" onClick={()=>setContractText(JSON.stringify(destinationStarter,null,2))}>Start a destination contract</button>
+   </div>
+   <div className="columns">
+    <label>Contract JSON<textarea spellCheck={false} value={contractText} onChange={e=>setContractText(e.target.value)}/></label>
+    <div><h3>What this contract allows</h3><ContractSummary text={contractText}/></div>
+   </div>
+   <div className="line">
+    <button disabled={!token} onClick={validateContract}>Validate with registry</button>
+    <button className="secondary" onClick={downloadContract}>Download unsigned contract</button>
+   </div>
+   <p className="status" role="status">{contractCheck}</p>
+   <p>Sign outside Studio with the contract governor's key; the registry holds no signing keys:<br/>
+    <code>python -m tools.activation_runtime.cli contract-sign --contract billing-contracts.contract.json --key governor.key --key-id governor --sequence 1</code></p>
+   <label>Signed contract envelope JSON<textarea spellCheck={false} value={signedContract} onChange={e=>setSignedContract(e.target.value)} placeholder='{"schema":"qualityrag.signed-observations/v1","canonical":"QR-CJSON-1",...}'/></label>
+   <button disabled={!token||!signedContract.trim()} onClick={()=>run(()=>request('/v1/contracts/signed','POST',JSON.parse(signedContract)))}>Stage signed contract</button>
+   <p>In OIDC mode the author, approver and publisher must be different people. A sequence can never go backwards, and a contract cannot change tenant or kind.</p>
+   <ul>{(state.contractPromotions||[]).map(p=><li key={p.contractId+'#'+p.sequence}>
+    <code>{p.contractId} #{p.sequence}</code> {p.kind} · {p.tenant} <span>{p.status}</span>
+    {p.status==='STAGED'&&<button disabled={!token} onClick={()=>run(()=>request('/v1/contracts/signed/'+encodeURIComponent(p.contractId)+'/'+p.sequence+'/approve','POST'))}>Approve contract</button>}
+    {p.status==='APPROVED'&&<button disabled={!token} onClick={()=>run(()=>request('/v1/contracts/signed/'+encodeURIComponent(p.contractId)+'/'+p.sequence+'/publish','POST'))}>Publish contract</button>}
+   </li>)}</ul>
+   <p>Published contracts:</p><ul>{(state.contractBindings||[]).map(b=><li key={b.contractId}><code>{b.contractId}</code> {b.kind} · {b.tenant} → sequence {b.sequence}</li>)}</ul>
+   <p>The runtime loads and re-verifies them with <code>GET /v1/contracts/published?tenant=…</code>; one contract: <code>GET /v1/contracts/resolve/{'{contractId}'}</code>.</p>
    </section>
    <footer>QualityRag v0.1 · deterministic policy enforcement · policies are not proof of source truth</footer>
  </main>;

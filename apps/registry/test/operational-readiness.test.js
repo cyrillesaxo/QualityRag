@@ -5,6 +5,8 @@ import http from 'node:http';
 import {createHandler} from '../src/server.js';
 import {migrate,checkMigrations} from '../src/migrate.js';
 import {PgSignedRegistryStore} from '../src/pg-store.js';
+import {readdirSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 
 const url=process.env.PG_TEST_DATABASE_URL;
 
@@ -18,7 +20,9 @@ test('migration locking, checksums, clean restart and readiness failures', {skip
  try{
   await Promise.all([migrate(poolA),migrate(poolB)]);
   const migration=await checkMigrations(poolA);
-  assert.equal(migration.count,1);
+  const files=readdirSync(fileURLToPath(new URL('../migrations/',import.meta.url))).filter(f=>/^[0-9]{3}_.+\.sql$/.test(f));
+  assert.equal(migration.count,files.length);
+  assert.equal(migration.version,files.sort().at(-1));
   await poolA.query('DELETE FROM qr_governance_events WHERE service_id=$1',[service]);
   await poolA.query('DELETE FROM qr_signed_promotions WHERE service_id=$1',[service]);
   await poolA.query('DELETE FROM qr_governance_heads WHERE service_id=$1',[service]);
