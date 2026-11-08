@@ -8,6 +8,7 @@ import {randomBytes} from 'node:crypto';
 import {RegistryStore} from '../src/store.js';
 import {createHandler} from '../src/server.js';
 import {UserDriveIndex} from '../src/user-drive-index.js';
+import {EvidenceLedger} from '../src/evidence-ledger.js';
 import {permissionFor} from '../src/oidc.js';
 
 test('governed Drive candidates fail closed on owner exclusion, stale revisions, wrong scope and unreviewed semantics',async()=>{
@@ -49,8 +50,11 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    outsider:{subject:subjects.alice,roles:new Set(['evidence.reader']),
      evidenceServices:new Set(['claims-app@dev'])}
  };
+ const ledgerPath=path.join(dir,'governed-evidence.jsonl');
+ const ledger=new EvidenceLedger(ledgerPath);
  const handler=createHandler(store,null,{
-   authenticate:async token=>actors[token]||null,driveManager:connector,driveIndex:index
+   authenticate:async token=>actors[token]||null,driveManager:connector,
+   driveIndex:index,evidenceLedger:ledger
  });
  const server=http.createServer(handler);
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -87,6 +91,9 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    assert.equal(good.body.observations[0].eligibleForReviewedEvidence,true);
    assert.ok(good.body.observations[0].reasons.includes('SEMANTIC_SUPPORT_NOT_VERIFIED'));
    assert.equal(good.body.evaluationAdmitted,false);
+   assert.equal(good.body.telemetry.recorded,true);
+   assert.match(good.body.telemetry.receiptId,/^[a-f0-9-]{36}$/);
+   assert.equal(good.body.telemetry.externallyAnchored,false);
    assert.equal(good.body.independentProvenanceVerified,false);
    assert.equal((await request('POST',checkPath,'insufficient',input(candidate))).status,403);
    assert.equal((await request('POST',checkPath,'unscoped',input(candidate))).status,403);
@@ -108,6 +115,7 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    const excluded=await request('POST',checkPath,'alice',input(candidate));
    assert.equal(excluded.body.result,'REFUSE');
    assert.equal(excluded.body.counters.ownerExcluded,1);
+   assert.equal(excluded.body.telemetry.recorded,true);
    assert.equal(excluded.body.observations[0].reasons[0],'SOURCE_EXCLUDED_BY_OWNER');
    now+=61*60*1000;
    assert.equal((await request('POST',checkPath,'alice',input(candidate)))
@@ -134,6 +142,18 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    const erased=await request('POST',checkPath,'alice',input(candidate));
    assert.equal(erased.body.result,'INCONCLUSIVE');
    assert.equal(erased.body.observations[0].reasons[0],'NO_CURRENT_INDEX');
+   const recorded=ledger.list('claims-app','dev');
+   assert.ok(recorded.summary.governedCandidateChecks>=7);
+   assert.ok(recorded.summary.governedCandidateRefusals>=2);
+   assert.equal(recorded.observedCount,0);
+   const bytes=fs.readFileSync(ledgerPath,'utf8');
+   assert.ok(!bytes.includes('An exception applies to contractors'));
+   assert.ok(!bytes.includes('Bob only document'));
+   assert.ok(!bytes.includes(a.source_id));
+   assert.ok(!bytes.includes(b.source_id));
+   assert.ok(!bytes.includes(a.revision));
+   assert.equal(new EvidenceLedger(ledgerPath).list('claims-app','dev')
+     .summary.governedCandidateChecks,recorded.summary.governedCandidateChecks);
  }finally{
    await new Promise(resolve=>server.close(resolve));
    fs.rmSync(dir,{recursive:true,force:true});
