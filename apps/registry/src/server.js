@@ -7,6 +7,7 @@ import {loadTrustedPolicyKeys} from './signed.js';
 import {createOidcAuthenticator,permissionFor} from './oidc.js';
 import {EvidenceLedger} from './evidence-ledger.js';
 import {GoogleDriveConnections,safeDriveError} from './google-drive-connections.js';
+import {UserDriveIndex} from './user-drive-index.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -37,10 +38,11 @@ async function body(req) {
  try {return JSON.parse(txt)}catch{throw new Error('INVALID_JSON')}
 }
 export function createHandler(store,token,{trustedPolicyKeys=new Map(),authenticate=null,
-   enforceSeparation=false,evidenceLedger=null,driveManager=null}={}) {
+   enforceSeparation=false,evidenceLedger=null,driveManager=null,driveIndex=null}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
  if(driveManager&&!authenticate)throw new Error('DRIVE_REQUIRES_OIDC');
+ if(driveIndex&&(!driveManager||!authenticate))throw new Error('DRIVE_INDEX_REQUIRES_OIDC');
  return async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
   if (url.pathname==='/health') return reply(res,200,{ok:true,service:'qualityrag-registry'});
@@ -57,11 +59,15 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
   if(req.method==='GET'&&url.pathname==='/v1/drives/google/callback'){
     if(!driveManager)return reply(res,404,{error:'DRIVE_CONNECT_DISABLED'});
     let success=false;
-    try{await driveManager.callback({
-      state:url.searchParams.get('state'),
-      code:url.searchParams.get('code'),
-      error:url.searchParams.get('error')
-    });success=true}catch{}
+    try{
+      const completed=await driveManager.callback({
+        state:url.searchParams.get('state'),
+        code:url.searchParams.get('code'),
+        error:url.searchParams.get('error')
+      });
+      if(driveIndex)driveIndex.clear(completed.subject);
+      success=true;
+    }catch{}
     const target=driveManager.studioOrigin+'/?drive='+(success?'connected':'authorization-failed');
     res.writeHead(303,{'Location':target,'Cache-Control':'no-store',
       'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff'});
@@ -86,7 +92,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    if(url.pathname.startsWith('/v1/drives/google/')){
      if(!authenticate||!driveManager)return reply(res,404,{error:'DRIVE_CONNECT_DISABLED'});
      if(req.method==='GET'&&url.pathname==='/v1/drives/google/status')
-       return reply(res,200,driveManager.status(actor));
+       return reply(res,200,{...driveManager.status(actor),indexEnabled:!!driveIndex,
+         index:driveIndex?driveIndex.status(actor,driveManager.status(actor)):null});
      if(req.method==='POST'&&url.pathname==='/v1/drives/google/start')
        return reply(res,200,driveManager.start(actor));
      if(req.method==='GET'&&url.pathname==='/v1/drives/google/folders')
@@ -96,12 +103,41 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        const b=await body(req);
        if(!b||typeof b!=='object'||Array.isArray(b)||
           Object.keys(b).length!==1||!Object.hasOwn(b,'folderId'))throw Error('INVALID_DRIVE_FOLDER_ID');
-       return reply(res,200,await driveManager.selectFolder(actor,b.folderId));
+       const before=driveManager.status(actor);
+       const updated=await driveManager.selectFolder(actor,b.folderId);
+       if(driveIndex&&before.folderId!==updated.folderId)driveIndex.clear(actor);
+       return reply(res,200,{...updated,indexEnabled:!!driveIndex,
+         index:driveIndex?driveIndex.status(actor,updated):null});
      }
      if(req.method==='GET'&&url.pathname==='/v1/drives/google/files')
        return reply(res,200,await driveManager.selectedFiles(actor));
-     if(req.method==='POST'&&url.pathname==='/v1/drives/google/disconnect')
+     if(req.method==='GET'&&url.pathname==='/v1/drives/google/index'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       return reply(res,200,driveIndex.status(actor,driveManager.status(actor)));
+     }
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/sync'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       const input=await body(req);
+       if(!input||typeof input!=='object'||Array.isArray(input)||
+          Object.keys(input).length!==0)throw Error('DRIVE_SYNC_ARGUMENTS_NOT_ALLOWED');
+       return reply(res,200,await driveIndex.sync(actor,driveManager));
+     }
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/search'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       const input=await body(req);
+       if(!input||typeof input!=='object'||Array.isArray(input)||
+          Object.keys(input).length!==1||typeof input.query!=='string')
+         throw Error('INVALID_DRIVE_SEARCH_QUERY');
+       return reply(res,200,driveIndex.search(actor,driveManager.status(actor),input.query));
+     }
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/clear-index'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       return reply(res,200,driveIndex.clear(actor));
+     }
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/disconnect'){
+       if(driveIndex)driveIndex.clear(actor);
        return reply(res,200,await driveManager.disconnect(actor));
+     }
      return reply(res,404,{error:'NOT_FOUND'});
    }
    // The evidence ledger is explicitly opt-in; live monitoring is not inferred.
@@ -210,6 +246,11 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
    redirectUri:process.env.QUALITYRAG_GOOGLE_REDIRECT_URI,
    studioOrigin:process.env.QUALITYRAG_STUDIO_ORIGIN
  }):null;
+ if(process.env.QUALITYRAG_DRIVE_INDEX_DIR && !driveManager)
+   throw Error('DRIVE_INDEX_REQUIRES_GOOGLE_CONNECTIONS');
+ const driveIndex=driveManager&&process.env.QUALITYRAG_DRIVE_INDEX_DIR?
+   new UserDriveIndex({dir:process.env.QUALITYRAG_DRIVE_INDEX_DIR,
+     encryptionKey:process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY}):null;
  const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?
     loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
  if(backend==='postgres' && keys.size===0)throw new Error('TRUSTED_POLICY_KEYS_REQUIRED');
@@ -221,7 +262,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
-    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger,driveManager}));
+    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger,driveManager,driveIndex}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
   server.listen(Number(process.env.PORT||5055),host,
     ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));
