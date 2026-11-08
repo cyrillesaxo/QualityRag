@@ -20,9 +20,11 @@ function fail(res,error) {
  if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
  if(code.startsWith('DRIVE_')||code.startsWith('GOOGLE_')){
    const safe=safeDriveError(error);
-   const status=['DRIVE_CONNECTION_NOT_FOUND','DRIVE_CONNECT_DISABLED','DRIVE_FOLDER_NOT_FOUND'].includes(safe)?404:
-     ['DRIVE_STORAGE_INTEGRITY_FAILURE'].includes(safe)?503:
-     ['DRIVE_AUTHORIZATION_REQUIRED','DRIVE_FOLDER_NOT_CONFIGURED'].includes(safe)?409:
+   const status=['DRIVE_CONNECTION_NOT_FOUND','DRIVE_CONNECT_DISABLED',
+       'DRIVE_FOLDER_NOT_FOUND','DRIVE_SOURCE_NOT_FOUND','DRIVE_INDEX_NOT_FOUND'].includes(safe)?404:
+     ['DRIVE_STORAGE_INTEGRITY_FAILURE','DRIVE_INDEX_INTEGRITY_FAILURE'].includes(safe)?503:
+     ['DRIVE_AUTHORIZATION_REQUIRED','DRIVE_FOLDER_NOT_CONFIGURED',
+       'DRIVE_SYNC_IN_PROGRESS','DRIVE_SYNC_INVALIDATED'].includes(safe)?409:
      ['DRIVE_RATE_LIMITED','GOOGLE_DRIVE_UNAVAILABLE'].includes(safe)?502:400;
    return reply(res,status,{error:safe});
  }
