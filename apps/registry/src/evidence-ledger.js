@@ -202,7 +202,8 @@ export class EvidenceLedger {
        !limited(requestId)||typeof answerSha256!=='string'||
        !/^[a-f0-9]{64}$/.test(answerSha256)||
        typeof checkedAt!=='string'||!Number.isFinite(Date.parse(checkedAt))||
-       !['DIGEST_ONLY_CLIENT_RELEASE','SERVER_BUFFERED_RELEASE'].includes(mode))
+       !['DIGEST_ONLY_CLIENT_RELEASE','SERVER_BUFFERED_RELEASE',
+         'SOURCE_GROUNDED_EXTRACT'].includes(mode))
       throw Error('PROTECTED_USE_INVALID');
     const rows=this.readAll();
     if(rows.some(x=>x.type==='protected-revocation'&&
