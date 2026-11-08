@@ -38,7 +38,7 @@ export default async function handler(request){
  // Existing runtime uses a single authenticated operation API. Do not synthesize policy results.
  try{
   const route=({garden_query:"gardener/query",garden_suggestions:"gardener/proposals",policy_test:"policy/test",policy_advise:"policy/advise",policy_replay:"policy/replay",functional_siblings:"policy/siblings"})[name];
-  const upstreamUrl=new URL(target.toString().replace(/\\/$/,"")+"/api/"+route);
+  const upstreamUrl=new URL(target.origin+target.pathname.replace(/\/$/,"")+"/api/"+route);
   const encodedToken=Buffer.from(JSON.stringify(JSON.parse(upstreamToken))).toString("base64url");
   const upstream=await fetch(upstreamUrl,{method:"POST",headers:{"authorization":`Bearer ${encodedToken}`,"content-type":"application/json"},body:JSON.stringify(args),signal:AbortSignal.timeout(25000)});
   const body=await upstream.text();
