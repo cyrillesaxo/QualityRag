@@ -43,14 +43,14 @@ function makeAttestations({serviceId='claims',environment='dev',policySha256,
    fileRef,revision,lineText=SOURCE.split('\n')[0],nonce='nonce-'+randomBytes(14).toString('hex'),
    owner=subject,folderId='folder-policy',requirementId='approval',
    expires=Date.now()+5*60_000,status='SUPPORTS',origin=witnessOrigin,
-   issued=Date.now()}){
+   issued=Date.now(),extraWitnesses=[]}){
  const payload={
    service:serviceId,environment,
    policy_signature:'UNSIGNED-V0.1-PACK-SHA256:'+policySha256,
    nonce,
    issued_at:new Date(issued).toISOString(),expires_at:new Date(expires).toISOString(),
    witnesses:[{sourceId:fileRef,revision,requirementId,lineNumber:1,
-     lineSha256:sha(lineText),origin,status}],
+     lineSha256:sha(lineText),origin,status},...extraWitnesses],
    observations:{kind:'qualityrag.protected-drive-human-review/v1',
      owner_binding:sha('qualityrag.review-owner/v1:'+owner),
      folder_id:folderId,review_basis:'HUMAN_SEMANTIC_APPROVAL',
@@ -251,6 +251,31 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(blockedRisk.status,409,JSON.stringify(blockedRisk.body));
    assert.equal(blockedRisk.body.error,'PROTECTED_SUFFICIENCY_UNREVIEWED_SIGNAL');
    assert.ok(!JSON.stringify(blockedRisk.body).includes(farException));
+   // Explicit remediation: review and sign the distant exception together
+   // with the primary clause. This clears only the reviewed lexical signal,
+   // not unknown semantic or other-document completeness.
+   const reviewedRisk=await request('POST',endpoint,'owner',payload(att({
+     revision:riskHit.revision,extraWitnesses:[{
+       sourceId:riskHit.source_id,revision:riskHit.revision,
+       requirementId:'approval',
+       lineNumber:riskReport.body.candidates[0].lineNumber,
+       lineSha256:sha(farException),origin:witnessOrigin,status:'SUPPORTS'
+     }]
+   })));
+   assert.equal(reviewedRisk.status,201,JSON.stringify(reviewedRisk.body));
+   const remediated=await request('POST',
+     '/v1/evidence/protected-decisions/'+reviewedRisk.body.id+'/grounded-deliver',
+     'owner',{requestId:'grounded-reviewed-distant-exception'});
+   assert.equal(remediated.status,200,JSON.stringify(remediated.body));
+   assert.equal(remediated.body.coverage.unreviewedLexicalSignalsFound,0);
+   assert.equal(remediated.body.coverage.fullDocumentExaminedForExceptions,false);
+   assert.ok(remediated.body.answer.includes(farException));
+   const checkedRemediation=await request('POST',
+     '/v1/evidence/protected-decisions/'+reviewedRisk.body.id+'/sufficiency-check',
+     'owner',{requestId:'check-reviewed-exception'});
+   assert.equal(checkedRemediation.status,200);
+   assert.equal(checkedRemediation.body.candidateCount,0);
+   assert.equal(checkedRemediation.body.documentWideSemanticCompletenessVerified,false);
    // Return to the exact original signed bytes and owner selection; the
    // unrelated follow-on live-use and revocation tests must remain valid.
    content=SOURCE;
@@ -548,11 +573,11 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(freshness.body.error,'PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF');
 
    const list=ledger.list('claims','dev');
-   assert.equal(list.summary.protectedDecisions,4);
-   assert.equal(list.summary.protectedAdmitted,3);
+   assert.equal(list.summary.protectedDecisions,5);
+   assert.equal(list.summary.protectedAdmitted,4);
    assert.equal(list.summary.protectedRevocations,1);
-   assert.equal(list.summary.protectedUses,3);
-   assert.equal(list.summary.protectedGroundedReleases,1);
+   assert.equal(list.summary.protectedUses,4);
+   assert.equal(list.summary.protectedGroundedReleases,2);
    assert.equal(list.summary.protectedSufficiencyBlocks,1);
    const auditBytes=fs.readFileSync(ledgerPath,'utf8');
    assert.ok(!auditBytes.includes(answerText));
@@ -560,13 +585,14 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.ok(!auditBytes.includes(grounded.body.answer));
    assert.ok(!auditBytes.includes(SOURCE.split('\n')[0]));
    assert.ok(!auditBytes.includes(farException));
+   assert.ok(!auditBytes.includes(remediated.body.answer));
    assert.ok(auditBytes.includes(answerSha256));
    assert.equal(list.summary.protectedInconclusive,0);
    assert.equal(list.observedCount,0);
    const persisted=fs.readFileSync(ledgerPath,'utf8');
    assert.equal(persisted.includes('Owner-approved policy: contractors'),false);
    assert.equal(persisted.includes('All other reimbursements need approval'),false);
-   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,3);
+   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,4);
  }finally{
    await new Promise(ok=>server.close(ok));
    fs.rmSync(dir,{recursive:true,force:true});
