@@ -50,6 +50,8 @@ export function createOidcAuthenticator({issuer,audience,jwksUri,roleClaim='role
 export function permissionFor(method,pathname){
   if(pathname==='/v1/drives/google/status'&&method==='GET')return ROLE.driveRead;
   if(pathname==='/v1/drives/google/index'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/visibility'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/source-control'&&method==='POST')return ROLE.driveManage;
   if(pathname==='/v1/drives/google/search'&&method==='POST')return ROLE.driveRead;
   if(pathname==='/v1/drives/google/sync'&&method==='POST')return ROLE.driveManage;
   if(pathname==='/v1/drives/google/clear-index'&&method==='POST')return ROLE.driveManage;
