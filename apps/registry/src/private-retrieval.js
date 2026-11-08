@@ -1,6 +1,6 @@
 // Minimal tenant-scoped retrieval foundation. This is lexical retrieval,
 // not an embedding/vector index and not an answer generator.
-const words=s=>(String(s).toLowerCase().match(/[\\p{L}\\p{N}]+/gu)||[]).filter(w=>w.length>1);
+const words=s=>(String(s).toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>1);
 export function chunkDocument(content,{size=900,overlap=120}={}){
  if(typeof content!=='string'||!content.trim())throw new Error('EMPTY_DOCUMENT');
  if(!Number.isInteger(size)||size<100||size>10000||!Number.isInteger(overlap)||overlap<0||overlap>=size)throw new Error('INVALID_CHUNK_CONFIG');
