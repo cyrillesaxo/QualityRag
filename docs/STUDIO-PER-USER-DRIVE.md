@@ -132,6 +132,21 @@ candidate-check count, but does not record raw source text or change
 evidence admission. Missing reviewer privileges produce an explicit
 403 instead of silently granting recording access.
 
+### Customer-signed approval path
+
+For protected services with a configured public-key trust list, Studio's
+**Customer-signed protected evidence review** panel lets an owner submit an
+offline package signed separately by the custodian and semantic reviewer.
+Only the registry verifies signatures, the current Drive file bytes,
+source exclusions, and the approved PackSpec; it then records a decision
+and returns an owner-only portable receipt. This is distinct from the
+`governed-check` preview, which always remains non-admitting.
+
+[Offline signing and Python replay guide](PROTECTED-HUMAN-REVIEW-ADMISSION.md).
+The pilot never requests private signing keys in the browser and supports
+only human-approved, single-origin/no-freshness requirements. No Google
+production customer pilot is claimed.
+
 **Evidence boundary:** This is a bounded *lexical* index, not the Semantic Garden grammar, full QualityRAG governed retrieval, an LLM answer, semantic vector search, or a validated evidence receipt. Source-origin independence and authenticity are not inferred from file count or matched lines. No candidate becomes an `ADMIT` result until an authorized PackSpec evaluation and customer source review happen separately.
 
 **Lifecycle limitations:** Remote Google file revocation and deletions are checked on the next explicit sync; an already encrypted local snapshot could remain searchable for up to its 60-minute freshness window after remote permission changes. This is not acceptable for high-sensitivity regulated tenants without an authorization recheck, event-driven deletion, and retention controls. The index is single-process, single-instance and local-file-based, not a hardened production multitenant storage service. Explicit deletion is local; it does not modify or delete the original Google files.
