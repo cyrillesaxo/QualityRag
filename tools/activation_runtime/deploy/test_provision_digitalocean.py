@@ -38,7 +38,10 @@ class TestGatedProvision(unittest.TestCase):
         self.assertFalse(any(rule.get("ports")=="8769" for rule in firewall["inbound_rules"]))
         cloud=planned["user_data"]
         self.assertIn("ufw",cloud)
-        self.assertIn("systemctl\", \"disable\", \"--now\", \"caddy",cloud)
+        self.assertNotIn("caddy",cloud)
+        self.assertNotIn("80/tcp",cloud)
+        self.assertNotIn("443/tcp",cloud)
+        self.assertEqual(len(firewall["inbound_rules"]),1)
         self.assertNotIn("QUALITYRAG_API_TOKEN_JSON",cloud)
         self.assertNotIn("PRIVATE KEY",cloud)
 
