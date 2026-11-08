@@ -102,6 +102,26 @@ npm --prefix apps/registry run admission:demo
 The pilot supports one asserted origin per requirement and does not claim original
 publication freshness; stronger PackSpecs fail closed.
 
+### Source-grounded answers: preserve wording and visible exceptions
+
+The registry now offers a **strict extractive** alternative to
+free-form model text: `POST /v1/evidence/protected-decisions/{id}/grounded-deliver`.
+It re-checks live Drive bytes and the signed PackSpec, then renders
+**every human-reviewed SUPPORTS source line** required by the policy,
+with neighboring lines labeled as **unreviewed context**. Unknown,
+contradictory, omitted or modified witnesses fail closed.
+
+Studio can show these exact extracts and a count of the included
+obligations. The TypeScript SDK provides
+`ProtectedUseClient.extractFromReviewedSources()`. The ledger records
+only an output digest and metadata, not the document passages.
+
+**Important:** This preserves **approved source text**, not semantic
+equivalence of arbitrary AI prose or document-wide exception
+completeness. Distant or unsigned constraints may still be missed.
+
+[Source-grounded answers: adversarial proof and epistemic limits](docs/SOURCE-GROUNDED-ANSWERS.md).
+
 ### Customer-controlled buffered response gateway
 
 The protected registry can now **hold a proposed answer** and return
