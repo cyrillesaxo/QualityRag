@@ -167,10 +167,17 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
          requirements:bound.policy.requirements.map(r=>({id:r.id})),
          admissionStatus:'NOT_EVALUATED',sourceProvenance:'NOT_VERIFIED'});
      }
-     if(req.method==='POST'&&url.pathname==='/v1/drives/google/governed-check'){
+     if(req.method==='POST'&&['/v1/drives/google/governed-check',
+       '/v1/drives/google/record-check'].includes(url.pathname)){
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
-       // Both Drive access AND policy-bound evidence access are mandatory.
+       // Preview needs Drive + evidence reading; a durable challenge also needs
+       // explicit reviewer authority and an enabled evidence ledger.
        if(!actorRoles?.has('evidence.reader'))return reply(res,403,{error:'FORBIDDEN'});
+       const record=url.pathname==='/v1/drives/google/record-check';
+       if(record&&!actorRoles?.has('evidence.reviewer'))
+         return reply(res,403,{error:'REVIEWER_ROLE_REQUIRED'});
+       if(record&&!evidenceLedger)
+         return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
        const input=await body(req);
        if(!input||typeof input!=='object'||Array.isArray(input)||
           Object.keys(input).length!==3||
@@ -184,8 +191,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        const governed=await store.resolve(input.serviceId,input.environment);
        const result=driveIndex.checkGovernedCandidates(actor,
          driveManager.status(actor),governed.policy,governed.sha256,input.candidates);
-       const receipt=evidenceLedger?.recordCandidateCheck(
-         input.serviceId,input.environment,actor,governed.sha256,result);
+       const receipt=record?evidenceLedger.recordCandidateCheck(
+         input.serviceId,input.environment,actor,governed.sha256,result):null;
        return reply(res,200,{...result,telemetry:{
          recorded:!!receipt,receiptId:receipt?.id||null,
          chainHash:receipt?.chainHash||null,externallyAnchored:false,
