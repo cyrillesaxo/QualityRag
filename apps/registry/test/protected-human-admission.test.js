@@ -12,7 +12,8 @@ import {RegistryStore} from '../src/store.js';
 import {EvidenceLedger} from '../src/evidence-ledger.js';
 import {UserDriveIndex} from '../src/user-drive-index.js';
 import {createHandler} from '../src/server.js';
-import {loadProtectedReviewTrust,reviewCanonical} from '../src/protected-admission.js';
+import {loadProtectedReviewTrust,reviewCanonical,
+ verifyHumanReviewAttestations} from '../src/protected-admission.js';
 import {permissionFor} from '../src/oidc.js';
 
 const DOMAIN=Buffer.from('QUALITYRAG/qualityrag.signed-observations/v1\0','ascii');
@@ -296,4 +297,58 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    await new Promise(ok=>server.close(ok));
    fs.rmSync(dir,{recursive:true,force:true});
  }
+});
+
+test('customer offline preparation and two independent Python signing commands produce Node-verifiable attestations',()=>{
+ const availability=spawnSync('python',['--version'],{encoding:'utf8'});
+ if(availability.status!==0)return;
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-review-signer-'));
+ const script=fileURLToPath(new URL('../../../tools/packspec_compiler/prepare_protected_drive_review.py',import.meta.url));
+ const source=path.join(dir,'reviewed-source.txt');
+ const payload=path.join(dir,'review.json');
+ const custodianSigned=path.join(dir,'custody.json');
+ const meaningSigned=path.join(dir,'meaning.json');
+ const transport=path.join(dir,'transport.json');
+ const origin='org_'+'a'.repeat(32),id='google_drive/'+'b'.repeat(32);
+ const digest='c'.repeat(64),folder='reviewed-folder';
+ const custKey=path.join(dir,'private-custodian.pem');
+ const meanKey=path.join(dir,'private-meaning.pem');
+ fs.writeFileSync(source,'Approved clause for a synthetic policy.\\n');
+ fs.writeFileSync(custKey,custodial.privateKey.export({type:'pkcs8',format:'pem'}),{mode:0o600});
+ fs.writeFileSync(meanKey,meaningReview.privateKey.export({type:'pkcs8',format:'pem'}),{mode:0o600});
+ const run=args=>{
+   const r=spawnSync('python',[script,...args],{encoding:'utf8'});
+   assert.equal(r.status,0,r.stdout+'\\n'+r.stderr);
+ };
+ try{
+   run(['prepare','--service','claims','--environment','dev',
+     '--policy-sha',digest,'--owner-subject',subject,'--folder-id',folder,
+     '--source-id',id,'--requirement-id','approval','--origin',origin,
+     '--line-number','1','--status','SUPPORTS',
+     '--source',source,'--out',payload]);
+   run(['sign','--role','custodian','--payload',payload,
+     '--private-key',custKey,'--key-id','customer-custodian-2026',
+     '--attest-reviewed','--out',custodianSigned]);
+   run(['sign','--role','meaningReviewer','--payload',payload,
+     '--private-key',meanKey,'--key-id','customer-meaning-reviewer-2026',
+     '--attest-reviewed','--out',meaningSigned]);
+   run(['build-request','--custody',custodianSigned,'--meaning',meaningSigned,
+     '--request-id','request-validated','--trace-id','trace-validated',
+     '--out',transport]);
+   const client=JSON.parse(fs.readFileSync(transport,'utf8'));
+   const verified=verifyHumanReviewAttestations(client.custody,client.meaning,trust(),{
+     serviceId:'claims',environment:'dev',policySha256:digest,
+     subject,folderId:folder
+   });
+   assert.equal(verified.payload.witnesses[0].sourceId,id);
+   assert.equal(verified.payload.witnesses[0].status,'SUPPORTS');
+   assert.equal(verified.signerIds.length,2);
+   const unsignedPath=path.join(dir,'unsigned-approval.json');
+   const denied=spawnSync('python',[script,'sign','--role','meaningReviewer',
+     '--payload',payload,'--private-key',meanKey,
+     '--key-id','customer-meaning-reviewer-2026','--out',unsignedPath],
+     {encoding:'utf8'});
+   assert.equal(denied.status,2);
+   assert.equal(fs.existsSync(unsignedPath),false);
+ }finally{fs.rmSync(dir,{recursive:true,force:true})}
 });
