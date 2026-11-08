@@ -2,7 +2,15 @@ import React,{useCallback,useEffect,useState} from 'react';
 
 type Connection={provider:'google_drive';connected:boolean;email?:string;displayName?:string;
   folderId:string|null;folderName:string|null;indexed:boolean;ingestionStatus:string;
-  sourceScope?:string;note?:string};
+  sourceScope?:string;note?:string;indexEnabled?:boolean;index?:DriveIndexStatus|null};
+type DriveIndexStatus={indexed:boolean;sourceCount:number;lastSyncedAt?:string;
+  syncStatus:string;coverage:string;summary?:{listed:number;eligible:number;indexed:number;
+  unsupported:number;failed:number;tooLarge:number;excludedEmpty:number;truncatedLines:number}};
+type DriveHit={source_id:string;revision:string;file_name:string;mime_type:string;
+  anchor:{kind:string;line_number:number};field:string;matched_text:string;
+  matching_terms:number;quality:string};
+type DriveSearch={hits:DriveHit[];indexed:boolean;coverage:string;reason?:string;
+  truncated?:boolean;sourceCount?:number;lastSyncedAt?:string};
 type Folder={id:string;name:string};
 type FileRow={id:string;name:string;mimeType:string;modifiedTime:string|null;size:string|null};
 const messageOrigin=()=>window.location.origin;
@@ -19,6 +27,9 @@ function DriveConnections({token}:{token:string}){
  const [pageToken,setPageToken]=useState<string|null>(null);
  const [files,setFiles]=useState<FileRow[]>([]);
  const [filesTruncated,setFilesTruncated]=useState(false);
+ const [driveQuery,setDriveQuery]=useState('');
+ const [driveResults,setDriveResults]=useState<DriveSearch|null>(null);
+ const [indexFeedback,setIndexFeedback]=useState('');
  const [unsupported,setUnsupported]=useState(false);
  const api=useCallback(async(route:string,method='GET',payload?:unknown)=>{
    if(!token)throw new Error('Sign in with your registry OIDC token first.');
@@ -32,18 +43,18 @@ function DriveConnections({token}:{token:string}){
    return result;
  },[token]);
  const refresh=useCallback(async()=>{
-   if(!token){setConnection(null);setFolders([]);setFiles([]);return;}
+   if(!token){setConnection(null);setFolders([]);setFiles([]);setDriveResults(null);return;}
    try{
      const data=await api('/v1/drives/google/status');
      setConnection(data);setUnsupported(false);setError('');
    }catch(e){
-     setConnection(null);setFolders([]);setFiles([]);
+     setConnection(null);setFolders([]);setFiles([]);setDriveResults(null);
      setUnsupported(String(e).includes('NOT_FOUND')||String(e).includes('DRIVE_CONNECT_DISABLED'));
      setError(String(e));
    }
  },[api,token]);
  useEffect(()=>{setConnection(null);setAuthUrl('');setFolders([]);
-   setFiles([]);setParents([]);setParentId('root');setCurrentName('My Drive');
+   setFiles([]);setDriveResults(null);setIndexFeedback('');setParents([]);setParentId('root');setCurrentName('My Drive');
    setBrowsing(false);setPageToken(null);refresh();
  },[refresh]);
  useEffect(()=>{
@@ -90,7 +101,7 @@ function DriveConnections({token}:{token:string}){
    setLoading(true);
    try{
      const updated=await api('/v1/drives/google/folder','POST',{folderId:parentId});
-     setConnection(updated);setError('');
+     setConnection(updated);setDriveResults(null);setIndexFeedback('');setError('');
      await preview();
    }catch(e){setError(String(e))}finally{setLoading(false)}
  }
@@ -111,6 +122,37 @@ function DriveConnections({token}:{token:string}){
      setPageToken(result.nextPageToken||null);
    }catch(e){setError(String(e))}finally{setLoading(false)}
  }
+ async function syncSelected(){
+   setLoading(true);setDriveResults(null);setIndexFeedback('');setError('');
+   try{
+     const result=await api('/v1/drives/google/sync','POST',{});
+     setIndexFeedback('Indexed '+result.sourceCount+' text files. Coverage: '+result.coverage+
+       '. Unsupported, failed and truncated files are not searchable.');
+     await refresh();
+   }catch(e){setError(String(e))}
+   finally{setLoading(false)}
+ }
+ async function searchIndex(){
+   setLoading(true);setDriveResults(null);setIndexFeedback('');setError('');
+   try{
+     const result=await api('/v1/drives/google/search','POST',{query:driveQuery});
+     setDriveResults(result);
+     setIndexFeedback(result.reason==='SYNC_REQUIRED'?
+       'Index is stale. Sync again before relying on search results.':
+       result.hits.length+' matching source passages found; no PackSpec admission performed.');
+   }catch(e){setError(String(e))}
+   finally{setLoading(false)}
+ }
+ async function clearIndex(){
+   if(!window.confirm('Delete this Drive text index? Your Google Drive files are not changed.'))return;
+   setLoading(true);
+   try{
+     await api('/v1/drives/google/clear-index','POST',{});
+     setDriveResults(null);setIndexFeedback('Local text index erased. Google Drive files remain untouched.');
+     await refresh();
+   }catch(e){setError(String(e))}
+   finally{setLoading(false)}
+ }
  async function disconnect(){
    if(!window.confirm('Disconnect this Google Drive account from your QualityRAG profile?'))return;
    setLoading(true);
@@ -118,7 +160,7 @@ function DriveConnections({token}:{token:string}){
      const result=await api('/v1/drives/google/disconnect','POST');
      setConnection({provider:'google_drive',connected:false,folderId:null,folderName:null,
        indexed:false,ingestionStatus:'NOT_CONFIGURED'});
-     setFolders([]);setFiles([]);setAuthUrl('');
+     setFolders([]);setFiles([]);setDriveResults(null);setIndexFeedback('');setAuthUrl('');
      setError(result.externalRevocationUnconfirmed?
        'Local credential deleted. Google grant revocation could not be confirmed; check your Google Account permissions.':'');
    }catch(e){setError(String(e))}finally{setLoading(false)}
@@ -184,9 +226,59 @@ function DriveConnections({token}:{token:string}){
          </li>)}</ul>
          {filesTruncated&&<p role="status">More than 100 entries. The preview is truncated.</p>}
        </>}
+       <div style={{border:'1px solid #cfe4d1',background:'#f6fbf7',
+         padding:18,borderRadius:13,marginTop:18}} aria-label="My private Drive text index">
+         <h3>My private Drive text index</h3>
+         <p>Explicit, read-only synchronization of this folder's Google Docs, TXT, Markdown,
+           CSV and JSON files. Text is stored encrypted in an OIDC-user-specific local index,
+           never in the shared Semantic Store worker.</p>
+         <p><strong>Index:</strong> {connection.index?.syncStatus||'Not enabled'}
+           {' · '} <strong>Sources:</strong> {connection.index?.sourceCount||0}
+           {' · '} <strong>Coverage:</strong> {connection.index?.coverage||'UNKNOWN'}
+         </p>
+         {connection.index?.summary&&<p style={{fontSize:13}}>Listed:
+           {connection.index.summary.listed} · Indexed: {connection.index.summary.indexed} ·
+           Unsupported: {connection.index.summary.unsupported} ·
+           Failed: {connection.index.summary.failed} ·
+           Too large: {connection.index.summary.tooLarge} ·
+           Truncated: {connection.index.summary.truncatedLines}
+         </p>}
+         {!connection.indexEnabled?
+           <p role="status">Private indexing is disabled by the registry operator.
+             Configure QUALITYRAG_DRIVE_INDEX_DIR to opt in.</p>:
+           <>
+             <div className="line">
+               <button type="button" disabled={loading||!connection.folderId||
+                 connection.folderId==='root'} onClick={syncSelected}>Sync selected folder now</button>
+               <button type="button" disabled={loading||!connection.index?.indexed}
+                 onClick={clearIndex}>Delete my local index</button>
+             </div>
+             {connection.folderId==='root'&&<p role="status">Choose a specific folder to enable indexing.
+               Indexing the entire My Drive root is blocked.</p>}
+             <div className="line">
+               <label>Search my indexed documents
+                 <input value={driveQuery} onChange={e=>setDriveQuery(e.target.value)}
+                   placeholder="contract exception" aria-label="Private Drive text search"/></label>
+               <button type="button" disabled={loading||!connection.index?.indexed||
+                 !driveQuery.trim()} onClick={searchIndex}>Search my index</button>
+             </div>
+             {indexFeedback&&<p role="status">{indexFeedback}</p>}
+             {driveResults&&<>
+               {driveResults.truncated&&<p role="alert">Only the first 30 matches are shown.</p>}
+               <ul>{driveResults.hits.map((hit,i)=><li key={hit.source_id+'#'+hit.anchor.line_number+'#'+i}>
+                 <strong>{hit.file_name}</strong> · Line {hit.anchor.line_number}
+                 {' · '} revision <code>{hit.revision.slice(0,12)}…</code>
+                 <p>{hit.matched_text}</p>
+               </li>)}</ul>
+               <p><strong>Lexical matches, not verified evidence.</strong> Empty results do
+                 not establish that the source condition is absent.</p>
+             </>}
+           </>}
+       </div>
        <p style={{fontSize:13,color:'#526d56'}}>
-         No document content is downloaded, analyzed, or indexed by configuring this connection.
-         Multi-user Drive ingestion into the Semantic Store requires a separate isolated pipeline.
+         Drive connection alone downloads no content. Only the explicit
+         “Sync selected folder now” action downloads eligible text into this user's encrypted index.
+         No cloud content is automatically admitted into a PackSpec.
        </p>
      </>}
    </div>}
