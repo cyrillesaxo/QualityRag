@@ -161,7 +161,7 @@ The HTTP adapter now optionally validates **externally issued** RS256 access JWT
 ```sh
 export QUALITYRAG_VIDEO_MCP_AUTH_MODE=jwt
 export QUALITYRAG_VIDEO_MCP_ISSUER="https://YOUR-IDENTITY-PROVIDER"
-export QUALITYRAG_VIDEO_MCP_AUDIENCE="qualityrag-video"
+export QUALITYRAG_VIDEO_MCP_AUDIENCE="https://your-mcp-domain.example/mcp"
 export QUALITYRAG_VIDEO_MCP_JWKS_FILE="/run/secrets/trusted-jwks.json"
 export QUALITYRAG_VIDEO_MCP_ACL_FILE="/run/secrets/video-access.json"
 export QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS="video-a,video-b"
@@ -183,6 +183,7 @@ The authenticated HTTP MCP server now implements the **resource-server discovery
 ```sh
 export QUALITYRAG_VIDEO_MCP_AUTH_MODE=jwt
 export QUALITYRAG_VIDEO_MCP_RESOURCE_URL="https://your-mcp-domain.example/mcp"
+export QUALITYRAG_VIDEO_MCP_AUDIENCE="$QUALITYRAG_VIDEO_MCP_RESOURCE_URL"
 export QUALITYRAG_VIDEO_MCP_ISSUER="https://your-idp.example"
 # Also configure existing AUDIENCE, JWKS_FILE, ACL_FILE,
 # VIDEO_ROOT, ALLOWED_SOURCE_IDS, and ALLOWED_HOSTS.
@@ -195,3 +196,4 @@ This discovery is necessary but not sufficient for ChatGPT connection. The confi
 For a **private prototype** rather than exposing a public service, OpenAI documents Secure MCP Tunnel for supported clients. Use it only with supported accounts and after checking the current tunnel documentation; it does not automatically make the tool available in this ChatGPT session. No tunnel or public endpoint is deployed by this repository change.
 
 The metadata tests use a local ASGI MCP client and synthetic tokens; they cannot establish cross-provider OAuth interoperability. Add a live issuer + client end-to-end acceptance test before any production launch.
+\n**Audience binding:** JWT mode refuses startup when `QUALITYRAG_VIDEO_MCP_AUDIENCE` differs from `QUALITYRAG_VIDEO_MCP_RESOURCE_URL`. Configure your external IdP to issue audience-bound access tokens for the canonical HTTPS MCP resource URI; a general login/ID token or a token intended for a different API is not sufficient.\n
