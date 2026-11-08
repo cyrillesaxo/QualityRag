@@ -105,6 +105,28 @@ The response makes these distinctions machine-readable:
 This is an illustrative subset of the response, not an
 independently audited customer result.
 
+## Distant-exception preflight (new)
+
+Before rendering a grounded extract, QualityRAG now performs a
+**bounded scan of all live-verified lines in the referenced source
+files**. It searches for potentially material language such as
+`except`, `unless`, `however`, `subject to`, and negation
+patterns. A line that has not been explicitly reviewed as a
+`SUPPORTS` witness produces a candidate and **blocks extraction**.
+
+The owner can run `sufficiency-check` first in Studio to view
+source IDs, line numbers and categories, without a source-text
+dump or a durable audit mutation. Denied extract requests
+record bounded metadata-only telemetry.
+
+This catches the *synthetic* case of a distant exception stated
+with those patterns. It does **not** find all semantic exceptions,
+nor scan unreferenced documents. A clean scan is **not**
+proof that an AI answer is semantically sufficient.
+
+[Constraint signal grammar, adversarial tests and known false
+negatives](CONSTRAINT-SIGNAL-SUFFICIENCY.md).
+
 ## Studio and SDK
 
 Studio's **Generate exact-source extract** button appears for
