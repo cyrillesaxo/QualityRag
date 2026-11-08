@@ -245,6 +245,44 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      ...payload(att()),environment:'legacy'
    });
    assert.equal(unknownScope.status,403);
+   // A stale local snapshot is never accepted merely because both
+   // human signatures still happen to be within their short validity window.
+   index.now=()=>Date.now()+61*60*1000;
+   const staleAttempt=await request('POST',endpoint,'owner',payload(att()));
+   assert.equal(staleAttempt.status,409);
+   assert.equal(staleAttempt.body.error,'PROTECTED_SOURCE_INDEX_STALE');
+   index.now=()=>Date.now();
+   // A new approved PackSpec binding invalidates old signed approvals.
+   registry.draft({id:'changed-policy',version:'1',requirements:[
+     {id:'approval',min_independent_sources:1}
+   ]},'separate-author');
+   registry.approve('changed-policy','1','separate-policy-approver');
+   registry.bind('claims','dev','changed-policy','1','publisher');
+   const invalidOldPolicy=await request('POST',endpoint,'owner',payload(att()));
+   assert.equal(invalidOldPolicy.status,403);
+   assert.equal(invalidOldPolicy.body.error,'PROTECTED_REVIEW_POLICY_MISMATCH');
+   // The current bridge deliberately cannot prove independent intellectual
+   // origins or when the original document was actually published.
+   registry.draft({id:'multi-source-policy',version:'1',requirements:[
+     {id:'approval',min_independent_sources:2}
+   ]},'separate-author');
+   registry.approve('multi-source-policy','1','separate-policy-approver');
+   registry.bind('claims','dev','multi-source-policy','1','publisher');
+   const changedPackDigest=registry.resolve('claims','dev').sha256;
+   const multi=await request('POST',endpoint,'owner',payload(
+     att({policySha256:changedPackDigest})));
+   assert.equal(multi.status,409);
+   assert.equal(multi.body.error,'PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF');
+   registry.draft({id:'source-age-policy',version:'1',requirements:[
+     {id:'approval',min_independent_sources:1,max_age_seconds:60}
+   ]},'separate-author');
+   registry.approve('source-age-policy','1','separate-policy-approver');
+   registry.bind('claims','dev','source-age-policy','1','publisher');
+   const freshness=await request('POST',endpoint,'owner',payload(
+     att({policySha256:registry.resolve('claims','dev').sha256})));
+   assert.equal(freshness.status,409);
+   assert.equal(freshness.body.error,'PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF');
+
    const list=ledger.list('claims','dev');
    assert.equal(list.summary.protectedDecisions,2);
    assert.equal(list.summary.protectedAdmitted,1);
