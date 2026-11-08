@@ -80,12 +80,12 @@ def create_remote_app(environ=None):
     """Build a protected ASGI application on loopback for reverse-proxy staging."""
     settings=_config(os.environ if environ is None else environ)
     try:
-        from mcp.server.fastmcp import FastMCP
+        from mcp.server import MCPServer
         from mcp.server.transport_security import TransportSecuritySettings
     except ImportError as exc:
-        raise RemoteConfigurationError("Install the pinned MCP Python v1 SDK") from exc
+        raise RemoteConfigurationError("Install the MCP Python v2 SDK") from exc
 
-    server=FastMCP("QualityRAG Video Evidence Read-Only", json_response=True, stateless_http=True)
+    server=MCPServer("QualityRAG Video Evidence Read-Only")
     base=settings["root"]
 
     @server.tool()
@@ -110,7 +110,7 @@ def create_remote_app(environ=None):
         allowed_hosts=settings["allowed_hosts"],
         allowed_origins=settings["origins"],
     )
-    mcp_app=server.streamable_http_app(transport_security=transport)
+    mcp_app=server.streamable_http_app(transport_security=transport, json_response=True, stateless_http=True)
     return BearerGate(mcp_app,secret=settings["secret"],origins=settings["origins"])
 
 
