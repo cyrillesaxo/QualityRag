@@ -81,6 +81,69 @@ automatically establish different human reviewers**; the customer must govern wh
 actually controls each key. Keep key provenance, rotation, compromise reporting
 and authorized reviewer rosters outside this local prototype.
 
+## Review multiple clauses together, including a flagged distant exception
+
+The original `prepare` helper creates one signed witness. To act
+on a Studio `sufficiency-check` finding while retaining the primary
+supporting clause, use the new **`prepare-manifest`** workflow for
+1–8 explicitly reviewed witness anchors in one payload.
+
+On a customer-controlled machine, create a local
+`review-manifest.json` like the following **illustrative** example
+(replace the opaque hashes and local paths with real customer values):
+
+```json
+{
+  "witnesses": [
+    {
+      "sourceId": "google_drive/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "requirementId": "approval",
+      "origin": "org_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "status": "SUPPORTS",
+      "lineNumber": 1,
+      "sourcePath": "/customer/original/policy.txt"
+    },
+    {
+      "sourceId": "google_drive/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "requirementId": "emergency_exception",
+      "origin": "org_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "status": "SUPPORTS",
+      "lineNumber": 19,
+      "sourcePath": "/customer/original/policy.txt"
+    }
+  ]
+}
+```
+
+The `emergency_exception` obligation must already exist in the
+**approved bound PackSpec** if you use that requirement ID.
+Do not manufacture a new obligation by changing the manifest alone.
+A source that supports the main requirement may also support a
+reviewed exception, but **only actual review of the exception's
+meaning** justifies the signature.
+
+```sh
+python tools/packspec_compiler/prepare_protected_drive_review.py prepare-manifest \
+  --service claims-api --environment dev \
+  --policy-sha YOUR_APPROVED_64_HEX_DIGEST \
+  --owner-subject "YOUR_VERIFIED_OIDC_ISSUER#YOUR_SUB" \
+  --folder-id YOUR_SELECTED_DRIVE_FOLDER_ID \
+  --manifest review-manifest.json \
+  --out multi-witness-review.json
+```
+
+The resulting payload contains **hashes, source anchors and review
+statuses but no raw document passage or local file path**.
+The helper rejects missing `status`, duplicate source/requirement/
+line anchors, unsupported/malformed source bytes and more than
+eight witnesses. It **never defaults a new line to SUPPORTS**.
+
+The source custodian and semantic reviewer must separately examine
+**all** lines and obligations, then sign the *same*
+`multi-witness-review.json` using the existing offline `sign`
+and `build-request` commands below. A new signed decision is
+required; a previously blocked decision is not silently changed.
+
 ## Customer review workflow (example for one exact source)
 
 First, sign in to Studio through a verified owner OIDC identity and connect the
