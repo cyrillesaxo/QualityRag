@@ -36,7 +36,7 @@ def _config(environ):
     origins = [x.strip() for x in environ.get("QUALITYRAG_VIDEO_MCP_ALLOWED_ORIGINS","").split(",") if x.strip()]
     if any(not x.startswith("https://") or "/" in x[8:] or "*" in x for x in origins):
         raise RemoteConfigurationError("Origin allowlist must contain exact HTTPS origins")
-    return {"secret":secret,"root":root,"host":host,
+    scope_text=environ.get("QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS", "")\n    ids=[x.strip() for x in scope_text.split(",") if x.strip()]\n    if not ids or len(ids)>1000 or len(ids)!=len(set(ids)) or any(\n            not re.fullmatch(r"[A-Za-z0-9_-]{1,80}",value) for value in ids):\n        raise RemoteConfigurationError("Configure an explicit nonempty source allowlist")\n    return {"secret":secret,"root":root,"host":host,"source_ids":frozenset(ids),
             "allowed_hosts":allowed_hosts,"origins":origins}
 
 
@@ -86,24 +86,24 @@ def create_remote_app(environ=None):
         raise RemoteConfigurationError("Install the MCP Python v2 SDK") from exc
 
     server=MCPServer("QualityRAG Video Evidence Read-Only")
-    base=settings["root"]
+    base=settings["root"]\n    permitted=settings["source_ids"]
 
     @server.tool()
     def search_video_evidence(query: str, modality: str="all", limit: int=10) -> dict:
         """Find candidate audio/visual witness excerpts with local timestamps."""
-        return search_evidence(base,query,modality=modality,limit=limit)
+        return search_evidence(base,query,modality=modality,limit=limit,\n                               source_ids=permitted)
 
     @server.tool()
     def research_video_question(query: str, intent: str="cross_modal",
                                 limit: int=8, window_ms: int=3000) -> dict:
         """Find timestamped co-observations; not proof of agreement."""
         return research_video_evidence(base,query,intent=intent,
-                                       limit=limit,window_ms=window_ms)
+                                       limit=limit,window_ms=window_ms,source_ids=permitted)
 
     @server.tool()
     def inspect_video_evidence(source_id: str) -> dict:
         """Return reviewed-format evidence candidates; source integrity checked."""
-        return read_evidence(base,source_id)
+        if source_id not in permitted:\n            # Do not disclose whether this source exists for a different user.\n            raise ValueError("Source unavailable")\n        return read_evidence(base,source_id)
 
     transport=TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
