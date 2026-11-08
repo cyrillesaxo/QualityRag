@@ -74,9 +74,8 @@ export class UserDriveIndex {
   return {indexed:false,removed:true};
  }
  bound(subject,connection){
-  check(connection?.connected&&typeof connection.email==='string'&&
-    typeof connection.folderId==='string'&&connection.folderId,
-    'DRIVE_FOLDER_NOT_CONFIGURED');
+  if(!connection?.connected||typeof connection.email!=='string'||
+    typeof connection.folderId!=='string'||!connection.folderId)return null;
   const snapshot=this.load(subject);
   if(!snapshot)return null;
   if(snapshot.account!==connection.email||snapshot.folderId!==connection.folderId)return null;
