@@ -46,11 +46,14 @@ export function createOidcAuthenticator({issuer,audience,jwksUri,roleClaim='role
 }
 
 export function permissionFor(method,pathname){
-  if(method==='POST'&&pathname==='/v1/evidence/evaluations')return ROLE.evidenceIngest;
-  if(method==='GET'&&(pathname==='/v1/evidence/evaluations'||
-    /^\\/v1\\/evidence\\/evaluations\\/[^/]+$/.test(pathname)))return ROLE.evidenceRead;
-  if(method==='POST'&&/^\\/v1\\/evidence\\/evaluations\\/[^/]+\\/replay$/.test(pathname))return ROLE.evidenceRead;
-  if(method==='POST'&&/^\\/v1\\/evidence\\/evaluations\\/[^/]+\\/reviews$/.test(pathname))return ROLE.evidenceReview;
+  const ev='/v1/evidence/evaluations';
+  if(method==='POST'&&pathname===ev)return ROLE.evidenceIngest;
+  if(method==='GET'&&(pathname===ev||
+    (pathname.startsWith(ev+'/')&&pathname.split('/').length===5)))return ROLE.evidenceRead;
+  if(method==='POST'&&pathname.startsWith(ev+'/')&&
+    pathname.split('/').length===6&&pathname.endsWith('/replay'))return ROLE.evidenceRead;
+  if(method==='POST'&&pathname.startsWith(ev+'/')&&
+    pathname.split('/').length===6&&pathname.endsWith('/reviews'))return ROLE.evidenceReview;
   if(method==='GET'&&(pathname==='/v1/state'||pathname.startsWith('/v1/resolve/')||
      pathname.startsWith('/v1/signed/resolve/')))return ROLE.read;
   if(method==='POST'&&(pathname==='/v1/services'||pathname==='/v1/policies/drafts'||
