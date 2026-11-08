@@ -110,6 +110,20 @@ try{
  assert.equal(allowedUse.status,200,JSON.stringify(allowedUse.body));
  assert.equal(allowedUse.body.permission,'PERMIT_SIGNED_ASSERTION_USE');
  assert.equal(allowedUse.body.answerSha256,answerSha256);
+ const deliverPath='/v1/evidence/protected-decisions/'+accepted.body.id+'/deliver';
+ const delivered=await request('POST',deliverPath,{
+   requestId:'example-buffered-answer-001',answer
+ });
+ assert.equal(delivered.status,200,JSON.stringify(delivered.body));
+ assert.equal(delivered.body.schema,'qualityrag.protected-answer-delivery/v1');
+ assert.equal(delivered.body.answer,answer);
+ assert.equal(delivered.body.receipt.deliveryMode,'SERVER_BUFFERED_RELEASE');
+ assert.equal(delivered.body.receipt.answerSha256,answerSha256);
+ const replayDelivery=await request('POST',deliverPath,{
+   requestId:'example-buffered-answer-001',answer
+ });
+ assert.equal(replayDelivery.status,409);
+ assert.ok(!JSON.stringify(replayDelivery.body).includes(answer));
  const doubleUse=await request('POST',usePath,useInput);
  assert.equal(doubleUse.status,409);
  // Withdraw one human interpretation without excluding the source.
@@ -125,6 +139,11 @@ try{
    {requestId:'example-answer-withdrawn',answerSha256});
  assert.equal(useWithdrawn.status,409);
  assert.equal(useWithdrawn.body.error,'PROTECTED_DECISION_REVOKED');
+ const revokedDelivery=await request('POST',
+   '/v1/evidence/protected-decisions/'+secondAccepted.body.id+'/deliver',
+   {requestId:'example-buffered-answer-revoked',answer});
+ assert.equal(revokedDelivery.status,409);
+ assert.ok(!JSON.stringify(revokedDelivery.body).includes(answer));
  index.controlSource(owner,connector.status(owner),{
    sourceId:hit.source_id,searchable:false,reason:'OUT_OF_SCOPE'
  });
@@ -136,6 +155,11 @@ try{
    {requestId:'example-answer-002',answerSha256});
  assert.equal(useAfterExclusion.status,409);
  assert.equal(useAfterExclusion.body.error,'PROTECTED_OWNER_EXCLUDED_SOURCE');
+ const deniedDelivery=await request('POST',deliverPath,{
+   requestId:'example-buffered-answer-excluded',answer
+ });
+ assert.equal(deniedDelivery.status,409);
+ assert.ok(!JSON.stringify(deniedDelivery.body).includes(answer));
  const persisted=fs.readFileSync(path.join(dir,'evidence.jsonl'),'utf8');
  assert.equal(persisted.includes(SOURCE.trim()),false);
  assert.equal(persisted.includes(answer),false);
@@ -174,6 +198,13 @@ try{
      permission:allowedUse.body.permission,answerTextUploaded:false},
    answerUseAfterExclusion:{http:useAfterExclusion.status,
      reason:useAfterExclusion.body.error},
+   controlledGateway:{deliveryHttp:delivered.status,
+     exactAnswerReturned:delivered.body.answer===answer,
+     recordedMode:delivered.body.receipt.deliveryMode,
+     replayHttp:replayDelivery.status,
+     exclusionHttp:deniedDelivery.status,
+     revocationHttp:revokedDelivery.status,
+     rawAnswerStoredInLedger:false},
    specificDecisionWithdrawal:{status:withdrawn.body.status,
      useAfterWithdrawal:useWithdrawn.body.error,
      sourceStillSearchableWhenWithdrawn:true},
