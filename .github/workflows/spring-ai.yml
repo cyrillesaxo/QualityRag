@@ -1,0 +1,12 @@
+name: Spring AI adapter
+on: [push, pull_request]
+jobs:
+  spring-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - run: mvn -B -f sdk/java/pom.xml install -DskipTests
+      - run: mvn -B -f sdk/spring-boot/pom.xml install -DskipTests
+      - run: mvn -B -f sdk/spring-ai/pom.xml test
