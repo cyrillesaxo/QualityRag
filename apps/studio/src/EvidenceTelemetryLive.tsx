@@ -71,15 +71,21 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
      await refresh();
    }catch(e){setStatus(String(e));setBusy(false)}
  }
- function exportReceipt(){
+ async function exportReceipt(){
    if(!current)return;
-   const safe={schema:'qualityrag.evidence-review-export/v1',type:'server_record',
-     unsigned:true,not_a_compliance_certificate:true,
-     evaluation:current,replay,retrievedAt:new Date().toISOString()};
-   const url=URL.createObjectURL(new Blob([JSON.stringify(safe,null,2)],{type:'application/json'}));
-   const link=document.createElement('a');link.href=url;
-   link.download='qualityrag-evidence-'+current.id+'.json';document.body.append(link);
-   link.click();link.remove();URL.revokeObjectURL(url);
+   setBusy(true);
+   try{
+     const packageData=await api('/v1/evidence/evaluations/'+current.id+'/export');
+     if(packageData.payload?.schema!=='qualityrag.evidence-replay/v1')
+       throw Error('Unsupported replay package.');
+     const url=URL.createObjectURL(new Blob([JSON.stringify(packageData,null,2)],
+       {type:'application/json'}));
+     const link=document.createElement('a');link.href=url;
+     link.download='qualityrag-replay-'+current.id+'.json';document.body.append(link);
+     link.click();link.remove();URL.revokeObjectURL(url);
+     setStatus('Server replay package exported. Verify separately using python -m qualityrag.verify_receipt. This export is unsigned.');
+   }catch(e){setStatus(String(e))}
+   finally{setBusy(false)}
  }
  return <section className="panel" style={{borderTop:'4px solid '+green}} aria-label="Recorded Evidence Assurance telemetry">
    <div style={{display:'flex',alignItems:'start',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
@@ -142,11 +148,11 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
         </details>
         <div className="line" style={{marginTop:15}}>
           <button type="button" disabled={busy} onClick={runReplay}>Re-run pinned evaluation</button>
-          <button type="button" disabled={busy} onClick={exportReceipt}>Export unsigned receipt</button>
+          <button type="button" disabled={busy} onClick={exportReceipt}>Export independently replayable JSON</button>
         </div>
         {replay&&<p role="status" style={{color:replay.reproduced?green:'#a12a23',fontWeight:700,fontSize:13}}>
          Replay {replay.reproduced?'MATCH':'MISMATCH'} · {replay.verdict} · as of {replay.asOf}.
-         This is same-server deterministic replay, not independent source validation.</p>}
+         This is same-server deterministic replay; run the exported package through the independent Python SDK to compare.</p>}
         <h4>Customer challenge</h4>
         <p>Acceptance never changes the engine decision. OIDC review role and a separate reviewer identity are required.</p>
         <label>Reason code
