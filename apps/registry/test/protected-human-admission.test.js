@@ -220,6 +220,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(delivered.body.answer,deliveryText);
    assert.equal(delivered.body.receipt.decisionId,admit.body.id);
    assert.equal(delivered.body.receipt.answerSha256,sha(deliveryText));
+   assert.equal(delivered.body.receipt.deliveryMode,'SERVER_BUFFERED_RELEASE');
    assert.equal(delivered.body.answerSemanticsVerified,false);
    assert.equal(delivered.body.globalEnforcement,false);
    const repeatedDelivery=await request('POST',deliverPath,'owner',deliveryInput);
