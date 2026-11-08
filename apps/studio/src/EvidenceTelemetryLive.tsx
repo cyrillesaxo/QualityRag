@@ -10,13 +10,15 @@ type Evaluation={id:string;serviceId:string;environment:string;requestId:string;
   reviewHistory:Review[];chainHash:string;declaredOriginsOnly:boolean};
 type Replay={reproduced:boolean;verdict:Verdict;asOf:string;policySha256:string;
   result:{verdict:Verdict;findings:Finding[]};scope:string;sourceAuthenticityVerified:boolean};
-type Summary={admit:number;refuse:number;inconclusive:number;accepted:number;disputed:number;unreviewed:number;reviewedFalseBlocks:number;blockedUnattestedIngress?:number};
+type Summary={admit:number;refuse:number;inconclusive:number;accepted:number;disputed:number;unreviewed:number;reviewedFalseBlocks:number;blockedUnattestedIngress?:number;governedCandidateChecks?:number;governedCandidateRefusals?:number};
 type Protection={schema:string;serviceId:string;environment:string;protected:boolean;
   mode:'BLOCK_UNATTESTED_GENERIC_EVIDENCE'|'LEGACY_METADATA_GATE';
   genericEvidenceIngress:'BLOCKED'|'ALLOWED';sourceAdmission:string;
   independentSourceVerification:string;globalApplicationEnforcement:boolean;
   policy:{id:string;version:string;sha256:string};
   guardTelemetry:{observedBlockedAttempts:number;lastBlockedAt:string|null;
+  protectedSince?:string|null;governedCandidateChecks?:number;
+  governedCandidateRefusals?:number;lastCandidateCheckAt?:string|null;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
 const forest='#102d21',green='#038112',muted='#587064';
@@ -116,10 +118,17 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
        'LEGACY — generic metadata submissions remain allowed'}</strong>
      <p>PackSpec {protection.policy.id} v{protection.policy.version}
        {' · '} Mode: <code>{protection.mode}</code></p>
-     <p>Blocked attempts observed: <strong>{protection.guardTelemetry.observedBlockedAttempts}</strong>
+     <p>Protection activated: <strong>{protection.guardTelemetry.protectedSince||'not activated'}</strong>.</p>
+     <p>Blocked generic submissions: <strong>{protection.guardTelemetry.observedBlockedAttempts}</strong>
        {protection.guardTelemetry.lastBlockedAt?
-         ' · Last block: '+protection.guardTelemetry.lastBlockedAt:''}.
-       These are registry-ingress counts, not coverage of all downstream application requests.</p>
+         ' · Last block: '+protection.guardTelemetry.lastBlockedAt:''}.</p>
+     <p>Governed Drive candidate checks: <strong>{protection.guardTelemetry.governedCandidateChecks||0}</strong>
+       {' · '}Refused: <strong>{protection.guardTelemetry.governedCandidateRefusals||0}</strong>
+       {protection.guardTelemetry.lastCandidateCheckAt?
+         ' · Most recent: '+protection.guardTelemetry.lastCandidateCheckAt:''}.</p>
+     <p style={{fontSize:12}}>These are locally recorded registry events, not counts of all downstream
+       application requests or an independently anchored audit record. Earlier ADMIT events may
+       predate protection and are not retroactively authorized.</p>
      <p><strong>Remaining boundary:</strong> This is a server operator setting, not a tenant-wide or
        universal guarantee. Source authenticity, semantic review, independent admission, and external
        application enforcement are not yet implemented.</p>
