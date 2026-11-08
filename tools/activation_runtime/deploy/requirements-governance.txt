@@ -1,0 +1,3 @@
+# Minimum self-hosted Python runtime dependencies; pin after dependency audit.
+cryptography==50.0.2
+jsonschema==4.25.1

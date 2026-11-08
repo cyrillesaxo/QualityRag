@@ -1,0 +1,24 @@
+# Dedicated DNS hostname. Replace ONLY with a domain you control.
+# Caddy handles TLS and forwards API routes to 127.0.0.1:8769.
+# UI assets are deliberately not public through this reverse proxy.
+governance.example.com {
+    @api path /api/*
+    handle @api {
+        reverse_proxy 127.0.0.1:8769 {
+            header_up Host {host}
+            transport http {
+                dial_timeout 3s
+                response_header_timeout 15s
+            }
+        }
+    }
+    handle {
+        respond "Not Found" 404
+    }
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+        Cache-Control no-store
+        Strict-Transport-Security "max-age=31536000"
+    }
+}
