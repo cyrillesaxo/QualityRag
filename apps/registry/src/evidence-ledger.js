@@ -175,6 +175,25 @@ export class EvidenceLedger {
     if(row.actorHash!==hex(actor))throw Error('PROTECTED_DECISION_OWNER_FORBIDDEN');
     return row;
   }
+  protectedDecisionRevocation(id){
+    return this.readAll().find(x=>x.type==='protected-revocation'&&x.decisionId===id)||null;
+  }
+  revokeProtectedDecision(id,actor,reason){
+    const decision=this.protectedDecisionForOwner(id,actor);
+    if(!['OWNER_WITHDRAWN','REVIEW_DISPUTED','CUSTODY_DISPUTED'].includes(reason))
+      throw Error('PROTECTED_REVOCATION_REASON_INVALID');
+    const existing=this.protectedDecisionRevocation(id);
+    if(existing)throw Error('PROTECTED_DECISION_ALREADY_REVOKED');
+    const item=this.append({id:randomUUID(),type:'protected-revocation',
+      at:new Date().toISOString(),decisionId:decision.id,
+      serviceId:decision.serviceId,environment:decision.environment,
+      actorHash:hex(actor),policySha256:decision.policySha256,reason,
+      effect:'PERMANENTLY_BLOCK_FUTURE_PROTECTED_USE_CHECKS'});
+    return {schema:'qualityrag.protected-decision-revocation/v1',
+      decisionId:decision.id,status:'REVOKED',
+      revokedAt:item.at,reason,receiptId:item.id,
+      externallyAnchored:false};
+  }
   recordProtectedUse({decision,actor,requestId,answerSha256,checkedAt}){
     if(!decision||decision.type!=='protected-decision'||
        decision.result?.verdict!=='ADMIT'||
@@ -184,6 +203,8 @@ export class EvidenceLedger {
        typeof checkedAt!=='string'||!Number.isFinite(Date.parse(checkedAt)))
       throw Error('PROTECTED_USE_INVALID');
     const rows=this.readAll();
+    if(rows.some(x=>x.type==='protected-revocation'&&
+       x.decisionId===decision.id))throw Error('PROTECTED_DECISION_REVOKED');
     const requestHash=hex(decision.serviceId+'@'+decision.environment+':'+requestId);
     if(rows.some(x=>x.type==='protected-use'&&
        x.serviceId===decision.serviceId&&x.environment===decision.environment&&
@@ -330,6 +351,8 @@ export class EvidenceLedger {
         x.serviceId===serviceId&&x.environment===environment&&
         x.result.verdict==='INCONCLUSIVE').length,
       protectedUses:rows.filter(x=>x.type==='protected-use'&&
+        x.serviceId===serviceId&&x.environment===environment).length,
+      protectedRevocations:rows.filter(x=>x.type==='protected-revocation'&&
         x.serviceId===serviceId&&x.environment===environment).length
     };
     const latestBlocked=rows.filter(x=>x.type==='guard'&&x.serviceId===serviceId&&
@@ -347,6 +370,7 @@ export class EvidenceLedger {
         protectedAdmitted:summary.protectedAdmitted,
         protectedInconclusive:summary.protectedInconclusive,
         protectedUses:summary.protectedUses,
+        protectedRevocations:summary.protectedRevocations,
         lastCandidateCheckAt:latestCandidate?.at||null,
         externallyAnchored:false,coverage:'REGISTRY_EVENT_ENDPOINTS_ONLY'
       },
