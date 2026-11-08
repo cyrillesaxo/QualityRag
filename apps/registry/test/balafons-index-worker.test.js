@@ -12,7 +12,7 @@ test('worker deletes source on tombstone without reinsertion',async()=>{
  const {pool,calls}=fake([{...event,action:'delete',content:null}]);await new BalafonsIndexWorker({pool}).processBatch();
  assert.ok(calls.some(x=>x[0].startsWith('DELETE FROM qr_source_chunks')));assert.ok(!calls.some(x=>x[0].includes('INSERT INTO qr_source_chunks')));
 });
-test('worker fails closed and rolls back on cross-tenant event',async()=>{
- const {pool,calls}=fake([{...event,principal_id:'bob'}]);await assert.rejects(new BalafonsIndexWorker({pool}).processBatch(),/INBOX_SCOPE_INVALID/);
- assert.equal(calls.at(-1)[0],'ROLLBACK');assert.ok(!calls.some(x=>x[0].includes('INSERT INTO qr_source_chunks')));
+test('worker quarantines cross-tenant event without indexing',async()=>{
+ const {pool,calls}=fake([{...event,principal_id:'bob'}]);assert.deepEqual(await new BalafonsIndexWorker({pool}).processBatch(),{processed:0});
+ assert.equal(calls.at(-1)[0],'COMMIT');assert.ok(calls.some(x=>x[0].includes("state='failed'")));assert.ok(!calls.some(x=>x[0].includes('INSERT INTO qr_source_chunks')));
 });

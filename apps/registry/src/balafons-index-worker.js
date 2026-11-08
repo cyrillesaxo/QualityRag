@@ -11,9 +11,10 @@ export class BalafonsIndexWorker{
     WHERE state='pending' ORDER BY created_at,event_id
     FOR UPDATE SKIP LOCKED LIMIT $1`,[limit]);
    for(const e of r.rows){
+    // Quarantine malformed evidence without blocking unrelated tenants.
     if(e.tenant_id!=='balafons:'+e.principal_id||!e.source_id?.startsWith(e.tenant_id+':')||
       e.acl?.owner_id!==e.principal_id||e.acl?.visibility!=='private'||!['index','delete'].includes(e.action))
-     throw new Error('INBOX_SCOPE_INVALID');
+    {await c.query(`UPDATE qr_balafons_evidence_inbox SET state='failed',attempts=attempts+1,content=NULL,updated_at=now() WHERE event_id=$1 AND state='pending'`,[e.event_id]);continue;}
     // Lock by source so concurrent workers cannot interleave revisions.
     await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[e.tenant_id+'\\0'+e.source_id]);
     await c.query('DELETE FROM qr_source_chunks WHERE tenant_id=$1 AND principal_id=$2 AND source_id=$3',
