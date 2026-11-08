@@ -80,10 +80,17 @@ configuration downgrade when the same ledger is reused on restart.
 **What is not yet controlled:** alternate registries, independent model
 inference endpoints, external SDK consumers and historical admissions
 recorded before protection. The protected service's generic path
-intentionally blocks even legitimate candidates until a separately
-verified source-attestation/semantic-review workflow exists. The
-`governed-check` route remains an **INCONCLUSIVE/REFUSE-only** candidate
-review, not an authorized `ADMIT` API.
+intentionally blocks even legitimate generic submissions. A
+**separate, opt-in human-signed admission endpoint** now exists:
+`POST /v1/evidence/protected-admit` verifies two customer role signatures,
+the currently pinned registry PackSpec, live Google source bytes and owner
+controls, then records an `ADMIT`, `REFUSE` or `INCONCLUSIVE` decision
+with an independently replayable receipt. `ADMIT` denotes a **human-signed,
+scoped assertion**, not independently proven source truth. Only
+single-origin/no-publication-freshness PackSpecs are supported in this
+research bridge; unsupported policies fail closed. The
+`governed-check` route itself remains an **INCONCLUSIVE/REFUSE-only**
+candidate review.
 
 [Protected Drive ingress — setup and runnable proof](PROTECTED-DRIVE-INGRESS.md)
 
@@ -103,6 +110,24 @@ revisions. Each reviewer is limited to 20 recorded checks per rolling
 minute. The hash chain is **not externally anchored**.
 This makes visibility deliberate without allowing read-only identities
 to flood or mutate the evidence ledger.
+
+### A justified narrow admission with independent replay
+
+The new **Customer-signed protected evidence review** panel accepts an
+offline package approved by two distinct role keys (source custodian and
+semantic reviewer). The registry verifies exact current owner-controlled
+Drive bytes before recording a result; the signed package contains digest
+metadata rather than raw document text. The resulting receipt can be
+independently re-evaluated through the Python verifier with approved public
+keys and exact source bytes.
+
+The product must display **which assertions a customer accepted** and
+**which facts remain unproved**: a key signature is not original publisher
+authentication; distinct keys are not necessarily separate people; and
+an approved excerpt can omit hidden constraints. External inference apps
+must integrate this protected route before asserting global enforcement.
+
+**[Human signing, verification, and limitations](PROTECTED-HUMAN-REVIEW-ADMISSION.md)**.
 
 ### Evidence promotion boundary
 
