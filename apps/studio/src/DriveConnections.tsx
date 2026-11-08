@@ -15,7 +15,7 @@ type DriveSearch={hits:DriveHit[];indexed:boolean;coverage:string;reason?:string
 type Folder={id:string;name:string};
 type FileRow={id:string;name:string;mimeType:string;modifiedTime:string|null;size:string|null};
 const messageOrigin=()=>window.location.origin;
-function DriveConnections({token}:{token:string}){
+function DriveConnections({token,serviceId,environment}:{token:string;serviceId:string;environment:string}){
  const [connection,setConnection]=useState<Connection|null>(null);
  const [error,setError]=useState('');
  const [loading,setLoading]=useState(false);
@@ -284,6 +284,7 @@ function DriveConnections({token}:{token:string}){
        </div>
        <DriveTrustControls token={token} folderId={connection.folderId}
          connected={connection.connected} indexEnabled={Boolean(connection.indexEnabled)}
+         serviceId={serviceId} environment={environment}
          lastSyncedAt={connection.index?.lastSyncedAt}/>
        <p style={{fontSize:13,color:'#526d56'}}>
          Drive connection alone downloads no content. Only the explicit
