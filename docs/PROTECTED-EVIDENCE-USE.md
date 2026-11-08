@@ -177,6 +177,31 @@ privileged filesystem operator could still tamper with the local,
 unanchored ledger; production external anchoring and durable custody
 remain necessary.
 
+## Server-buffered answer delivery (optional, stronger output boundary)
+
+The new `POST /v1/evidence/protected-decisions/{id}/deliver`
+accepts `{"requestId":"new-unique-id","answer":"draft text"}`
+from the same authorized owner. It **receives the answer in
+plaintext** inside the registry, buffers it while it performs the
+same live checks, creates a `SERVER_BUFFERED_RELEASE`-mode
+authorization record, and returns the answer only with a matching
+permit. Failures never echo the draft.
+
+For strict data confidentiality, deploy this gateway **inside
+the customer-controlled trust boundary**. The existing
+`use-check` digest-only interface still avoids sending answer
+text but depends on the application to enforce output withholding.
+
+Studio offers both and requires explicit opt-in before transmitting
+a draft to the buffered gateway. The TypeScript SDK exposes
+`ProtectedUseClient.deliverViaGateway()`; it refuses any mismatched
+answer, decision, request ID, digest or declared gateway mode.
+The ledger stores only a digest and authorization metadata, not
+the answer itself. Telemetry counts issued permits, **not
+confirmed client delivery**.
+
+[Detailed buffered response gateway contract and limitations](PROTECTED-RESPONSE-GATEWAY.md).
+
 ## Explicit limitations
 
 - Only **integrated applications** are guarded. A separate model,
