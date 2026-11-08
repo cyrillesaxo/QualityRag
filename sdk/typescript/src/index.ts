@@ -36,5 +36,7 @@ export function evaluate(pack:PackSpec, evidence:Evidence[], asOf:string = new D
 }
 
 
+export {ProtectedUseClient} from "./protected-use.js";
+export type {UseCheckReceipt} from "./protected-use.js";
 export {ActivationClient} from "./activation.js";
 export type {SignedEnvelope,FiniteReceipt,ValidationResult,FallbackResult} from "./activation.js";
