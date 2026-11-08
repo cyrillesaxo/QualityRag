@@ -6,8 +6,7 @@ import {createHash, randomUUID} from 'node:crypto';
 const ZERO = '0'.repeat(64);
 const hex = value => createHash('sha256').update(value).digest('hex');
 const sha = value => hex(JSON.stringify(value));
-const idPattern = /^[a-zA-Z][a-zA-Z0-9_.-]{0,79}$/;
-const opaque = /^(ev|org|src)_[a-f0-9]{24,64}$/;
+const idPattern = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,79}$/;
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
 const limited = (value,max=80) => typeof value==='string' && value.length<=max && idPattern.test(value);
 function exactKeys(obj, keys, label) {
@@ -19,7 +18,7 @@ function validTime(value) {
     new Date(value).toISOString().slice(0,19)===value.slice(0,19);
 }
 function validateEvidence(evidence,pack) {
-  if(!Array.isArray(evidence) || !evidence.length || evidence.length>100)
+  if(!Array.isArray(evidence) || evidence.length>100)
     throw Error('INVALID_EVIDENCE');
   const requirements=new Set(pack.requirements.map(r=>r.id));
   const seen=new Set();
