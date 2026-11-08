@@ -10,7 +10,6 @@ const MAX_PER_FILE=96_000;
 const SEARCH_LIMIT=30;
 const MAX_QUERY=120;
 const MAX_AGE_MS=60*60*1000;
-const FILE_ID=/^[A-Za-z0-9_-]{1,200}$/;
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const stop=(msg)=>{throw Error(msg)};
 function check(condition,reason){if(!condition)stop(reason)}
@@ -105,7 +104,7 @@ export class UserDriveIndex {
   const entries=[];
   const summary={listed:listing.files.length,eligible:supported.length,
     unsupported:listing.files.length-supported.length,indexed:0,failed:0,
-    excludedEmpty:0,tooLarge:0};
+    excludedEmpty:0,tooLarge:0,truncatedLines:0};
   let total=0;
   for(const file of supported){
     try{
@@ -116,6 +115,7 @@ export class UserDriveIndex {
       const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
       const lines=text.replace(/\r\n?/g,'\n').split('\n');
       // Keep the original line anchors and bound the maximum line length.
+      if(lines.length>6000||lines.some(line=>line.length>1200))summary.truncatedLines++;
       entries.push({fileRef:sha('drive:'+file.id),name:boundedName(file.name),
         mimeType:file.mimeType,revision:sha(bytes),
         sourceId:'google_drive/'+sha(subject+':'+file.id).slice(0,32),
@@ -127,11 +127,12 @@ export class UserDriveIndex {
       else summary.failed++;
     }
   }
-  check(entries.length>0,'DRIVE_SYNC_NO_INDEXABLE_FILES');
+  if(supported.length>0&&!entries.length&&summary.failed>0)
+    stop('DRIVE_SYNC_ALL_DOCUMENTS_FAILED');
   const snapshot={schema:'qualityrag.user-drive-text-index/v1',
     account:connection.email,folderId:connection.folderId,
     syncedAt:new Date(this.now()).toISOString(),
-    summary,coverage:summary.unsupported||summary.failed||summary.tooLarge||summary.excludedEmpty?
+    summary,coverage:summary.unsupported||summary.failed||summary.tooLarge||summary.excludedEmpty||summary.truncatedLines?
       'PARTIAL':'SELECTED_FOLDER_TEXT_FILES',entries};
   // Atomic replacement prunes removed/deleted sources on each successful resync.
   // Search rejects a changed account/folder even if an old index remains on disk.
