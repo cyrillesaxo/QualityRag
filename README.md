@@ -88,9 +88,19 @@ npm --prefix apps/registry run protection:demo
 ```
 
 **[Protection setup, security boundaries and customer acceptance test](docs/PROTECTED-DRIVE-INGRESS.md)**.
-This deliberately prevents an unverified `ADMIT`, but **does not yet provide
-an authenticated, semantically reviewed production admission path** or govern
-external inference applications.
+Generic unreviewed submissions remain blocked. A separately enabled **human-signed
+protected admission path** can accept customer-approved assertions after exact live
+Google byte checks, current owner permissions and two independently pinned Ed25519
+role signatures. It does **not** establish objective semantic truth, original
+publisher authenticity, or enforcement in external inference applications.
+
+```sh
+npm --prefix apps/registry run admission:demo
+```
+
+**[Offline dual-signing, Studio submission and independent Python receipt verification](docs/PROTECTED-HUMAN-REVIEW-ADMISSION.md)**.
+The pilot supports one asserted origin per requirement and does not claim original
+publication freshness; stronger PackSpecs fail closed.
 
 ### Owner source controls reach the policy boundary
 
