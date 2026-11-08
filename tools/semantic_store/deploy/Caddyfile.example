@@ -1,0 +1,15 @@
+# Replace hostname with an owned DNS record pointing to the staging server.
+# Caddy obtains/renews HTTPS certificates; do not forward port 8039 publicly.
+video-mcp.example.com {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8039 {
+        header_up Host {host}
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        Cache-Control "no-store"
+    }
+    # Never log access tokens or arbitrary request bodies.
+}

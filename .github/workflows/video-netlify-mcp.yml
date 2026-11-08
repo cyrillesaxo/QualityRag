@@ -1,0 +1,36 @@
+name: QualityRAG Netlify MCP gateway
+on:
+  pull_request:
+    paths:
+      - 'netlify/functions/qualityrag-mcp.mjs'
+      - 'netlify/functions/qualityrag-oauth-metadata.mjs'
+      - 'netlify/lib/video-mcp-gateway.mjs'
+      - 'netlify/tests/video-mcp-gateway.test.mjs'
+      - '.github/workflows/video-netlify-mcp.yml'
+  push:
+    paths:
+      - 'netlify/functions/qualityrag-mcp.mjs'
+      - 'netlify/functions/qualityrag-oauth-metadata.mjs'
+      - 'netlify/lib/video-mcp-gateway.mjs'
+      - 'netlify/tests/video-mcp-gateway.test.mjs'
+      - '.github/workflows/video-netlify-mcp.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  netlify-mcp:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check gateway syntax
+        run: |
+          node --check netlify/lib/video-mcp-gateway.mjs
+          node --check netlify/functions/qualityrag-mcp.mjs
+          node --check netlify/functions/qualityrag-oauth-metadata.mjs
+          node --check netlify/tests/video-mcp-gateway.test.mjs
+      - name: Enforce proxy trust boundaries
+        run: node --test netlify/tests/video-mcp-gateway.test.mjs
