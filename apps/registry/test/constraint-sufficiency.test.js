@@ -51,7 +51,7 @@ test('conditional, override, and negative language are candidates, not proven co
    'Notwithstanding the preceding clause, renewal may be required.',
    'Service is subject to prior authorization.',
    'This does not apply to emergency claims.'];
- const r=scan(testLines,[basic]);
+ const r=scan(['Policy scope.',...testLines],[basic]);
  assert.deepEqual(r.candidates.map(x=>x.category),
    ['CONDITIONAL','OVERRIDE','CONDITIONAL','NEGATION']);
  assert.equal(r.signalIsProvenException,false);
