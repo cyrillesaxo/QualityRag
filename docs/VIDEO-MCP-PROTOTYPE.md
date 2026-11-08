@@ -119,3 +119,24 @@ No remote model identifier or remote download is accepted by this path; `video_h
 PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_sources.py -v
 PYTHONPATH=tools/semantic_store python -m unittest discover -s tools/semantic_store/tests -p test_video_hybrid.py -v
 ```
+
+
+## Read-only authenticated Streamable HTTP staging (new)
+
+`tools/semantic_store/video_mcp_remote.py` adds a **separate** MCP transport intended for a single operator's protected staging environment. It exposes only `search_video_evidence`, `research_video_question` and `inspect_video_evidence`. Remote clients **cannot** run local-video inference, modify the source registry, build the index or ingest new media through this endpoint.
+
+It uses an operator-supplied 32+ character bearer token checked before any MCP request, exact Origin filtering, explicit SDK Host allowlisting, and loopback-only process binding. It does **not** provide OAuth 2.1, multi-tenant auth, token rotation/revocation, quota management, inference sandboxing, or a public ChatGPT connector. Bearer tokens are a single-operator staging measure, not a replacement for proper OAuth in a customer service.
+
+```sh
+python -m pip install 'mcp>=1.28,<2' 'uvicorn>=0.30,<1'
+export QUALITYRAG_VIDEO_ROOT="$HOME/qualityrag-authorized-video"
+export QUALITYRAG_VIDEO_MCP_TOKEN="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+# Optional exact origin/host allowlists for a protected HTTPS reverse proxy:
+# export QUALITYRAG_VIDEO_MCP_ALLOWED_HOSTS="mcp.example.com"
+# export QUALITYRAG_VIDEO_MCP_ALLOWED_ORIGINS="https://app.example.com"
+PYTHONPATH=tools/semantic_store python tools/semantic_store/video_mcp_remote.py
+```
+
+The internal ASGI service binds only to `127.0.0.1:8039` by default. Its MCP endpoint is `/mcp`, requiring the header `Authorization: Bearer <configured token>` for all calls. To use off-host, put it **behind an independently secured HTTPS reverse proxy** that preserves authentication and enforces host/origin restrictions. Never expose port 8039 directly or commit secrets.
+
+The dedicated workflow tests security denials and authentic MCP initialization/tool discovery through the SDK. No actual server has been deployed or connected to ChatGPT yet; check the latest workflow before treating protocol compatibility as verified. To use this as a ChatGPT-connected remote service, the next milestone is OAuth with scoped access, deployment isolation and supported plugin connection—not just a reverse-proxied static token.
