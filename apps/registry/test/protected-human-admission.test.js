@@ -552,11 +552,13 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(list.summary.protectedRevocations,1);
    assert.equal(list.summary.protectedUses,3);
    assert.equal(list.summary.protectedGroundedReleases,1);
+   assert.equal(list.summary.protectedSufficiencyBlocks,1);
    const auditBytes=fs.readFileSync(ledgerPath,'utf8');
    assert.ok(!auditBytes.includes(answerText));
    assert.ok(!auditBytes.includes(deliveryText));
    assert.ok(!auditBytes.includes(grounded.body.answer));
    assert.ok(!auditBytes.includes(SOURCE.split('\n')[0]));
+   assert.ok(!auditBytes.includes(farException));
    assert.ok(auditBytes.includes(answerSha256));
    assert.equal(list.summary.protectedInconclusive,0);
    assert.equal(list.observedCount,0);
