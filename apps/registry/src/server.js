@@ -127,6 +127,22 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
        return reply(res,200,driveIndex.controlSource(actor,driveManager.status(actor),await body(req)));
      }
+     if(req.method==='GET'&&url.pathname==='/v1/drives/google/governed-requirements'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       if(!actorRoles?.has('evidence.reader'))return reply(res,403,{error:'FORBIDDEN'});
+       const serviceId=url.searchParams.get('serviceId'),environment=url.searchParams.get('environment');
+       if(!serviceId||!environment||
+          !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(serviceId)||
+          !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(environment))
+         throw Error('INVALID_DRIVE_GATE_REQUEST');
+       if(!evidenceServices?.has(serviceId+'@'+environment))
+         return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+       const bound=await store.resolve(serviceId,environment);
+       return reply(res,200,{schema:'qualityrag.drive-governed-requirements/v1',
+         policy:{id:bound.policy.id,version:bound.policy.version,sha256:bound.sha256},
+         requirements:bound.policy.requirements.map(r=>({id:r.id})),
+         admissionStatus:'NOT_EVALUATED',sourceProvenance:'NOT_VERIFIED'});
+     }
      if(req.method==='POST'&&url.pathname==='/v1/drives/google/governed-check'){
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
        // Both Drive access AND policy-bound evidence access are mandatory.
