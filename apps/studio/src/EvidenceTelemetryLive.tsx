@@ -10,6 +10,7 @@ type Evaluation={id:string;serviceId:string;environment:string;requestId:string;
   reviewHistory:Review[];chainHash:string;declaredOriginsOnly:boolean};
 type Replay={reproduced:boolean;verdict:Verdict;asOf:string;policySha256:string;
   result:{verdict:Verdict;findings:Finding[]};scope:string;sourceAuthenticityVerified:boolean};
+type Summary={admit:number;refuse:number;inconclusive:number;accepted:number;disputed:number;unreviewed:number;reviewedFalseBlocks:number};
 type Props={token:string;serviceId:string;environment:string};
 const forest='#102d21',green='#038112',muted='#587064';
 const panel:React.CSSProperties={border:'1px solid #cfe2d4',borderRadius:13,padding:18,background:'#fff'};
@@ -23,11 +24,12 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
  const [status,setStatus]=useState('Connect to see recorded events, not synthetic examples.');
  const [busy,setBusy]=useState(false);
  const [observed,setObserved]=useState<number|null>(null);
+ const [summary,setSummary]=useState<Summary|null>(null);
  const [replay,setReplay]=useState<Replay|null>(null);
  const [reasonCode,setReasonCode]=useState(reasons[0]);
  const [note,setNote]=useState('');
  const current=records.find(x=>x.id===selected);
- useEffect(()=>{setRecords([]);setSelected('');setObserved(null);setReplay(null);
+ useEffect(()=>{setRecords([]);setSelected('');setObserved(null);setSummary(null);setReplay(null);
    setStatus('Scope changed. Refresh to load authorized evidence telemetry.');
  },[serviceId,environment,token]);
  const api=async(route:string,method='GET',body?:unknown)=>{
@@ -44,12 +46,12 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
    try{
     const q=new URLSearchParams({serviceId,environment});
     const data=await api('/v1/evidence/evaluations?'+q.toString());
-    setRecords(data.evaluations||[]);setObserved(data.observedCount);
+    setRecords(data.evaluations||[]);setObserved(data.observedCount);setSummary(data.summary||null);
     setSelected(old=>(data.evaluations||[]).some((x:Evaluation)=>x.id===old)?old:
        data.evaluations?.[0]?.id||'');
     setReplay(null);
     setStatus('Registry evidence ledger loaded. Coverage of eligible requests is unknown.');
-   }catch(e){setRecords([]);setSelected('');setReplay(null);setObserved(null);setStatus(String(e))}
+   }catch(e){setRecords([]);setSelected('');setReplay(null);setObserved(null);setSummary(null);setStatus(String(e))}
    finally{setBusy(false)}
  }
  async function runReplay(){
@@ -93,6 +95,15 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
     Observed events: <strong>{observed===null?'unknown':observed}</strong> ·
     Eligible request coverage: <strong>unknown</strong>
    </p>
+   {summary&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10,margin:'12px 0'}}>
+     {([['ADMIT',summary.admit],['INCONCLUSIVE',summary.inconclusive],['REFUSE',summary.refuse],
+        ['Accepted findings',summary.accepted],['Disputed findings',summary.disputed],
+        ['Not yet reviewed',summary.unreviewed]] as [string,number][]).map(([name,count])=>
+        <div key={name} style={{background:'#f5fbf6',border:'1px solid #dce7dd',borderRadius:10,padding:'12px 14px'}}>
+          <div style={{fontSize:12,color:muted}}>{name}</div>
+          <strong style={{display:'block',fontSize:25,color:forest}}>{count}</strong>
+        </div>)}
+   </div>}
    <p role="status" style={{fontSize:13,color:forest}}>{status}</p>
    {records.length===0 ? <div style={panel}><strong>No telemetry events shown.</strong>
      <p>To collect one, configure the local registry ledger and send a scoped evaluation event with opaque source and origin tokens. The synthetic demonstrations below are not observations from customers.</p></div>
