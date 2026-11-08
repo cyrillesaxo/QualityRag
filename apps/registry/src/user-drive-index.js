@@ -236,7 +236,8 @@ export class UserDriveIndex {
   this.save(subject,snap);
   return {changed:true,visibility:this.visibility(subject,connection)};
  }
- async verifyLiveApprovedWitnesses(subject,connector,witnesses){
+ async verifyLiveApprovedWitnesses(subject,connector,witnesses,
+   {includeWitnessLines=false}={}){
   // Last-mile mandatory check: no signed claim alone bypasses current owner's
   // source controls. Re-fetch the exact file bytes from Google, including
   // the provider's parent-folder check, then re-check controls after all awaits.
@@ -300,9 +301,21 @@ export class UserDriveIndex {
       sha(Buffer.from(source.lines[witness.lineNumber-1]||'','utf8'))===
         witness.lineSha256,'PROTECTED_OWNER_CONTEXT_CHANGED');
   }
+  const verifiedLines=includeWitnessLines?witnesses.map(w=>{
+    const source=current.entries.find(e=>e.sourceId===w.sourceId);
+    const i=w.lineNumber-1;
+    const context=[];
+    if(i>0)context.push({lineNumber:i,text:source.lines[i-1]});
+    if(i+1<source.lines.length)
+      context.push({lineNumber:i+2,text:source.lines[i+1]});
+    return {sourceId:w.sourceId,requirementId:w.requirementId,
+      lineNumber:w.lineNumber,lineSha256:w.lineSha256,
+      text:source.lines[i],context};
+  }):undefined;
   return {owner:subject,folderId:connection.folderId,
     checkedAt:new Date(this.now()).toISOString(),sourceCount:expected.size,
-    verifiedExactLiveBytes:true,independentPublisherVerified:false};
+    verifiedExactLiveBytes:true,independentPublisherVerified:false,
+    ...(includeWitnessLines?{verifiedLines}:{})};
  }
  checkGovernedCandidates(subject,connection,policy,policySha256,candidates){
   // Guarded route from Drive *candidates* to governed evaluation. It deliberately
