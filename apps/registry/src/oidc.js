@@ -62,6 +62,7 @@ export function permissionFor(method,pathname){
   if(pathname==='/v1/drives/google/start'&&method==='POST')return ROLE.driveManage;
   if(pathname==='/v1/drives/google/folder'&&method==='POST')return ROLE.driveManage;
   if(pathname==='/v1/drives/google/disconnect'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/evidence/enforcement'&&method==='GET')return ROLE.evidenceRead;
   const ev='/v1/evidence/evaluations';
   if(method==='POST'&&pathname===ev)return ROLE.evidenceIngest;
   if(method==='GET'&&(pathname===ev||
