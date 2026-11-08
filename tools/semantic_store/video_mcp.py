@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 
 from video_research import research_video_evidence
+from video_hybrid import search_hybrid, local_encoder
 from video_catalog import (
     analyze_authorized_media, read_evidence, search_evidence, _root
 )
@@ -46,6 +47,22 @@ def create_server():
         return research_video_evidence(
             configured_root(), query, intent=intent,
             limit=limit, window_ms=window_ms)
+
+    @server.tool()
+    def hybrid_search_video(query: str, limit: int = 10,
+                            lexical_weight: float = 0.5) -> dict:
+        """Search locally indexed authorized witness text using lexical+dense relevance.
+
+        Requires an operator-built, provenance-checked index and local model.
+        Embedding similarity never verifies visual observations or spoken facts.
+        """
+        model_dir = os.environ.get("QUALITYRAG_VIDEO_EMBED_MODEL_DIR")
+        model_id = os.environ.get("QUALITYRAG_VIDEO_EMBED_MODEL_ID")
+        if not model_dir or not model_id:
+            raise RuntimeError("Operator must configure local embedding model and model ID")
+        return search_hybrid(
+            configured_root(), query, embedder=local_encoder(model_dir),
+            model_id=model_id,limit=limit,lexical_weight=lexical_weight)
 
     @server.tool()
     def inspect_video_evidence(source_id: str) -> dict:
