@@ -1,6 +1,7 @@
-/** Opt-in response release guard for apps consuming customer-signed evidence.
- *  The model's raw output stays local; the registry only receives its SHA-256.
- *  This is not an answer-semantic checker or universal model enforcement.
+/** Opt-in response release guards for apps consuming customer-signed evidence.
+ *  releaseAnswer() sends only a digest. deliverViaGateway() sends plaintext
+ *  to a customer-operated registry that buffers it until admission succeeds.
+ *  Neither route checks answer semantics nor controls non-integrated apps.
  */
 export type UseCheckReceipt={
  schema:'qualityrag.protected-decision-use/v1';
@@ -74,5 +75,55 @@ export class ProtectedUseClient {
      receipt.scope!=='THIS_REGISTRY_CHECK_ONLY')
      throw Error('Protected evidence use refused: malformed or mismatched permit');
    return {answer,receipt:receipt as UseCheckReceipt};
+ }
+ /** Stronger server-side output ownership: registry receives and temporarily
+  *  buffers the draft. Use only on a customer-operated trusted endpoint;
+  *  the registry must never log answer text. Fail closed on any mismatch.
+  */
+ async deliverViaGateway(decisionId:string,requestId:string,answer:string):Promise<{
+   answer:string;receipt:UseCheckReceipt;delivery:'BUFFERED_SINGLE_RESPONSE'
+ }>{
+   if(typeof decisionId!=='string'||!UUID.test(decisionId)||
+      typeof requestId!=='string'||!ID.test(requestId)||
+      typeof answer!=='string'||!answer.trim()||
+      new TextEncoder().encode(answer).length>16384||answer.includes('\0'))
+     throw Error('Invalid protected gateway delivery request');
+   const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(answer));
+   const answerSha256=Array.from(new Uint8Array(digest))
+     .map(x=>x.toString(16).padStart(2,'0')).join('');
+   const response=await fetch(this.base+'/v1/evidence/protected-decisions/'+
+      decisionId+'/deliver',{
+     method:'POST',cache:'no-store',redirect:'error',
+     headers:{Authorization:'Bearer '+this.bearer,'Content-Type':'application/json'},
+     body:JSON.stringify({requestId,answer}),
+     signal:AbortSignal.timeout(10000)
+   });
+   let result:any;
+   try{
+     const text=await response.text();
+     if(text.length>35000)throw Error('Oversized gateway response');
+     result=JSON.parse(text);
+   }catch{throw Error('Protected gateway denied delivery: invalid response')}
+   if(!response.ok)throw Error('Protected gateway denied delivery');
+   const receipt=result?.receipt as Partial<UseCheckReceipt>|undefined;
+   if(result?.schema!=='qualityrag.protected-answer-delivery/v1'||
+      result.answer!==answer||result.delivery!=='BUFFERED_SINGLE_RESPONSE'||
+      result.answerSemanticsVerified!==false||
+      result.globalEnforcement!==false||
+      result.externallyAnchored!==false||
+      receipt?.schema!=='qualityrag.protected-decision-use/v1'||
+      receipt.permission!=='PERMIT_SIGNED_ASSERTION_USE'||
+      receipt.decisionId!==decisionId||receipt.requestId!==requestId||
+      receipt.answerSha256!==answerSha256||
+      !HEX.test(receipt.policySha256||'')||
+      !UUID.test(receipt.receiptId||'')||
+      !HEX.test(receipt.chainHash||'')||
+      receipt.answerSemanticsVerified!==false||
+      receipt.globalEnforcement!==false||
+      receipt.externallyAnchored!==false||
+      receipt.scope!=='THIS_REGISTRY_CHECK_ONLY')
+     throw Error('Protected gateway denied delivery: mismatched permit');
+   return {answer:result.answer,receipt:receipt as UseCheckReceipt,
+     delivery:'BUFFERED_SINGLE_RESPONSE'};
  }
 }
