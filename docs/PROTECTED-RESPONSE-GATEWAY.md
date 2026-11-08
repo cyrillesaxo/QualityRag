@@ -130,6 +130,23 @@ Using the buffered option requires checking an opt-in acknowledgement
 that the draft **will be transmitted to the configured registry**.
 The UI does not silently convert digest-only checks to plaintext.
 
+## Optional exact-source output instead of arbitrary model prose
+
+`POST /v1/evidence/protected-decisions/{id}/grounded-deliver`
+accepts **only** a unique request ID. The server revalidates
+the live owner source and PackSpec, then builds a fixed extract
+from **all human-signed SUPPORTS lines**, plus explicitly
+unreviewed adjacent context. The output is tagged
+`SOURCE_GROUNDED_EXTRACT`, and no user-authored draft can be
+added to the request.
+
+A known exception whose signed witness is required by the
+PackSpec cannot be silently dropped. However, a distant or
+unknown exception elsewhere in the document remains unresolved;
+this is exact extraction, not unrestricted semantic verification.
+
+[Acceptance protocol and caveats](SOURCE-GROUNDED-ANSWERS.md).
+
 ## Production release blockers
 
 1. **Answer semantics remain unverified.** A signed evidence source
