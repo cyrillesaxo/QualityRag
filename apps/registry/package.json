@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test test/*.test.js && npm run evidence:demo",
-    "evidence:demo": "node ../../scripts/evidence-assurance-show-me.mjs"
+    "test": "node --test test/*.test.js && npm run evidence:demo && npm run drive:governed-demo",
+    "evidence:demo": "node ../../scripts/evidence-assurance-show-me.mjs",
+    "drive:governed-demo": "node ../../scripts/drive-governed-control-show-me.mjs"
   },
   "engines": {
     "node": ">=20"
