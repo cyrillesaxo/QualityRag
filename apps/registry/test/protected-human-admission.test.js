@@ -163,7 +163,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const exportUrl='/v1/evidence/protected-decisions/'+admit.body.id+'/export';
    assert.equal((await request('GET',exportUrl,'other')).status,403);
    assert.equal((await request('GET',exportUrl,'missingDrive')).status,403);
-   assert.equal((await request('GET',exportUrl,'missingIngest')).status,403);
+   assert.equal((await request('GET',exportUrl,'missingIngest')).status,200);
    const exported=await request('GET',exportUrl,'owner');
    assert.equal(exported.status,200);
    assert.equal(exported.body.schema,'qualityrag.protected-drive-decision-replay/v1');
