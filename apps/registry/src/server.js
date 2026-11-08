@@ -8,6 +8,7 @@ import {createOidcAuthenticator,permissionFor} from './oidc.js';
 import {EvidenceLedger} from './evidence-ledger.js';
 import {GoogleDriveConnections,safeDriveError} from './google-drive-connections.js';
 import {UserDriveIndex} from './user-drive-index.js';
+import {parseProtectedDriveServices} from './protected-drive.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -18,6 +19,10 @@ function fail(res,error) {
  if(code==='EVIDENCE_LEDGER_INTEGRITY_FAILURE'||code==='EVIDENCE_LEDGER_CAPACITY_EXCEEDED')
    return reply(res,503,{error:code});
  if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
+ if(code==='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED')
+   return reply(res,403,{error:code,admissionStatus:'BLOCKED',
+     explanation:'Protected service rejects unreviewed generic evidence submissions.',
+     nextStep:'Review source controls and provenance in the scoped Drive candidate path.'});
  if(code.startsWith('DRIVE_')||code.startsWith('GOOGLE_')){
    const safe=safeDriveError(error);
    const status=['DRIVE_CONNECTION_NOT_FOUND','DRIVE_CONNECT_DISABLED',
@@ -40,11 +45,19 @@ async function body(req) {
  try {return JSON.parse(txt)}catch{throw new Error('INVALID_JSON')}
 }
 export function createHandler(store,token,{trustedPolicyKeys=new Map(),authenticate=null,
-   enforceSeparation=false,evidenceLedger=null,driveManager=null,driveIndex=null}={}) {
+   enforceSeparation=false,evidenceLedger=null,driveManager=null,driveIndex=null,
+   protectedDriveServices=new Set()}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
  if(driveManager&&!authenticate)throw new Error('DRIVE_REQUIRES_OIDC');
  if(driveIndex&&(!driveManager||!authenticate))throw new Error('DRIVE_INDEX_REQUIRES_OIDC');
+ if(!(protectedDriveServices instanceof Set)||
+    [...protectedDriveServices].some(v=>typeof v!=='string'||
+      !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}@[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(v)))
+   throw Error('INVALID_PROTECTED_DRIVE_SERVICES');
+ if(protectedDriveServices.size>0&&
+    (!authenticate||!driveIndex||!driveManager||!evidenceLedger))
+   throw Error('PROTECTED_DRIVE_RUNTIME_REQUIREMENTS_UNMET');
  return async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
   if (url.pathname==='/health') return reply(res,200,{ok:true,service:'qualityrag-registry'});
@@ -188,6 +201,32 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    }
    // The evidence ledger is explicitly opt-in; live monitoring is not inferred.
    const parts=url.pathname.split('/').filter(Boolean);
+   if(req.method==='GET'&&url.pathname==='/v1/evidence/enforcement'){
+     if(!evidenceLedger)return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
+     const serviceId=url.searchParams.get('serviceId');
+     const environment=url.searchParams.get('environment');
+     if(!serviceId||!environment||
+        !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(serviceId)||
+        !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(environment))
+       throw Error('INVALID_ENFORCEMENT_QUERY');
+     if(authenticate&&!evidenceServices?.has(serviceId+'@'+environment))
+       return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+     const bound=await store.resolve(serviceId,environment);
+     const isProtected=protectedDriveServices.has(serviceId+'@'+environment);
+     const status=evidenceLedger.list(serviceId,environment);
+     return reply(res,200,{
+       schema:'qualityrag.drive-protection/v1',
+       serviceId,environment,
+       policy:{id:bound.policy.id,version:bound.policy.version,sha256:bound.sha256},
+       protected:isProtected,
+       mode:isProtected?'BLOCK_UNATTESTED_GENERIC_EVIDENCE':'LEGACY_METADATA_GATE',
+       genericEvidenceIngress:isProtected?'BLOCKED':'ALLOWED',
+       sourceAdmission:'NOT_IMPLEMENTED',
+       independentSourceVerification:'NOT_IMPLEMENTED',
+       globalApplicationEnforcement:false,
+       guardTelemetry:status.guardTelemetry
+     });
+   }
    if(parts[0]==='v1'&&parts[1]==='evidence'&&parts[2]==='evaluations'){
      if(!evidenceLedger)return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
      const authorize=(serviceId,environment)=>{
@@ -205,6 +244,13 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        if(!input||typeof input!=='object')throw Error('INVALID_EVALUATION');
        authorize(input.serviceId,input.environment);
        const bound=await store.resolve(input.serviceId,input.environment);
+       if(protectedDriveServices.has(input.serviceId+'@'+input.environment)){
+         // Every attempt is rejected at ingress; no caller's metadata can
+         // bypass the owner's Drive exclusion by submitting a synthetic origin.
+         // Log only actor hash, scope, policy digest and fixed reason.
+         evidenceLedger.recordBlockedIngress(input.serviceId,input.environment,actor,bound.sha256);
+         throw Error('PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED');
+       }
        return reply(res,201,evidenceLedger.ingest(input,bound.policy,bound.sha256,actor));
      }
      if(parts.length>=4&&parts.length<=5&&
@@ -297,6 +343,10 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
  const driveIndex=driveManager&&process.env.QUALITYRAG_DRIVE_INDEX_DIR?
    new UserDriveIndex({dir:process.env.QUALITYRAG_DRIVE_INDEX_DIR,
      encryptionKey:process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY}):null;
+ const protectedDriveServices=parseProtectedDriveServices(
+   process.env.QUALITYRAG_PROTECTED_DRIVE_SERVICES||'');
+ if(protectedDriveServices.size>0&&(!driveIndex||!evidenceLedger||authMode!=='oidc'))
+   throw Error('PROTECTED_DRIVE_RUNTIME_REQUIREMENTS_UNMET');
  const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?
     loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
  if(backend==='postgres' && keys.size===0)throw new Error('TRUSTED_POLICY_KEYS_REQUIRED');
@@ -308,7 +358,8 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
-    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger,driveManager,driveIndex}));
+    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger,
+     driveManager,driveIndex,protectedDriveServices}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
   server.listen(Number(process.env.PORT||5055),host,
     ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));
