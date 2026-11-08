@@ -12,7 +12,7 @@ const tools = [
 const required={policy_test:["pack","documents","retrieved"],policy_replay:["base","branch","cases"],functional_siblings:["function","contracts","candidates"]};
 const fieldTypes={pack:"object",documents:"array",retrieved:"array",test:"object",benchmark:"object",base:"object",branch:"object",cases:"array",contracts:"object",candidates:"array",open_challenge:"boolean",active:"boolean",since:"integer",limit:"integer",far_limit:"number"};
 const catalog=tools.map(([name,description,properties])=>({name,description,inputSchema:{type:"object",properties:Object.fromEntries(properties.map(k=>[k,{type:fieldTypes[k]||"string"}])),required:required[name]||[],additionalProperties:false},annotations:{readOnlyHint:true}}));
-const headers={"content-type":"application/json","cache-control":"no-store","access-control-allow-origin":"*","access-control-allow-headers":"authorization,content-type,mcp-protocol-version,mcp-session-id","access-control-allow-methods":"GET,POST,OPTIONS"};
+const headers={"content-type":"application/json","cache-control":"no-store","access-control-allow-headers":"authorization,content-type,mcp-protocol-version,mcp-session-id","access-control-allow-methods":"GET,POST,OPTIONS"};
 const reply=(payload,status=200)=>new Response(JSON.stringify(payload),{status,headers});
 const err=(id,code,message)=>({jsonrpc:"2.0",id,error:{code,message}});
 export default async function handler(request){
@@ -30,6 +30,12 @@ export default async function handler(request){
  if(msg.method==="tools/list")return reply({jsonrpc:"2.0",id:msg.id,result:{tools:catalog}});
  if(msg.method!=="tools/call")return reply(err(msg.id,-32601,"Method not found"),404);
  const name=msg.params?.name,args=msg.params?.arguments||{};
+ if(!args || typeof args!=="object" || Array.isArray(args))return reply(err(msg.id,-32602,"Arguments must be an object"),400);
+ const spec=catalog.find(t=>t.name===name)?.inputSchema;
+ if(spec){for(const k of spec.required){if(!(k in args))return reply(err(msg.id,-32602,"Missing required argument: "+k),400)}
+ for(const [k,v] of Object.entries(args)){if(!spec.properties[k])return reply(err(msg.id,-32602,"Unsupported argument: "+k),400);
+ const type=spec.properties[k].type;const valid=type==="array"?Array.isArray(v):type==="object"?(v!==null&&typeof v==="object"&&!Array.isArray(v)):type==="integer"?Number.isInteger(v):typeof v===type;
+ if(!valid)return reply(err(msg.id,-32602,"Invalid type for "+k),400)}}
  if(!tools.some(t=>t[0]===name))return reply(err(msg.id,-32602,"Unknown tool"),400);
  const endpoint=process.env.QUALITYRAG_API_ENDPOINT;
  const upstreamToken=process.env.QUALITYRAG_API_TOKEN_JSON;
