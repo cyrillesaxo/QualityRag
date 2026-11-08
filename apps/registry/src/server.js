@@ -23,6 +23,8 @@ function fail(res,error) {
  if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
  if(code==='PROTECTED_USE_RATE_LIMITED')return reply(res,429,{error:code,permission:'DENIED'});
  if(code==='PROTECTED_USE_REPLAY')return reply(res,409,{error:code,permission:'DENIED'});
+ if(code==='PROTECTED_DECISION_REVOKED'||code==='PROTECTED_DECISION_ALREADY_REVOKED')
+   return reply(res,409,{error:code,permission:'DENIED'});
  if(code.startsWith('PROTECTED_')&&code!=='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED'){
    const safe=[
      'PROTECTED_REVIEW_KEYS_NOT_CONFIGURED','PROTECTED_REVIEW_KEYS_REQUIRED',
@@ -45,7 +47,8 @@ function fail(res,error) {
      'PROTECTED_DECISION_OWNER_FORBIDDEN',
      'PROTECTED_USE_POLICY_CHANGED','PROTECTED_USE_DECISION_NOT_ADMITTED',
      'PROTECTED_USE_SERVICE_UNPROTECTED','PROTECTED_USE_SIGNATURE_RECORD_MISMATCH',
-     'PROTECTED_USE_EVIDENCE_CHANGED','PROTECTED_USE_INVALID'
+     'PROTECTED_USE_EVIDENCE_CHANGED','PROTECTED_USE_INVALID',
+     'PROTECTED_REVOCATION_REASON_INVALID'
    ].includes(code)?code:'PROTECTED_ADMISSION_REJECTED';
    const status=safe==='PROTECTED_DECISION_NOT_FOUND'?404:
      safe==='PROTECTED_DECISION_OWNER_FORBIDDEN'?403:
@@ -330,6 +333,53 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    }
    if(req.method==='POST'&&
      url.pathname.startsWith('/v1/evidence/protected-decisions/')&&
+     url.pathname.endsWith('/revoke')&&
+     url.pathname.split('/').length===6&&
+     /^[0-9a-f-]{36}$/.test(url.pathname.split('/')[4])){
+     if(!authenticate||!evidenceLedger)
+       return reply(res,404,{error:'PROTECTED_REVOCATION_DISABLED'});
+     // Evidence-review rights alone are insufficient; this is a *source
+     // owner's* explicit withdrawal, not a generic policy reviewer action.
+     if(!actorRoles?.has('drive.manager'))
+       return reply(res,403,{error:'FORBIDDEN'});
+     const row=evidenceLedger.protectedDecisionForOwner(
+       url.pathname.split('/')[4],actor);
+     if(!evidenceServices?.has(row.serviceId+'@'+row.environment))
+       return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+     const input=await body(req);
+     if(!input||typeof input!=='object'||Array.isArray(input)||
+        Object.keys(input).length!==1||
+        !Object.hasOwn(input,'reason'))
+       throw Error('PROTECTED_REVOCATION_REASON_INVALID');
+     return reply(res,200,evidenceLedger.revokeProtectedDecision(
+       row.id,actor,input.reason));
+   }
+   if(req.method==='GET'&&
+     url.pathname.startsWith('/v1/evidence/protected-decisions/')&&
+     url.pathname.endsWith('/status')&&
+     url.pathname.split('/').length===6&&
+     /^[0-9a-f-]{36}$/.test(url.pathname.split('/')[4])){
+     if(!authenticate||!evidenceLedger)
+       return reply(res,404,{error:'PROTECTED_DECISION_NOT_FOUND'});
+     if(!actorRoles?.has('drive.reader'))
+       return reply(res,403,{error:'FORBIDDEN'});
+     const row=evidenceLedger.protectedDecisionForOwner(
+       url.pathname.split('/')[4],actor);
+     if(!evidenceServices?.has(row.serviceId+'@'+row.environment))
+       return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+     const revoked=evidenceLedger.protectedDecisionRevocation(row.id);
+     return reply(res,200,{
+       schema:'qualityrag.protected-decision-status/v1',
+       decisionId:row.id,recordedVerdict:row.result.verdict,
+       revoked:!!revoked,
+       revokedAt:revoked?.at||null,reason:revoked?.reason||null,
+       useCheckRequired:true,
+       currentUseAuthorized:false,
+       note:'Only a successful fresh use-check can permit a particular request; historical admission is never a standing authorization.'
+     });
+   }
+   if(req.method==='POST'&&
+     url.pathname.startsWith('/v1/evidence/protected-decisions/')&&
      url.pathname.endsWith('/use-check')&&
      url.pathname.split('/').length===6&&
      /^[0-9a-f-]{36}$/.test(url.pathname.split('/')[4])){
@@ -351,6 +401,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
         !/^[0-9a-f]{64}$/.test(input.answerSha256))
        throw Error('PROTECTED_USE_INVALID');
      const row=evidenceLedger.protectedDecisionForOwner(decisionId,actor);
+     if(evidenceLedger.protectedDecisionRevocation(row.id))
+       throw Error('PROTECTED_DECISION_REVOKED');
      if(!evidenceServices?.has(row.serviceId+'@'+row.environment))
        return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
      if(!protectedDriveServices.has(row.serviceId+'@'+row.environment))
