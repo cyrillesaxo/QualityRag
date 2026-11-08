@@ -92,6 +92,32 @@ Studio shows the candidate source ID, line and category and a
 distinct **observed sufficiency-block counter**. A clean scan
 is never labeled “semantically sufficient.”
 
+## How a customer resolves a flagged clause
+
+1. Run `sufficiency-check` in Studio, record the opaque source ID,
+   line number and category. Inspect the exact original source
+   through the owner's configured Drive folder.
+2. Determine whether the signal is actually a relevant exception,
+   condition, contradiction, or harmless wording. Lexical matching
+   alone cannot decide.
+3. If relevant, make sure the **approved PackSpec** represents the
+   requirement or exception; changing only witness metadata cannot
+   introduce an approved policy obligation.
+4. Build a **multi-witness offline review manifest** containing both
+   the main clause and relevant exception, with explicit status,
+   requirement mapping and exact local original-file path.
+5. The separate source custodian and meaning reviewer sign the
+   same newly prepared payload. Studio submits it as a **new
+   signed decision**.
+6. Rerun `sufficiency-check`; if the detected line has a reviewed
+   `SUPPORTS` witness, that candidate is no longer unreviewed.
+   `grounded-deliver` still performs a fresh live-byte, scope,
+   PackSpec, and source-control check before releasing any extract.
+
+See [multi-clause preparation and offline signing](PROTECTED-HUMAN-REVIEW-ADMISSION.md).
+Passing this workflow does **not** prove that all implicit or
+unreferenced constraints have been found.
+
 ## Synthetic adversarial challenge
 
 Consider a signed witness for line 1:
