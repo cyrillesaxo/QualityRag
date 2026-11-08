@@ -163,6 +163,27 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(admit.body.independentPublisherVerified,false);
    assert.equal(admit.body.meaningVerifiedByMachine,false);
    assert.equal(admit.body.sourceCount,1);
+   assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/use-check'),
+     'evidence.ingest');
+   const usePath='/v1/evidence/protected-decisions/'+admit.body.id+'/use-check';
+   const answerText='Synthetic reviewed response — not a claim of model correctness';
+   const answerSha256=sha(answerText);
+   let useSequence=0;
+   const useInput=()=>({requestId:'use-request-'+(++useSequence),answerSha256});
+   const firstUsePayload=useInput();
+   assert.equal((await request('POST',usePath,'missingDrive',useInput())).status,403);
+   assert.equal((await request('POST',usePath,'missingIngest',useInput())).status,403);
+   assert.equal((await request('POST',usePath,'wrongService',useInput())).status,403);
+   assert.equal((await request('POST',usePath,'other',useInput())).status,403);
+   assert.equal((await request('POST',usePath,'owner',{
+     ...useInput(),answerText})).status,409);
+   const allowedUse=await request('POST',usePath,'owner',firstUsePayload);
+   assert.equal(allowedUse.status,200,JSON.stringify(allowedUse.body));
+   assert.equal(allowedUse.body.permission,'PERMIT_SIGNED_ASSERTION_USE');
+   assert.equal(allowedUse.body.decisionId,admit.body.id);
+   assert.equal(allowedUse.body.answerSha256,answerSha256);
+   assert.equal(allowedUse.body.answerSemanticsVerified,false);
+   assert.equal((await request('POST',usePath,'owner',firstUsePayload)).status,409);
    const exportUrl='/v1/evidence/protected-decisions/'+admit.body.id+'/export';
    assert.equal((await request('GET',exportUrl,'other')).status,403);
    assert.equal((await request('GET',exportUrl,'missingDrive')).status,403);
@@ -219,24 +240,35 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(refusal.status,200);
    assert.equal(refusal.body.result.verdict,'REFUSE');
    assert.equal(refusal.body.admissionStatus,'NOT_ADMITTED');
+   const refusedUse='/v1/evidence/protected-decisions/'+refusal.body.id+'/use-check';
+   const neverAllowed=await request('POST',refusedUse,'owner',useInput());
+   assert.equal(neverAllowed.status,409);
+   assert.equal(neverAllowed.body.error,'PROTECTED_USE_DECISION_NOT_ADMITTED');
    // An explicitly blocked source cannot be admitted even with two real signatures.
    index.controlSource(subject,connector.status(subject),{
      sourceId:hit.source_id,searchable:false,reason:'OUT_OF_SCOPE'});
    const denied=await request('POST',endpoint,'owner',payload(att()));
    assert.equal(denied.status,409,JSON.stringify(denied.body));
    assert.equal(denied.body.error,'PROTECTED_OWNER_EXCLUDED_SOURCE');
+   const useExcluded=await request('POST',usePath,'owner',useInput());
+   assert.equal(useExcluded.status,409);
+   assert.equal(useExcluded.body.error,'PROTECTED_OWNER_EXCLUDED_SOURCE');
    index.controlSource(subject,connector.status(subject),{
      sourceId:hit.source_id,searchable:true,reason:'OWNER_SELECTION'});
    content=SOURCE+'\nAppended after custodian signature.';
    const changed=await request('POST',endpoint,'owner',payload(att()));
    assert.equal(changed.status,409);
    assert.equal(changed.body.error,'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH');
+   const useChanged=await request('POST',usePath,'owner',useInput());
+   assert.equal(useChanged.status,409);
+   assert.equal(useChanged.body.error,'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH');
    content=SOURCE;
    remoteAccess=false;
    const revoked=await request('POST',endpoint,'owner',payload(att()));
    assert.equal(revoked.status,409);
    assert.equal(revoked.body.error,'PROTECTED_LIVE_GOOGLE_VERIFICATION_FAILED');
    assert.equal(fs.existsSync(index.location(subject)),false);
+   assert.equal((await request('POST',usePath,'owner',useInput())).status,409);
    remoteAccess=true;
    await index.sync(subject,connector);
    const wrongLine=await request('POST',endpoint,'owner',payload(att({lineText:'NOT THE FILE LINE'})));
@@ -252,6 +284,9 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const staleAttempt=await request('POST',endpoint,'owner',payload(att()));
    assert.equal(staleAttempt.status,409);
    assert.equal(staleAttempt.body.error,'PROTECTED_SOURCE_INDEX_STALE');
+   const staleUse=await request('POST',usePath,'owner',useInput());
+   assert.equal(staleUse.status,409);
+   assert.equal(staleUse.body.error,'PROTECTED_SOURCE_INDEX_STALE');
    index.now=()=>Date.now();
    // A new approved PackSpec binding invalidates old signed approvals.
    registry.draft({id:'changed-policy',version:'1',requirements:[
@@ -262,6 +297,9 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const invalidOldPolicy=await request('POST',endpoint,'owner',payload(att()));
    assert.equal(invalidOldPolicy.status,403);
    assert.equal(invalidOldPolicy.body.error,'PROTECTED_REVIEW_POLICY_MISMATCH');
+   const outdatedUse=await request('POST',usePath,'owner',useInput());
+   assert.equal(outdatedUse.status,409);
+   assert.equal(outdatedUse.body.error,'PROTECTED_USE_POLICY_CHANGED');
    // The current bridge deliberately cannot prove independent intellectual
    // origins or when the original document was actually published.
    registry.draft({id:'multi-source-policy',version:'1',requirements:[
@@ -287,6 +325,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const list=ledger.list('claims','dev');
    assert.equal(list.summary.protectedDecisions,2);
    assert.equal(list.summary.protectedAdmitted,1);
+   assert.equal(list.summary.protectedUses,1);
+   const auditBytes=fs.readFileSync(ledgerPath,'utf8');
+   assert.ok(!auditBytes.includes(answerText));
+   assert.ok(auditBytes.includes(answerSha256));
    assert.equal(list.summary.protectedInconclusive,0);
    assert.equal(list.observedCount,0);
    const persisted=fs.readFileSync(ledgerPath,'utf8');
