@@ -78,6 +78,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
   const provided=req.headers.authorization;
   let actor='registry-token';
   let evidenceServices=null;
+  let actorRoles=null;
   if(authenticate){
    if(typeof provided!=='string'||!provided.startsWith('Bearer '))return reply(res,401,{error:'UNAUTHORIZED'});
    let identity=null;
@@ -89,6 +90,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    if(!identity.roles.has(permission))return reply(res,403,{error:'FORBIDDEN'});
    actor=identity.subject;
    evidenceServices=identity.evidenceServices;
+   actorRoles=identity.roles;
   }else if(provided!== 'Bearer '+token)return reply(res,401,{error:'UNAUTHORIZED'});
   try {
    if(url.pathname.startsWith('/v1/drives/google/')){
@@ -124,6 +126,24 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      if(req.method==='POST'&&url.pathname==='/v1/drives/google/source-control'){
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
        return reply(res,200,driveIndex.controlSource(actor,driveManager.status(actor),await body(req)));
+     }
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/governed-check'){
+       if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
+       // Both Drive access AND policy-bound evidence access are mandatory.
+       if(!actorRoles?.has('evidence.reader'))return reply(res,403,{error:'FORBIDDEN'});
+       const input=await body(req);
+       if(!input||typeof input!=='object'||Array.isArray(input)||
+          Object.keys(input).length!==3||
+          !['serviceId','environment','candidates'].every(k=>Object.hasOwn(input,k))||
+          typeof input.serviceId!=='string'||typeof input.environment!=='string'||
+          !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(input.serviceId)||
+          !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(input.environment))
+         throw Error('INVALID_DRIVE_GATE_REQUEST');
+       if(!evidenceServices?.has(input.serviceId+'@'+input.environment))
+         return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+       const governed=await store.resolve(input.serviceId,input.environment);
+       return reply(res,200,driveIndex.checkGovernedCandidates(actor,
+         driveManager.status(actor),governed.policy,governed.sha256,input.candidates));
      }
      if(req.method==='POST'&&url.pathname==='/v1/drives/google/sync'){
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
