@@ -77,7 +77,17 @@ Run the actual registry HTTP challenge locally (requires `npm --prefix apps/regi
 npm --prefix apps/registry run evidence:demo
 ```
 
-The synthetic experiment records three citations with **one declared origin** (INCONCLUSIVE), adds an independent declared source (ADMIT), replays the first verdict, and appends a distinct review disposition. This is a runnable demonstration with mock identities, **not** live customer telemetry or independently attested evidence.
+The synthetic experiment records three citations with **one declared origin** (INCONCLUSIVE), adds an independent declared source (ADMIT), replays the first verdict, and appends a distinct review disposition.
+
+To reproduce the recorded decision **with the separate Python SDK**, export a metadata-only receipt from that same HTTP demonstration:
+
+```sh
+npm --prefix apps/registry run evidence:demo -- --export /tmp/qualityrag-review.json
+PYTHONPATH=sdk/python python -m qualityrag.verify_receipt /tmp/qualityrag-review.json
+```
+
+The verifier recomputes the result from the exported policy, opaque source metadata and original evaluation time. The embedded digest is not proof of authenticity; an out-of-band trusted digest is needed to authenticate the package. This is a synthetic evidence-verification demonstration, **not** a source-authenticity or regulatory-compliance certification.
+ This is a runnable demonstration with mock identities, **not** live customer telemetry or independently attested evidence.
 
 **[Telemetry API, Studio setup, and production limitations](docs/EVIDENCE-TELEMETRY-REGISTRY.md)** · **[Acceptance-workflow design](docs/EVIDENCE-ASSURANCE-TELEMETRY.md)**
 
