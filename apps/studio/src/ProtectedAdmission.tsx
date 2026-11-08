@@ -14,6 +14,17 @@ type Grounded={schema:'qualityrag.source-grounded-extract/v1';
    allSignedAnchorsIncluded:true;fullDocumentExaminedForExceptions:false};
  assertions:{modelGeneratedParaphrase:false;freeFormAnswerEntailmentVerified:false};
  receipt:{answerSha256:string;deliveryMode:'SOURCE_GROUNDED_EXTRACT'}};
+type Sufficiency={
+ schema:'qualityrag.constraint-signal-scan/v1';
+ status:'UNREVIEWED_LEXICAL_SIGNALS'|'NO_UNREVIEWED_LEXICAL_SIGNALS';
+ candidateCount:number;reviewedSignalCount:number;
+ sourcesScanned:number;linesScanned:number;candidatesTruncated:boolean;
+ candidates:{sourceId:string;lineNumber:number;category:string;
+   reviewStatus:string}[];
+ scope:'LIVE_VERIFIED_SIGNED_SOURCE_FILES_ONLY';
+ sourceTextIncluded:false;documentWideSemanticCompletenessVerified:false;
+ releasePermittedByThisPreview:false;
+};
 type Props={token:string;serviceId:string;environment:string;enabled:boolean};
 
 export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
@@ -29,6 +40,8 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  const [deliveryError,setDeliveryError]=useState('');
  const [grounded,setGrounded]=useState<Grounded|null>(null);
  const [groundingError,setGroundingError]=useState('');
+ const [sufficiency,setSufficiency]=useState<Sufficiency|null>(null);
+ const [sufficiencyError,setSufficiencyError]=useState('');
  const [revocationReason,setRevocationReason]=useState('OWNER_WITHDRAWN');
  const [revoked,setRevoked]=useState(false);
  const [revocationResult,setRevocationResult]=useState('');
@@ -41,6 +54,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    setUseReceipt(null);setUseError('');setAnswer('');
    setDelivered(false);setDeliveryError('');setSendDraftToGateway(false);
    setGrounded(null);setGroundingError('');
+   setSufficiency(null);setSufficiencyError('');
    setRevoked(false);setRevocationResult('');
    try{
      if(!token)throw Error('A signed registry identity is required.');
@@ -173,6 +187,30 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    }catch(e){setDeliveryError(String(e))}
    finally{setBusy(false)}
  }
+ async function checkSufficiency(){
+   if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token)return;
+   setBusy(true);setSufficiency(null);setSufficiencyError('');
+   try{
+     const response=await fetch(
+       '/v1/evidence/protected-decisions/'+outcome.id+'/sufficiency-check',{
+         method:'POST',cache:'no-store',redirect:'error',
+         headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+         body:JSON.stringify({requestId:'signals-'+crypto.randomUUID()})
+       });
+     const result=await response.json();
+     if(!response.ok)throw Error(String(result.error||'Constraint scan unavailable'));
+     if(result.schema!=='qualityrag.constraint-signal-scan/v1'||
+       !Number.isSafeInteger(result.candidateCount)||
+       !Array.isArray(result.candidates)||
+       result.sourceTextIncluded!==false||
+       result.scope!=='LIVE_VERIFIED_SIGNED_SOURCE_FILES_ONLY'||
+       result.documentWideSemanticCompletenessVerified!==false||
+       result.releasePermittedByThisPreview!==false)
+       throw Error('Unsupported signal-scan scope or assurance claims');
+     setSufficiency(result);
+   }catch(e){setSufficiencyError(String(e))}
+   finally{setBusy(false)}
+ }
  async function extractGrounded(){
    if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token)return;
    setBusy(true);setGroundingError('');setGrounded(null);
@@ -253,6 +291,39 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
          or prove paraphrase entailment.</strong> Excerpts are returned only
          to the authenticated owner and are not written into the evidence ledger.
        </p>
+       <button type="button" disabled={busy||revoked}
+         onClick={checkSufficiency}>
+         Scan referenced files for distant constraints
+       </button>
+       {sufficiency&&<div role="status" style={{marginTop:10}}>
+         <p>Checked {sufficiency.linesScanned} lines across
+           {' '}{sufficiency.sourcesScanned} signed source files.
+           Unreviewed lexical signals:
+           {' '}<strong>{sufficiency.candidateCount}</strong>.
+         </p>
+         {sufficiency.candidateCount>0&&<p>
+           Extraction is blocked until these candidate source lines
+           receive independent human review and a new signed decision.
+           Candidates are warnings, not proven contradictions.
+         </p>}
+         {sufficiency.candidates.length>0&&<ul>
+           {sufficiency.candidates.map((c,i)=><li key={i}>
+             {c.category}: <code>{c.sourceId}</code>, line {c.lineNumber}
+             {' '}— not signed as a supporting witness
+           </li>)}
+         </ul>}
+         {sufficiency.candidatesTruncated&&<p>
+           More findings exist than are shown; the listing is incomplete.
+         </p>}
+         <p style={{fontSize:12}}>Only referenced, live-verified files were
+           scanned using bounded language patterns. No document text is
+           copied into this report. A clean scan does not prove that
+           other files lack exceptions, or that the semantic relationships
+           in this document are complete.</p>
+       </div>}
+       {sufficiencyError&&<p role="alert" style={{color:'#a83224'}}>
+         Constraint scan could not be completed: {sufficiencyError}
+       </p>}
        <button type="button" disabled={busy||revoked} onClick={extractGrounded}>
          Generate exact-source extract
        </button>
