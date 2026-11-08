@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
+import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {createHash,generateKeyPairSync,sign as edSign} from 'node:crypto';
 import {randomBytes} from 'node:crypto';
@@ -183,7 +184,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      meaningReviewer:{keyId:'customer-meaning-reviewer-2026',
        publicKeyPem:meaningReview.publicKey.export({type:'spki',format:'pem'})}
    }));
-   const script=path.resolve('tools/packspec_compiler/verify_protected_drive_receipt.py');
+   const script=fileURLToPath(new URL('../../../tools/packspec_compiler/verify_protected_drive_receipt.py',import.meta.url));
    const commands=['--receipt',receiptFile,'--trust',keyFile,
      '--owner-subject',subject,'--folder-id',folderId,
      '--source',hit.source_id+'='+sourceFile];
