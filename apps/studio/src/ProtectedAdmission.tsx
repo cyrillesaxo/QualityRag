@@ -19,6 +19,7 @@ type Sufficiency={
  status:'UNREVIEWED_LEXICAL_SIGNALS'|'NO_UNREVIEWED_LEXICAL_SIGNALS';
  candidateCount:number;reviewedSignalCount:number;
  sourcesScanned:number;linesScanned:number;candidatesTruncated:boolean;
+ checkedAt:string;
  candidates:{sourceId:string;lineNumber:number;category:string;
    reviewStatus:string}[];
  scope:'LIVE_VERIFIED_SIGNED_SOURCE_FILES_ONLY';
@@ -296,8 +297,8 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
          Scan referenced files for distant constraints
        </button>
        {sufficiency&&<div role="status" style={{marginTop:10}}>
-         <p>Checked {sufficiency.linesScanned} lines across
-           {' '}{sufficiency.sourcesScanned} signed source files.
+         <p>Snapshot {sufficiency.checkedAt}: checked {sufficiency.linesScanned}
+           {' '}lines across {sufficiency.sourcesScanned} signed source files.
            Unreviewed lexical signals:
            {' '}<strong>{sufficiency.candidateCount}</strong>.
          </p>
@@ -317,9 +318,10 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
          </p>}
          <p style={{fontSize:12}}>Only referenced, live-verified files were
            scanned using bounded language patterns. No document text is
-           copied into this report. A clean scan does not prove that
-           other files lack exceptions, or that the semantic relationships
-           in this document are complete.</p>
+           copied into this report. This preview is not an authorization
+           for a later request; release checks the live source again.
+           A clean scan does not prove that other files lack exceptions,
+           or that the semantic relationships in this document are complete.</p>
        </div>}
        {sufficiencyError&&<p role="alert" style={{color:'#a83224'}}>
          Constraint scan could not be completed: {sufficiencyError}
