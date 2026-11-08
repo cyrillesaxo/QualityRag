@@ -4,7 +4,10 @@ const ROLE = Object.freeze({
   read: 'policy.reader',
   author: 'policy.author',
   approve: 'policy.approver',
-  publish: 'policy.publisher'
+  publish: 'policy.publisher',
+  evidenceIngest: 'evidence.ingest',
+  evidenceRead: 'evidence.reader',
+  evidenceReview: 'evidence.reviewer'
 });
 export {ROLE};
 
@@ -31,12 +34,23 @@ export function createOidcAuthenticator({issuer,audience,jwksUri,roleClaim='role
       if(typeof payload.sub!=='string'||!payload.sub.trim())return null;
       const declared=payload[roleClaim];
       if(!Array.isArray(declared)||!declared.every(x=>typeof x==='string'))return null;
-      return {subject:issued+'#'+payload.sub,roles:new Set(declared.filter(x=>Object.values(ROLE).includes(x)))};
+      const services=payload.qualityrag_services;
+      if(services!==undefined&&(!Array.isArray(services)||!services.every(x=>
+        typeof x==='string'&&/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+$/.test(x))))
+        return null;
+      return {subject:issued+'#'+payload.sub,
+        roles:new Set(declared.filter(x=>Object.values(ROLE).includes(x))),
+        evidenceServices:new Set(services||[])};
     }catch{return null}
   };
 }
 
 export function permissionFor(method,pathname){
+  if(method==='POST'&&pathname==='/v1/evidence/evaluations')return ROLE.evidenceIngest;
+  if(method==='GET'&&(pathname==='/v1/evidence/evaluations'||
+    /^\\/v1\\/evidence\\/evaluations\\/[^/]+$/.test(pathname)))return ROLE.evidenceRead;
+  if(method==='POST'&&/^\\/v1\\/evidence\\/evaluations\\/[^/]+\\/replay$/.test(pathname))return ROLE.evidenceRead;
+  if(method==='POST'&&/^\\/v1\\/evidence\\/evaluations\\/[^/]+\\/reviews$/.test(pathname))return ROLE.evidenceReview;
   if(method==='GET'&&(pathname==='/v1/state'||pathname.startsWith('/v1/resolve/')||
      pathname.startsWith('/v1/signed/resolve/')))return ROLE.read;
   if(method==='POST'&&(pathname==='/v1/services'||pathname==='/v1/policies/drafts'||
