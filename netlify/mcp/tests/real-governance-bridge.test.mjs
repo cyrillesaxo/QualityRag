@@ -16,9 +16,9 @@ const originalEnv={...process.env};
 
 function launch() {
   return new Promise((resolve,reject)=>{
-    const child=spawn("python",["-m","netlify.mcp.tests.real-governance-fixture"],{
+    const child=spawn("python",["netlify/mcp/tests/real-governance-fixture.py"],{
       cwd:process.cwd(),
-      env:{...process.env,PYTHONUNBUFFERED:"1"},
+      env:{...process.env,PYTHONUNBUFFERED:"1",PYTHONPATH:process.cwd()},
       stdio:["ignore","pipe","pipe"],
     });
     let stdout="",stderr="",finished=false;
