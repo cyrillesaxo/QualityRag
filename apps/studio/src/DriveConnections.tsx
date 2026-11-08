@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useState} from 'react';
+import {DriveTrustControls} from './DriveTrustControls';
 
 type Connection={provider:'google_drive';connected:boolean;email?:string;displayName?:string;
   folderId:string|null;folderName:string|null;indexed:boolean;ingestionStatus:string;
@@ -171,8 +172,9 @@ function DriveConnections({token}:{token:string}){
      Choose a folder this local Studio preview can list.</p>
    <p style={{fontSize:13,color:'#8b5c21'}}><strong>Google permission disclosure:</strong>
      Google requests read-only access to your <em>whole Drive</em>, not a folder-scoped OAuth grant.
-     This preview only lists folder metadata and the immediate files in the folder you select;
-     it does not ingest or index files. Do not connect a confidential Drive to an unreviewed deployment.</p>
+     Connecting alone lists metadata only; explicit text synchronization can download
+     selected-folder content into an encrypted local index.
+     Do not connect a confidential Drive to an unreviewed deployment.</p>
    <p style={{fontSize:13}}><strong>Google Drive:</strong> read-only connection and folder selection.
      <span style={{marginLeft:10,color:'#587064'}}>OneDrive / Dropbox adapters: not yet implemented.</span></p>
    {!token&&<p role="status">Connect with your OIDC bearer token above to configure your Drive.</p>}
@@ -280,6 +282,9 @@ function DriveConnections({token}:{token:string}){
              </>}
            </>}
        </div>
+       <DriveTrustControls token={token} folderId={connection.folderId}
+         connected={connection.connected} indexEnabled={Boolean(connection.indexEnabled)}
+         lastSyncedAt={connection.index?.lastSyncedAt}/>
        <p style={{fontSize:13,color:'#526d56'}}>
          Drive connection alone downloads no content. Only the explicit
          “Sync selected folder now” action downloads eligible text into this user's encrypted index.
