@@ -9,6 +9,10 @@ from __future__ import annotations
 import hmac
 import os
 import re
+from contextvars import ContextVar
+from video_auth import TokenVerifier, TokenAccessError
+
+REQUEST_SOURCES = ContextVar('qualityrag_video_request_sources', default=None)
 
 from video_catalog import _root, read_evidence, search_evidence
 from video_research import research_video_evidence
@@ -19,8 +23,11 @@ class RemoteConfigurationError(ValueError):
 
 
 def _config(environ):
+    mode = environ.get("QUALITYRAG_VIDEO_MCP_AUTH_MODE", "static")
+    if mode not in ("static","jwt"):
+        raise RemoteConfigurationError("Choose static or jwt authentication")
     secret = environ.get("QUALITYRAG_VIDEO_MCP_TOKEN", "")
-    if len(secret) < 32 or secret.strip() != secret:
+    if mode == "static" and (len(secret) < 32 or secret.strip() != secret):
         raise RemoteConfigurationError("Configure a random 32+ character bearer token")
     root = environ.get("QUALITYRAG_VIDEO_ROOT")
     if not root:
@@ -41,7 +48,18 @@ def _config(environ):
     if not ids or len(ids)>1000 or len(ids)!=len(set(ids)) or any(
             not re.fullmatch(r"[A-Za-z0-9_-]{1,80}",value) for value in ids):
         raise RemoteConfigurationError("Configure an explicit nonempty source allowlist")
-    return {"secret":secret,"root":root,"host":host,"source_ids":frozenset(ids),
+    verifier = None
+    if mode == "jwt":
+        try:
+            verifier = TokenVerifier(
+                issuer=environ.get("QUALITYRAG_VIDEO_MCP_ISSUER"),
+                audience=environ.get("QUALITYRAG_VIDEO_MCP_AUDIENCE"),
+                jwks_file=environ.get("QUALITYRAG_VIDEO_MCP_JWKS_FILE"),
+                acl_file=environ.get("QUALITYRAG_VIDEO_MCP_ACL_FILE"),
+                operator_source_ids=frozenset(ids))
+        except (TokenAccessError, OSError) as exc:
+            raise RemoteConfigurationError("Invalid JWT configuration") from exc
+    return {"secret":secret,"auth_mode":mode,"verifier":verifier,"root":root,"host":host,"source_ids":frozenset(ids),
             "allowed_hosts":allowed_hosts,"origins":origins}
 
 
@@ -51,10 +69,11 @@ class BearerGate:
     Non-MCP requests are also gated; no unauthenticated diagnostic endpoint.
     All credentials and request headers remain out of response bodies.
     """
-    def __init__(self, app, *, secret, origins=()):
+    def __init__(self, app, *, secret="", origins=(), verifier=None):
         self.app=app
         self.secret=secret.encode("utf-8")
         self.origins=set(origins)
+        self.verifier=verifier
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "lifespan":
@@ -63,8 +82,18 @@ class BearerGate:
             return await self.app(scope,receive,send)
         headers={k.lower():v for k,v in scope.get("headers",[])}
         auth=headers.get(b"authorization",b"")
-        required=b"Bearer "+self.secret
-        valid=hmac.compare_digest(auth,required)
+        sources=None
+        if self.verifier is None:
+            valid=hmac.compare_digest(auth,b"Bearer "+self.secret)
+        else:
+            valid=False
+            if auth.startswith(b"Bearer "):
+                try:
+                    grant=self.verifier.authorize(auth[7:].decode("ascii"))
+                    sources=grant["source_ids"]
+                    valid=True
+                except (TokenAccessError,UnicodeError):
+                    pass
         origin=headers.get(b"origin",b"").decode("utf-8",errors="replace")
         # No browser cross-origin access by default, even with a token.
         valid=valid and (not origin or origin in self.origins)
@@ -78,7 +107,11 @@ class BearerGate:
             await send({"type":"http.response.body",
                         "body":b'{"error":"unauthorized"}'})
             return
-        return await self.app(scope,receive,send)
+        scoped=REQUEST_SOURCES.set(sources)
+        try:
+            return await self.app(scope,receive,send)
+        finally:
+            REQUEST_SOURCES.reset(scoped)
 
 
 def create_remote_app(environ=None):
@@ -93,12 +126,19 @@ def create_remote_app(environ=None):
     server=MCPServer("QualityRAG Video Evidence Read-Only")
     base=settings["root"]
     permitted=settings["source_ids"]
+    def authorized_sources():
+        if settings["auth_mode"] == "static":
+            return permitted
+        request_sources=REQUEST_SOURCES.get()
+        if request_sources is None:
+            raise ValueError("Missing request identity")
+        return request_sources
 
     @server.tool()
     def search_video_evidence(query: str, modality: str="all", limit: int=10) -> dict:
         """Find candidate audio/visual witness excerpts with local timestamps."""
         return search_evidence(base,query,modality=modality,limit=limit,
-                               source_ids=permitted)
+                               source_ids=authorized_sources())
 
     @server.tool()
     def research_video_question(query: str, intent: str="cross_modal",
@@ -110,7 +150,7 @@ def create_remote_app(environ=None):
     @server.tool()
     def inspect_video_evidence(source_id: str) -> dict:
         """Return reviewed-format evidence candidates; source integrity checked."""
-        if source_id not in permitted:
+        if source_id not in authorized_sources():
             # Do not disclose whether this source exists for a different user.
             raise ValueError("Source unavailable")
         return read_evidence(base,source_id)
@@ -121,7 +161,8 @@ def create_remote_app(environ=None):
         allowed_origins=settings["origins"],
     )
     mcp_app=server.streamable_http_app(transport_security=transport, json_response=True, stateless_http=True)
-    return BearerGate(mcp_app,secret=settings["secret"],origins=settings["origins"])
+    return BearerGate(mcp_app,secret=settings["secret"],
+                      origins=settings["origins"],verifier=settings["verifier"])
 
 
 def main():
