@@ -102,7 +102,8 @@ def read_evidence(root: str, source_id: str) -> dict:
         raise CatalogError("Invalid or modified evidence entry") from exc
 
 
-def search_evidence(root: str, query: str, *, limit: int = 10, modality: str = "all",\n                    source_ids: frozenset[str] | None = None) -> dict:
+def search_evidence(root: str, query: str, *, limit: int = 10, modality: str = "all",
+                    source_ids: frozenset[str] | None = None) -> dict:
     if not isinstance(query, str) or not 2 <= len(query.strip()) <= 200:
         raise CatalogError("Query must be 2-200 characters")
     if type(limit) is not int or not 1 <= limit <= 30 or modality not in {"all", "audio", "video", "ocr", "sensor"}:
@@ -110,10 +111,15 @@ def search_evidence(root: str, query: str, *, limit: int = 10, modality: str = "
     terms = set(TOKEN.findall(query.lower()))
     if not terms:
         raise CatalogError("No searchable query terms")
+    if source_ids is not None and (not isinstance(source_ids, frozenset) or
+                                   any(not isinstance(v, str) for v in source_ids)):
+        raise CatalogError("Invalid source filter")
     matches = []
     directory = _catalog_dir(root)
     for file in sorted(directory.glob("*.json"))[:1000]:
-        if file.is_symlink():
+        if file.name in {"hybrid-index.json", "sources.json"} or file.is_symlink():
+            continue
+        if source_ids is not None and file.stem not in source_ids:
             continue
         try:
             artifact = read_evidence(root, file.stem)
