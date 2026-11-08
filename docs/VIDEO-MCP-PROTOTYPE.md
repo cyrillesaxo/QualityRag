@@ -17,7 +17,7 @@ No platform URL ingestion or scraper is present. An LLM caller cannot use this M
 Use Python 3.11+ and the official `mcp` SDK plus FFmpeg and FFprobe. ASR requires optional `faster-whisper`; visual inference uses local Ollama with an explicitly installed vision model.
 
 ```sh
-python -m pip install "mcp>=1.28,<3"
+python -m pip install "mcp>=1.28,<2"
 export QUALITYRAG_VIDEO_ROOT="$HOME/qualityrag-authorized-video"
 mkdir -p "$QUALITYRAG_VIDEO_ROOT"
 PYTHONPATH=tools/semantic_store python tools/semantic_store/video_mcp.py
