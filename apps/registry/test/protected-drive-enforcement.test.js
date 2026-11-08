@@ -59,11 +59,16 @@ test('protected services reject forged metadata, record blocked attempts without
    anon:{subject:'issuer#anonymous',roles:new Set(['policy.reader']),
      evidenceServices:new Set([service+'@'+environment])}
  };
+ const configured=new Set(allowedServices);
+ const authenticator=async token=>actors[token]||null;
+ const driveManager={status:()=>({connected:false})};
  const server=http.createServer(createHandler(store,null,{
-   authenticate:async token=>actors[token]||null,
-   driveManager:{status:()=>({connected:false})},driveIndex:index,evidenceLedger:ledger,
-   protectedDriveServices:allowedServices
+   authenticate:authenticator,
+   driveManager,driveIndex:index,evidenceLedger:ledger,
+   protectedDriveServices:configured
  }));
+ // Mutating the caller's original Set cannot silently remove enforcement.
+ configured.clear();
  await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
  const base='http://127.0.0.1:'+server.address().port;
  async function req(method,route,who,payload){
@@ -81,6 +86,23 @@ test('protected services reject forged metadata, record blocked attempts without
    assert.equal(status.body.genericEvidenceIngress,'BLOCKED');
    assert.equal(status.body.sourceAdmission,'NOT_IMPLEMENTED');
    assert.equal(status.body.guardTelemetry.observedBlockedAttempts,0);
+   assert.ok(status.body.guardTelemetry.protectedSince);
+   assert.equal(ledger.protectedScopes().has(service+'@'+environment),true);
+   const stableLog=ledger.readAll().filter(x=>x.type==='protection');
+   assert.equal(stableLog.length,1);
+   // Explicit accidental downgrade at restart must fail rather than
+   // quietly accepting source metadata with no verified Drive custody.
+   assert.throws(()=>createHandler(store,null,{
+     authenticate:authenticator,driveManager,driveIndex:index,
+     evidenceLedger:new EvidenceLedger(ledgerPath),
+     protectedDriveServices:new Set()
+   }),/PROTECTED_DRIVE_CONFIGURATION_DOWNGRADE/);
+   createHandler(store,null,{
+     authenticate:authenticator,driveManager,driveIndex:index,
+     evidenceLedger:new EvidenceLedger(ledgerPath),
+     protectedDriveServices:new Set([service+'@'+environment])
+   });
+   assert.equal(ledger.readAll().filter(x=>x.type==='protection').length,1);
    assert.equal((await req('GET',protectedUrl,'writer')).status,403);
    assert.equal((await req('GET',protectedUrl,'unrelated')).status,403);
    assert.equal((await req('GET',protectedUrl,'anon')).status,403);
