@@ -189,3 +189,31 @@ test('selected folder content retrieval checks real Google parent membership and
    await assert.rejects(con.downloadSelectedText(subject,'alice-doc','folder-alice'),/DRIVE_SOURCE_TOO_LARGE/);
  }finally{contentMode='normal';fs.rmSync(dir,{recursive:true,force:true})}
 });
+
+test('an in-flight Drive sync cannot resurrect content after user erasure',async()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-drive-race-'));
+ const key=randomBytes(32).toString('base64');
+ const index=new UserDriveIndex({dir:path.join(dir,'private'),encryptionKey:key});
+ const subject='issuer#race-user';
+ let release;
+ const blocker=new Promise(resolve=>{release=resolve});
+ const connector={
+   status:()=>({connected:true,email:'race@example.com',folderId:'folder-race'}),
+   selectedFiles:async()=>{await blocker;return {truncated:false,files:[]}},
+   supportsText:()=>true
+ };
+ try{
+   const pending=index.sync(subject,connector);
+   await assert.rejects(index.sync(subject,connector),/DRIVE_SYNC_IN_PROGRESS/);
+   index.clear(subject);
+   release();
+   await assert.rejects(pending,/DRIVE_SYNC_INVALIDATED/);
+   assert.equal(fs.existsSync(index.location(subject)),false);
+   // A later, newly authorized explicit sync is allowed.
+   const accepted=await index.sync(subject,connector);
+   assert.equal(accepted.indexed,true);
+   assert.equal(accepted.sourceCount,0);
+   index.clear(subject);
+   assert.equal(fs.existsSync(index.location(subject)),false);
+ }finally{release();fs.rmSync(dir,{recursive:true,force:true})}
+});
