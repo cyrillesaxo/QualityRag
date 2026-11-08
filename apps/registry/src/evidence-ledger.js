@@ -102,6 +102,20 @@ export class EvidenceLedger {
     try{fs.writeSync(fd,JSON.stringify(entry)+'\n');fs.fsyncSync(fd)}finally{fs.closeSync(fd)}
     return entry;
   }
+  recordBlockedIngress(serviceId,environment,actor,policySha256){
+    if(!limited(serviceId)||!limited(environment)||
+       typeof actor!=='string'||!actor||
+       typeof policySha256!=='string'||!/^[a-f0-9]{64}$/.test(policySha256))
+      throw Error('INVALID_ENFORCEMENT_EVENT');
+    const item=this.append({
+      id:randomUUID(),type:'guard',
+      at:new Date().toISOString(),serviceId,environment,
+      actorHash:hex(actor),policySha256,
+      reason:'PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED',
+      candidateReviewOnly:true
+    });
+    return {id:item.id,at:item.at,reason:item.reason,chainHash:item.chainHash};
+  }
   ingest(raw,policy,policySha256,actor) {
     exactKeys(raw,['serviceId','environment','requestId','traceId','evidence'],'EVALUATION');
     if(!limited(raw.serviceId)||!limited(raw.environment)||!limited(raw.requestId)||
@@ -153,9 +167,19 @@ export class EvidenceLedger {
       accepted:dispositions.filter(x=>x.decision==='ACCEPTED').length,
       disputed:dispositions.filter(x=>x.decision==='DISPUTED').length,
       unreviewed:entries.length-dispositions.length,
-      reviewedFalseBlocks:dispositions.filter(x=>x.reasonCode==='FALSE_BLOCK').length
+      reviewedFalseBlocks:dispositions.filter(x=>x.reasonCode==='FALSE_BLOCK').length,
+      blockedUnattestedIngress:rows.filter(x=>x.type==='guard'&&
+        x.serviceId===serviceId&&x.environment===environment&&
+        x.reason==='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED').length
     };
+    const latestBlocked=rows.filter(x=>x.type==='guard'&&x.serviceId===serviceId&&
+      x.environment===environment).at(-1);
     return {observedCount:entries.length,coverage:'UNKNOWN',summary,
+      guardTelemetry:{
+        observedBlockedAttempts:summary.blockedUnattestedIngress,
+        lastBlockedAt:latestBlocked?.at||null,
+        externallyAnchored:false,coverage:'REGISTRY_INGRESS_ONLY'
+      },
       evaluations:entries.slice(-limit).reverse().map(x=>this.snapshot(x.id))};
   }
   exportReplay(id){
