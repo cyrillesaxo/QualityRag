@@ -38,7 +38,8 @@ def _near(a, b, radius):
 
 
 def research_video_evidence(root: str, query: str, *, intent: str = "cross_modal",
-                            limit: int = 8, window_ms: int = 3000,\n                            source_ids: frozenset[str] | None = None) -> dict:
+                            limit: int = 8, window_ms: int = 3000,
+                            source_ids: frozenset[str] | None = None) -> dict:
     if intent not in ("cross_modal", "visual", "spoken"):
         raise CatalogError("Intent must be cross_modal, visual or spoken")
     if type(limit) is not int or not 1 <= limit <= MAX_RESULTS:
