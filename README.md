@@ -121,6 +121,13 @@ npm --prefix sdk/typescript test
 **The permit does not evaluate the answer's semantic correctness and
 cannot control external applications that bypass this gate.**
 
+**Decision-level withdrawal:** A customer reviewer with owner-manager
+permissions may revoke a particular signed admission while leaving
+its source searchable. The revocation is recorded and blocks later
+use-check permits. Historical signed receipts still replay exactly
+what was originally decided. The [use-check and revocation contract](docs/PROTECTED-EVIDENCE-USE.md)
+defines the separate roles, current-state visibility and limits.
+
 ### Owner source controls reach the policy boundary
 
 Beyond suppressing private search hits, Studio now offers a **server-side governed candidate check**: an authorized Drive user selects an indexed source and an approved PackSpec requirement for the active service/environment. The registry checks the *actual owner-controlled index*, source revision, anchor and source-exclusion status against the server-resolved PackSpec. Excluded sources return `REFUSE`. Included-but-unreviewed sources return `INCONCLUSIVE`, not `ADMIT`, because semantic support and source provenance have not been independently authenticated.
