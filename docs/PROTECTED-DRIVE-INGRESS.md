@@ -85,7 +85,7 @@ Example semantic fields:
   "protected": true,
   "mode": "BLOCK_UNATTESTED_GENERIC_EVIDENCE",
   "genericEvidenceIngress": "BLOCKED",
-  "sourceAdmission": "NOT_IMPLEMENTED",
+  "sourceAdmission": "NOT_ENABLED",
   "independentSourceVerification": "NOT_IMPLEMENTED",
   "globalApplicationEnforcement": false,
   "guardTelemetry": {
@@ -96,7 +96,11 @@ Example semantic fields:
 }
 ```
 
-These are **example fields**, not a real customer result. An unprotected service
+These are **example fields**, not a real customer result. When a trusted
+two-role signer configuration is present, `sourceAdmission` becomes
+`TWO_TRUSTED_HUMAN_SIGNATURES_AND_LIVE_BYTES`; unreviewed generic ingress remains
+blocked. See [Human-signed protected admission](PROTECTED-HUMAN-REVIEW-ADMISSION.md).
+An unprotected service
 is explicitly marked `LEGACY_METADATA_GATE`. Legacy `ADMIT` events recorded
 **before** protection was enabled can remain visible in history; do not present
 them as protected approvals.
@@ -151,11 +155,14 @@ ledger state.
 3. Source authorship, independence, semantics, policy completeness and
    customer custody remain unverified. A local file ledger does not satisfy
    regulated audit requirements.
-4. The next step is a separately scoped **reviewed source-attestation gate**
-   that proves source authorization, pinned revision, independently approved
-   PackSpec and source custody before an evidence event can be admitted.
-   That gate requires an adversarial independent test before protected services
-   can safely execute business decisions.
+4. A new **separately scoped human-signed admission pilot** accepts two distinct
+   trusted Ed25519 role signatures bound to the same PackSpec/source claims,
+   verifies the live Google bytes and owner exclusions, and records an
+   independently replayable scoped decision. It supports only
+   `min_independent_sources=1` and no policy `max_age_seconds`, because
+   intellectual-origin independence and original publication freshness are
+   not yet established. Customer authorization is a signed *human assertion*,
+   not independently proven semantic truth.
 5. Deployments require real OIDC sign-in, restricted Google OAuth scope review,
    tenant-isolated storage, stronger revocation/retention enforcement, proper
    key lifecycle, alerting for denied ingress and external log anchoring.
