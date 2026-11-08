@@ -8,6 +8,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: python -m pip install -r examples/enterprise-rag/requirements.txt
+      - run: python examples/enterprise-rag/build_documents.py
       - run: PYTHONPATH=sdk/python python -m unittest discover -s examples/enterprise-rag -p 'test_*.py'
       - run: PYTHONPATH=sdk/python python examples/enterprise-rag/demo.py
       - run: PYTHONPATH=sdk/python python examples/enterprise-rag/labeled_pipeline.py
