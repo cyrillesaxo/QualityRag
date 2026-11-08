@@ -6,6 +6,7 @@ import {createPgSignedRegistryStore} from './pg-store.js';
 import {loadTrustedPolicyKeys} from './signed.js';
 import {createOidcAuthenticator,permissionFor} from './oidc.js';
 import {EvidenceLedger} from './evidence-ledger.js';
+import {GoogleDriveConnections,safeDriveError} from './google-drive-connections.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -16,6 +17,14 @@ function fail(res,error) {
  if(code==='EVIDENCE_LEDGER_INTEGRITY_FAILURE'||code==='EVIDENCE_LEDGER_CAPACITY_EXCEEDED')
    return reply(res,503,{error:code});
  if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
+ if(code.startsWith('DRIVE_')||code.startsWith('GOOGLE_')){
+   const safe=safeDriveError(error);
+   const status=['DRIVE_CONNECTION_NOT_FOUND','DRIVE_CONNECT_DISABLED','DRIVE_FOLDER_NOT_FOUND'].includes(safe)?404:
+     ['DRIVE_STORAGE_INTEGRITY_FAILURE'].includes(safe)?503:
+     ['DRIVE_AUTHORIZATION_REQUIRED','DRIVE_FOLDER_NOT_CONFIGURED'].includes(safe)?409:
+     ['DRIVE_RATE_LIMITED','GOOGLE_DRIVE_UNAVAILABLE'].includes(safe)?502:400;
+   return reply(res,status,{error:safe});
+ }
  return reply(res,code==='NOT_FOUND'||code==='UNKNOWN_SERVICE'||code==='UNBOUND_SERVICE'?404:
    code==='VERSION_EXISTS'||code==='NOT_DRAFT'||code==='SIGNED_SEQUENCE_EXISTS'||code==='SIGNED_SEQUENCE_ROLLBACK'||code==='SIGNED_NOT_STAGED'||code==='SIGNED_NOT_APPROVED'?409:400,{error:code});
 }
@@ -28,7 +37,7 @@ async function body(req) {
  try {return JSON.parse(txt)}catch{throw new Error('INVALID_JSON')}
 }
 export function createHandler(store,token,{trustedPolicyKeys=new Map(),authenticate=null,
-   enforceSeparation=false,evidenceLedger=null}={}) {
+   enforceSeparation=false,evidenceLedger=null,driveManager=null}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
  return async(req,res)=>{
@@ -41,6 +50,21 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    }catch{
     return reply(res,503,{ready:false,reason:'REGISTRY_NOT_READY'});
    }
+  }
+  // The OAuth callback has no bearer token; one-time state binds to the OIDC
+  // subject from the authenticated start request, never to a shared Drive user.
+  if(req.method==='GET'&&url.pathname==='/v1/drives/google/callback'){
+    if(!driveManager)return reply(res,404,{error:'DRIVE_CONNECT_DISABLED'});
+    let success=false;
+    try{await driveManager.callback({
+      state:url.searchParams.get('state'),
+      code:url.searchParams.get('code'),
+      error:url.searchParams.get('error')
+    });success=true}catch{}
+    const target=driveManager.studioOrigin+'/?drive='+(success?'connected':'authorization-failed');
+    res.writeHead(303,{'Location':target,'Cache-Control':'no-store',
+      'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff'});
+    return res.end();
   }
   const provided=req.headers.authorization;
   let actor='registry-token';
@@ -58,6 +82,27 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    evidenceServices=identity.evidenceServices;
   }else if(provided!== 'Bearer '+token)return reply(res,401,{error:'UNAUTHORIZED'});
   try {
+   if(url.pathname.startsWith('/v1/drives/google/')){
+     if(!authenticate||!driveManager)return reply(res,404,{error:'DRIVE_CONNECT_DISABLED'});
+     if(req.method==='GET'&&url.pathname==='/v1/drives/google/status')
+       return reply(res,200,driveManager.status(actor));
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/start')
+       return reply(res,200,driveManager.start(actor));
+     if(req.method==='GET'&&url.pathname==='/v1/drives/google/folders')
+       return reply(res,200,await driveManager.folders(actor,
+         url.searchParams.get('parentId')||'root',url.searchParams.get('pageToken')));
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/folder'){
+       const b=await body(req);
+       if(!b||typeof b!=='object'||Array.isArray(b)||
+          Object.keys(b).length!==1||!Object.hasOwn(b,'folderId'))throw Error('INVALID_DRIVE_FOLDER_ID');
+       return reply(res,200,await driveManager.selectFolder(actor,b.folderId));
+     }
+     if(req.method==='GET'&&url.pathname==='/v1/drives/google/files')
+       return reply(res,200,await driveManager.selectedFiles(actor));
+     if(req.method==='POST'&&url.pathname==='/v1/drives/google/disconnect')
+       return reply(res,200,await driveManager.disconnect(actor));
+     return reply(res,404,{error:'NOT_FOUND'});
+   }
    // The evidence ledger is explicitly opt-in; live monitoring is not inferred.
    const parts=url.pathname.split('/').filter(Boolean);
    if(parts[0]==='v1'&&parts[1]==='evidence'&&parts[2]==='evaluations'){
@@ -147,6 +192,23 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
     new RegistryStore(process.env.QUALITYRAG_REGISTRY_FILE||'./.qualityrag/registry.json');
  const evidenceLedger=process.env.QUALITYRAG_EVIDENCE_LEDGER_FILE?
    new EvidenceLedger(process.env.QUALITYRAG_EVIDENCE_LEDGER_FILE):null;
+ const driveSettings=[
+   process.env.QUALITYRAG_DRIVE_FILE,process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY,
+   process.env.QUALITYRAG_GOOGLE_OAUTH_CLIENT_ID,process.env.QUALITYRAG_GOOGLE_OAUTH_CLIENT_SECRET,
+   process.env.QUALITYRAG_GOOGLE_REDIRECT_URI,process.env.QUALITYRAG_STUDIO_ORIGIN
+ ];
+ if(driveSettings.some(Boolean)&&!driveSettings.every(Boolean))
+   throw Error('DRIVE_CONFIGURATION_INCOMPLETE');
+ if(driveSettings.every(Boolean)&&(authMode!=='oidc'||backend!=='file'))
+   throw Error('DRIVE_REQUIRES_OIDC_SINGLE_INSTANCE_FILE_MODE');
+ const driveManager=driveSettings.every(Boolean)?new GoogleDriveConnections({
+   file:process.env.QUALITYRAG_DRIVE_FILE,
+   encryptionKey:process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY,
+   clientId:process.env.QUALITYRAG_GOOGLE_OAUTH_CLIENT_ID,
+   clientSecret:process.env.QUALITYRAG_GOOGLE_OAUTH_CLIENT_SECRET,
+   redirectUri:process.env.QUALITYRAG_GOOGLE_REDIRECT_URI,
+   studioOrigin:process.env.QUALITYRAG_STUDIO_ORIGIN
+ }):null;
  const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?
     loadTrustedPolicyKeys(process.env.QUALITYRAG_POLICY_KEYS_FILE):new Map();
  if(backend==='postgres' && keys.size===0)throw new Error('TRUSTED_POLICY_KEYS_REQUIRED');
@@ -158,7 +220,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
-    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger}));
+    {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger,driveManager}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
   server.listen(Number(process.env.PORT||5055),host,
     ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));
