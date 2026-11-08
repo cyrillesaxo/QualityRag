@@ -155,6 +155,24 @@ a previous signed request produces HTTP 409.
 requirement, a mismatched owner/folder, signer substitution, expired approvals or
 an unsupported PackSpec all fail closed.
 
+### Withdraw one review decision
+
+When an accepted interpretation or custody approval becomes disputed,
+the same source owner can withdraw **that particular decision** in
+Studio. An owner identity with both `evidence.reviewer` and
+`drive.manager` may call
+`POST /v1/evidence/protected-decisions/{id}/revoke` with
+`{"reason":"REVIEW_DISPUTED"}`. This appends a local decision
+revocation without deleting or excluding the original Drive document.
+
+Old receipts remain historical evidence of what reviewers signed;
+`POST /v1/evidence/protected-decisions/{id}/use-check` refuses
+the withdrawn decision, including for requests in progress
+before the final synchronous permit record. Reapproval requires
+a new, separately signed decision.
+
+[Detailed withdrawal controls and live use contract](PROTECTED-EVIDENCE-USE.md).
+
 ## Independent customer verification
 
 Export the signed protected receipt from Studio using the **same authenticated
