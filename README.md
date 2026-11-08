@@ -157,6 +157,12 @@ Apache-2.0. See `LICENSE`.
 
 Start with the **[training guide: five RAG failure scenarios, the case for deterministic evidence gates, and a runnable lab](docs/TRAINING.md)**. It explains when QualityRag is useful, what its current SDKs guarantee, and where their limitations remain.
 
+## Evidence labeling and the SQuAD 2.0 benchmark (experimental)
+
+`qualityrag.labeling` produces the evidence `status` from text instead of hand labels. It labels each retrieved passage against a requirement claim (or question) as SUPPORTS, CONTRADICTS or UNKNOWN, with the character span that justifies the label. It ships a zero-dependency lexical baseline and a provider-agnostic LLM labeler. The LLM labeler fails closed: any error, malformed output or quote that is not an exact substring of the passage becomes UNKNOWN.
+
+`assess(pack, claims, passages, labeler, as_of=...)` runs label → gate and returns the verdict with a full label trace. The [SQuAD 2.0 false-admission benchmark](examples/squad2-gate/README.md) measures that pipeline on public data against no-gate, oracle and self-abstaining LLM baselines. The [labeled enterprise pipeline](examples/enterprise-rag/labeled_pipeline.py) does the same on the synthetic corpus. First result: with oracle labels the gate makes no false admissions, but the lexical baseline still admits most adversarial unanswerable questions. **The labeler, not the gate, is the bottleneck.**
+
 ## Source PackSpec compiler (experimental)
 
 The [source PackSpec compiler](tools/packspec_compiler/README.md) inspects original APX YAML, JSON and text-bearing PDF specifications, preserves source fingerprints and locations, and creates **review-required constraint inventories**. Only explicitly reviewer-mapped evidence-presence obligations can be projected into a v0.1 QualityRag policy. It does **not** implement the full APX semantic grammar or automatically approve claims.
