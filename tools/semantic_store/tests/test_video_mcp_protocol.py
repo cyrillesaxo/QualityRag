@@ -23,6 +23,7 @@ class ProtocolTests(unittest.TestCase):
                     "QUALITYRAG_VIDEO_ROOT":root,
                     "QUALITYRAG_VIDEO_MCP_TOKEN":secret,
                     "QUALITYRAG_VIDEO_MCP_ALLOWED_HOSTS":"testserver",
+                    "QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1",
                 })
                 headers={"Authorization":"Bearer "+secret,
                          "Accept":"application/json, text/event-stream",
@@ -49,6 +50,18 @@ class ProtocolTests(unittest.TestCase):
                         self.assertEqual(names,{
                             "search_video_evidence","research_video_question",
                             "inspect_video_evidence"})
+                        blocked=await client.post("/mcp",headers=headers,json={
+                            "jsonrpc":"2.0","id":3,"method":"tools/call",
+                            "params":{"name":"inspect_video_evidence",
+                                      "arguments":{"source_id":"private-elsewhere"}}})
+                        self.assertEqual(blocked.status_code,200,blocked.text)
+                        self.assertTrue(blocked.json()["result"].get("isError",False))
+                        search=await client.post("/mcp",headers=headers,json={
+                            "jsonrpc":"2.0","id":4,"method":"tools/call",
+                            "params":{"name":"search_video_evidence",
+                                      "arguments":{"query":"wheelchair"}}})
+                        self.assertEqual(search.status_code,200,search.text)
+                        self.assertFalse(search.json()["result"].get("isError",False))
         asyncio.run(run())
 
 
