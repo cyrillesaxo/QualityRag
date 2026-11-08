@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
+import {spawnSync} from 'node:child_process';
 import {createHash,generateKeyPairSync,sign as edSign} from 'node:crypto';
 import {randomBytes} from 'node:crypto';
 import {RegistryStore} from '../src/store.js';
@@ -170,6 +171,33 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(exported.body.signedCustody.signature,admittedPayload.custody.signature);
    assert.equal(exported.body.result.verdict,'ADMIT');
    assert.equal(exported.body.sourceTruthProven,false);
+   // Python independently verifies the existing QR-CJSON-1 Ed25519 wire
+   // format, the exact source bytes and a fresh SDK evaluation.
+   const receiptFile=path.join(dir,'protected-receipt.json');
+   const sourceFile=path.join(dir,'original-source.txt');
+   fs.writeFileSync(receiptFile,JSON.stringify(exported.body));
+   fs.writeFileSync(sourceFile,SOURCE);
+   fs.writeFileSync(keyFile,JSON.stringify({
+     custodian:{keyId:'customer-custodian-2026',
+       publicKeyPem:custodial.publicKey.export({type:'spki',format:'pem'})},
+     meaningReviewer:{keyId:'customer-meaning-reviewer-2026',
+       publicKeyPem:meaningReview.publicKey.export({type:'spki',format:'pem'})}
+   }));
+   const script=path.resolve('tools/packspec_compiler/verify_protected_drive_receipt.py');
+   const commands=['--receipt',receiptFile,'--trust',keyFile,
+     '--owner-subject',subject,'--folder-id',folderId,
+     '--source',hit.source_id+'='+sourceFile];
+   const pythonReady=spawnSync('python',['--version'],{encoding:'utf8'});
+   if(pythonReady.status===0){
+     const independent=spawnSync('python',[script,...commands],{encoding:'utf8'});
+     assert.equal(independent.status,0,
+       independent.stdout+'\\n'+independent.stderr);
+     assert.equal(JSON.parse(independent.stdout).independentReplayMatched,true);
+     fs.writeFileSync(sourceFile,'Attacker swapped the original source bytes');
+     const tampered=spawnSync('python',[script,...commands],{encoding:'utf8'});
+     assert.equal(tampered.status,2,tampered.stdout+'\\n'+tampered.stderr);
+     fs.writeFileSync(sourceFile,SOURCE);
+   }
    assert.equal((await request('POST',endpoint,'owner',admittedPayload)).status,409);
    const modified=structuredClone(att());
    modified.meaning.payload.witnesses[0].status='CONTRADICTS';
