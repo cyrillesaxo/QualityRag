@@ -100,3 +100,34 @@ origin is passed via `QUALITYRAG_API_ENDPOINT`. Caddy must make only
 
 This package leaves the `quality-rag` (PackSpec website) and separate video
 MCP integration untouched.
+
+
+## Unified deployment path (main branch)
+
+The canonical provisioning and installation artifacts now live together under
+`tools/activation_runtime/deploy/` in the default branch.
+
+**Order matters:** review and approve a dedicated SSH key and a public
+administrator IPv4 /32, then run the plan-only
+`.github/workflows/governance-provision.yml`. A paid VM may only be created
+through the explicit, cost-confirmed workflow action. It is *not* created
+by checking out this branch, merging a PR, or running the tests.
+
+After the VM is created, an authorized operator must validate cloud-init
+completion, patching, firewall rules, SSH access, locked service-user
+permissions, and local application verification before separately
+installing the signed API, binding the Caddy hostname, and enabling the
+Netlify upstream secret. The Python signer private key stays off the VM.
+
+**Do not replace the read-only governance token with the broad
+`bootstrap.py` research token.** Use the offline
+`issue_service_access.py` utility only after establishing host-managed
+Ed25519 issuance keys, tenant scope, key lifecycle and an approved secure
+secret transfer. An issued token expires within one hour and has only
+the `read` scope. Application client OAuth requires its own trusted
+identity provider and does not come from this script.
+
+No startup-time SSH step, user-data provisioner, or GitHub workflow may
+silently mark this app as externally connected. The acceptance gate is
+a real HTTPS `/api/policy/test` and a Netlify `tools/call` with signed
+tenant identity and observed verdicts, plus cross-tenant denial checks.
