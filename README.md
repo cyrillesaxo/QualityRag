@@ -67,6 +67,12 @@ The final animation frame shows the **separate, experimental Semantic Garden** r
 [Read the walkthrough and regenerate the GIF](docs/README-ANIMATION.md)
 
 
+## Personal Google Drive configuration in QualityRAG Studio
+
+Studio now includes **My cloud drives**: a per-user Google OAuth connection, encrypted server-side account records, folder browsing, explicit source-folder selection, metadata preview and disconnect. It **requires signed OIDC identities and administrator-provisioned OAuth credentials**. Connecting a Drive does **not** ingest, download or index the user's documents; the existing Semantic Store is a shared local-directory research worker rather than a tenant-isolated cloud importer.
+
+**[Setup, privacy and security constraints](docs/STUDIO-PER-USER-DRIVE.md)**. Google currently requests account-wide read-only access; folder selection is an application-level browsing preference, not a folder-scoped OAuth grant. OneDrive and Dropbox adapters are not yet implemented.
+
 ## Evidence Assurance: show me the decision
 
 QualityRAG Studio now has two distinct evidence-review views: **recorded opt-in telemetry** and a **synthetic challenge lab**. The recorded view shows the bound PackSpec, requirement-level reasons, declared source-origin tokens, a same-server replay and a separate customer review disposition. It does **not** prove that sources are authentic or that the policy is complete.
