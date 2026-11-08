@@ -1,0 +1,43 @@
+# Single-host staging. Install as /etc/systemd/system/qualityrag-video-mcp.service.
+# Provision the dedicated non-login 'qualityrag-video' user before enabling.
+[Unit]
+Description=QualityRAG read-only Video MCP staging resource server
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=qualityrag-video
+Group=qualityrag-video
+WorkingDirectory=/opt/qualityrag
+Environment=PYTHONPATH=/opt/qualityrag/tools/semantic_store
+EnvironmentFile=/etc/qualityrag/video-mcp.env
+ExecStart=/opt/qualityrag/.venv/bin/python /opt/qualityrag/tools/semantic_store/video_mcp_remote.py
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=localhost
+SystemCallArchitectures=native
+MemoryMax=512M
+TasksMax=60
+
+# The read-only video catalog is provisioned under /srv.
+# No WritePaths: remote search should never mutate the catalog.
+[Install]
+WantedBy=multi-user.target
