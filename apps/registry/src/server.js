@@ -9,6 +9,8 @@ import {EvidenceLedger} from './evidence-ledger.js';
 import {GoogleDriveConnections,safeDriveError} from './google-drive-connections.js';
 import {UserDriveIndex} from './user-drive-index.js';
 import {parseProtectedDriveServices} from './protected-drive.js';
+import {loadProtectedReviewTrust,verifyHumanReviewAttestations,
+  humanReviewDecision} from './protected-admission.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -19,6 +21,31 @@ function fail(res,error) {
  if(code==='EVIDENCE_LEDGER_INTEGRITY_FAILURE'||code==='EVIDENCE_LEDGER_CAPACITY_EXCEEDED')
    return reply(res,503,{error:code});
  if(code==='EVIDENCE_REQUEST_CONFLICT')return reply(res,409,{error:code});
+ if(code.startsWith('PROTECTED_')&&code!=='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED'){
+   const safe=[
+     'PROTECTED_REVIEW_KEYS_NOT_CONFIGURED','PROTECTED_REVIEW_KEYS_REQUIRED',
+     'PROTECTED_REVIEW_SIGNERS_DISAGREE','PROTECTED_REVIEW_EXPIRED',
+     'PROTECTED_REVIEW_POLICY_MISMATCH','PROTECTED_REVIEW_OWNER_OR_SCOPE_MISMATCH',
+     'PROTECTED_REVIEW_UNKNOWN_REQUIREMENT','PROTECTED_REVIEW_WITNESS_LIMIT',
+     'PROTECTED_SOURCE_INDEX_STALE','PROTECTED_SOURCE_COVERAGE_INCOMPLETE',
+     'PROTECTED_OWNER_EXCLUDED_SOURCE','PROTECTED_SOURCE_REVISION_CHANGED',
+     'PROTECTED_SOURCE_LINE_CHANGED','PROTECTED_SOURCE_ANCHOR_MISSING',
+     'PROTECTED_SOURCE_NOT_FOUND','PROTECTED_LIVE_GOOGLE_VERIFICATION_FAILED',
+     'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH',
+     'PROTECTED_LIVE_EXTRACTED_TEXT_MISMATCH','PROTECTED_OWNER_CONTEXT_CHANGED',
+     'PROTECTED_SOURCE_SYNC_IN_PROGRESS','PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF',
+     'PROTECTED_ATTESTATION_REPLAY','PROTECTED_REQUEST_REPLAY',
+     'PROTECTED_DECISION_RATE_LIMITED','PROTECTED_DECISION_NOT_FOUND',
+     'PROTECTED_DECISION_OWNER_FORBIDDEN'
+   ].includes(code)?code:'PROTECTED_ADMISSION_REJECTED';
+   const status=safe==='PROTECTED_DECISION_NOT_FOUND'?404:
+     safe==='PROTECTED_DECISION_OWNER_FORBIDDEN'?403:
+     safe==='PROTECTED_DECISION_RATE_LIMITED'?429:
+     safe==='PROTECTED_ATTESTATION_REPLAY'||safe==='PROTECTED_REQUEST_REPLAY'?409:
+     safe==='PROTECTED_REVIEW_KEYS_NOT_CONFIGURED'||safe==='PROTECTED_REVIEW_KEYS_REQUIRED'?503:
+     safe.startsWith('PROTECTED_REVIEW_')?403:409;
+   return reply(res,status,{error:safe,admissionStatus:'BLOCKED'});
+ }
  if(code==='PROTECTED_DRIVE_UNATTESTED_EVIDENCE_BLOCKED')
    return reply(res,403,{error:code,admissionStatus:'BLOCKED',
      explanation:'Protected service rejects unreviewed generic evidence submissions.',
@@ -47,7 +74,7 @@ async function body(req) {
 }
 export function createHandler(store,token,{trustedPolicyKeys=new Map(),authenticate=null,
    enforceSeparation=false,evidenceLedger=null,driveManager=null,driveIndex=null,
-   protectedDriveServices=new Set()}={}) {
+   protectedDriveServices=new Set(),protectedReviewTrust=null}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
  if(driveManager&&!authenticate)throw new Error('DRIVE_REQUIRES_OIDC');
@@ -227,6 +254,71 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
    }
    // The evidence ledger is explicitly opt-in; live monitoring is not inferred.
    const parts=url.pathname.split('/').filter(Boolean);
+   if(req.method==='POST'&&url.pathname==='/v1/evidence/protected-admit'){
+     if(!authenticate||!evidenceLedger||!driveIndex||!driveManager||
+        !protectedReviewTrust)
+       return reply(res,404,{error:'PROTECTED_ADMISSION_DISABLED'});
+     if(!actorRoles?.has('drive.reader'))return reply(res,403,{error:'FORBIDDEN'});
+     const input=await body(req);
+     if(!input||typeof input!=='object'||Array.isArray(input)||
+       Object.keys(input).length!==6||
+       !['serviceId','environment','requestId','traceId','custody','meaning']
+         .every(k=>Object.hasOwn(input,k)))
+       throw Error('INVALID_PROTECTED_ADMISSION_REQUEST');
+     const {serviceId,environment,requestId,traceId,custody,meaning}=input;
+     if(![serviceId,environment,requestId,traceId].every(v=>
+       typeof v==='string'&&
+       /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(v)))
+       throw Error('INVALID_PROTECTED_ADMISSION_REQUEST');
+     if(!evidenceServices?.has(serviceId+'@'+environment))
+       return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+     if(!protectedDriveServices.has(serviceId+'@'+environment))
+       return reply(res,403,{error:'PROTECTED_ADMISSION_SCOPE_NOT_PROTECTED'});
+     const policy=await store.resolve(serviceId,environment);
+     const conn=driveManager.status(actor);
+     if(!conn?.connected||!conn.folderId||conn.folderId==='root')
+       throw Error('PROTECTED_OWNER_CONTEXT_CHANGED');
+     const verified=verifyHumanReviewAttestations(custody,meaning,
+       protectedReviewTrust,{
+         serviceId,environment,policySha256:policy.sha256,
+         subject:actor,folderId:conn.folderId
+       });
+     // Refuse policies requiring document-age or multi-origin proof the
+     // current Google text-index bridge cannot establish independently.
+     const preview=humanReviewDecision(policy.policy,policy.sha256,
+       verified.payload.witnesses,new Date().toISOString());
+     const live=await driveIndex.verifyLiveApprovedWitnesses(
+       actor,driveManager,verified.payload.witnesses);
+     // File-backed registry binding can change; re-check after Google I/O.
+     const current=store.resolve(serviceId,environment);
+     if(current.sha256!==policy.sha256)
+       throw Error('PROTECTED_REVIEW_POLICY_MISMATCH');
+     const decision=humanReviewDecision(current.policy,current.sha256,
+       verified.payload.witnesses,live.checkedAt);
+     const receipt=evidenceLedger.recordProtectedDecision({
+       serviceId,environment,actor,policy:current.policy,
+       policySha256:current.sha256,requestId,traceId,
+       custody,meaning,verified,result:decision.result,
+       evidence:decision.evidence,live
+     });
+     return reply(res,decision.result.verdict==='ADMIT'?201:200,{
+       ...receipt,admissionStatus:decision.result.verdict==='ADMIT'?
+         'ADMITTED_AS_HUMAN_REVIEWED_ASSERTION':'NOT_ADMITTED',
+       result:decision.result,meaningVerifiedByMachine:false,
+       originalPublisherAuthenticated:false,
+       independentOriginProven:false
+     });
+   }
+   if(req.method==='GET'&&
+     /^\/v1\/evidence\/protected-decisions\/[0-9a-f-]{36}\/export$/.test(url.pathname)){
+     if(!evidenceLedger)return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
+     if(!actorRoles?.has('drive.reader'))return reply(res,403,{error:'FORBIDDEN'});
+     const id=url.pathname.split('/')[4];
+     const receipt=evidenceLedger.exportProtectedDecision(id,actor);
+     if(!evidenceServices?.has(receipt.serviceId+'@'+receipt.environment))
+       return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
+     return reply(res,200,receipt);
+   }
    if(req.method==='GET'&&url.pathname==='/v1/evidence/enforcement'){
      if(!evidenceLedger)return reply(res,404,{error:'EVIDENCE_TELEMETRY_DISABLED'});
      const serviceId=url.searchParams.get('serviceId');
@@ -247,8 +339,12 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        protected:isProtected,
        mode:isProtected?'BLOCK_UNATTESTED_GENERIC_EVIDENCE':'LEGACY_METADATA_GATE',
        genericEvidenceIngress:isProtected?'BLOCKED':'ALLOWED',
-       sourceAdmission:'NOT_IMPLEMENTED',
-       independentSourceVerification:'NOT_IMPLEMENTED',
+       sourceAdmission:isProtected&&protectedReviewTrust?
+         'TWO_TRUSTED_HUMAN_SIGNATURES_AND_LIVE_BYTES':
+         'NOT_ENABLED',
+       independentSourceVerification:isProtected&&protectedReviewTrust?
+         'CUSTODIAN_ATTESTED_NOT_EXTERNAL_PUBLISHER_PROOF':
+         'NOT_IMPLEMENTED',
        globalApplicationEnforcement:false,
        guardTelemetry:status.guardTelemetry
      });
@@ -371,6 +467,8 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
      encryptionKey:process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY}):null;
  const protectedDriveServices=parseProtectedDriveServices(
    process.env.QUALITYRAG_PROTECTED_DRIVE_SERVICES||'');
+ const protectedReviewTrust=process.env.QUALITYRAG_PROTECTED_REVIEW_KEYS_FILE?
+   loadProtectedReviewTrust(process.env.QUALITYRAG_PROTECTED_REVIEW_KEYS_FILE):null;
  if(protectedDriveServices.size>0&&(!driveIndex||!evidenceLedger||authMode!=='oidc'))
    throw Error('PROTECTED_DRIVE_RUNTIME_REQUIREMENTS_UNMET');
  const keys=process.env.QUALITYRAG_POLICY_KEYS_FILE?
@@ -385,7 +483,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
   if(store.readiness)await store.readiness();
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
     {trustedPolicyKeys:keys,authenticate:oidc,enforceSeparation:!!oidc,evidenceLedger,
-     driveManager,driveIndex,protectedDriveServices}));
+     driveManager,driveIndex,protectedDriveServices,protectedReviewTrust}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
   server.listen(Number(process.env.PORT||5055),host,
     ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));
