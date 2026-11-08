@@ -183,6 +183,23 @@ from free-form buffered responses.
 
 [Source-anchored proof, adversarial cases and remaining unknowns](SOURCE-GROUNDED-ANSWERS.md).
 
+### Visible, actionable distant-constraint discovery
+
+The source-grounded response route now refuses when its
+**live-verified referenced source files** contain an
+unreviewed lexical constraint marker. Studio surfaces the
+source ID and line number as a **review candidate**, and the
+local ledger records metadata-only blocked attempts (not the
+document passage). The customer can inspect and separately
+sign an updated reviewed witness.
+
+No lexical pattern proves contradiction, independence,
+completeness or hidden semantics; other unreferenced files
+may still contain material conditions. A clean signal scan
+must never become a green “all exceptions found” badge.
+
+[Bounded distant-constraint evidence and limitations](CONSTRAINT-SIGNAL-SUFFICIENCY.md).
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
