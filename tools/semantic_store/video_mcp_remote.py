@@ -145,7 +145,7 @@ def create_remote_app(environ=None):
                                 limit: int=8, window_ms: int=3000) -> dict:
         """Find timestamped co-observations; not proof of agreement."""
         return research_video_evidence(base,query,intent=intent,
-                                       limit=limit,window_ms=window_ms,source_ids=permitted)
+                                       limit=limit,window_ms=window_ms,source_ids=authorized_sources())
 
     @server.tool()
     def inspect_video_evidence(source_id: str) -> dict:
