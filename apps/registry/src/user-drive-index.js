@@ -115,7 +115,8 @@ export class UserDriveIndex {
       const lines=text.replace(/\r\n?/g,'\n').split('\n');
       // Keep the original line anchors and bound the maximum line length.
       if(lines.length>6000||lines.some(line=>line.length>1200))summary.truncatedLines++;
-      entries.push({fileRef:sha('drive:'+file.id),name:boundedName(file.name),
+      entries.push({fileRef:sha('drive:'+file.id),fileId:file.id,
+        name:boundedName(file.name),
         mimeType:file.mimeType,revision:sha(bytes),
         sourceId:'google_drive/'+sha(subject+':'+file.id).slice(0,32),
         lines:lines.slice(0,6000).map(line=>line.slice(0,1200))});
@@ -154,6 +155,9 @@ export class UserDriveIndex {
       const original=source.lines[line],lower=original.toLowerCase();
       if(!tokens.every(term=>lower.includes(term)))continue;
       hits.push({source_id:source.sourceId,revision:source.revision,
+        source_url:source.mimeType==='application/vnd.google-apps.document'?
+          'https://docs.google.com/document/d/'+encodeURIComponent(source.fileId)+'/edit':
+          'https://drive.google.com/file/d/'+encodeURIComponent(source.fileId)+'/view',
         file_name:source.name,mime_type:source.mimeType,
         anchor:{kind:'text_line',line_number:line+1},
         field:'extracted_text',matched_text:original.slice(0,350),
