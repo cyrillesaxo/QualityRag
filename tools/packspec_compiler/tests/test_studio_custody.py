@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import shutil
+import subprocess
 import sys
 import contextlib
 
@@ -171,6 +173,22 @@ class CustodyVerificationTests(unittest.TestCase):
             sign_customer_manifest(receipt=package,manifest=manifest,
                 source_files=self.sources,private_key=self.key,
                 key_id="customer-custodian",nonce="n")
+
+    def test_show_me_forged_origin_demo_against_real_registry_export(self):
+        if not shutil.which("node"):
+            self.skipTest("Node.js unavailable; cross-runtime demonstration not executed")
+        project=Path(__file__).resolve().parents[3]
+        result=subprocess.run(
+            [sys.executable,str(project/"scripts"/"evidence-custody-show-me.py")],
+            cwd=project,text=True,capture_output=True,timeout=40
+        )
+        self.assertEqual(result.returncode,0,result.stdout+"\\n"+result.stderr)
+        output=json.loads(result.stdout)
+        self.assertTrue(output["unmodifiedReceipt"]["custodySignatureAndBytesVerified"])
+        self.assertEqual(output["forgedOriginReceipt"]["unsignedReplay"],"ADMIT")
+        self.assertFalse(output["forgedOriginReceipt"]["customerCustodyAccepted"])
+        self.assertEqual(output["forgedOriginReceipt"]["rejectionReason"],
+                         "DECLARED_ORIGIN_MISMATCH")
 
     def test_sign_and_verify_cli_without_exposing_private_key(self):
         from cryptography.hazmat.primitives import serialization
