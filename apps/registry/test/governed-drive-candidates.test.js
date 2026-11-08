@@ -41,6 +41,9 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
  const actors={
    alice:{subject:subjects.alice,roles:new Set(['drive.reader','drive.manager','evidence.reader']),
      evidenceServices:new Set(['claims-app@dev'])},
+   aliceReviewer:{subject:subjects.alice,
+     roles:new Set(['drive.reader','evidence.reader','evidence.reviewer']),
+     evidenceServices:new Set(['claims-app@dev'])},
    bob:{subject:subjects.bob,roles:new Set(['drive.reader','drive.manager','evidence.reader']),
      evidenceServices:new Set(['claims-app@dev'])},
    insufficient:{subject:subjects.alice,roles:new Set(['drive.reader']),
@@ -67,6 +70,7 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
  };
  try{
    assert.equal(permissionFor('POST','/v1/drives/google/governed-check'),'drive.reader');
+   assert.equal(permissionFor('POST','/v1/drives/google/record-check'),'drive.reader');
    assert.equal(permissionFor('GET','/v1/drives/google/governed-requirements'),'drive.reader');
    const requirements='/v1/drives/google/governed-requirements?serviceId=claims-app&environment=dev';
    assert.equal((await request('GET',requirements,'insufficient')).status,403);
@@ -91,8 +95,16 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    assert.equal(good.body.observations[0].eligibleForReviewedEvidence,true);
    assert.ok(good.body.observations[0].reasons.includes('SEMANTIC_SUPPORT_NOT_VERIFIED'));
    assert.equal(good.body.evaluationAdmitted,false);
-   assert.equal(good.body.telemetry.recorded,true);
-   assert.match(good.body.telemetry.receiptId,/^[a-f0-9-]{36}$/);
+   assert.equal(good.body.telemetry.recorded,false);
+   assert.equal(good.body.telemetry.receiptId,null);
+   const recordPath='/v1/drives/google/record-check';
+   assert.equal((await request('POST',recordPath,'alice',input(candidate))).status,403);
+   assert.equal((await request('POST',recordPath,'unscoped',input(candidate))).status,403);
+   assert.equal(ledger.list('claims-app','dev').summary.governedCandidateChecks,0);
+   const signedReview=await request('POST',recordPath,'aliceReviewer',input(candidate));
+   assert.equal(signedReview.status,200);
+   assert.equal(signedReview.body.telemetry.recorded,true);
+   assert.match(signedReview.body.telemetry.receiptId,/^[a-f0-9-]{36}$/);
    assert.equal(good.body.telemetry.externallyAnchored,false);
    assert.equal(good.body.independentProvenanceVerified,false);
    assert.equal((await request('POST',checkPath,'insufficient',input(candidate))).status,403);
@@ -115,7 +127,11 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    const excluded=await request('POST',checkPath,'alice',input(candidate));
    assert.equal(excluded.body.result,'REFUSE');
    assert.equal(excluded.body.counters.ownerExcluded,1);
-   assert.equal(excluded.body.telemetry.recorded,true);
+   assert.equal(excluded.body.telemetry.recorded,false);
+   const deniedReview=await request('POST',recordPath,'aliceReviewer',input(candidate));
+   assert.equal(deniedReview.status,200);
+   assert.equal(deniedReview.body.result,'REFUSE');
+   assert.equal(deniedReview.body.telemetry.recorded,true);
    assert.equal(excluded.body.observations[0].reasons[0],'SOURCE_EXCLUDED_BY_OWNER');
    now+=61*60*1000;
    assert.equal((await request('POST',checkPath,'alice',input(candidate)))
@@ -143,8 +159,8 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    assert.equal(erased.body.result,'INCONCLUSIVE');
    assert.equal(erased.body.observations[0].reasons[0],'NO_CURRENT_INDEX');
    const recorded=ledger.list('claims-app','dev');
-   assert.ok(recorded.summary.governedCandidateChecks>=7);
-   assert.ok(recorded.summary.governedCandidateRefusals>=2);
+   assert.equal(recorded.summary.governedCandidateChecks,2);
+   assert.equal(recorded.summary.governedCandidateRefusals,1);
    assert.equal(recorded.observedCount,0);
    const bytes=fs.readFileSync(ledgerPath,'utf8');
    assert.ok(!bytes.includes('An exception applies to contractors'));
