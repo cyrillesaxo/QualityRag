@@ -71,7 +71,7 @@ def run():
     result=assess(load())
     print(json.dumps({"cases":result,"summary":summarize(result)},indent=2))
     assert all(r["gate_verdict"]!="ADMIT" or r["all_required_present"] for r in result)
-    assert result[0]["gate_verdict"]=="INCONCLUSIVE"
+    assert any(r["gate_verdict"]=="INCONCLUSIVE" and not r["all_required_present"] for r in result)
     return result
 
 if __name__=="__main__":run()
