@@ -21,7 +21,7 @@ type Protection={schema:string;serviceId:string;environment:string;protected:boo
   protectedSince?:string|null;governedCandidateChecks?:number;
   governedCandidateRefusals?:number;lastCandidateCheckAt?:string|null;
   protectedDecisions?:number;protectedAdmitted?:number;protectedInconclusive?:number;
-  protectedUses?:number;
+  protectedUses?:number;protectedRevocations?:number;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
 const forest='#102d21',green='#038112',muted='#587064';
@@ -134,6 +134,9 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
        <strong> {protection.guardTelemetry.protectedUses||0}</strong>.
        A historical ADMIT or prior permit is not authorization for future
        answers; each use requires fresh permissions and current source bytes.</p>
+     <p>Explicit owner-reviewed decision withdrawals:
+       <strong> {protection.guardTelemetry.protectedRevocations||0}</strong>.
+       A withdrawal leaves historical receipts replayable while blocking future use.</p>
      <p>Governed Drive candidate checks: <strong>{protection.guardTelemetry.governedCandidateChecks||0}</strong>
        {' · '}Refused: <strong>{protection.guardTelemetry.governedCandidateRefusals||0}</strong>
        {protection.guardTelemetry.lastCandidateCheckAt?
