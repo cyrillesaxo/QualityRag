@@ -66,13 +66,13 @@ test("public metadata route does not send caller bearer credentials", async () =
 });
 
 test("rejects redirects, oversized responses and unknown route", async () => {
-  const requestWithToken=request({authorization:"Bearer " + "a".repeat(48)});
+  const authorizedRequest=()=>request({authorization:"Bearer " + "a".repeat(48)});
   const moved=createVideoGateway(env,async()=>new Response(null,{
     status:302,headers:{location:"https://other.example/"}}));
-  assert.equal((await moved(requestWithToken,"/mcp")).status,502);
+  assert.equal((await moved(authorizedRequest(),"/mcp")).status,502);
   const large=createVideoGateway(env,async()=>new Response("x".repeat(1048577)));
-  assert.equal((await large(requestWithToken,"/mcp")).status,502);
-  assert.equal((await moved(requestWithToken,"/unsupported")).status,404);
+  assert.equal((await large(authorizedRequest(),"/mcp")).status,502);
+  assert.equal((await moved(authorizedRequest(),"/unsupported")).status,404);
 });
 
 test("fails closed with missing upstream", async () => {
