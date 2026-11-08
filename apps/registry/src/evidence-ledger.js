@@ -158,6 +158,34 @@ export class EvidenceLedger {
     return {observedCount:entries.length,coverage:'UNKNOWN',summary,
       evaluations:entries.slice(-limit).reverse().map(x=>this.snapshot(x.id))};
   }
+  exportReplay(id){
+    const rows=this.readAll();
+    const entry=rows.find(x=>x.type==='evaluation'&&x.id===id);
+    if(!entry)throw Error('EVIDENCE_NOT_FOUND');
+    if(sha(entry.policy)!==entry.policySha256)throw Error('EVIDENCE_LEDGER_INTEGRITY_FAILURE');
+    const payload={
+      schema:'qualityrag.evidence-replay/v1',
+      evaluationId:entry.id,
+      serviceId:entry.serviceId,
+      environment:entry.environment,
+      requestId:entry.requestId,
+      traceId:entry.traceId,
+      asOf:entry.at,
+      evaluator:entry.evaluator,
+      policy:entry.policy,
+      policySha256:entry.policySha256,
+      evidence:entry.evidence,
+      expectedResult:entry.result,
+      sourceOriginStatus:'CALLER_DECLARED_NOT_AUTHENTICATED',
+      ledgerRecordHash:entry.chainHash
+    };
+    return {payload,integrity:{
+      sha256:sha(payload),
+      externallyAnchored:false,
+      digitallySigned:false,
+      authenticityVerified:false
+    }};
+  }
   replay(id){
     const rows=this.readAll(),row=rows.find(x=>x.type==='evaluation'&&x.id===id);
     if(!row)throw Error('EVIDENCE_NOT_FOUND');
