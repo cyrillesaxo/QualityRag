@@ -275,6 +275,63 @@ export class GoogleDriveConnections{
     this.replace(subject,data);
     return this.status(subject);
   }
+  supportsText(mimeType){
+    return new Set([
+      'text/plain','text/markdown','text/csv','application/json',
+      'application/vnd.google-apps.document'
+    ]).has(mimeType);
+  }
+  async downloadSelectedText(subject,fileId,selectedFolderId,maxBytes=96_000){
+    validateFolderId(fileId);
+    validateFolderId(selectedFolderId);
+    assert(Number.isInteger(maxBytes)&&maxBytes>0&&maxBytes<=96_000,
+      'DRIVE_SOURCE_SIZE_INVALID');
+    const account=this.decrypt(validateSubject(subject));
+    assert(account&&account.folder_id===selectedFolderId&&selectedFolderId!=='root',
+      'DRIVE_FOLDER_NOT_CONFIGURED');
+    const token=await this.getToken(subject);
+    const metadata=await this.googleGet(token,'/files/'+encodeURIComponent(fileId),{
+      fields:'id,name,mimeType,parents,trashed,size',supportsAllDrives:'true'
+    });
+    assert(metadata.id===fileId&&metadata.trashed!==true&&
+      Array.isArray(metadata.parents)&&metadata.parents.includes(selectedFolderId),
+      'DRIVE_FILE_OUTSIDE_SELECTED_FOLDER');
+    assert(this.supportsText(metadata.mimeType),'DRIVE_UNSUPPORTED_FILE_TYPE');
+    if(metadata.size!==undefined&&Number(metadata.size)>maxBytes)
+      fail('DRIVE_SOURCE_TOO_LARGE');
+    const native=metadata.mimeType==='application/vnd.google-apps.document';
+    const url=new URL(GOOGLE_DRIVE+'/files/'+encodeURIComponent(fileId)+
+      (native?'/export':''));
+    if(native)url.searchParams.set('mimeType','text/plain');
+    else url.searchParams.set('alt','media');
+    const response=await this.fetch(url.toString(),{
+      method:'GET',headers:{Authorization:'Bearer '+token,Accept:'text/plain'},
+      signal:AbortSignal.timeout(10_000),redirect:'error'
+    });
+    if(!response.ok)googleError(response);
+    const declared=response.headers?.get?.('content-length');
+    if(declared&&Number(declared)>maxBytes)fail('DRIVE_SOURCE_TOO_LARGE');
+    let result;
+    if(response.body?.getReader){
+      const reader=response.body.getReader();
+      const parts=[];let length=0;
+      try{
+        while(true){
+          const {done,value}=await reader.read();
+          if(done)break;
+          length+=value.byteLength;
+          if(length>maxBytes)fail('DRIVE_SOURCE_TOO_LARGE');
+          parts.push(Buffer.from(value));
+        }
+      }catch(error){try{await reader.cancel()}catch{};throw error}
+      result=Buffer.concat(parts,length);
+    }else{
+      const bytes=await response.arrayBuffer();
+      if(bytes.byteLength>maxBytes)fail('DRIVE_SOURCE_TOO_LARGE');
+      result=Buffer.from(bytes);
+    }
+    return result;
+  }
   async selectedFiles(subject){
     const data=this.decrypt(validateSubject(subject));
     if(!data)fail('DRIVE_CONNECTION_NOT_FOUND');
