@@ -406,7 +406,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
         !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(input.requestId)||
         (gateway?(typeof input.answer!=='string'||
           !input.answer.trim()||Buffer.byteLength(input.answer,'utf8')>16384||
-          /[\\u0000]/.test(input.answer)):
+          input.answer.includes(String.fromCharCode(0))):
           (typeof input.answerSha256!=='string'||
           !/^[0-9a-f]{64}$/.test(input.answerSha256))))
        throw Error('PROTECTED_USE_INVALID');
