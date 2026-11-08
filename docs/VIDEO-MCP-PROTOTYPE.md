@@ -197,3 +197,17 @@ For a **private prototype** rather than exposing a public service, OpenAI docume
 
 The metadata tests use a local ASGI MCP client and synthetic tokens; they cannot establish cross-provider OAuth interoperability. Add a live issuer + client end-to-end acceptance test before any production launch.
 \n**Audience binding:** JWT mode refuses startup when `QUALITYRAG_VIDEO_MCP_AUDIENCE` differs from `QUALITYRAG_VIDEO_MCP_RESOURCE_URL`. Configure your external IdP to issue audience-bound access tokens for the canonical HTTPS MCP resource URI; a general login/ID token or a token intended for a different API is not sufficient.\n
+
+## Deployment package (private pilot)
+
+A reproducible single-host staging package is now available in `tools/semantic_store/deploy/`:
+
+- `qualityrag-video-mcp.service` — read-only dedicated Unix service identity, loopback binding, locked-down systemd execution.
+- `Caddyfile.example` — example HTTPS reverse proxy to local port 8039; no direct public MCP socket.
+- `video-mcp.env.example` and `requirements-remote.txt` — nonsecret configuration template and dependency bounds.
+- `smoke_https.py` — external HTTPS MCP discovery, authorization challenge, and read-only tool discovery test; redirects fail before credentials are forwarded.
+- `README.md` — staged installation, DNS/IdP requirements, permissions, smoke and rollout gates.
+
+The dedicated CI additionally tests the deployment constraints **without starting a public service or provisioning resources**. Actual TLS, issuer authorization-code/PKCE, production token handling, host security, source rights, and ChatGPT connection are pending. No preexisting customer-discovery host has been modified.
+
+Consult `tools/semantic_store/deploy/README.md` for operator steps. Avoid deploying to a shared or customer-serving host before a service isolation review.
