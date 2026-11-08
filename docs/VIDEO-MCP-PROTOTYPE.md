@@ -174,3 +174,24 @@ A sample ACL document is `{"subjects":{"alice":["video-a"],"bob":["video-b"]}}`.
 **Deployment warning:** An OIDC access-token *resource-server validator* does not constitute a complete OAuth 2.1 authorization flow or a fully ChatGPT-compatible public MCP connector. OAuth discovery, authorization/consent, PKCE, dynamic client registration as required by the client, per-tenant ACL administration, token revocation/key rotation automation, audits and hosted HTTPS deployment remain outstanding. Do not expose the single-operator service publicly based on successful unit tests alone.
 
 The original static bearer mode remains available for isolated local staging. Do not reuse a static bearer token across customers.
+
+
+## OAuth protected resource discovery for client onboarding (new)
+
+The authenticated HTTP MCP server now implements the **resource-server discovery portion** of MCP OAuth (RFC 9728) in JWT mode. Configure the exact public HTTPS resource URI (including `/mcp`), and provide the external authorization server issuer:
+
+```sh
+export QUALITYRAG_VIDEO_MCP_AUTH_MODE=jwt
+export QUALITYRAG_VIDEO_MCP_RESOURCE_URL="https://your-mcp-domain.example/mcp"
+export QUALITYRAG_VIDEO_MCP_ISSUER="https://your-idp.example"
+# Also configure existing AUDIENCE, JWKS_FILE, ACL_FILE,
+# VIDEO_ROOT, ALLOWED_SOURCE_IDS, and ALLOWED_HOSTS.
+```
+
+The service responds without authentication to `GET /.well-known/oauth-protected-resource/mcp` (also the root well-known URI) with a *public, source-free* metadata document declaring the canonical resource URI, trusted authorization server, and `video:read` scope. Unauthorized calls to `/mcp` receive HTTP 401 with a `WWW-Authenticate: Bearer ... resource_metadata="https://your-mcp-domain.example/.well-known/oauth-protected-resource/mcp"` challenge. Metadata does **not** include bearer tokens, source catalog entries or private URLs.
+
+This discovery is necessary but not sufficient for ChatGPT connection. The configured issuer must be a real OAuth authorization server providing RFC 8414/OIDC discovery and a supported authorization-code + PKCE flow. It must issue scoped, audience-bound access tokens signed by approved keys. The operator must provision trusted public JWKS, explicit subject-to-source ACLs, HTTPS reverse proxy, security monitoring, and key rotation. The current application does not create user accounts, issue access tokens, handle authorization callbacks, download media, or register itself as a ChatGPT app.
+
+For a **private prototype** rather than exposing a public service, OpenAI documents Secure MCP Tunnel for supported clients. Use it only with supported accounts and after checking the current tunnel documentation; it does not automatically make the tool available in this ChatGPT session. No tunnel or public endpoint is deployed by this repository change.
+
+The metadata tests use a local ASGI MCP client and synthetic tokens; they cannot establish cross-provider OAuth interoperability. Add a live issuer + client end-to-end acceptance test before any production launch.
