@@ -65,6 +65,12 @@ export function permissionFor(method,pathname){
   if(pathname==='/v1/drives/google/disconnect'&&method==='POST')return ROLE.driveManage;
   if(pathname==='/v1/evidence/enforcement'&&method==='GET')return ROLE.evidenceRead;
   if(pathname==='/v1/evidence/protected-admit'&&method==='POST')return ROLE.evidenceIngest;
+  if(pathname.startsWith('/v1/evidence/protected-decisions/')&&
+     pathname.split('/').length===6&&
+     /^[0-9a-f-]{36}$/.test(pathname.split('/')[4])){
+     if(method==='POST'&&pathname.endsWith('/revoke'))return ROLE.evidenceReview;
+     if(method==='GET'&&pathname.endsWith('/status'))return ROLE.evidenceRead;
+  }
   if(method==='POST'&&pathname.startsWith('/v1/evidence/protected-decisions/')&&
      pathname.endsWith('/use-check')&&pathname.split('/').length===6&&
      /^[0-9a-f-]{36}$/.test(pathname.split('/')[4]))return ROLE.evidenceIngest;
