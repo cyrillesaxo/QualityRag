@@ -69,9 +69,9 @@ The final animation frame shows the **separate, experimental Semantic Garden** r
 
 ## Personal Google Drive configuration in QualityRAG Studio
 
-Studio now includes **My cloud drives**: a per-user Google OAuth connection, encrypted server-side account records, folder browsing, explicit source-folder selection, metadata preview and disconnect. It **requires signed OIDC identities and administrator-provisioned OAuth credentials**. Connecting a Drive does **not** ingest, download or index the user's documents; the existing Semantic Store is a shared local-directory research worker rather than a tenant-isolated cloud importer.
+Studio now includes **My cloud drives**: a per-user Google OAuth connection, encrypted server-side account records, folder browsing, explicit source-folder selection, metadata preview, and disconnect. **After explicitly choosing a folder**, a user can opt into a separate encrypted, per-user text index, sync up to 40 eligible Google Docs/TXT/Markdown/CSV/JSON files, search for anchored lexical matches, and open the original Google file. The existing Semantic Store remains a single-user research worker; this private text index is **not yet its full semantic grammar or embeddings**.
 
-**[Setup, privacy and security constraints](docs/STUDIO-PER-USER-DRIVE.md)**. Google currently requests account-wide read-only access; folder selection is an application-level browsing preference, not a folder-scoped OAuth grant. OneDrive and Dropbox adapters are not yet implemented.
+**[Setup, privacy, explicit indexing and security constraints](docs/STUDIO-PER-USER-DRIVE.md)**. Requires administrator-configured Google OAuth and OIDC identities. Google currently requests account-wide read-only access; folder selection is an application-level constraint, not a folder-scoped OAuth grant. Connection **alone** never downloads content. PDF/media ingestion, OneDrive and Dropbox adapters, live change watching, and production tenant-isolated storage are not yet implemented.
 
 ## Evidence Assurance: show me the decision
 
