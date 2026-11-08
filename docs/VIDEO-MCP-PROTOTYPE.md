@@ -44,3 +44,28 @@ PYTHONPATH=tools/semantic_store python -m unittest discover \
 ```
 
 The tests cover immutable source evidence, time-stamped candidate retrieval, source confinement, invalid catalog entries and no-model operation.
+
+
+## Cross-modal research queries (new)
+
+The MCP now provides `research_video_question(query, intent, limit, window_ms)`. Choose `intent="spoken"` for transcript matches, `"visual"` for frame-caption matches, or `"cross_modal"` (default) to find either and include nearby witnesses from the same approved video. Results are grouped into timestamp-cited, source-hashed candidate bundles. Each bundle reports its anchor, nearby witnesses, source ID/revision, media SHA-256, witness IDs, modalities and unresolved governance.
+
+For a speech witness discussing wheelchair brakes, a nearby visual frame about the brake lever can be returned **alongside** the audio claim. That is *co-observation*, **not** agreement, action verification, or evidence that the brake was actually engaged. If the visual term is not indexed, visual-only queries return no matches without concluding the action was absent. Evidence location references are local catalog coordinates, not publicly playable YouTube links.
+
+This is still **bounded lexical retrieval**, limited to the first 30 candidate matches before regrouping; it does not yet perform cross-language semantic search, compare semantic entailment, inspect full-frame media on demand or validate FF-RCT constraints. It is an intermediate MCP protocol for testing whether multimodal evidence improves consequential-detail retrieval compared with speech-only search.
+
+```sh
+PYTHONPATH=tools/semantic_store python -m unittest discover \
+  -s tools/semantic_store/tests -p test_video_research.py -v
+```
+
+### Near-term path to a paid product
+
+1. **Customer-authorized corpus:** accept lawful local/owned media and explicit source metadata/permissions; do not rely on unrestricted downloading from social networks.
+2. **Source-native visual citations:** resolve each witness to a playable and permissioned video segment plus frame timestamp; preserve source link/version and availability status.
+3. **Cross-modal hybrid retrieval:** compare lexical baseline against embeddings and temporal relevance on a fixed set of visually answerable questions.
+4. **Governed answers:** distinguish spoken assertions, visible observations, inferred transitions and missing evidence; never treat model captions as independently verified.
+5. **Commercial pilot:** sell evidence-backed competitor-demo audits, product-review intelligence and training-compliance analysis. Track processing cost, report acceptance, customer conversion and whether results outperform transcript-only research.
+6. **Deployment:** only after tenant boundaries, authentication, consent, rate limits and model-worker isolation are implemented, expose a remote Streamable HTTP MCP endpoint and connect it in ChatGPT.
+
+Do not claim a connected ChatGPT tool or public Perplexity-like service before those steps have been executed and verified.
