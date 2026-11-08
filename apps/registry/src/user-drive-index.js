@@ -273,9 +273,11 @@ export class UserDriveIndex {
     const source=snapshot?.entries.find(e=>e.sourceId===candidate.sourceId);
     const reasons=[];
     if(!snapshot)reasons.push('NO_CURRENT_INDEX');
-    else if(!fresh)reasons.push('INDEX_STALE');
     else if(!source)reasons.push('SOURCE_NOT_IN_SELECTED_INDEX');
+    // An explicit owner denial takes precedence over freshness and any
+    // client-provided revision. Never let a stale cache conceal a denial.
     else if(source.searchEnabled===false)reasons.push('SOURCE_EXCLUDED_BY_OWNER');
+    else if(!fresh)reasons.push('INDEX_STALE');
     else if(source.revision!==candidate.revision)reasons.push('SOURCE_REVISION_MISMATCH');
     else if(candidate.lineNumber>source.lines.length)reasons.push('ANCHOR_NOT_IN_EXTRACTED_TEXT');
     else reasons.push('SEMANTIC_SUPPORT_NOT_VERIFIED','SOURCE_PROVENANCE_NOT_VERIFIED');
