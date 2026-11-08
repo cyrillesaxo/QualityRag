@@ -120,6 +120,18 @@ An explicitly excluded source receives `REFUSE` regardless of stale metadata or 
 
 This is **candidate eligibility checking**, not a full, signed QualityRAG business-answer verdict. Other integrations must separately enforce the same owner controls; generic `POST /v1/evidence/evaluations` is a separate telemetry path and cannot be assumed to enforce Drive exclusions. The check is transient: it is not a signed audit record or automatically recorded in the telemetry ledger. Run `npm --prefix apps/registry run drive:governed-demo` to reproduce the owner-exclusion and re-inclusion sequence using synthetic data.
 
+### Reviewer-initiated telemetry
+
+Studio separates **Check candidate** (non-mutating preview requiring
+`drive.reader` and `evidence.reader`) from **Record challenge (reviewer)**
+(additionally requiring `evidence.reviewer`, with 20 writes/minute
+per reviewer). Both resolve the PackSpec server-side and can only
+`REFUSE` or remain `INCONCLUSIVE`. The recorded action produces a
+local unsigned ledger receipt and increments the Evidence Assurance
+candidate-check count, but does not record raw source text or change
+evidence admission. Missing reviewer privileges produce an explicit
+403 instead of silently granting recording access.
+
 **Evidence boundary:** This is a bounded *lexical* index, not the Semantic Garden grammar, full QualityRAG governed retrieval, an LLM answer, semantic vector search, or a validated evidence receipt. Source-origin independence and authenticity are not inferred from file count or matched lines. No candidate becomes an `ADMIT` result until an authorized PackSpec evaluation and customer source review happen separately.
 
 **Lifecycle limitations:** Remote Google file revocation and deletions are checked on the next explicit sync; an already encrypted local snapshot could remain searchable for up to its 60-minute freshness window after remote permission changes. This is not acceptable for high-sensitivity regulated tenants without an authorization recheck, event-driven deletion, and retention controls. The index is single-process, single-instance and local-file-based, not a hardened production multitenant storage service. Explicit deletion is local; it does not modify or delete the original Google files.
