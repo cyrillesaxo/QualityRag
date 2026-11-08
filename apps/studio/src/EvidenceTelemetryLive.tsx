@@ -21,7 +21,8 @@ type Protection={schema:string;serviceId:string;environment:string;protected:boo
   protectedSince?:string|null;governedCandidateChecks?:number;
   governedCandidateRefusals?:number;lastCandidateCheckAt?:string|null;
   protectedDecisions?:number;protectedAdmitted?:number;protectedInconclusive?:number;
-  protectedUses?:number;protectedRevocations?:number;
+  protectedUses?:number;protectedBufferedReleases?:number;
+  protectedRevocations?:number;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
 const forest='#102d21',green='#038112',muted='#587064';
@@ -130,8 +131,12 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
        {' · '}Admitted signed claims:
        <strong> {protection.guardTelemetry.protectedAdmitted||0}</strong>.
        These are human-approved metadata claims, not independently proven facts.</p>
-     <p>Request-specific evidence-use checks permitted:
+     <p>Request-specific evidence-use permissions issued:
        <strong> {protection.guardTelemetry.protectedUses||0}</strong>.
+       Of these, <strong>{protection.guardTelemetry.protectedBufferedReleases||0}</strong>
+       {' '}were issued by the server-buffered response gateway; the remainder
+       were digest-only client checks. These counts reflect registry decisions,
+       not confirmed network delivery or downstream answer correctness.
        A historical ADMIT or prior permit is not authorization for future
        answers; each use requires fresh permissions and current source bytes.</p>
      <p>Explicit owner-reviewed decision withdrawals:
