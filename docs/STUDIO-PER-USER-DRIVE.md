@@ -102,7 +102,7 @@ Setting `QUALITYRAG_DRIVE_INDEX_DIR` opt-in enables the new **My private Drive t
 2. Choose **Sync selected folder now**. This retrieves only direct-child text files in that folder; no recursive subtree traversal.
 3. Studio reports files listed, indexed, unsupported, failed, oversized, truncated, and last synced. Coverage is `PARTIAL` whenever files cannot be included. This is not a guarantee of full Drive discovery.
 4. Search with text such as `hidden exception`. The index produces lexical matches with a stable pseudonymous source ID, source revision, file name, and exact text-line anchor.
-5. Use **Delete my local index** to erase cached text. Selecting a different folder, replacing the Google connection, or disconnecting purges the prior per-subject index. A successful resync atomically replaces the old snapshot and removes deleted/moved files.
+5. Use **Delete my local index** to erase cached text. Selecting a different folder, replacing the Google connection, or disconnecting purges the prior per-subject index. A successful resync atomically replaces the old snapshot and removes deleted/moved files. In-flight synchronizations are fenced: they cannot recreate an index after a disconnect, folder switch, or explicit deletion.
 
 Supported pilot MIME types: `text/plain`, `text/markdown`, `text/csv`, `application/json`, `application/vnd.google-apps.document` (exported by Drive as `text/plain`). PDF, DOCX, Sheets, Slides, media, OCR, image embeddings and video scene indexing are **not** included in this per-user Drive importer.
 
