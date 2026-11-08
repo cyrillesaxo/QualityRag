@@ -236,6 +236,74 @@ export class UserDriveIndex {
   this.save(subject,snap);
   return {changed:true,visibility:this.visibility(subject,connection)};
  }
+ async verifyLiveApprovedWitnesses(subject,connector,witnesses){
+  // Last-mile mandatory check: no signed claim alone bypasses current owner's
+  // source controls. Re-fetch the exact file bytes from Google, including
+  // the provider's parent-folder check, then re-check controls after all awaits.
+  check(Array.isArray(witnesses)&&witnesses.length>0&&witnesses.length<=8,
+    'PROTECTED_WITNESS_LIMIT');
+  const ownerKey=this.location(subject);
+  check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
+  const connection=connector.status(subject);
+  const snapshot=this.bound(subject,connection);
+  check(snapshot&&connection.folderId!=='root'&&
+    snapshot.coverage==='SELECTED_FOLDER_TEXT_FILES',
+    'PROTECTED_SOURCE_COVERAGE_INCOMPLETE');
+  const age=this.now()-Date.parse(snapshot.syncedAt);
+  check(Number.isFinite(age)&&age>=0&&age<=MAX_AGE_MS,
+    'PROTECTED_SOURCE_INDEX_STALE');
+  const expected=new Map();
+  for(const witness of witnesses){
+    const source=snapshot.entries.find(e=>e.sourceId===witness.sourceId);
+    check(source,'PROTECTED_SOURCE_NOT_FOUND');
+    check(source.searchEnabled!==false,'PROTECTED_OWNER_EXCLUDED_SOURCE');
+    check(source.revision===witness.revision,'PROTECTED_SOURCE_REVISION_CHANGED');
+    check(witness.lineNumber<=source.lines.length,
+      'PROTECTED_SOURCE_ANCHOR_MISSING');
+    check(sha(Buffer.from(source.lines[witness.lineNumber-1],'utf8'))===
+      witness.lineSha256,'PROTECTED_SOURCE_LINE_CHANGED');
+    expected.set(source.fileId,source);
+  }
+  for(const [fileId,source] of expected){
+    let bytes;
+    try{
+      bytes=await connector.downloadSelectedText(subject,fileId,
+        connection.folderId,MAX_PER_FILE);
+    }catch(error){
+      if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
+      throw Error('PROTECTED_LIVE_GOOGLE_VERIFICATION_FAILED');
+    }
+    check(Buffer.isBuffer(bytes)&&sha(bytes)===source.revision,
+      'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH');
+    let decoded;
+    try{decoded=new TextDecoder('utf-8',{fatal:true}).decode(bytes)}
+    catch{throw Error('PROTECTED_LIVE_SOURCE_INVALID_TEXT')}
+    const lines=decoded.replace(/\r\n?/g,'\n').split('\n');
+    check(lines.length===source.lines.length&&
+      lines.every((line,i)=>line===source.lines[i]),
+      'PROTECTED_LIVE_EXTRACTED_TEXT_MISMATCH');
+  }
+  // The only write after this function must be a synchronous ledger append,
+  // so a concurrent owner exclusion cannot interleave between final check
+  // and admission on this single-process research registry.
+  check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
+  const latest=connector.status(subject),current=this.bound(subject,latest);
+  check(latest.connected&&latest.email===connection.email&&
+    latest.folderId===connection.folderId&&current&&
+    current.syncedAt===snapshot.syncedAt&&
+    current.coverage==='SELECTED_FOLDER_TEXT_FILES',
+    'PROTECTED_OWNER_CONTEXT_CHANGED');
+  for(const witness of witnesses){
+    const source=current.entries.find(e=>e.sourceId===witness.sourceId);
+    check(source&&source.searchEnabled!==false&&
+      source.revision===witness.revision&&
+      sha(Buffer.from(source.lines[witness.lineNumber-1]||'','utf8'))===
+        witness.lineSha256,'PROTECTED_OWNER_CONTEXT_CHANGED');
+  }
+  return {owner:subject,folderId:connection.folderId,
+    checkedAt:new Date(this.now()).toISOString(),sourceCount:expected.size,
+    verifiedExactLiveBytes:true,independentPublisherVerified:false};
+ }
  checkGovernedCandidates(subject,connection,policy,policySha256,candidates){
   // Guarded route from Drive *candidates* to governed evaluation. It deliberately
   // cannot ADMIT because lexical text and owner consent do not attest semantics
