@@ -36,7 +36,9 @@ export default async function handler(request){
  let target;try{target=new URL(endpoint);if(target.protocol!=="https:")throw Error("HTTPS required")}catch{return reply(err(msg.id,-32603,"Invalid backend configuration"),500)}
  // Existing runtime uses a single authenticated operation API. Do not synthesize policy results.
  try{
-  const upstream=await fetch(target,{method:"POST",headers:{"authorization":`Bearer ${upstreamToken}`,"content-type":"application/json"},body:JSON.stringify({operation:name.replaceAll("_","."),...args}),signal:AbortSignal.timeout(25000)});
+  const route=({garden_query:"gardener/query",garden_suggestions:"gardener/proposals",policy_test:"policy/test",policy_advise:"policy/advise",policy_replay:"policy/replay",functional_siblings:"policy/siblings"})[name];
+  const upstreamUrl=new URL(target.toString().replace(/\\/$/,"")+"/api/"+route);
+  const upstream=await fetch(upstreamUrl,{method:"POST",headers:{"authorization":`Bearer ${upstreamToken}`,"content-type":"application/json"},body:JSON.stringify(args),signal:AbortSignal.timeout(25000)});
   const body=await upstream.text();
   if(!upstream.ok)return reply({jsonrpc:"2.0",id:msg.id,result:{isError:true,content:[{type:"text",text:`Backend returned HTTP ${upstream.status}`}]}});
   return reply({jsonrpc:"2.0",id:msg.id,result:{content:[{type:"text",text:body}]}});
