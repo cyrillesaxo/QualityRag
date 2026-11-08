@@ -87,6 +87,23 @@ review, not an authorized `ADMIT` API.
 
 [Protected Drive ingress — setup and runnable proof](PROTECTED-DRIVE-INGRESS.md)
 
+### Observe a candidate vs record a reviewer challenge
+
+A normal `POST /v1/drives/google/governed-check` is non-mutating and
+does **not** create ledger telemetry. Users can preview a source control
+result without writing an audit event. An explicit
+`POST /v1/drives/google/record-check` uses the same server-side PackSpec
+and index checks but additionally requires `evidence.reviewer` and an
+enabled evidence ledger. The check result remains **REFUSE or
+INCONCLUSIVE only**; the act of recording is **not** customer acceptance.
+
+Recorded checks appear in Studio's Evidence Assurance counts and carry
+a local receipt. The ledger omits document content, source IDs, and
+revisions. Each reviewer is limited to 20 recorded checks per rolling
+minute. The hash chain is **not externally anchored**.
+This makes visibility deliberate without allowing read-only identities
+to flood or mutate the evidence ledger.
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
