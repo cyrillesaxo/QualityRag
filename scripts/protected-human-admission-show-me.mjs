@@ -21,7 +21,7 @@ const domain=Buffer.from('QUALITYRAG/qualityrag.signed-observations/v1\0','ascii
 const root=path.dirname(fileURLToPath(import.meta.url));
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qualityrag-human-admit-show-me-'));
 const owner='demo-issuer#owner-01';
-const SOURCE='Required approval is documented in this synthetic company policy.\n';
+const SOURCE='Required approval is documented in this synthetic company policy.\nAdministrative approval records are retained for audit.';
 let contents=SOURCE;
 const serviceId='customer-claims',environment='demo';
 const connector={
@@ -123,7 +123,7 @@ try{
  // Two signers can approve the primary line while a distant exception
  // remains unreviewed. The source index will detect the lexical candidate.
  const hiddenClause='Except emergencies, which need documented review.';
- contents=SOURCE+Array(5).fill('Ordinary policy administration.').join('\n')+
+ contents=SOURCE+'\n'+Array(5).fill('Ordinary policy administration.').join('\n')+
    '\n'+hiddenClause;
  await index.sync(owner,connector);
  const changedHit=index.search(owner,connector.status(owner),'Required approval').hits[0];
