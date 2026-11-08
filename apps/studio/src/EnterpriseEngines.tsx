@@ -15,6 +15,8 @@ const CONTACT='https://dodollc.net';
 export default function EnterpriseEngines(){
  const [expanded,setExpanded]=useState<string|null>('Data Protection');
  const [demo,setDemo]=useState(false);
+ const [contactEmail,setContactEmail]=useState('');
+ const [contactCompany,setContactCompany]=useState('');
  function contact(engine:string){
   const url=new URL(CONTACT);
   url.searchParams.set('utm_source','qualityrag_studio');
@@ -43,7 +45,18 @@ export default function EnterpriseEngines(){
       <button type="button" onClick={()=>setDemo(true)}>Run sample masking</button>
       {demo&&<div role="status"><p>Masked: <code>{MASKED_PAN}</code></p><p>Only the final four digits remain visible. This is a static demonstration, not a live PCI scan, tokenization service, or compliance certification.</p></div>}
      </>:<p>{engine.benefit} This preview describes the capability; no enterprise backend or customer data is accessed.</p>}
-     <button type="button" onClick={()=>contact(engine.name)}>Explore Enterprise with Dodo LLC</button>
+     <div className="enterprise-lead-form">
+      <p><strong>Want to see this in your environment?</strong> Request a technical walkthrough. No customer data is needed.</p>
+      <label>Work email <input type="email" autoComplete="email" value={contactEmail} onChange={e=>setContactEmail(e.target.value)} placeholder="you@company.com" /></label>
+      <label>Organization <input type="text" autoComplete="organization" value={contactCompany} onChange={e=>setContactCompany(e.target.value)} placeholder="Organization (optional)" maxLength={100}/></label>
+      <button type="button" disabled={!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(contactEmail)} onClick={()=>{
+       const subject='QualityRAG Enterprise walkthrough — '+engine.name;
+       const body=['I would like to discuss '+engine.name+'.','Work email: '+contactEmail,'Organization: '+contactCompany,'Source: QualityRAG Studio','Engine: '+engine.name].join('\\n');
+       window.location.href='mailto:cyrille.eloundou@dodollc.net?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+      }}>Request walkthrough by email</button>
+      <button type="button" onClick={()=>contact(engine.name)}>Explore Dodo LLC website</button>
+      <small>Opens your email application; no form data is transmitted by Studio.</small>
+     </div>
     </div>}
    </article>)}
   </div>
