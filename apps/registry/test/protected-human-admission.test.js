@@ -170,6 +170,8 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(admit.body.sourceCount,1);
    assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/use-check'),
      'evidence.ingest');
+   assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/deliver'),
+     'evidence.ingest');
    assert.equal(permissionFor('POST','/v1/evidence/protected-decisions/'+admit.body.id+'/revoke'),
      'evidence.reviewer');
    assert.equal(permissionFor('GET','/v1/evidence/protected-decisions/'+admit.body.id+'/status'),
@@ -193,6 +195,36 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(allowedUse.body.answerSha256,answerSha256);
    assert.equal(allowedUse.body.answerSemanticsVerified,false);
    assert.equal((await request('POST',usePath,'owner',firstUsePayload)).status,409);
+   const deliverPath='/v1/evidence/protected-decisions/'+admit.body.id+'/deliver';
+   const deliveryText='A customer-reviewed synthetic draft with exceptions; not verified semantic truth.';
+   const deliveryInput={requestId:'delivery-one',answer:deliveryText};
+   for(const badUser of ['other','missingDrive','missingIngest','wrongService']){
+     const denied=await request('POST',deliverPath,badUser,{
+       requestId:'delivery-denied-'+badUser,answer:deliveryText});
+     assert.equal(denied.status,403,badUser+': '+JSON.stringify(denied.body));
+     assert.ok(!JSON.stringify(denied.body).includes(deliveryText));
+   }
+   for(const invalid of [
+     {...deliveryInput,override:true},
+     {requestId:'no-answer',answer:''},
+     {requestId:'too-big',answer:'X'.repeat(16385)},
+     {requestId:'injected',answer:deliveryText+'\\u0000'}
+   ]){
+     const denied=await request('POST',deliverPath,'owner',invalid);
+     assert.notEqual(denied.status,200);
+     assert.ok(!JSON.stringify(denied.body).includes(deliveryText));
+   }
+   const delivered=await request('POST',deliverPath,'owner',deliveryInput);
+   assert.equal(delivered.status,200,JSON.stringify(delivered.body));
+   assert.equal(delivered.body.schema,'qualityrag.protected-answer-delivery/v1');
+   assert.equal(delivered.body.answer,deliveryText);
+   assert.equal(delivered.body.receipt.decisionId,admit.body.id);
+   assert.equal(delivered.body.receipt.answerSha256,sha(deliveryText));
+   assert.equal(delivered.body.answerSemanticsVerified,false);
+   assert.equal(delivered.body.globalEnforcement,false);
+   const repeatedDelivery=await request('POST',deliverPath,'owner',deliveryInput);
+   assert.equal(repeatedDelivery.status,409);
+   assert.ok(!JSON.stringify(repeatedDelivery.body).includes(deliveryText));
    // A source exclusion during live Google I/O must be observed at the
    // *second* owner-control check, before any use permit is recorded.
    let resumeDownload;
@@ -207,6 +239,17 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const racedUse=await racePending;
    assert.equal(racedUse.status,409);
    assert.equal(racedUse.body.error,'PROTECTED_OWNER_CONTEXT_CHANGED');
+   let resumeGateway;
+   pendingLive=new Promise(resolve=>{resumeGateway=resolve});
+   const gatewayRace=request('POST',deliverPath,'owner',{
+     requestId:'delivery-race',answer:deliveryText});
+   for(let i=0;i<100&&pendingLive;i++)
+     await new Promise(resolve=>setTimeout(resolve,5));
+   assert.equal(pendingLive,null,'Gateway must enter live download');
+   resumeGateway();
+   const afterRace=await gatewayRace;
+   assert.equal(afterRace.status,409);
+   assert.ok(!JSON.stringify(afterRace.body).includes(deliveryText));
    index.controlSource(subject,connector.status(subject),{
      sourceId:hit.source_id,searchable:true,reason:'OWNER_SELECTION'});
    const exportUrl='/v1/evidence/protected-decisions/'+admit.body.id+'/export';
@@ -269,6 +312,11 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const neverAllowed=await request('POST',refusedUse,'owner',useInput());
    assert.equal(neverAllowed.status,409);
    assert.equal(neverAllowed.body.error,'PROTECTED_USE_DECISION_NOT_ADMITTED');
+   const refusedDelivery=await request('POST',
+     '/v1/evidence/protected-decisions/'+refusal.body.id+'/deliver','owner',{
+       requestId:'delivery-refused',answer:deliveryText});
+   assert.equal(refusedDelivery.status,409);
+   assert.ok(!JSON.stringify(refusedDelivery.body).includes(deliveryText));
    // A different accepted claim can be withdrawn by an owner *reviewer*
    // without excluding the entire source from private retrieval.
    const secondAdmit=await request('POST',endpoint,'owner',payload(att()));
@@ -298,6 +346,11 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const blockedRecalled=await request('POST',revokedUse,'owner',useInput());
    assert.equal(blockedRecalled.status,409);
    assert.equal(blockedRecalled.body.error,'PROTECTED_DECISION_REVOKED');
+   const blockedDelivery=await request('POST',
+     '/v1/evidence/protected-decisions/'+secondAdmit.body.id+'/deliver','owner',{
+       requestId:'delivery-revoked',answer:deliveryText});
+   assert.equal(blockedDelivery.status,409);
+   assert.ok(!JSON.stringify(blockedDelivery.body).includes(deliveryText));
    assert.equal((await request('POST',revokePath,'ownerReviewer',{
      reason:'OWNER_WITHDRAWN'})).status,409);
    assert.equal((await request('GET',statusPath,'foreignReviewer')).status,403);
@@ -310,6 +363,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const useExcluded=await request('POST',usePath,'owner',useInput());
    assert.equal(useExcluded.status,409);
    assert.equal(useExcluded.body.error,'PROTECTED_OWNER_EXCLUDED_SOURCE');
+   const deliveryExcluded=await request('POST',deliverPath,'owner',{
+     requestId:'delivery-excluded',answer:deliveryText});
+   assert.equal(deliveryExcluded.status,409);
+   assert.ok(!JSON.stringify(deliveryExcluded.body).includes(deliveryText));
    index.controlSource(subject,connector.status(subject),{
      sourceId:hit.source_id,searchable:true,reason:'OWNER_SELECTION'});
    content=SOURCE+'\nAppended after custodian signature.';
@@ -319,6 +376,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const useChanged=await request('POST',usePath,'owner',useInput());
    assert.equal(useChanged.status,409);
    assert.equal(useChanged.body.error,'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH');
+   const deliveryChanged=await request('POST',deliverPath,'owner',{
+     requestId:'delivery-changed',answer:deliveryText});
+   assert.equal(deliveryChanged.status,409);
+   assert.ok(!JSON.stringify(deliveryChanged.body).includes(deliveryText));
    content=SOURCE;
    remoteAccess=false;
    const revoked=await request('POST',endpoint,'owner',payload(att()));
@@ -357,6 +418,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const outdatedUse=await request('POST',usePath,'owner',useInput());
    assert.equal(outdatedUse.status,409);
    assert.equal(outdatedUse.body.error,'PROTECTED_USE_POLICY_CHANGED');
+   const deliveryOutdated=await request('POST',deliverPath,'owner',{
+     requestId:'delivery-outdated',answer:deliveryText});
+   assert.equal(deliveryOutdated.status,409);
+   assert.ok(!JSON.stringify(deliveryOutdated.body).includes(deliveryText));
    // The current bridge deliberately cannot prove independent intellectual
    // origins or when the original document was actually published.
    registry.draft({id:'multi-source-policy',version:'1',requirements:[
@@ -383,9 +448,10 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(list.summary.protectedDecisions,3);
    assert.equal(list.summary.protectedAdmitted,2);
    assert.equal(list.summary.protectedRevocations,1);
-   assert.equal(list.summary.protectedUses,1);
+   assert.equal(list.summary.protectedUses,2);
    const auditBytes=fs.readFileSync(ledgerPath,'utf8');
    assert.ok(!auditBytes.includes(answerText));
+   assert.ok(!auditBytes.includes(deliveryText));
    assert.ok(auditBytes.includes(answerSha256));
    assert.equal(list.summary.protectedInconclusive,0);
    assert.equal(list.observedCount,0);
