@@ -102,6 +102,25 @@ npm --prefix apps/registry run admission:demo
 The pilot supports one asserted origin per requirement and does not claim original
 publication freshness; stronger PackSpecs fail closed.
 
+### Evidence is approved once, but authorization is checked **every time**
+
+A signed historical `ADMIT` cannot override a later customer exclusion.
+For integrated applications, the registry exposes a **request-specific
+evidence-use check**: it re-verifies the current approved PackSpec,
+both signed review approvals, source owner controls and exact live
+Google file bytes before returning a permit bound to the proposed
+answer's SHA-256. A TypeScript `ProtectedUseClient` releases that
+exact answer only when the permit matches; no raw answer is uploaded.
+
+```sh
+npm --prefix apps/registry run admission:demo
+npm --prefix sdk/typescript test
+```
+
+[Just-in-time source revocation, SDK integration and strict limits](docs/PROTECTED-EVIDENCE-USE.md).
+**The permit does not evaluate the answer's semantic correctness and
+cannot control external applications that bypass this gate.**
+
 ### Owner source controls reach the policy boundary
 
 Beyond suppressing private search hits, Studio now offers a **server-side governed candidate check**: an authorized Drive user selects an indexed source and an approved PackSpec requirement for the active service/environment. The registry checks the *actual owner-controlled index*, source revision, anchor and source-exclusion status against the server-resolved PackSpec. Excluded sources return `REFUSE`. Included-but-unreviewed sources return `INCONCLUSIVE`, not `ADMIT`, because semantic support and source provenance have not been independently authenticated.
