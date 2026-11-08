@@ -164,6 +164,25 @@ bypass the gateway unless all output is routed through it.
 
 [Server-buffered gateway demonstration](PROTECTED-RESPONSE-GATEWAY.md).
 
+### From authorized evidence to exact source-anchored answers
+
+An optional `grounded-deliver` mode removes unrestricted AI
+paraphrasing from the output route. QualityRAG uses the
+**current original Google bytes** and all human-reviewed
+`SUPPORTS` witness anchors from the bound PackSpec to generate
+a deterministic extract. Adjacent lines are labeled as unreviewed
+context; all signed requirements must be represented. Unsupported
+or omitted exceptions with explicit PackSpec requirements block
+release.
+
+This establishes exact **signed-anchor preservation** and
+requirement coverage within the human-reviewed witness set,
+**not full-document sufficiency, publisher truth, or natural-language
+entailment**. Studio shows source-grounded releases separately
+from free-form buffered responses.
+
+[Source-anchored proof, adversarial cases and remaining unknowns](SOURCE-GROUNDED-ANSWERS.md).
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
