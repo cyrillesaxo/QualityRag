@@ -109,6 +109,13 @@ test('governed Drive candidates fail closed on owner exclusion, stale revisions,
    assert.equal(excluded.body.result,'REFUSE');
    assert.equal(excluded.body.counters.ownerExcluded,1);
    assert.equal(excluded.body.observations[0].reasons[0],'SOURCE_EXCLUDED_BY_OWNER');
+   now+=61*60*1000;
+   assert.equal((await request('POST',checkPath,'alice',input(candidate)))
+     .body.observations[0].reasons[0],'SOURCE_EXCLUDED_BY_OWNER');
+   assert.equal((await request('POST',checkPath,'alice',
+     input({...candidate,revision:'0'.repeat(64)})))
+     .body.observations[0].reasons[0],'SOURCE_EXCLUDED_BY_OWNER');
+   now-=61*60*1000;
    // An attacker cannot override exclusion by including arbitrary evidence fields.
    assert.equal((await request('POST',checkPath,'alice',{
      ...input(candidate),override:true})).status,400);
