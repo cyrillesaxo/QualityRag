@@ -13,7 +13,7 @@ function permit(answer,requestId){
    answerSemanticsVerified:false,globalEnforcement:false,externallyAnchored:false,
    receipt:{schema:'qualityrag.protected-decision-use/v1',
      permission:'PERMIT_SIGNED_ASSERTION_USE',decisionId,requestId,
-     answerSha256:digest(answer),policySha256:'a'.repeat(64),
+     answerSha256:digest(answer),deliveryMode:'SERVER_BUFFERED_RELEASE',policySha256:'a'.repeat(64),
      checkedAt:new Date().toISOString(),at:new Date().toISOString(),
      receiptId,chainHash:'b'.repeat(64),globalEnforcement:false,
      answerSemanticsVerified:false,independentPublisherVerified:false,
