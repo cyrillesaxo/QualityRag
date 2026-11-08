@@ -182,8 +182,15 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        if(!evidenceServices?.has(input.serviceId+'@'+input.environment))
          return reply(res,403,{error:'EVIDENCE_SCOPE_FORBIDDEN'});
        const governed=await store.resolve(input.serviceId,input.environment);
-       return reply(res,200,driveIndex.checkGovernedCandidates(actor,
-         driveManager.status(actor),governed.policy,governed.sha256,input.candidates));
+       const result=driveIndex.checkGovernedCandidates(actor,
+         driveManager.status(actor),governed.policy,governed.sha256,input.candidates);
+       const receipt=evidenceLedger?.recordCandidateCheck(
+         input.serviceId,input.environment,actor,governed.sha256,result);
+       return reply(res,200,{...result,telemetry:{
+         recorded:!!receipt,receiptId:receipt?.id||null,
+         chainHash:receipt?.chainHash||null,externallyAnchored:false,
+         scope:'REGISTRY_EVENT_ONLY'
+       }});
      }
      if(req.method==='POST'&&url.pathname==='/v1/drives/google/sync'){
        if(!driveIndex)return reply(res,404,{error:'DRIVE_INDEX_DISABLED'});
