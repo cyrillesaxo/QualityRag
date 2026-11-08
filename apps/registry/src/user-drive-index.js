@@ -145,9 +145,8 @@ export class UserDriveIndex {
   // Atomic replacement prunes removed/deleted sources on each successful resync.
   // Search rejects a changed account/folder even if an old index remains on disk.
   const latest=connector.status(subject);
-  check(this.generations.get(ownerKey)===undefined?
-      startGeneration===0:this.generations.get(ownerKey)===startGeneration,
-      'DRIVE_SYNC_INVALIDATED');
+  check((this.generations.get(ownerKey)||0)===startGeneration,
+    'DRIVE_SYNC_INVALIDATED');
   check(latest.connected&&latest.email===connection.email&&
     latest.folderId===connection.folderId,'DRIVE_SYNC_INVALIDATED');
   this.save(subject,snapshot);
