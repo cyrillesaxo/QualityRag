@@ -30,6 +30,7 @@ function fail(res,error) {
      ['DRIVE_STORAGE_INTEGRITY_FAILURE','DRIVE_INDEX_INTEGRITY_FAILURE'].includes(safe)?503:
      ['DRIVE_AUTHORIZATION_REQUIRED','DRIVE_FOLDER_NOT_CONFIGURED',
        'DRIVE_SYNC_IN_PROGRESS','DRIVE_SYNC_INVALIDATED'].includes(safe)?409:
+     safe==='DRIVE_CHALLENGE_RATE_LIMITED'?429:
      ['DRIVE_RATE_LIMITED','GOOGLE_DRIVE_UNAVAILABLE'].includes(safe)?502:400;
    return reply(res,status,{error:safe});
  }
