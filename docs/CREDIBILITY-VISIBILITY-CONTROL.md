@@ -129,6 +129,23 @@ must integrate this protected route before asserting global enforcement.
 
 **[Human signing, verification, and limitations](PROTECTED-HUMAN-REVIEW-ADMISSION.md)**.
 
+### Historic proof versus permission to use evidence now
+
+The protected use-check requires **current** owner permissions, selected
+Drive folder, exact live source bytes, the approved PackSpec and
+two still-trusted human-review signatures before a historical
+`ADMIT` can be used in a new request. It binds each returned
+permit to a unique request ID and the SHA-256 of the proposed
+answer. Changes to source exclusions, document bytes, policy or
+Drive access prevent the old receipt being used.
+
+Studio shows successful live-use checks separately from past
+admissions, and the TypeScript SDK includes a fail-closed
+delivery helper. **The actual answer text is not semantically checked**,
+and applications outside this registry can ignore the check.
+
+[Use-check enforcement and truthful boundaries](PROTECTED-EVIDENCE-USE.md).
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
