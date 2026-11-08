@@ -75,11 +75,20 @@ If both lines are human-reviewed `SUPPORTS` witnesses bound to
 distinct PackSpec obligations, the deterministic extract contains
 both lines **verbatim** and their source anchors.
 
-If the reviewer signs only line 1, the adjacent line 2 is still
-displayed as **unreviewed context**, but the system cannot assert
-that all exceptions were captured. If the policy has an explicit
-`exception` requirement and no corresponding signed witness,
-the extract is **refused**.
+If the reviewer signs only line 1 and line 2 contains an
+unreviewed `Except` marker, the **new file-wide lexical
+preflight refuses extraction** and shows the location as a
+review candidate. After a new signed human review covers the
+exception, the exact reviewed line can appear in the extract
+with adjacent context.
+
+This is not a complete solution to missing exceptions:
+implicit conditions, semantic swaps, distant contradictions
+without a recognized marker, or relevant text in unreferenced
+files remain outside the scanner's demonstrated coverage.
+If the policy requires a separate `exception` obligation
+without a corresponding signed witness, the extract is also
+**refused**.
 
 The response makes these distinctions machine-readable:
 
