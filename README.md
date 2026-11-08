@@ -73,6 +73,25 @@ QualityRAG Studio's evidence-assurance promise is **inspectable source coverage,
 
 [Customer visibility and control acceptance contract](docs/CREDIBILITY-VISIBILITY-CONTROL.md)
 
+### Protected services: visible, fail-closed evidence ingress
+
+An administrator can explicitly opt a service/environment into
+`QUALITYRAG_PROTECTED_DRIVE_SERVICES`. The registry then **rejects every
+unreviewed generic evidence submission** for that scope and records a
+metadata-only denial in the local evidence ledger. Studio shows the protection
+mode, blocked-attempt count, and remaining enforcement limits. A ledger
+activation marker blocks a silent downgrade on restart.
+
+```sh
+npm --prefix apps/registry install
+npm --prefix apps/registry run protection:demo
+```
+
+**[Protection setup, security boundaries and customer acceptance test](docs/PROTECTED-DRIVE-INGRESS.md)**.
+This deliberately prevents an unverified `ADMIT`, but **does not yet provide
+an authenticated, semantically reviewed production admission path** or govern
+external inference applications.
+
 ### Owner source controls reach the policy boundary
 
 Beyond suppressing private search hits, Studio now offers a **server-side governed candidate check**: an authorized Drive user selects an indexed source and an approved PackSpec requirement for the active service/environment. The registry checks the *actual owner-controlled index*, source revision, anchor and source-exclusion status against the server-resolved PackSpec. Excluded sources return `REFUSE`. Included-but-unreviewed sources return `INCONCLUSIVE`, not `ADMIT`, because semantic support and source provenance have not been independently authenticated.
