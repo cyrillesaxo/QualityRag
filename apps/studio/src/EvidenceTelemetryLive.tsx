@@ -96,7 +96,7 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
    <p role="status" style={{fontSize:13,color:forest}}>{status}</p>
    {records.length===0 ? <div style={panel}><strong>No telemetry events shown.</strong>
      <p>To collect one, configure the local registry ledger and send a scoped evaluation event with opaque source and origin tokens. The synthetic demonstrations below are not observations from customers.</p></div>
-   :<div className="columns" style={{gridTemplateColumns:'minmax(220px,1fr) minmax(350px,2fr)',gap:15}}>
+   :<div className="columns" style={{gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,330px),1fr))',gap:15}}>
       <div style={panel}>
         <h3 style={{marginTop:0}}>Recorded evaluations</h3>
         {records.map(r=><button type="button" key={r.id} aria-pressed={selected===r.id}
