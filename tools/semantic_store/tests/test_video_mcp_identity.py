@@ -50,7 +50,7 @@ class IdentityIsolationTests(unittest.TestCase):
                     "QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"video-a,video-b",
                     "QUALITYRAG_VIDEO_MCP_ALLOWED_HOSTS":"testserver",
                     "QUALITYRAG_VIDEO_MCP_ISSUER":"https://issuer.example",
-                    "QUALITYRAG_VIDEO_MCP_AUDIENCE":"qualityrag-video",
+                    "QUALITYRAG_VIDEO_MCP_AUDIENCE":"https://video.example.test/mcp",
                     "QUALITYRAG_VIDEO_MCP_JWKS_FILE":str(key_file),
                     "QUALITYRAG_VIDEO_MCP_ACL_FILE":str(acl_file),
                 }
@@ -59,7 +59,7 @@ class IdentityIsolationTests(unittest.TestCase):
                     now=int(time.time())
                     return jwt.encode({
                         "sub":subject,"iss":"https://issuer.example",
-                        "aud":"qualityrag-video","iat":now,"exp":now+300,
+                        "aud":"https://video.example.test/mcp","iat":now,"exp":now+300,
                         "scope":"video:read"},private,algorithm="RS256",
                         headers={"kid":"test"})
                 def hdr(subject):
