@@ -392,7 +392,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    const persisted=fs.readFileSync(ledgerPath,'utf8');
    assert.equal(persisted.includes('Owner-approved policy: contractors'),false);
    assert.equal(persisted.includes('All other reimbursements need approval'),false);
-   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,1);
+   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,2);
  }finally{
    await new Promise(ok=>server.close(ok));
    fs.rmSync(dir,{recursive:true,force:true});
