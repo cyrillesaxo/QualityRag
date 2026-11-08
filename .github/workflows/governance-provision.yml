@@ -1,0 +1,99 @@
+name: Governance API isolated host provisioning
+on:
+  pull_request:
+    paths:
+      - "tools/activation_runtime/deploy/provision_digitalocean.py"
+      - "tools/activation_runtime/deploy/test_provision_digitalocean.py"
+      - ".github/workflows/governance-provision.yml"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Plan without charges, or explicitly create a paid host"
+        type: choice
+        required: true
+        default: plan
+        options:
+          - plan
+          - provision
+      admin_ipv4_cidr:
+        description: "Public administrator SSH IPv4 address /32 (not 0.0.0.0/0)"
+        type: string
+        required: true
+      ssh_key_fingerprint:
+        description: "Existing, user-controlled SSH key fingerprint in DigitalOcean"
+        type: string
+        required: true
+      confirmation:
+        description: "For provision only, type CREATE_12_USD_MONTH_HOST"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualityrag-isolated-governance-host
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile and test provisioning safety
+        run: |
+          python -m py_compile tools/activation_runtime/deploy/provision_digitalocean.py
+          python -m unittest discover -s tools/activation_runtime/deploy -p test_provision_digitalocean.py -v
+
+  operator-run:
+    if: github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      ADMIN_IPV4_CIDR: ${{ inputs.admin_ipv4_cidr }}
+      QUALITYRAG_SSH_FINGERPRINT: ${{ inputs.ssh_key_fingerprint }}
+      DIGITALOCEAN_API_TOKEN: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Require explicit production-branch authorization for any paid creation
+        shell: bash
+        env:
+          REQUESTED_ACTION: ${{ inputs.action }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [ "$REQUESTED_ACTION" = "provision" ]; then
+            if [ "$GITHUB_REF" != "refs/heads/main" ] || [ "$CONFIRMATION" != "CREATE_12_USD_MONTH_HOST" ]; then
+              echo "::error::Provisioning requires main and the exact explicit monthly-cost confirmation"
+              exit 1
+            fi
+            if [ -z "$DIGITALOCEAN_API_TOKEN" ]; then
+              echo "::error::DIGITALOCEAN_API_TOKEN is missing; add it as an Actions secret"
+              exit 1
+            fi
+          fi
+      - name: Print no-charge private host deployment plan
+        if: inputs.action == 'plan'
+        run: python tools/activation_runtime/deploy/provision_digitalocean.py --plan
+      - name: Provision a paid, unconfigured, firewall-restricted host
+        if: inputs.action == 'provision'
+        run: python tools/activation_runtime/deploy/provision_digitalocean.py --provision
+      - name: Record readiness boundary
+        shell: bash
+        run: |
+          {
+            echo '## QualityRAG governance API hosting'
+            echo ''
+            echo 'Provisioning creates only a hardened host, not a working API.'
+            echo 'Netlify remains unconnected until private trust keys, TLS hostname,'
+            echo 'isolated service, signed read token and backend smoke are verified.'
+            echo 'Cost for an actually provisioned host: 12 USD/month base compute;'
+            echo 'additional usage/IPv4 charges may apply.'
+          } >> "$GITHUB_STEP_SUMMARY"
