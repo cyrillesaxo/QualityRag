@@ -67,7 +67,8 @@ class RemoteSecurityTests(unittest.TestCase):
 
     def test_origin_validation_fails_closed(self):
         with tempfile.TemporaryDirectory() as root:
-            env={"QUALITYRAG_VIDEO_ROOT":root,"QUALITYRAG_VIDEO_MCP_TOKEN":TOKEN,\n                 "QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1"}
+            env={"QUALITYRAG_VIDEO_ROOT":root,"QUALITYRAG_VIDEO_MCP_TOKEN":TOKEN,
+                 "QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1"}
             for origin in ["*", "http://example.com","https://example.com/path"]:
                 with self.assertRaises(RemoteConfigurationError):
                     _config({**env,"QUALITYRAG_VIDEO_MCP_ALLOWED_ORIGINS":origin})
