@@ -84,6 +84,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        const entry=evidenceLedger.snapshot(parts[3]);
        authorize(entry.serviceId,entry.environment);
        if(req.method==='GET'&&parts.length===4)return reply(res,200,entry);
+       if(req.method==='GET'&&parts[4]==='export')
+         return reply(res,200,evidenceLedger.exportReplay(parts[3]));
        if(req.method==='POST'&&parts[4]==='replay')return reply(res,200,evidenceLedger.replay(parts[3]));
        if(req.method==='POST'&&parts[4]==='reviews')
          return reply(res,201,evidenceLedger.review(parts[3],await body(req),actor));
