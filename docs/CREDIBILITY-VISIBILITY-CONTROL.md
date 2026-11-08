@@ -146,6 +146,24 @@ and applications outside this registry can ignore the check.
 
 [Use-check enforcement and truthful boundaries](PROTECTED-EVIDENCE-USE.md).
 
+### Output release is part of the controlled boundary
+
+For applications that choose a customer-hosted registry, the
+buffered response gateway holds the full draft until the same
+owner/PackSpec/live-source check succeeds, then returns that
+exact draft and a matching use receipt in a single response.
+Denied requests never echo the draft. Studio shows both a
+privacy-preserving digest-only path and an **explicitly opt-in**
+plaintext buffered path.
+
+The customer can compare successful server-buffered
+authorization counts with digest-only use checks. These are
+**issued authorization events**, not proven delivery or
+model-answer correctness. External applications can still
+bypass the gateway unless all output is routed through it.
+
+[Server-buffered gateway demonstration](PROTECTED-RESPONSE-GATEWAY.md).
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
