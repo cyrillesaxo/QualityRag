@@ -24,7 +24,7 @@ async def request(app, headers, scope_type="http"):
 class RemoteSecurityTests(unittest.TestCase):
     def test_rejects_missing_short_token_and_nonloopback_binding(self):
         with tempfile.TemporaryDirectory() as root:
-            base={"QUALITYRAG_VIDEO_ROOT":root}
+            base={"QUALITYRAG_VIDEO_ROOT":root,"QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1"}
             with self.assertRaises(RemoteConfigurationError):
                 _config(base)
             with self.assertRaises(RemoteConfigurationError):
@@ -33,6 +33,16 @@ class RemoteSecurityTests(unittest.TestCase):
                 _config({**base,"QUALITYRAG_VIDEO_MCP_TOKEN":TOKEN,
                          "QUALITYRAG_VIDEO_MCP_HOST":"0.0.0.0"})
             self.assertEqual(_config({**base,"QUALITYRAG_VIDEO_MCP_TOKEN":TOKEN})["host"],"127.0.0.1")
+
+    def test_explicit_source_scope_required_and_validated(self):
+        with tempfile.TemporaryDirectory() as root:
+            base={"QUALITYRAG_VIDEO_ROOT":root,"QUALITYRAG_VIDEO_MCP_TOKEN":TOKEN}
+            with self.assertRaisesRegex(RemoteConfigurationError,"source allowlist"):
+                _config(base)
+            with self.assertRaises(RemoteConfigurationError):
+                _config({**base,"QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"../other"})
+            scoped=_config({**base,"QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1,lesson-2"})
+            self.assertEqual(scoped["source_ids"],frozenset({"lesson-1","lesson-2"}))
 
     def test_bearer_gate_checks_token_and_origin_before_dispatch(self):
         async def behind(scope,receive,send):
@@ -57,7 +67,7 @@ class RemoteSecurityTests(unittest.TestCase):
 
     def test_origin_validation_fails_closed(self):
         with tempfile.TemporaryDirectory() as root:
-            env={"QUALITYRAG_VIDEO_ROOT":root,"QUALITYRAG_VIDEO_MCP_TOKEN":TOKEN}
+            env={"QUALITYRAG_VIDEO_ROOT":root,"QUALITYRAG_VIDEO_MCP_TOKEN":TOKEN,\n                 "QUALITYRAG_VIDEO_MCP_ALLOWED_SOURCE_IDS":"lesson-1"}
             for origin in ["*", "http://example.com","https://example.com/path"]:
                 with self.assertRaises(RemoteConfigurationError):
                     _config({**env,"QUALITYRAG_VIDEO_MCP_ALLOWED_ORIGINS":origin})
