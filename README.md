@@ -102,6 +102,27 @@ npm --prefix apps/registry run admission:demo
 The pilot supports one asserted origin per requirement and does not claim original
 publication freshness; stronger PackSpecs fail closed.
 
+### Distant constraints must be reviewed before extraction
+
+A line-preserving extract can still omit an exception hidden elsewhere
+in the same file. The protected gateway now scans **all live-verified
+lines in each referenced source file** for bounded markers such as
+`except`, `unless`, `subject to` and `notwithstanding`.
+Unreviewed matches **block extraction**, even when the primary
+evidence has two valid human signatures.
+
+Studio's `sufficiency-check` displays the opaque source ID,
+line number and signal category without copying source passages
+to the report. Metadata-only denial telemetry distinguishes
+these blocks from successful grounded releases.
+
+**This is a lexical review trigger, not semantic completeness
+or a whole-corpus scan.** False positives and missing meaningful
+conditions without marker words are expected.
+
+[Constraint-signal sufficiency preflight, reproducible examples and
+negative results](docs/CONSTRAINT-SIGNAL-SUFFICIENCY.md).
+
 ### Source-grounded answers: preserve wording and visible exceptions
 
 The registry now offers a **strict extractive** alternative to
