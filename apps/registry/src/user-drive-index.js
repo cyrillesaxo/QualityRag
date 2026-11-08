@@ -91,7 +91,14 @@ export class UserDriveIndex {
   return {indexed:true,sourceCount:snap.entries.length,lastSyncedAt:snap.syncedAt,
     syncStatus:age>=MAX_AGE_MS?'STALE':'READY',
     coverage:snap.coverage,summary:snap.summary,
-    sourceScope:'single selected Google Drive folder',semantics:'BOUNDED_LEXICAL_ONLY'};
+    sourceControls:{
+      searchable:snap.entries.filter(e=>e.searchEnabled!==false).length,
+      excluded:snap.entries.filter(e=>e.searchEnabled===false).length,
+      reviewedForGovernance:0
+    },
+    sourceScope:'single selected Google Drive folder',semantics:'BOUNDED_LEXICAL_ONLY',
+    sourceTruth:'UNVERIFIED',packSpecAdmission:'NOT_PERFORMED',
+    activityLogScope:'LOCAL_UNATTESTED'};
  }
  async sync(subject,connector){
   const ownerKey=this.location(subject);
@@ -109,15 +116,25 @@ export class UserDriveIndex {
   const supported=listing.files.filter(f=>connector.supportsText(f.mimeType));
   check(supported.length<=MAX_DOCS,'DRIVE_SYNC_TOO_MANY_TEXT_FILES');
   const entries=[];
+  // Preserve owner exclusions across source revisions and successful resyncs,
+  // but only for this same authenticated account and selected folder.
+  const prior=this.bound(subject,connection);
+  const oldControls=new Map((prior?.entries||[]).map(e=>[e.fileId,e.searchEnabled!==false]));
+  const inventory=listing.files.map(f=>({
+    name:boundedName(f.name),mimeType:f.mimeType,
+    status:connector.supportsText(f.mimeType)?'PENDING':'UNSUPPORTED'
+  }));
   const summary={listed:listing.files.length,eligible:supported.length,
     unsupported:listing.files.length-supported.length,indexed:0,failed:0,
     excludedEmpty:0,tooLarge:0,truncatedLines:0};
   let total=0;
   for(const file of supported){
+    const auditRow=inventory.find(x=>x.name===boundedName(file.name)&&
+      x.mimeType===file.mimeType&&x.status==='PENDING');
     try{
       const bytes=await connector.downloadSelectedText(subject,file.id,connection.folderId,
         MAX_PER_FILE);
-      if(!bytes.length){summary.excludedEmpty++;continue}
+      if(!bytes.length){summary.excludedEmpty++;if(auditRow)auditRow.status='EMPTY';continue}
       if(total+bytes.length>MAX_TOTAL)stop('DRIVE_INDEX_TOTAL_LIMIT');
       const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
       const lines=text.replace(/\r\n?/g,'\n').split('\n');
@@ -126,13 +143,20 @@ export class UserDriveIndex {
       entries.push({fileRef:sha('drive:'+file.id),fileId:file.id,
         name:boundedName(file.name),
         mimeType:file.mimeType,revision:sha(bytes),
-        sourceId:'google_drive/'+sha(subject+':'+file.id).slice(0,32),
+        sourceId:'google_drive/'+createHmac('sha256',this.key)
+          .update('qualityrag.source/v1:'+subject+':'+file.id).digest('hex').slice(0,32),
+        searchEnabled:oldControls.get(file.id)??true,
         lines:lines.slice(0,6000).map(line=>line.slice(0,1200))});
+      if(auditRow){auditRow.status=lines.length>6000||lines.some(line=>line.length>1200)?
+        'TRUNCATED':'INDEXED';}
       total+=bytes.length;summary.indexed++;
     }catch(error){
       if(error?.message==='DRIVE_INDEX_TOTAL_LIMIT')throw error;
-      if(error?.message==='DRIVE_SOURCE_TOO_LARGE')summary.tooLarge++;
-      else summary.failed++;
+      if(error?.message==='DRIVE_SOURCE_TOO_LARGE'){
+        summary.tooLarge++;if(auditRow)auditRow.status='TOO_LARGE';
+      }else{
+        summary.failed++;if(auditRow)auditRow.status='FAILED';
+      }
     }
   }
   // An empty/failed scan replaces the previous snapshot; never keep revoked
@@ -140,7 +164,9 @@ export class UserDriveIndex {
   const snapshot={schema:'qualityrag.user-drive-text-index/v1',
     account:connection.email,folderId:connection.folderId,
     syncedAt:new Date(this.now()).toISOString(),
-    summary,coverage:summary.unsupported||summary.failed||summary.tooLarge||summary.excludedEmpty||summary.truncatedLines?
+    summary,inventory,
+    controlHistory:(prior?.controlHistory||[]).slice(-100),
+    coverage:summary.unsupported||summary.failed||summary.tooLarge||summary.excludedEmpty||summary.truncatedLines?
       'PARTIAL':'SELECTED_FOLDER_TEXT_FILES',entries};
   // Atomic replacement prunes removed/deleted sources on each successful resync.
   // Search rejects a changed account/folder even if an old index remains on disk.
@@ -158,6 +184,57 @@ export class UserDriveIndex {
     this.activeSyncs.delete(ownerKey);
   }
  }
+ visibility(subject,connection){
+  const snap=this.bound(subject,connection);
+  if(!snap)return {indexed:false,coverage:'UNKNOWN',sources:[],inventory:[],
+    activity:[],sourceTruth:'UNVERIFIED',packSpecAdmission:'NOT_PERFORMED'};
+  const age=this.now()-Date.parse(snap.syncedAt);
+  return {
+    indexed:true,lastSyncedAt:snap.syncedAt,
+    stale:!Number.isFinite(age)||age<0||age>MAX_AGE_MS,
+    account:connection.email,folderId:connection.folderId,
+    scope:'ONE_SELECTED_FOLDER_DIRECT_CHILDREN',
+    coverage:snap.coverage,summary:snap.summary,
+    sourceTruth:'UNVERIFIED',packSpecAdmission:'NOT_PERFORMED',
+    activityLogScope:'LOCAL_UNATTESTED',
+    sources:snap.entries.map(e=>({
+      sourceId:e.sourceId,filename:e.name,mimeType:e.mimeType,
+      revision:e.revision,lineCount:e.lines.length,
+      searchable:e.searchEnabled!==false,
+      evidenceStatus:'NOT_REVIEWED',
+      provenanceStatus:'CALLER_DECLARED_NOT_VERIFIED'
+    })),
+    inventory:snap.inventory||[],
+    activity:(snap.controlHistory||[]).slice(-30).reverse()
+  };
+ }
+ controlSource(subject,connection,input){
+  check(input&&!Array.isArray(input)&&typeof input==='object'&&
+    Object.keys(input).length===3&&Object.hasOwn(input,'sourceId')&&
+    Object.hasOwn(input,'searchable')&&Object.hasOwn(input,'reason'),
+    'INVALID_DRIVE_SOURCE_CONTROL');
+  check(typeof input.sourceId==='string'&&
+    /^google_drive\\/[a-f0-9]{32}$/.test(input.sourceId)&&
+    typeof input.searchable==='boolean'&&
+    ['OWNER_SELECTION','SENSITIVE','OUT_OF_SCOPE','NEEDS_REVIEW'].includes(input.reason),
+    'INVALID_DRIVE_SOURCE_CONTROL');
+  const location=this.location(subject);
+  check(!this.activeSyncs.has(location),'DRIVE_SYNC_IN_PROGRESS');
+  const snap=this.bound(subject,connection);
+  check(snap,'DRIVE_INDEX_NOT_FOUND');
+  const item=snap.entries.find(e=>e.sourceId===input.sourceId);
+  check(item,'DRIVE_SOURCE_NOT_FOUND');
+  const before=item.searchEnabled!==false;
+  if(before===input.searchable)return {changed:false,visibility:this.visibility(subject,connection)};
+  item.searchEnabled=input.searchable;
+  snap.controlHistory=[...(snap.controlHistory||[]),{
+    at:new Date(this.now()).toISOString(),
+    sourceId:item.sourceId,action:input.searchable?'INCLUDE':'EXCLUDE',
+    reason:input.reason
+  }].slice(-100);
+  this.save(subject,snap);
+  return {changed:true,visibility:this.visibility(subject,connection)};
+ }
  search(subject,connection,query){
   check(typeof query==='string'&&query.trim().length>1&&query.length<=MAX_QUERY,
     'INVALID_DRIVE_SEARCH_QUERY');
@@ -170,6 +247,7 @@ export class UserDriveIndex {
     return {hits:[],indexed:true,coverage:'STALE',reason:'SYNC_REQUIRED',lastSyncedAt:snap.syncedAt};
   const hits=[];
   for(const source of snap.entries){
+    if(source.searchEnabled===false)continue;
     for(let line=0;line<source.lines.length;line++){
       const original=source.lines[line],lower=original.toLowerCase();
       if(!tokens.every(term=>lower.includes(term)))continue;
