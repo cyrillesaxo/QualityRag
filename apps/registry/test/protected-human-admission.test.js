@@ -208,7 +208,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      {...deliveryInput,override:true},
      {requestId:'no-answer',answer:''},
      {requestId:'too-big',answer:'X'.repeat(16385)},
-     {requestId:'injected',answer:deliveryText+'\\u0000'}
+     {requestId:'injected',answer:deliveryText+String.fromCharCode(0)}
    ]){
      const denied=await request('POST',deliverPath,'owner',invalid);
      assert.notEqual(denied.status,200);
