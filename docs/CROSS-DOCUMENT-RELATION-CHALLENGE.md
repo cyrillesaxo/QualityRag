@@ -28,7 +28,7 @@ Current full-line English forms (expanded bounded grammar):
 - "Payment from insurer to hospital is prohibited."
 - "Payment from insurer to hospital is required."
 
-The parser recognizes single-token actor labels and normalizes explicit\n`receives payment from` / `payment from ... to ... is required|prohibited`\ninto payer/payee role slots. This is a *functional-sister grammar\nexpansion*, not a general semantic similarity system. It also recognizes `must pay`,
+The parser recognizes bounded one-to-three-word actor labels and normalizes explicit\n`receives payment from` / `payment from ... to ... is required|prohibited`\ninto payer/payee role slots. This is a *functional-sister grammar\nexpansion*, not a general semantic similarity system. It also recognizes `must pay`,
 `shall pay`, `pays`, `must not pay`, `shall not pay`, or
 `does not pay`. It normalizes case and detects two categories
 when the matching assertions are from **different files**:
@@ -170,7 +170,7 @@ graph-relationship transfer across multiple domains with
 adversarial, cross-lingual and implicit-relation examples.
 Promote a grammar change only when independent tests establish
 better consequential-change recall without an unacceptable
-false-block rate. The v0.2 candidate adds regression tests for role-equivalent receipt phrases,\nnegative payment-from assertions, and unsupported conditional/transfer\nparaphrases. The candidate does not parse multi-token entities,\nconditional receipt or payment time windows, and can generate false\npositives when reciprocal payments represent distinct transactions.\n\nThe present implementation is **one constrained
+false-block rate. The v0.2 candidate adds regression tests for role-equivalent receipt phrases,\nnegative payment-from assertions, and unsupported conditional/transfer\nparaphrases. The candidate does not parse entities longer than three tokens, aliases,\nconditional receipt or payment time windows, and can generate false\npositives when reciprocal payments represent distinct transactions.\n\nThe present implementation is **one constrained
 pattern family**, not validated FF-RCT semantic transfer.
 
 **Commercially credible statement:**
@@ -186,14 +186,14 @@ Run `node --test apps/registry/test/semantic-role-benchmark.test.js`
 from the repository root after installing registry dependencies if required.
 
 This deliberately small, synthetic 12-pair corpus separates:
-- **Four supported challenge pairs:** direct inversion, receipt inversion,
-  prohibited payment, and direct payment negation.
+- **Five supported challenge pairs:** direct inversion, receipt inversion,
+  prohibited payment, direct payment negation, and multiword actor inversion.
 - **Four supported harmless pairs:** equivalent receipt, equivalent
   required payment, distinct payer, and distinct payee.
 - **Four unsupported negative witnesses:** transfer paraphrase,
   conditional assertion, multi-token organizations, and passive voice.
 
-The test requires 4/4 supported challenges, 0/4 false blocks for
+The test requires 5/5 supported challenges, 0/4 false blocks for
 supported harmless pairs, and explicitly confirms that all four
 unsupported cases remain unrecognized. These are not estimates of
 production recall or precision. The negatives are intentionally
