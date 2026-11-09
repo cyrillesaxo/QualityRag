@@ -1,0 +1,26 @@
+name: Protected admission HTTP boundary
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/protected-admission-route.js'
+      - 'apps/registry/src/server.js'
+      - 'apps/registry/test/protected-admission-route.test.js'
+      - '.github/workflows/protected-admission-route.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  protected-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
+      - name: Validate scoped admission and denial without leaking source
+        run: |
+          node --check apps/registry/src/protected-admission-route.js
+          node --check apps/registry/src/server.js
+          node --test apps/registry/test/protected-admission-route.test.js apps/registry/test/protected-review-verifier-isolated.test.js apps/registry/test/scoped-drive-control.test.js
