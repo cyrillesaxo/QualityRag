@@ -5,6 +5,7 @@ import {RegistryStore} from './store.js';
 import {createPgSignedRegistryStore} from './pg-store.js';
 import {loadTrustedPolicyKeys} from './signed.js';
 import {createOidcAuthenticator,permissionFor} from './oidc.js';
+import {handleScopedDriveControl} from './scoped-drive-control.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -22,9 +23,12 @@ async function body(req) {
  }
  try {return JSON.parse(txt)}catch{throw new Error('INVALID_JSON')}
 }
-export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedContractKeys=new Map(),authenticate=null,enforceSeparation=false}={}) {
+export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedContractKeys=new Map(),authenticate=null,enforceSeparation=false,
+  driveManager=null,driveIndex=null}={}) {
  if (!authenticate && !token) throw new Error('REGISTRY_TOKEN_REQUIRED');
  if(enforceSeparation && !authenticate)throw new Error('AUTHENTICATED_APPROVAL_REQUIRED');
+ if((driveManager||driveIndex)&&(!authenticate||!driveManager||!driveIndex))
+  throw new Error('DRIVE_REQUIRES_OIDC_AND_INDEX');
  return async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
   if (url.pathname==='/health') return reply(res,200,{ok:true,service:'qualityrag-registry'});
@@ -50,6 +54,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
    actor=identity.subject;
   }else if(provided!== 'Bearer '+token)return reply(res,401,{error:'UNAUTHORIZED'});
   try {
+   if(await handleScopedDriveControl(req,res,{pathname:url.pathname,actor,
+      authenticate,driveManager,driveIndex,parseBody:body}))return;
    if(req.method==='GET'&&url.pathname==='/v1/state'){
     return reply(res,200,store.state?await store.state():{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings),contractPromotions:Object.values(store.data.contractPromotions).map(({envelope,...summary})=>summary),contractBindings:Object.values(store.data.contractBindings)});
    }
