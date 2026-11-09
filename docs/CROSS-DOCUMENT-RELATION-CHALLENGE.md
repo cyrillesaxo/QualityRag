@@ -28,7 +28,10 @@ Current full-line English forms (expanded bounded grammar):
 - "Payment from insurer to hospital is prohibited."
 - "Payment from insurer to hospital is required."
 
-The parser recognizes bounded one-to-three-word actor labels and normalizes explicit\n`receives payment from` / `payment from ... to ... is required|prohibited`\ninto payer/payee role slots. This is a *functional-sister grammar\nexpansion*, not a general semantic similarity system. It also recognizes `must pay`,
+The parser recognizes bounded one-to-three-word actor labels and normalizes explicit
+`receives payment from` / `payment from ... to ... is required|prohibited`
+into payer/payee role slots. This is a *functional-sister grammar
+expansion*, not a general semantic similarity system. It also recognizes `must pay`,
 `shall pay`, `pays`, `must not pay`, `shall not pay`, or
 `does not pay`. It normalizes case and detects two categories
 when the matching assertions are from **different files**:
@@ -170,7 +173,13 @@ graph-relationship transfer across multiple domains with
 adversarial, cross-lingual and implicit-relation examples.
 Promote a grammar change only when independent tests establish
 better consequential-change recall without an unacceptable
-false-block rate. The v0.2 candidate adds regression tests for role-equivalent receipt phrases,\nnegative payment-from assertions, and unsupported conditional/transfer\nparaphrases. The candidate does not parse entities longer than three tokens, aliases,\nconditional receipt or payment time windows, and can generate false\npositives when reciprocal payments represent distinct transactions.\n\nThe present implementation is **one constrained
+false-block rate. The bounded role grammar adds regression tests for role-equivalent receipt phrases,
+negative payment-from assertions, and unsupported conditional/transfer
+paraphrases. The candidate does not parse entities longer than three tokens, aliases,
+conditional receipt or payment time windows, and can generate false
+positives when reciprocal payments represent distinct transactions.
+
+The present implementation is **one constrained
 pattern family**, not validated FF-RCT semantic transfer.
 
 **Commercially credible statement:**
@@ -190,11 +199,11 @@ This deliberately small, synthetic 12-pair corpus separates:
   prohibited payment, direct payment negation, and multiword actor inversion.
 - **Four supported harmless pairs:** equivalent receipt, equivalent
   required payment, distinct payer, and distinct payee.
-- **Four unsupported negative witnesses:** transfer paraphrase,
-  conditional assertion, multi-token organizations, and passive voice.
+- **Three unsupported negative witnesses:** transfer paraphrase,
+  conditional assertion, and passive voice.
 
 The test requires 5/5 supported challenges, 0/4 false blocks for
-supported harmless pairs, and explicitly confirms that all four
+supported harmless pairs, and explicitly confirms that all three
 unsupported cases remain unrecognized. These are not estimates of
 production recall or precision. The negatives are intentionally
 unrecognized to preserve evidence of gaps, not to celebrate misses.
@@ -215,3 +224,32 @@ The experiment should preserve regressions and the previous grammar
 as an explicit control. The first challenge for transfer is
 multiword and aliased entities plus time/scope qualification, not
 merely additional verb synonyms.
+
+## Explicit transaction applicability — v0.4 research increment
+
+A source line may have an exact `For transaction TX-001: ` prefix
+before a supported payment assertion. The candidate graph now labels
+cross-file role conflicts with one of:
+
+- `EXPLICIT_SAME_TRANSACTION`: both lines carry equal transaction labels,
+  comparing case-insensitively.
+- `EXPLICIT_DISTINCT_TRANSACTIONS`: the two explicit labels differ.
+- `TRANSACTION_SCOPE_UNESTABLISHED`: either label is absent.
+
+Identifiers are used **only internally** for the candidate comparison.
+The metadata response contains the applicability category and aggregate
+counts, never raw transaction IDs or actor names. A prefix is accepted
+only with a bounded alphanumeric/hyphen identifier and exact syntax.
+Unsupported or malformed context is not evidence of coverage.
+
+Crucially, **every relationship candidate still blocks grounded release**.
+Even two apparently distinct identifiers do not prove legal or semantic
+non-overlap: a single obligation might govern multiple transactions.
+This is a *triage attribute*, not authority verification or automatic
+conflict resolution. Effective dates, temporal overlap, jurisdiction,
+entity aliases, multi-transaction obligations, and true applicability
+adjudication remain unsolved.
+
+The new tests cover equal, distinct, missing and malformed transaction
+markers and absence of identifiers in returned metadata. Their execution
+must be verified on the latest PR head before release.
