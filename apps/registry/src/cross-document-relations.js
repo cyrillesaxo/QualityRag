@@ -7,6 +7,9 @@ const ACTOR=String.raw`[a-z][a-z-]{1,31}(?:\s+[a-z][a-z-]{1,31}){0,2}`;
 const REL=new RegExp(String.raw`^\s*(?:the\s+)?(${ACTOR})\s+(must pay|must not pay|pays|does not pay|shall pay|shall not pay)\s+(?:the\s+)?(${ACTOR})\s*[.!]?\s*$`,'i');
 const RECEIVES=new RegExp(String.raw`^\s*(?:the\s+)?(${ACTOR})\s+(receives|must receive|shall receive)\s+payment\s+from\s+(?:the\s+)?(${ACTOR})\s*[.!]?\s*$`,'i');
 const PAYMENT_FROM=new RegExp(String.raw`^\s*payment\s+from\s+(?:the\s+)?(${ACTOR})\s+to\s+(?:the\s+)?(${ACTOR})\s+(is required|is prohibited)\s*[.!]?\s*$`,'i');
+// Scope is parsed only from an explicit line-level marker; absent scope is unknown.
+// Transaction identifiers remain internal and never enter result metadata.
+const TRANSACTION=/^for transaction ([a-z0-9][a-z0-9-]{0,31}):\\s*(.+)$/i;
 const ACTION={
  'must pay':true,'pays':true,'shall pay':true,
  'must not pay':false,'does not pay':false,'shall not pay':false
@@ -14,16 +17,19 @@ const ACTION={
 function check(condition,code){if(!condition)throw Error(code)}
 function normalizeActor(value){return value.toLowerCase().replace(/\s+/g,' ').trim()}
 function extract(line){
- const direct=REL.exec(line);
- const received=direct?null:RECEIVES.exec(line);
- const payment=direct||received?null:PAYMENT_FROM.exec(line);
+ const scoped=TRANSACTION.exec(line);
+ const statement=scoped?scoped[2]:line;
+ const transaction=scoped?scoped[1].toLowerCase():null;
+ const direct=REL.exec(statement);
+ const received=direct?null:RECEIVES.exec(statement);
+ const payment=direct||received?null:PAYMENT_FROM.exec(statement);
  if(!direct&&!received&&!payment)return null;
  const from=normalizeActor(direct?direct[1]:received?received[3]:payment[1]);
  const to=normalizeActor(direct?direct[3]:received?received[1]:payment[2]);
  if(from===to)return null;
  const positive=direct?ACTION[direct[2].toLowerCase()]:
    received?true:payment[3].toLowerCase()==='is required';
- return {from,to,positive};
+ return {from,to,positive,transaction};
 }
 export function scanRelationshipConflicts({sources,witnesses,maxFindings=32}){
  check(Array.isArray(sources)&&sources.length>0&&sources.length<=40&&
@@ -64,6 +70,7 @@ export function scanRelationshipConflicts({sources,witnesses,maxFindings=32}){
  const findings=[];
  let candidateCount=0;
  const bothReviewed={count:0};
+ const scopeCounts={distinct:0,same:0,unknown:0};
  for(let a=0;a<edges.length;a++){
    for(let b=a+1;b<edges.length;b++){
      const x=edges[a],y=edges[b];
@@ -77,17 +84,25 @@ export function scanRelationshipConflicts({sources,witnesses,maxFindings=32}){
        reversed&&x.positive&&y.positive?
          'INVERSE_PAYER_PAYEE':null;
      if(!category)continue;
+     const applicability=x.transaction&&y.transaction?
+       (x.transaction===y.transaction?'EXPLICIT_SAME_TRANSACTION':
+        'EXPLICIT_DISTINCT_TRANSACTIONS'):'TRANSACTION_SCOPE_UNESTABLISHED';
+     if(applicability==='EXPLICIT_DISTINCT_TRANSACTIONS')scopeCounts.distinct++;
+     else if(applicability==='EXPLICIT_SAME_TRANSACTION')scopeCounts.same++;
+     else scopeCounts.unknown++;
      candidateCount++;
      if(x.signedSupportingWitness&&y.signedSupportingWitness)
        bothReviewed.count++;
      if(findings.length<maxFindings){
        findings.push({
          category,
+         applicability,
          left:{sourceId:x.sourceId,lineNumber:x.lineNumber,
            signedSupportingWitness:x.signedSupportingWitness},
          right:{sourceId:y.sourceId,lineNumber:y.lineNumber,
            signedSupportingWitness:y.signedSupportingWitness},
-         reviewState:'NEEDS_EXPLICIT_CROSS_SOURCE_ADJUDICATION'
+         reviewState:applicability==='EXPLICIT_DISTINCT_TRANSACTIONS'?
+           'NEEDS_TRANSACTION_SCOPE_REVIEW':'NEEDS_EXPLICIT_CROSS_SOURCE_ADJUDICATION'
        });
      }
    }
@@ -99,9 +114,10 @@ export function scanRelationshipConflicts({sources,witnesses,maxFindings=32}){
    candidateCount,findings,
    findingsTruncated:candidateCount>findings.length,
    bothSignedConflicts:bothReviewed.count,
+   transactionScopeCandidates:scopeCounts,
    sourcesScanned:seen.size,linesScanned,relationEdgesParsed:edges.length,
    scope:'LIVE_VERIFIED_INCLUDED_SELECTED_FOLDER_TEXT_FILES',
-   grammar:'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V3',
+   grammar:'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V4',
    sourceTextIncluded:false,actorNamesIncluded:false,
    crossFileSemanticEntailmentVerified:false,
    authoritativenessVerified:false,
