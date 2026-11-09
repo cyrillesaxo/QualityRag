@@ -59,3 +59,7 @@ Open `index.html` from a local checkout to take the Academy offline. Progress is
 - The A8 policies are invented. They are not statements of law.
 - A12–A14 use synthetic recorded cases. The labels stand for a reviewer's decision. Replay re-evaluates recorded evidence; it doesn't re-run retrieval or labelling.
 - Career salary ranges and translations, which are part of the Dodo v4 template, are left out until sourced figures and reviewed translations exist.
+
+## Hands-on developer series
+
+[Developer syllabus and reproducible Episode 01](hands-on-developer-series.md) · [Episode 01 lab](episode-01-lab.py) · [Narration](episode-01-script.md) · [Episodes 02–03 scripts](episode-02-03-scripts.md).
