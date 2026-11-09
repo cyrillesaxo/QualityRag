@@ -28,6 +28,10 @@ function fail(res,error) {
    return reply(res,429,{error:code,permission:'DENIED'});
  if(code==='PROTECTED_SUFFICIENCY_BLOCK_REPLAY')
    return reply(res,409,{error:code,permission:'DENIED'});
+ if(code==='PROTECTED_RELATION_BLOCK_REPLAY')
+   return reply(res,409,{error:code,permission:'DENIED'});
+ if(code==='PROTECTED_RELATION_BLOCK_RATE_LIMITED')
+   return reply(res,429,{error:code,permission:'DENIED'});
  if(code==='PROTECTED_USE_REPLAY')return reply(res,409,{error:code,permission:'DENIED'});
  if(code==='PROTECTED_DECISION_REVOKED'||code==='PROTECTED_DECISION_ALREADY_REVOKED')
    return reply(res,409,{error:code,permission:'DENIED'});
@@ -58,6 +62,13 @@ function fail(res,error) {
      'PROTECTED_SUFFICIENCY_SOURCE_UNAVAILABLE',
      'PROTECTED_SUFFICIENCY_INPUT_INVALID',
      'PROTECTED_SUFFICIENCY_RECORD_INVALID',
+     'PROTECTED_GROUNDED_CROSS_SOURCE_RELATION_CONFLICT',
+     'PROTECTED_RELATION_INPUT_INVALID',
+     'PROTECTED_RELATION_SOURCE_INVALID',
+     'PROTECTED_RELATION_EDGE_LIMIT',
+     'PROTECTED_RELATION_SELECTED_SCOPE_INCOMPLETE',
+     'PROTECTED_RELATION_OWNER_SCOPE_CHANGED',
+     'PROTECTED_RELATION_BLOCK_INVALID',
      'PROTECTED_REVOCATION_REASON_INVALID'
    ].includes(code)?code:'PROTECTED_ADMISSION_REJECTED';
    const status=safe==='PROTECTED_DECISION_NOT_FOUND'?404:
@@ -398,7 +409,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      protectedDecisionRoute[2]==='evidence'&&
      protectedDecisionRoute[3]==='protected-decisions'&&
      /^[0-9a-f-]{36}$/.test(protectedDecisionRoute[4]||'')&&
-     ['use-check','deliver','grounded-deliver','sufficiency-check'].includes(decisionAction)){
+     ['use-check','deliver','grounded-deliver','sufficiency-check',
+       'relation-check'].includes(decisionAction)){
      if(!authenticate||!evidenceLedger||!driveIndex||!driveManager||
         !protectedReviewTrust)
        return reply(res,404,{error:'PROTECTED_USE_NOT_CONFIGURED'});
@@ -409,20 +421,21 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
      const gateway=decisionAction==='deliver';
      const grounded=decisionAction==='grounded-deliver';
      const preview=decisionAction==='sufficiency-check';
-     const keys=(grounded||preview)?['requestId']:
+     const relationPreview=decisionAction==='relation-check';
+     const keys=(grounded||preview||relationPreview)?['requestId']:
        gateway?['requestId','answer']:['requestId','answerSha256'];
      if(!input||typeof input!=='object'||Array.isArray(input)||
         Object.keys(input).length!==keys.length||
         !keys.every(k=>Object.hasOwn(input,k))||
         typeof input.requestId!=='string'||
         !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(input.requestId)||
-        ((grounded||preview)?false:gateway?(typeof input.answer!=='string'||
+        ((grounded||preview||relationPreview)?false:gateway?(typeof input.answer!=='string'||
           !input.answer.trim()||Buffer.byteLength(input.answer,'utf8')>16384||
           input.answer.includes(String.fromCharCode(0))):
           (typeof input.answerSha256!=='string'||
           !/^[0-9a-f]{64}$/.test(input.answerSha256))))
        throw Error('PROTECTED_USE_INVALID');
-     let answerSha256=(grounded||preview)?null:gateway?
+     let answerSha256=(grounded||preview||relationPreview)?null:gateway?
        createHash('sha256').update(input.answer,'utf8').digest('hex'):
        input.answerSha256;
      const row=evidenceLedger.protectedDecisionForOwner(decisionId,actor);
@@ -450,7 +463,9 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        throw Error('PROTECTED_USE_SIGNATURE_RECORD_MISMATCH');
      const live=await driveIndex.verifyLiveApprovedWitnesses(
        actor,driveManager,verified.payload.witnesses,
-       {includeWitnessLines:grounded,includeConstraintScan:grounded||preview});
+       {includeWitnessLines:grounded,
+         includeConstraintScan:grounded||preview,
+         includeRelationshipScan:grounded||relationPreview});
      const refreshed=await store.resolve(row.serviceId,row.environment);
      if(refreshed.sha256!==current.sha256)
        throw Error('PROTECTED_USE_POLICY_CHANGED');
@@ -470,6 +485,25 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),authentic
        nextAction:live.constraintScan.candidateCount?
          'REVIEW_AND_RE_SIGN_FLAGGED_SOURCE_LINES':'NO_LEXICAL_SIGNALS_FOUND_NOT_SEMANTIC_APPROVAL'
      });
+     if(relationPreview)return reply(res,200,{
+       ...live.relationshipScan,decisionId:row.id,
+       checkedAt:live.checkedAt,
+       releasePermittedByThisPreview:false,
+       nextAction:live.relationshipScan.candidateCount?
+         'CUSTOMER_ADJUDICATE_CROSS_DOCUMENT_RELATION':
+         'NO_SUPPORTED_RELATION_CONFLICT_NOT_PROOF_OF_CONSISTENCY'
+     });
+     // Two signatures on separate incompatible statements do not make them
+     // consistent. Source precedence/scope/version must be adjudicated by
+     // the owner; never auto-promote one based on its signing status.
+     if(grounded&&live.relationshipScan.candidateCount>0){
+       evidenceLedger.recordRelationBlock({
+         decision:row,actor,requestId:input.requestId,
+         candidateCount:live.relationshipScan.candidateCount,
+         checkedAt:live.checkedAt
+       });
+       throw Error('PROTECTED_GROUNDED_CROSS_SOURCE_RELATION_CONFLICT');
+     }
      // The extractive route is deliberately fail-closed if any potentially
      // material language signal exists outside the reviewed signed lines.
      if(grounded&&live.constraintScan.candidateCount>0){
