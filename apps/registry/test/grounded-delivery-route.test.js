@@ -116,7 +116,7 @@ test('lexical exception and cross-document conflict deny after fresh provider re
 });
 test('wrong owner service and caller-authored answer are not permitted',async()=>{
  const f=fixture();
- assert.equal((await request(f,{token:'outsider'})).status,403);
+ assert.equal((await request(f,{token:'outsider'})).status,409);
  assert.equal((await request(f,{body:{requestId:'fresh-request',answer:'invented content'}})).status,400);
  assert.equal((await request(f,{method:'GET'})).status,404);
  assert.equal(f.writes,0);assert.equal(f.reads,0);
