@@ -9,6 +9,7 @@ import {handleScopedDriveControl,handleDriveOauthCallback} from './scoped-drive-
 import {handleProtectedAdmission} from './protected-admission-route.js';
 import {handleReadOnlyEvidenceTelemetry} from './read-only-evidence-telemetry.js';
 import {handleGroundedDelivery} from './grounded-delivery-route.js';
+import {createPilotComponents} from './pilot-components.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -159,8 +160,9 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
  try{
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
+  const pilot=createPilotComponents(process.env);
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
-    {trustedPolicyKeys:keys,trustedContractKeys:contractKeys,authenticate:oidc,enforceSeparation:!!oidc}));
+    {trustedPolicyKeys:keys,trustedContractKeys:contractKeys,authenticate:oidc,enforceSeparation:!!oidc,...pilot}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
   server.listen(Number(process.env.PORT||5055),host,
     ()=>console.log('QualityRag registry listening on '+host+':'+server.address().port));
