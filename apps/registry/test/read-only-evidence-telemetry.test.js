@@ -26,8 +26,13 @@ function fixture(ledgerEnabled=true){
  },authenticate:async token=>identities[token]||null};
 }
 async function request(f,method,pathname,token='alice'){
+ const protectedMode=Boolean(f.evidenceLedger);
  const server=http.createServer(createHandler(f.store,null,{authenticate:f.authenticate,
-  evidenceLedger:f.evidenceLedger,protectedDriveServices:new Set(['claims@prod'])}));
+  evidenceLedger:f.evidenceLedger,protectedDriveServices:protectedMode?
+   new Set(['claims@prod']):new Set(),
+  driveManager:protectedMode?{status(){return {connected:false}}}:null,
+  driveIndex:protectedMode?{status(){return {indexed:false}}}:null,
+  protectedReviewTrust:protectedMode?{custodian:{key:{}},meaningReviewer:{key:{}}}:null}));
  await new Promise(done=>server.listen(0,'127.0.0.1',done));
  try{
   const response=await fetch('http://127.0.0.1:'+server.address().port+pathname,{
