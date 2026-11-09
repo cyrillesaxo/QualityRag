@@ -22,4 +22,4 @@ jobs:
       - name: Validate route permissions
         run: |
           node --check apps/registry/src/oidc.js
-          node --test apps/registry/test/oidc-progressive-permissions.test.js
+          node --test apps/registry/test/oidc-progressive-permissions.test.js apps/registry/test/oidc-service-claims.test.js
