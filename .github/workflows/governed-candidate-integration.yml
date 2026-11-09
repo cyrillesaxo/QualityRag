@@ -1,0 +1,34 @@
+name: Governed source challenge integration
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/governed-drive-candidates.js'
+      - 'apps/registry/src/server.js'
+      - 'apps/registry/test/governed-drive-candidates.test.js'
+      - 'apps/studio/src/DriveTrustControls.tsx'
+      - 'apps/studio/studio-capability-integrity.test.mjs'
+      - '.github/workflows/governed-candidate-integration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-challenges:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
+      - run: npm --prefix apps/studio install --no-audit --no-fund
+      - name: Verify scoped candidate check and append-only reviewer challenge
+        run: |
+          node --check apps/registry/src/governed-drive-candidates.js
+          node --test apps/registry/test/governed-drive-candidates.test.js
+      - name: Check Studio capability boundaries
+        run: node --test apps/studio/studio-capability-integrity.test.mjs
+      - name: Build experimental Studio
+        env:
+          VITE_QUALITYRAG_EXPERIMENTAL_STUDIO: 'true'
+        run: npm --prefix apps/studio run build
