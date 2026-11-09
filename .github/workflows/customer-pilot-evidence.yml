@@ -1,0 +1,24 @@
+name: Customer pilot evidence integrity
+on:
+  pull_request:
+    paths:
+      - 'scripts/customer-pilot-gate.mjs'
+      - 'scripts/customer-pilot-gate.test.mjs'
+      - 'docs/customer-pilot-acceptance.md'
+      - '.github/workflows/customer-pilot-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  packet-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check pilot evidence validation and anti-self-approval
+        run: |
+          node --check scripts/customer-pilot-gate.mjs
+          node --test scripts/customer-pilot-gate.test.mjs
