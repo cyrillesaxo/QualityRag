@@ -1,0 +1,26 @@
+name: Loopback pilot composition
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/pilot-components.js'
+      - 'apps/registry/src/server.js'
+      - 'apps/registry/test/pilot-components.test.js'
+      - '.github/workflows/loopback-pilot-composition.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pilot-configuration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
+      - name: Test default-off/loopback/OIDC/private signer storage
+        run: |
+          node --check apps/registry/src/pilot-components.js
+          node --check apps/registry/src/server.js
+          node --test apps/registry/test/pilot-components.test.js
