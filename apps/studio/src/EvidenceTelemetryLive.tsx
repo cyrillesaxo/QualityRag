@@ -23,6 +23,7 @@ type Protection={schema:string;serviceId:string;environment:string;protected:boo
   protectedDecisions?:number;protectedAdmitted?:number;protectedInconclusive?:number;
   protectedUses?:number;protectedBufferedReleases?:number;
   protectedGroundedReleases?:number;protectedSufficiencyBlocks?:number;
+  protectedRelationBlocks?:number;
   protectedRevocations?:number;
   externallyAnchored:boolean;coverage:string}};
 type Props={token:string;serviceId:string;environment:string};
@@ -142,6 +143,10 @@ export function EvidenceTelemetryLive({token,serviceId,environment}:Props){
        not document-wide semantic completeness.
        Recorded source-grounded releases blocked for unreviewed distant
        lexical signals: <strong>{protection.guardTelemetry.protectedSufficiencyBlocks||0}</strong>.
+       Unresolved cross-document relation blocks:
+       <strong> {protection.guardTelemetry.protectedRelationBlocks||0}</strong>.
+       These represent bounded source relationship challenges, not
+       verified semantic contradictions.
        These are bounded registry observations, not a complete count of
        hidden exceptions or a measurement of semantic recall.
        These counts reflect registry decisions, not confirmed network delivery
