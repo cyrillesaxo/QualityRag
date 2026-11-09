@@ -1,0 +1,26 @@
+name: Drive OAuth lifecycle integration
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/server.js'
+      - 'apps/registry/src/scoped-drive-control.js'
+      - 'apps/registry/test/drive-oauth-lifecycle.test.js'
+      - '.github/workflows/drive-oauth-lifecycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  oauth-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
+      - name: Syntax and owner-scope regression
+        run: |
+          node --check apps/registry/src/scoped-drive-control.js
+          node --check apps/registry/src/server.js
+          node --test apps/registry/test/drive-oauth-lifecycle.test.js apps/registry/test/scoped-drive-control.test.js
