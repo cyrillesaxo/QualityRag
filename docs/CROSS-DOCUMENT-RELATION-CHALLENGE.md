@@ -18,14 +18,17 @@ Drive account or all external sources.
 
 ### What the implemented grammar can parse
 
-Current full-line English forms:
+Current full-line English forms (expanded bounded grammar):
 
 - "The insurer must pay the hospital."
 - "The hospital pays the insurer."
 - "The insurer shall not pay the hospital."
 - "The hospital does not pay the insurer."
+- "The hospital receives payment from the insurer."
+- "Payment from insurer to hospital is prohibited."
+- "Payment from insurer to hospital is required."
 
-The parser recognizes single-token actor labels and `must pay`,
+The parser recognizes single-token actor labels and normalizes explicit\n`receives payment from` / `payment from ... to ... is required|prohibited`\ninto payer/payee role slots. This is a *functional-sister grammar\nexpansion*, not a general semantic similarity system. It also recognizes `must pay`,
 `shall pay`, `pays`, `must not pay`, `shall not pay`, or
 `does not pay`. It normalizes case and detects two categories
 when the matching assertions are from **different files**:
@@ -167,7 +170,7 @@ graph-relationship transfer across multiple domains with
 adversarial, cross-lingual and implicit-relation examples.
 Promote a grammar change only when independent tests establish
 better consequential-change recall without an unacceptable
-false-block rate. The present implementation is **one constrained
+false-block rate. The v0.2 candidate adds regression tests for role-equivalent receipt phrases,\nnegative payment-from assertions, and unsupported conditional/transfer\nparaphrases. The candidate does not parse multi-token entities,\nconditional receipt or payment time windows, and can generate false\npositives when reciprocal payments represent distinct transactions.\n\nThe present implementation is **one constrained
 pattern family**, not validated FF-RCT semantic transfer.
 
 **Commercially credible statement:**
