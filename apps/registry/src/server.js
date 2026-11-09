@@ -5,7 +5,7 @@ import {RegistryStore} from './store.js';
 import {createPgSignedRegistryStore} from './pg-store.js';
 import {loadTrustedPolicyKeys} from './signed.js';
 import {createOidcAuthenticator,permissionFor} from './oidc.js';
-import {handleScopedDriveControl} from './scoped-drive-control.js';
+import {handleScopedDriveControl,handleDriveOauthCallback} from './scoped-drive-control.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -40,6 +40,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
     return reply(res,503,{ready:false,reason:'REGISTRY_NOT_READY'});
    }
   }
+  if(await handleDriveOauthCallback(req,res,{url,authenticate,driveManager,driveIndex}))return;
   const provided=req.headers.authorization;
   let actor='registry-token';
   if(authenticate){
@@ -55,7 +56,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
   }else if(provided!== 'Bearer '+token)return reply(res,401,{error:'UNAUTHORIZED'});
   try {
    if(await handleScopedDriveControl(req,res,{pathname:url.pathname,actor,
-      authenticate,driveManager,driveIndex,parseBody:body}))return;
+      authenticate,driveManager,driveIndex,parseBody:body,url}))return;
    if(req.method==='GET'&&url.pathname==='/v1/state'){
     return reply(res,200,store.state?await store.state():{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings),contractPromotions:Object.values(store.data.contractPromotions).map(({envelope,...summary})=>summary),contractBindings:Object.values(store.data.contractBindings)});
    }
