@@ -1,0 +1,23 @@
+name: Read-only evidence telemetry
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/server.js'
+      - 'apps/registry/src/read-only-evidence-telemetry.js'
+      - 'apps/registry/test/read-only-evidence-telemetry.test.js'
+      - '.github/workflows/read-only-evidence-telemetry.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  telemetry-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
+      - run: node --check apps/registry/src/read-only-evidence-telemetry.js
+      - run: node --test apps/registry/test/read-only-evidence-telemetry.test.js
