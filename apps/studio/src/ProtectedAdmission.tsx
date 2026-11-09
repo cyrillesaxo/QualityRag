@@ -26,6 +26,19 @@ type Sufficiency={
  sourceTextIncluded:false;documentWideSemanticCompletenessVerified:false;
  releasePermittedByThisPreview:false;
 };
+type RelationPreview={
+ schema:'qualityrag.cross-document-relation-candidates/v1';
+ candidateCount:number;bothSignedConflicts:number;
+ sourcesScanned:number;linesScanned:number;
+ findingsTruncated:boolean;checkedAt:string;
+ findings:Array<{category:string;left:{sourceId:string;lineNumber:number;
+ signedSupportingWitness:boolean};right:{sourceId:string;lineNumber:number;
+ signedSupportingWitness:boolean};reviewState:string}>;
+ scope:'LIVE_VERIFIED_INCLUDED_SELECTED_FOLDER_TEXT_FILES';
+ sourceTextIncluded:false;actorNamesIncluded:false;
+ semanticCompletenessVerified:false;
+ releasePermittedByThisPreview:false;
+};
 type Props={token:string;serviceId:string;environment:string;enabled:boolean};
 
 export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
@@ -43,6 +56,8 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  const [groundingError,setGroundingError]=useState('');
  const [sufficiency,setSufficiency]=useState<Sufficiency|null>(null);
  const [sufficiencyError,setSufficiencyError]=useState('');
+ const [relationPreview,setRelationPreview]=useState<RelationPreview|null>(null);
+ const [relationError,setRelationError]=useState('');
  const [revocationReason,setRevocationReason]=useState('OWNER_WITHDRAWN');
  const [revoked,setRevoked]=useState(false);
  const [revocationResult,setRevocationResult]=useState('');
@@ -56,6 +71,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    setDelivered(false);setDeliveryError('');setSendDraftToGateway(false);
    setGrounded(null);setGroundingError('');
    setSufficiency(null);setSufficiencyError('');
+   setRelationPreview(null);setRelationError('');
    setRevoked(false);setRevocationResult('');
    try{
      if(!token)throw Error('A signed registry identity is required.');
@@ -212,6 +228,31 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
    }catch(e){setSufficiencyError(String(e))}
    finally{setBusy(false)}
  }
+ async function checkRelations(){
+   if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token)return;
+   setBusy(true);setRelationError('');setRelationPreview(null);
+   try{
+     const response=await fetch(
+       '/v1/evidence/protected-decisions/'+outcome.id+'/relation-check',{
+         method:'POST',cache:'no-store',redirect:'error',
+         headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+         body:JSON.stringify({requestId:'relations-'+crypto.randomUUID()})
+       });
+     const result=await response.json();
+     if(!response.ok)throw Error(String(result.error||'Relation scan refused'));
+     if(result.schema!=='qualityrag.cross-document-relation-candidates/v1'||
+        !Number.isSafeInteger(result.candidateCount)||
+        !Array.isArray(result.findings)||
+        result.scope!=='LIVE_VERIFIED_INCLUDED_SELECTED_FOLDER_TEXT_FILES'||
+        result.sourceTextIncluded!==false||
+        result.actorNamesIncluded!==false||
+        result.semanticCompletenessVerified!==false||
+        result.releasePermittedByThisPreview!==false)
+       throw Error('Unexpected relation scan assurance scope or fields');
+     setRelationPreview(result);
+   }catch(e){setRelationError(String(e))}
+   finally{setBusy(false)}
+ }
  async function extractGrounded(){
    if(!outcome||outcome.verdict!=='ADMIT'||revoked||!token)return;
    setBusy(true);setGroundingError('');setGrounded(null);
@@ -326,6 +367,55 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        {sufficiencyError&&<p role="alert" style={{color:'#a83224'}}>
          Constraint scan could not be completed: {sufficiencyError}
        </p>}
+       <div style={{marginTop:12,padding:12,
+         border:'1px solid #bfcbdc',borderRadius:8}}>
+         <strong>Cross-document relationship challenge (research)</strong>
+         <p style={{fontSize:12}}>Verify all included text files in your
+           selected Drive folder and look for explicit payer/payee reversals
+           and opposite payment obligations. The result lists source
+           locations, not customer names or document passages. Two signed
+           contradictory statements remain a conflict to investigate.</p>
+         <button type="button" disabled={busy||revoked}
+           onClick={checkRelations}>
+           Check cross-document payer/payee relationships
+         </button>
+         {relationPreview&&<div role="status" style={{marginTop:9}}>
+           <p>Snapshot {relationPreview.checkedAt}:
+             {' '}{relationPreview.sourcesScanned} included files inspected,
+             {' '}{relationPreview.linesScanned} lines.
+             Possible relationship conflicts:
+             {' '}<strong>{relationPreview.candidateCount}</strong>.
+             Both signed, but not adjudicated:
+             {' '}{relationPreview.bothSignedConflicts}.
+           </p>
+           {relationPreview.candidateCount>0&&<p>
+             Grounded extraction is blocked until the customer resolves the
+             source authority, date, scope, or explicit payer/payee mapping.
+             A second signature alone does not resolve inconsistency.
+           </p>}
+           {relationPreview.findings.length>0&&<ul>
+             {relationPreview.findings.map((f,i)=><li key={i}>
+               <strong>{f.category}</strong>:
+               {' '}<code>{f.left.sourceId}</code> line {f.left.lineNumber}
+               {' '}versus <code>{f.right.sourceId}</code> line {f.right.lineNumber}
+               {' '}(signed witnesses:
+               {' '}{f.left.signedSupportingWitness?'yes':'no'}/
+               {f.right.signedSupportingWitness?'yes':'no'})
+             </li>)}
+           </ul>}
+           {relationPreview.findingsTruncated&&<p>
+             Additional unresolved pairs were counted but not displayed.
+           </p>}
+           <p style={{fontSize:12}}>This is a bounded English-language
+             surface grammar, not an interpretation of every document.
+             Excluded sources, implicit relationships, time-dependent
+             exceptions and unsupported paraphrases remain unverified.
+             A clean result is not an authorization or completeness proof.</p>
+         </div>}
+         {relationError&&<p role="alert" style={{color:'#a83224'}}>
+           Cross-document review unavailable: {relationError}
+         </p>}
+       </div>
        <button type="button" disabled={busy||revoked} onClick={extractGrounded}>
          Generate exact-source extract
        </button>
