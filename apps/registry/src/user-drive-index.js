@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createCipheriv, createDecipheriv, createHmac, randomBytes, createHash} from 'node:crypto';
 import {scanReviewedSourceConstraints} from './constraint-sufficiency.js';
+import {scanRelationshipConflicts} from './cross-document-relations.js';
 
 // Encrypted, tenant-scoped Drive text preview. Separate from the legacy shared
 // single-user Semantic Codex worker. No automatic admission into QualityRAG.
@@ -238,7 +239,8 @@ export class UserDriveIndex {
   return {changed:true,visibility:this.visibility(subject,connection)};
  }
  async verifyLiveApprovedWitnesses(subject,connector,witnesses,
-   {includeWitnessLines=false,includeConstraintScan=false}={}){
+   {includeWitnessLines=false,includeConstraintScan=false,
+     includeRelationshipScan=false}={}){
   // Last-mile mandatory check: no signed claim alone bypasses current owner's
   // source controls. Re-fetch the exact file bytes from Google, including
   // the provider's parent-folder check, then re-check controls after all awaits.
@@ -265,6 +267,24 @@ export class UserDriveIndex {
     check(sha(Buffer.from(source.lines[witness.lineNumber-1],'utf8'))===
       witness.lineSha256,'PROTECTED_SOURCE_LINE_CHANGED');
     expected.set(source.fileId,source);
+  }
+  const reviewedSourceCount=expected.size;
+  const selectedIncluded=includeRelationshipScan?
+    snapshot.entries.filter(e=>e.searchEnabled!==false):[];
+  if(includeRelationshipScan){
+    check(selectedIncluded.length>0&&selectedIncluded.length<=MAX_DOCS,
+      'PROTECTED_RELATION_SELECTED_SCOPE_INCOMPLETE');
+    for(const source of selectedIncluded){
+      check(source&&typeof source.fileId==='string'&&
+        Array.isArray(source.lines)&&source.lines.length>0&&
+        source.lines.length<=6000&&
+        source.lines.every(line=>typeof line==='string'&&line.length<=1200),
+        'PROTECTED_RELATION_SELECTED_SCOPE_INCOMPLETE');
+      expected.set(source.fileId,source);
+    }
+    // Protect against a malformed index with aliasing file IDs or source IDs.
+    check(expected.size===selectedIncluded.length,
+      'PROTECTED_RELATION_SELECTED_SCOPE_INCOMPLETE');
   }
   for(const [fileId,source] of expected){
     let bytes;
@@ -302,6 +322,20 @@ export class UserDriveIndex {
       sha(Buffer.from(source.lines[witness.lineNumber-1]||'','utf8'))===
         witness.lineSha256,'PROTECTED_OWNER_CONTEXT_CHANGED');
   }
+  if(includeRelationshipScan){
+    // Check all included files, not only signed witness files, after the
+    // provider reads. Exclusion during I/O invalidates the scan.
+    const selectedNow=current.entries.filter(e=>e.searchEnabled!==false);
+    check(selectedNow.length===selectedIncluded.length,
+      'PROTECTED_RELATION_OWNER_SCOPE_CHANGED');
+    for(const source of selectedIncluded){
+      const latestSource=selectedNow.find(e=>e.fileId===source.fileId);
+      check(latestSource&&latestSource.sourceId===source.sourceId&&
+        latestSource.revision===source.revision&&
+        latestSource.lines.length===source.lines.length,
+        'PROTECTED_RELATION_OWNER_SCOPE_CHANGED');
+    }
+  }
   const verifiedLines=includeWitnessLines?witnesses.map(w=>{
     const source=current.entries.find(e=>e.sourceId===w.sourceId);
     const i=w.lineNumber-1;
@@ -321,11 +355,18 @@ export class UserDriveIndex {
     sources:[...expected.values()].map(e=>({sourceId:e.sourceId,lines:e.lines})),
     witnesses
   }):undefined;
+  const relationshipScan=includeRelationshipScan?
+    scanRelationshipConflicts({
+      sources:selectedIncluded.map(e=>({sourceId:e.sourceId,lines:e.lines})),
+      witnesses
+    }):undefined;
   return {owner:subject,folderId:connection.folderId,
-    checkedAt:new Date(this.now()).toISOString(),sourceCount:expected.size,
+    checkedAt:new Date(this.now()).toISOString(),
+    sourceCount:reviewedSourceCount,
     verifiedExactLiveBytes:true,independentPublisherVerified:false,
     ...(includeWitnessLines?{verifiedLines}:{}),
-    ...(includeConstraintScan?{constraintScan}:{})};
+    ...(includeConstraintScan?{constraintScan}:{}),
+    ...(includeRelationshipScan?{relationshipScan}:{})};
  }
  checkGovernedCandidates(subject,connection,policy,policySha256,candidates){
   // Guarded route from Drive *candidates* to governed evaluation. It deliberately
