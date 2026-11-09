@@ -90,13 +90,18 @@ export function permissionFor(method,pathname){
     pathname.split('/').length===6&&pathname.endsWith('/replay'))return ROLE.evidenceRead;
   if(method==='POST'&&pathname.startsWith(ev+'/')&&
     pathname.split('/').length===6&&pathname.endsWith('/reviews'))return ROLE.evidenceReview;
+
   if(method==='GET'&&(pathname==='/v1/state'||pathname.startsWith('/v1/resolve/')||
-     pathname.startsWith('/v1/signed/resolve/')))return ROLE.read;
+     pathname.startsWith('/v1/signed/resolve/')||pathname.startsWith('/v1/contracts/resolve/')||
+     pathname==='/v1/contracts/published'))return ROLE.read;
   if(method==='POST'&&(pathname==='/v1/services'||pathname==='/v1/policies/drafts'||
-     pathname==='/v1/signed/promotions'))return ROLE.author;
+     pathname==='/v1/signed/promotions'||pathname==='/v1/contracts/validate'||
+     pathname==='/v1/contracts/signed'))return ROLE.author;
   if(method==='POST'&&(/^\/v1\/policies\/[^/]+\/[^/]+\/approve$/.test(pathname)||
-     /^\/v1\/signed\/promotions\/[^/]+\/[^/]+\/[0-9]+\/approve$/.test(pathname)))return ROLE.approve;
+     /^\/v1\/signed\/promotions\/[^/]+\/[^/]+\/[0-9]+\/approve$/.test(pathname)||
+     /^\/v1\/contracts\/signed\/[^/]+\/[0-9]+\/approve$/.test(pathname)))return ROLE.approve;
   if(method==='POST'&&(pathname==='/v1/bindings'||
-     /^\/v1\/signed\/promotions\/[^/]+\/[^/]+\/[0-9]+\/publish$/.test(pathname)))return ROLE.publish;
+     /^\/v1\/signed\/promotions\/[^/]+\/[^/]+\/[0-9]+\/publish$/.test(pathname)||
+     /^\/v1\/contracts\/signed\/[^/]+\/[0-9]+\/publish$/.test(pathname)))return ROLE.publish;
   return null;
 }
