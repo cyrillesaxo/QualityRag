@@ -102,6 +102,28 @@ npm --prefix apps/registry run admission:demo
 The pilot supports one asserted origin per requirement and does not claim original
 publication freshness; stronger PackSpecs fail closed.
 
+### Cross-document WitnessGraph challenge: payer/payee and polarity
+
+An exception keyword scan can miss a consequential role reversal
+such as **insurer pays hospital** versus **hospital pays insurer**.
+QualityRAG now has a bounded experimental **cross-document relation
+graph**: it verifies current Google bytes for every included text file
+in the customer's selected folder, then looks for explicit inverse
+payer/payee and opposite-payment obligation patterns.
+
+The owner can use `relation-check` in Studio to see the two opaque
+source IDs, exact line numbers and signing status **without disclosing
+party names or text**. Unresolved candidates block `grounded-deliver`.
+Signing both incompatible statements does **not** clear the block;
+authority, scope, jurisdiction and date require explicit adjudication.
+
+The grammar is deliberately narrow English surface syntax; it is
+**not full semantic conflict detection or validated FF-RCT transfer**.
+Excluded/unsupported files and unrecognized paraphrases remain
+outside the demonstrated coverage.
+
+[Cross-document graph challenge and negative results](docs/CROSS-DOCUMENT-RELATION-CHALLENGE.md).
+
 ### Distant constraints must be reviewed before extraction
 
 A line-preserving extract can still omit an exception hidden elsewhere
