@@ -1,0 +1,21 @@
+# Dedicated QualityRAG Studio pilot. Do not use this branch to publish Registry.
+# The browser app is experimental and requires an independently configured
+# authenticated Registry on the same origin for /v1/* endpoints.
+[build]
+  base = "apps/studio"
+  command = "npm install --no-audit --no-fund && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  VITE_QUALITYRAG_EXPERIMENTAL_STUDIO = "true"
+
+# Do not proxy /v1/* to an unverified backend. The pilot must not silently
+# turn API requests into successful HTML responses.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"
