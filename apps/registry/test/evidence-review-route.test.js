@@ -61,6 +61,6 @@ test('self review refused by ledger; invalid body and unknown method never mutat
  assert.equal((await request(f,'reviewer',{decision:'ACCEPTED',reasonCode:'REPRODUCED',subject:'issuer#other'})).status,400);
  assert.equal((await request(f,'reviewer',{decision:'INVALID',reasonCode:'OTHER'})).status,400);
  assert.equal((await request(f,'reviewer',{decision:'ACCEPTED',reasonCode:'OTHER',note:'bad@example.test'})).status,400);
- assert.equal((await request(f,'reviewer',undefined,'GET')).status,404);
+ assert.equal((await request(f,'reviewer',undefined,'GET')).status,403);
  assert.equal(f.calls.filter(x=>x[0]==='review').length,1);
 });
