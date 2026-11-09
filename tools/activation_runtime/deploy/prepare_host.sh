@@ -52,6 +52,14 @@ python3 -m venv /opt/qualityrag/.venv
   --disable-pip-version-check --no-input \
   -r /opt/qualityrag/tools/activation_runtime/deploy/requirements-governance.txt
 
+# The installer runs with umask 077. Root's successful smoke tests do not
+# prove the non-login service account can traverse the checkout or execute
+# the virtualenv. Grant service-group read/traverse only, never write.
+chgrp -R qualityrag-governance /opt/qualityrag
+chmod -R g+rX,g-w,o-rwx /opt/qualityrag
+runuser -u qualityrag-governance -- /opt/qualityrag/.venv/bin/python --version ||
+  fail "Service account cannot execute Python; refusing to install unit."
+
 # Import the real authenticated runtime and execute the deterministic PackSpec
 # reference witness. This is a local smoke test, not independent correctness
 # evidence or approval to open the service to the public.
