@@ -178,3 +178,40 @@ pattern family**, not validated FF-RCT semantic transfer.
 roles appear inverted, block the source-grounded extract, and let the
 customer verify and control the resolution. We cannot yet guarantee
 finding all semantic conflicts.”
+
+
+## Bounded regression benchmark (research, not customer acceptance)
+
+Run `node --test apps/registry/test/semantic-role-benchmark.test.js`
+from the repository root after installing registry dependencies if required.
+
+This deliberately small, synthetic 12-pair corpus separates:
+- **Four supported challenge pairs:** direct inversion, receipt inversion,
+  prohibited payment, and direct payment negation.
+- **Four supported harmless pairs:** equivalent receipt, equivalent
+  required payment, distinct payer, and distinct payee.
+- **Four unsupported negative witnesses:** transfer paraphrase,
+  conditional assertion, multi-token organizations, and passive voice.
+
+The test requires 4/4 supported challenges, 0/4 false blocks for
+supported harmless pairs, and explicitly confirms that all four
+unsupported cases remain unrecognized. These are not estimates of
+production recall or precision. The negatives are intentionally
+unrecognized to preserve evidence of gaps, not to celebrate misses.
+
+The scanner's `candidateCount` measures **review challenges**,
+not proven contradictions. Reciprocal payments can both be real.
+A customer must adjudicate whether transactions, effective dates,
+jurisdictions, parties, and governing authority overlap. Do not
+promote this grammar to a general semantic-completeness claim.
+
+### FF-RCT promotion gate (proposed, not implemented)
+
+Any proposed production grammar expansion should be evaluated against
+frozen holdout examples with: supported and unseen consequential
+change recall, false challenges per 100 harmless pairs, unknown/
+unsupported fraction, per-file latency, and privacy leak count.
+The experiment should preserve regressions and the previous grammar
+as an explicit control. The first challenge for transfer is
+multiword and aliased entities plus time/scope qualification, not
+merely additional verb synonyms.
