@@ -18,14 +18,15 @@ test('protected admission requires live scoped server enforcement and handles di
  assert.match(gate,/readiness==='unprotected'/);
  assert.match(gate,/signal:abort\.signal/);
 });
-test('unsupported preview, governance and freeform delivery controls are not interactable',()=>{
+test('unsupported preview/freeform delivery remain disabled, governed challenges need server readiness',()=>{
  const protectedUI=read('apps/studio/src/ProtectedAdmission.tsx');
  assert.match(protectedUI,/const standalonePreviewAvailable=false/);
  assert.match(protectedUI,/const freeformGatewayAvailable=false/);
  assert.match(protectedUI,/disabled=\{!standalonePreviewAvailable\|\|busy\|\|revoked\}/);
  assert.match(protectedUI,/outcome\.verdict==='ADMIT'&&freeformGatewayAvailable/);
  const drive=read('apps/studio/src/DriveTrustControls.tsx');
- assert.match(drive,/const governedChallengeAvailable=false/);
- assert.match(drive,/if\(!governedChallengeAvailable\)/);
+ assert.match(drive,/useState\(false\)/);
+ assert.match(drive,/content.schema==='qualityrag.drive-governed-requirements\/v1'/);
+ assert.match(drive,/setGovernedChallengeAvailable\(false\)/);
  assert.match(drive,/disabled=\{!governedChallengeAvailable/);
 });
