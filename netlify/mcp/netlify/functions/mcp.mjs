@@ -17,7 +17,7 @@ const reply=(payload,status=200)=>new Response(JSON.stringify(payload),{status,h
 const err=(id,code,message)=>({jsonrpc:"2.0",id,error:{code,message}});
 const MAX_CLIENT_TOKEN_AGE_MS = 60 * 24 * 60 * 60 * 1000;
 const utcTimestamp = (value) => {
-  if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/.test(value)) return NaN;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value)) return NaN;
   const time = Date.parse(value);
   return Number.isFinite(time) && new Date(time).toISOString().replace(".000Z", "Z") === value ? time : NaN;
 };
