@@ -97,7 +97,7 @@ test('functional-sister receive form normalizes to payer and payee roles',()=>{
  ]);
  assert.equal(result.candidateCount,1);
  assert.equal(result.findings[0].category,'INVERSE_PAYER_PAYEE');
- assert.equal(result.grammar,'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V2');
+ assert.equal(result.grammar,'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V3');
  assert.ok(!JSON.stringify(result).includes('insurer'));
  assert.ok(!JSON.stringify(result).includes('hospital'));
 });
@@ -128,4 +128,20 @@ test('unsupported transfer paraphrase and conditional receipt remain explicitly 
  assert.equal(result.candidateCount,0);
  assert.equal(result.semanticCompletenessVerified,false);
  assert.equal(result.supportedPatternCoverageOnly,true);
+});
+
+test('bounded multiword actors preserve direction and hide names',()=>{
+ const result=run([
+  {sourceId:a,lines:['The health insurer must pay the city hospital.']},
+  {sourceId:b,lines:['The city hospital receives payment from the health insurer.']}
+ ]);
+ assert.equal(result.candidateCount,0);
+ const reversed=run([
+  {sourceId:a,lines:['The health insurer must pay the city hospital.']},
+  {sourceId:b,lines:['The city hospital must pay the health insurer.']}
+ ]);
+ assert.equal(reversed.candidateCount,1);
+ assert.equal(reversed.findings[0].category,'INVERSE_PAYER_PAYEE');
+ assert.ok(!JSON.stringify(reversed).includes('health insurer'));
+ assert.ok(!JSON.stringify(reversed).includes('city hospital'));
 });
