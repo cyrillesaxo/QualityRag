@@ -136,6 +136,27 @@ proof that an AI answer is semantically sufficient.
 [Constraint signal grammar, adversarial tests and known false
 negatives](CONSTRAINT-SIGNAL-SUFFICIENCY.md).
 
+## Cross-file relationship screen (experimental)
+
+The grounded output path now **also** checks currently included text
+files in the customer's selected Google Drive folder for explicit
+cross-file payer/payee reversal and positive-versus-negative payment
+obligations. This is not the full RCT/FF-RCT semantic grammar; it is
+a bounded surface-pattern detector.
+
+When two source lines appear to conflict, `grounded-deliver`
+refuses. A separate `relation-check` preview gives the owner the
+opaque source IDs, line numbers and signing status. **Even two
+signed SUPPORTS lines remain a candidate** until a customer adjudicates
+the applicable authority, date, context, and obligation.
+
+The check verifies the live Google bytes for all included supported
+indexed files, not just the reviewed witness files. Excluded and
+unsupported files remain outside coverage. A clean scan does
+not prove semantic or cross-source completeness.
+
+[Cross-document relationship challenge](CROSS-DOCUMENT-RELATION-CHALLENGE.md).
+
 ## Studio and SDK
 
 Studio's **Generate exact-source extract** button appears for
