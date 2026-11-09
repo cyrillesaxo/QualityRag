@@ -1,0 +1,30 @@
+name: Experimental Studio integration
+on:
+  pull_request:
+    paths:
+      - 'apps/studio/src/main.tsx'
+      - 'apps/studio/src/EvidenceAssurance.tsx'
+      - 'apps/studio/src/EvidenceTelemetryLive.tsx'
+      - 'apps/studio/src/ProtectedAdmission.tsx'
+      - 'apps/studio/src/DriveConnections.tsx'
+      - 'apps/studio/src/DriveTrustControls.tsx'
+      - '.github/workflows/studio-experimental-governance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/studio install --no-audit --no-fund
+      - name: Build default release Studio (governance disabled)
+        run: npm --prefix apps/studio run build
+      - name: Build explicitly experimental Studio (synthetic preview)
+        env:
+          VITE_QUALITYRAG_EXPERIMENTAL_STUDIO: 'true'
+        run: npm --prefix apps/studio run build
