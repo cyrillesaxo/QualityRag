@@ -62,6 +62,91 @@ function Studio(){
   const url=URL.createObjectURL(new Blob([JSON.stringify(c,null,2)],{type:'application/json'}));
   const a=document.createElement('a');a.href=url;a.download=(c.id||'contract')+'.contract.json';a.click();URL.revokeObjectURL(url);
  }
+ const [gardenToken,setGardenToken]=useState('');
+ const [gardenConnected,setGardenConnected]=useState(false);
+ const [gardenBusy,setGardenBusy]=useState(false);
+ const [gardenStatus,setGardenStatus]=useState('Not connected to Garden engine');
+ const [gardenBranches,setGardenBranches]=useState<Array<{id:string;statement:string;assessment:string;active_research:boolean;admission:string}>>([]);
+ const [gardenEvents,setGardenEvents]=useState<Array<{id:string;branch_id:string;assessment:string;reason:string;at:string}>>([]);
+ const [gardenRelations,setGardenRelations]=useState<Array<{from:string;to:string;relation:string}>>([]);
+ const [gardenDraft,setGardenDraft]=useState('');
+ const [gardenReceipt,setGardenReceipt]=useState<{status:string;external_probe_count:number;qualityrag_admission:string;ledger_persisted?:boolean;ledger_reason?:string;investigation?:{experiment?:{results?:unknown[]}}}|null>(null);
+ async function gardenRequest(path:string,data?:unknown){
+  const response=await fetch(path,{method:data===undefined?'GET':'POST',headers:{
+   'Authorization':'Bearer '+gardenToken,'Content-Type':'application/json'
+  },body:data===undefined?undefined:JSON.stringify(data)});
+  let result:Record<string,unknown>;
+  try{result=await response.json() as Record<string,unknown>}
+  catch{throw new Error('Garden engine unavailable or invalid response')}
+  if(!response.ok)throw new Error(String(result.error||'Garden engine request failed'));
+  return result;
+ }
+ async function connectGarden(){
+  setGardenBusy(true);setGardenConnected(false);setGardenReceipt(null);
+  try {
+   const status=await gardenRequest('/garden/status');
+   if(status.schema!=='rct.garden-engine-status/v0.1'||status.connected!==true||
+      status.ledger_integrity!=='CONSISTENT')throw new Error('Garden engine did not verify its ledger');
+   const projection=await gardenRequest('/garden/projection');
+   if(projection.schema!=='rct.semantic-gardener-projection/v0.1'||
+      projection.ledger_integrity!=='CONSISTENT'||!Array.isArray(projection.branches)||
+      !Array.isArray(projection.events)||!Array.isArray(projection.relations)){
+    throw new Error('Garden engine returned incompatible research lineage');
+   }
+   setGardenBranches(projection.branches as typeof gardenBranches);
+   setGardenEvents(projection.events as typeof gardenEvents);
+   setGardenRelations(projection.relations as typeof gardenRelations);
+   setGardenConnected(true);
+   setGardenStatus('Connected: bounded Garden engine and verified research ledger ('+
+      (projection.branches as unknown[]).length+' branches)');
+  } catch(e){
+   setGardenBranches([]);setGardenEvents([]);setGardenRelations([]);
+   setGardenConnected(false);setGardenStatus(String(e));
+  }finally{setGardenBusy(false)}
+ }
+ async function selfTestGarden(){
+  if(!gardenConnected)return;
+  setGardenBusy(true);
+  try{
+   const result=await gardenRequest('/garden/self-test',{});
+   if(result.schema!=='rct.garden-engine-self-test/v0.1'||
+      result.status!=='PASS'||result.synthetic_test_only!==true||
+      result.qualityrag_admission!=='INCONCLUSIVE'||
+      result.promotion_authorized!==false||result.paired_candidates!==6){
+    throw new Error('Engine self-test did not satisfy the research contract');
+   }
+   setGardenStatus('Engine self-test PASS: six synthetic configurations executed. Not research evidence.');
+  }catch(e){
+   setGardenConnected(false);
+   setGardenStatus('Engine self-test FAILED: '+String(e));
+  }finally{setGardenBusy(false)}
+ }
+ async function investigateGarden(){
+  if(!gardenConnected)return;
+  setGardenBusy(true);setGardenReceipt(null);
+  try{
+   if(gardenDraft.length>100000)throw new Error('Experiment payload too large');
+   const data=JSON.parse(gardenDraft) as unknown;
+   const result=await gardenRequest('/garden/investigate',data);
+   if(result.schema!=='rct.garden-controller/v0.1'||
+      result.qualityrag_admission!=='INCONCLUSIVE'||
+      result.promotion_authorized!==false)throw new Error('Unrecognized or unsafe engine result');
+   setGardenReceipt(result as typeof gardenReceipt);
+   if(result.ledger_persisted===true){
+    const latest=await gardenRequest('/garden/projection');
+    if(latest.schema!=='rct.semantic-gardener-projection/v0.1'||
+       latest.ledger_integrity!=='CONSISTENT'||
+       !Array.isArray(latest.branches)||!Array.isArray(latest.events)||
+       !Array.isArray(latest.relations))throw new Error('Research ledger refresh failed after execution');
+    setGardenBranches(latest.branches as typeof gardenBranches);
+    setGardenEvents(latest.events as typeof gardenEvents);
+    setGardenRelations(latest.relations as typeof gardenRelations);
+   }
+   setGardenStatus('Engine executed: '+String(result.status)+
+     '. Research only; '+(result.ledger_persisted?'ledger updated.':'not persisted.'));
+  }catch(e){setGardenStatus('Garden run failed: '+String(e))}
+  finally{setGardenBusy(false)}
+ }
  const [semanticToken,setSemanticToken]=useState('');
  const [semanticStatus,setSemanticStatus]=useState('Not connected');
  const [semanticNamespace,setSemanticNamespace]=useState('local');
@@ -272,6 +357,41 @@ function Studio(){
    </li>)}</ul>
    <p>Published contracts:</p><ul>{(state.contractBindings||[]).map(b=><li key={b.contractId}><code>{b.contractId}</code> {b.kind} · {b.tenant} → sequence {b.sequence}</li>)}</ul>
    <p>The runtime loads and re-verifies them with <code>GET /v1/contracts/published?tenant=…</code>; one contract: <code>GET /v1/contracts/resolve/{'{contractId}'}</code>.</p>
+   </section>
+   <section className="panel" aria-label="Semantic Garden research engine">
+    <h2>6. Semantic Garden · Engine console</h2>
+    <p>Connect to the real bounded research controller and read the existing append-only evidence ledger. No simulated engine results. Research findings are never automatically admitted or deployed.</p>
+    <div className="line">
+      <label>Local Garden engine token<input type="password" autoComplete="off"
+        value={gardenToken} onChange={e=>{setGardenToken(e.target.value);setGardenConnected(false)}}
+        placeholder="Separate Garden engine token"/></label>
+      <button onClick={connectGarden} disabled={gardenBusy||!gardenToken.trim()}>
+        {gardenBusy?'Connecting…':'Connect / refresh engine'}
+      </button>
+      <button onClick={selfTestGarden} disabled={gardenBusy||!gardenConnected}>
+        Run engine self-test
+      </button>
+    </div>
+    <p className="status" role="status">{gardenStatus}</p>
+    {gardenConnected&&<>
+     <p>Research branches: <strong>{gardenBranches.length}</strong> · Recorded events: <strong>{gardenEvents.length}</strong> · Lineage links: <strong>{gardenRelations.length}</strong> · Admission: <strong>NOT ESTABLISHED</strong></p>
+     <h3>Research branches and assessments</h3>
+     <ul>{gardenBranches.slice(0,25).map(b=><li key={b.id}><code>{b.id}</code> · <strong>{b.assessment}</strong> · {b.statement}</li>)}</ul>
+     {gardenBranches.length>25&&<p>Showing first 25 branches. Full history available from the authenticated projection endpoint.</p>}
+     <h3>Latest research events</h3>
+     <ul>{gardenEvents.slice(-15).reverse().map(e=><li key={e.id}><code>{e.branch_id}</code> · {e.assessment} · {e.reason}</li>)}</ul>
+     <h3>Run bounded grammar and activation investigation</h3>
+     <p>Paste a research manifest containing training, examples, source, revised_source, workload, trials (2–3) and max_probes (0–3). Gold answers must not appear in the evaluation workload. The engine never fabricates missing probe evidence.</p>
+     <label>Research experiment JSON<textarea spellCheck={false} value={gardenDraft}
+       onChange={e=>setGardenDraft(e.target.value)}
+       placeholder='{"training":{},"examples":[],"source":{},"revised_source":{},"workload":{"subjects":[]},"trials":2,"max_probes":0}'/></label>
+     <button onClick={investigateGarden} disabled={gardenBusy||!gardenDraft.trim()}>Execute on connected Garden engine</button>
+     {gardenReceipt&&<div role="status"><p><strong>Engine verdict:</strong> {gardenReceipt.status} · External observations: {gardenReceipt.external_probe_count}</p>
+       <p>Policy admission: {gardenReceipt.qualityrag_admission} · Persisted: {gardenReceipt.ledger_persisted?'yes':'no'}{gardenReceipt.ledger_reason?' ('+gardenReceipt.ledger_reason+')':''}</p>
+       {('ledger_claim_id' in gardenReceipt)&&<p>Recorded research claim: <code>{String(gardenReceipt.ledger_claim_id)}</code></p>}
+       <p>Evaluated grammar/activation pairs: {gardenReceipt.investigation?.experiment?.results?.length??0}</p>
+      </div>}
+    </>}
    </section>
    <footer>QualityRag v0.1 · deterministic policy enforcement · policies are not proof of source truth</footer>
  </main>;
