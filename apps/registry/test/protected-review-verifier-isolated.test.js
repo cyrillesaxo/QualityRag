@@ -59,7 +59,7 @@ test('tampered reviewer signature, policy mismatch, and expired review fail clos
   const a=envelope(payload,s.keys[0],'custodian'),b=envelope(payload,s.keys[1],'reviewer');
   const params={serviceId:'claims',environment:'dev',policySha256:sha('policy'),
    subject,folderId:'folder-1',now};
-  assert.throws(()=>verifyHumanReviewAttestations(a,{...b,signature:'A'+b.signature.slice(1)},s.trust,params),
+  assert.throws(()=>verifyHumanReviewAttestations(a,{...b,signature:b.signature.slice(0,40)+(b.signature[40]==='A'?'B':'A')+b.signature.slice(41)},s.trust,params),
    /PROTECTED_INVALID_REVIEW_SIGNATURE/);
   assert.throws(()=>verifyHumanReviewAttestations(a,b,s.trust,{...params,policySha256:sha('other')}),
    /PROTECTED_REVIEW_POLICY_MISMATCH/);
