@@ -15,6 +15,9 @@ fail() { printf 'BLOCKED: %s\n' "$*" >&2; exit 1; }
 ! systemctl is-active --quiet qualityrag-governance.service || fail "service already running"
 [[ -x /opt/qualityrag/.venv/bin/python ]] || fail "runtime not installed"
 [[ -f /etc/systemd/system/qualityrag-governance.service ]] || fail "service unit missing"
+# Test actual non-login service identity, not just root's ability to execute.
+runuser -u qualityrag-governance -- /opt/qualityrag/.venv/bin/python --version >/dev/null ||
+  fail "Service account cannot execute runtime; fix /opt/qualityrag group read/traverse permissions first"
 [[ "$(systemctl is-active caddy.service)" == "active" ]] || fail "HTTPS Caddy must be active"
 [[ -f /etc/caddy/Caddyfile ]] || fail "Caddyfile missing"
 grep -Fq 'respond @api "QualityRAG backend not configured" 503' /etc/caddy/Caddyfile ||
