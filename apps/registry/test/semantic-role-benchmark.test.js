@@ -17,7 +17,7 @@ const cases=[
  {name:'distinct payer',a:'The insurer pays the hospital.',b:'The vendor pays the hospital.',expected:false},
  {name:'unsupported transfer paraphrase negative',a:'The insurer transfers funds to the hospital.',b:'The hospital transfers funds to the insurer.',expected:false,unsupported:true},
  {name:'unsupported condition negative',a:'The insurer pays the hospital.',b:'The insurer pays the hospital unless suspended.',expected:false,unsupported:true},
- {name:'unsupported two-word organizations negative',a:'The health insurer pays the city hospital.',b:'The city hospital pays the health insurer.',expected:false,unsupported:true},
+ {name:'multiword organization inverse',a:'The health insurer pays the city hospital.',b:'The city hospital pays the health insurer.',expected:true,kind:'INVERSE_PAYER_PAYEE'},
  {name:'unsupported passive voice negative',a:'The insurer pays the hospital.',b:'The hospital is paid by the insurer.',expected:false,unsupported:true}
 ];
 const witness={sourceId:id(1),lineNumber:1,status:'SUPPORTS'};
@@ -56,7 +56,7 @@ test('bounded payment role benchmark: negative results remain explicitly visible
 });
 test('benchmark corpus is non-degenerate and has both positives and negatives',()=>{
  assert.equal(cases.length,12);
- assert.equal(positives.length,4);
+ assert.equal(positives.length,5);
  assert.equal(supportedNegatives.length,4);
- assert.equal(unsupported.length,4);
+ assert.equal(unsupported.length,3);
 });
