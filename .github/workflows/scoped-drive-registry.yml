@@ -1,0 +1,24 @@
+name: Scoped Drive Registry control integration
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/scoped-drive-control.js'
+      - 'apps/registry/src/server.js'
+      - 'apps/registry/test/scoped-drive-control.test.js'
+      - '.github/workflows/scoped-drive-registry.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scoped-drive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
+      - run: node --check apps/registry/src/scoped-drive-control.js
+      - run: node --check apps/registry/src/server.js
+      - run: node --test apps/registry/test/scoped-drive-control.test.js
