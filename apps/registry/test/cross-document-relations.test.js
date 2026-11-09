@@ -89,3 +89,43 @@ test('explicit graph-size limit and missing or duplicate indexed sources fail cl
  assert.throws(()=>run([null]),/PROTECTED_RELATION_SOURCE_INVALID/);
  assert.throws(()=>run([base[0],base[0]]),/PROTECTED_RELATION_SOURCE_INVALID/);
 });
+
+test('functional-sister receive form normalizes to payer and payee roles',()=>{
+ const result=run([
+   {sourceId:a,lines:['The insurer must pay the hospital.']},
+   {sourceId:b,lines:['The insurer receives payment from the hospital.']}
+ ]);
+ assert.equal(result.candidateCount,1);
+ assert.equal(result.findings[0].category,'INVERSE_PAYER_PAYEE');
+ assert.equal(result.grammar,'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V2');
+ assert.ok(!JSON.stringify(result).includes('insurer'));
+ assert.ok(!JSON.stringify(result).includes('hospital'));
+});
+
+test('negative payment-from construction conflicts with positive payment role',()=>{
+ const result=run([
+   {sourceId:a,lines:['The insurer pays the hospital.']},
+   {sourceId:b,lines:['Payment from insurer to hospital is prohibited.']}
+ ]);
+ assert.equal(result.candidateCount,1);
+ assert.equal(result.findings[0].category,'POLARITY_CONFLICT');
+});
+
+test('equivalent receive construction is not a conflict',()=>{
+ const result=run([
+   {sourceId:a,lines:['The insurer pays the hospital.']},
+   {sourceId:b,lines:['The hospital receives payment from the insurer.']}
+ ]);
+ assert.equal(result.candidateCount,0);
+ assert.equal(result.semanticCompletenessVerified,false);
+});
+
+test('unsupported transfer paraphrase and conditional receipt remain explicitly unproven',()=>{
+ const result=run([
+   {sourceId:a,lines:['The insurer transfers funds to the hospital.']},
+   {sourceId:b,lines:['The hospital may receive payment from the insurer.']}
+ ]);
+ assert.equal(result.candidateCount,0);
+ assert.equal(result.semanticCompletenessVerified,false);
+ assert.equal(result.supportedPatternCoverageOnly,true);
+});
