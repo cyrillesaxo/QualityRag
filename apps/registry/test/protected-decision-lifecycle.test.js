@@ -137,7 +137,7 @@ test('disabled ledger and malformed/method requests cannot mutate or leak',async
  try{
   assert.equal((await request(base,{action:'status',method:'POST',body:{}})).status,404);
   assert.equal((await request(base,{action:'revoke',method:'GET',token:'ownerReviewer'})).status,404);
-  assert.equal((await request(base,{action:'status',decision:'not-a-uuid'})).status,403);
+  assert.equal((await request(base,{action:'status',decision:'not-a-uuid'})).status,404);
   assert.equal(f.calls.filter(x=>x[0]==='revoke').length,0);
  }finally{await new Promise(done=>server.close(done))}
 });
