@@ -61,7 +61,7 @@ test('private configured pilot components retain isolated storage and narrow sco
   assert.equal(pilot.protectedDriveServices.has('claims@staging'),true);
   assert.equal(pilot.driveManager.status('issuer#alice').connected,false);
   assert.equal(pilot.driveIndex.status('issuer#alice',{connected:false}).indexed,false);
-  assert.equal(pilot.evidenceLedger.list('claims','staging').entries.length,0);
+  assert.equal(pilot.evidenceLedger.list('claims','staging').observedCount,0);
   assert.equal(pilot.driveManager.file,path.join(f.root,'google-credentials.json'));
  }finally{f.clean()}
 });
