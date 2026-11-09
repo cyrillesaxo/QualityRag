@@ -3,17 +3,26 @@
 // No actor names or original source text ever leave this helper.
 const SOURCE=/^google_drive\/[0-9a-f]{32}$/;
 const REL=/^\s*(?:the\s+)?([a-z][a-z-]{1,31})\s+(must pay|must not pay|pays|does not pay|shall pay|shall not pay)\s+(?:the\s+)?([a-z][a-z-]{1,31})\s*[.!]?\s*$/i;
+// Equivalent surface forms map into the same directed payer -> payee slots.
+// These are exact, bounded grammar productions, not generalized paraphrase.
+const RECEIVES=/^\s*(?:the\s+)?([a-z][a-z-]{1,31})\s+(receives|must receive|shall receive)\s+payment\s+from\s+(?:the\s+)?([a-z][a-z-]{1,31})\s*[.!]?\s*$/i;
+const PAYMENT_FROM=/^\s*payment\s+from\s+(?:the\s+)?([a-z][a-z-]{1,31})\s+to\s+(?:the\s+)?([a-z][a-z-]{1,31})\s+(?:is required|is prohibited)\s*[.!]?\s*$/i;
 const ACTION={
  'must pay':true,'pays':true,'shall pay':true,
  'must not pay':false,'does not pay':false,'shall not pay':false
 };
 function check(condition,code){if(!condition)throw Error(code)}
 function extract(line){
- const match=REL.exec(line);
- if(!match)return null;
- const from=match[1].toLowerCase(),to=match[3].toLowerCase();
+ const direct=REL.exec(line);
+ const received=direct?null:RECEIVES.exec(line);
+ const payment=direct||received?null:PAYMENT_FROM.exec(line);
+ if(!direct&&!received&&!payment)return null;
+ const from=(direct?direct[1]:received?received[3]:payment[1]).toLowerCase();
+ const to=(direct?direct[3]:received?received[1]:payment[2]).toLowerCase();
  if(from===to)return null;
- return {from,to,positive:ACTION[match[2].toLowerCase()]};
+ const positive=direct?ACTION[direct[2].toLowerCase()]:
+   received?true:payment[3].toLowerCase()==='is required';
+ return {from,to,positive};
 }
 export function scanRelationshipConflicts({sources,witnesses,maxFindings=32}){
  check(Array.isArray(sources)&&sources.length>0&&sources.length<=40&&
@@ -91,7 +100,7 @@ export function scanRelationshipConflicts({sources,witnesses,maxFindings=32}){
    bothSignedConflicts:bothReviewed.count,
    sourcesScanned:seen.size,linesScanned,relationEdgesParsed:edges.length,
    scope:'LIVE_VERIFIED_INCLUDED_SELECTED_FOLDER_TEXT_FILES',
-   grammar:'BOUNDED_ENGLISH_PAYER_PAYEE_AND_NEGATED_PAYMENT',
+   grammar:'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V2',
    sourceTextIncluded:false,actorNamesIncluded:false,
    crossFileSemanticEntailmentVerified:false,
    authoritativenessVerified:false,
