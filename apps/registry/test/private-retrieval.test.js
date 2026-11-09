@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {chunkDocument,PrivateRetrievalIndex} from '../src/private-retrieval.js';
+test('chunk boundaries and overlap preserve exact source',()=>{const s='x'.repeat(1000);const c=chunkDocument(s,{size:300,overlap:50});assert.equal(c[0].start,0);assert.equal(c[1].start,250);assert.equal(c.at(-1).end,s.length);assert.ok(c.every(x=>x.text===s.slice(x.start,x.end)))});
+test('tenant retrieval, ranking, provenance and deletion',()=>{const i=new PrivateRetrievalIndex();const a={tenantId:'balafons:alice',principalId:'alice',sourceId:'balafons:alice:doc',revision:'v1'};const b={tenantId:'balafons:bob',principalId:'bob',sourceId:'balafons:bob:doc',revision:'v1'};
+ i.upsert({...a,content:'Private nursing contraindication exception in this document'});i.upsert({...b,content:'Private nursing contraindication exception in another document'});
+ const result=i.search({tenantId:a.tenantId,principalId:a.principalId,query:'contraindication'});assert.equal(result.length,1);assert.equal(result[0].source_id,a.sourceId);assert.equal(result[0].revision,'v1');
+ assert.throws(()=>i.search({tenantId:a.tenantId,principalId:'bob',query:'nursing'}),/INVALID_SEARCH_SCOPE/);
+ i.upsert({...a,revision:'v2',content:'Completely different text'});assert.equal(i.search({tenantId:a.tenantId,principalId:'alice',query:'contraindication'}).length,0);
+ assert.equal(i.delete(a),true);assert.equal(i.search({tenantId:a.tenantId,principalId:'alice',query:'different'}).length,0);
+ assert.equal(i.search({tenantId:b.tenantId,principalId:'bob',query:'contraindication'}).length,1);
+});
