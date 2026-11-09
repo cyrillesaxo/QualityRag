@@ -75,7 +75,7 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
  const ledger=new EvidenceLedger(ledgerPath);
  const index=new UserDriveIndex({dir:path.join(dir,'index'),
    encryptionKey:randomBytes(32).toString('base64')});
- let content=SOURCE,remoteAccess=true;
+ let content=SOURCE,secondFileText=null,remoteAccess=true;
  let connected=true,folderId='folder-policy',email='alice@example.test';
  let pendingLive=null;
  const connector={
@@ -83,12 +83,16 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
      connected:true,email:'bob@example.test',folderId:'folder-bob'
    },
    selectedFiles:async()=>({truncated:false,files:[{
-     id:'policy-01',name:'Customer policy.txt',mimeType:'text/plain'}]}),
+     id:'policy-01',name:'Customer policy.txt',mimeType:'text/plain'},
+     ...(secondFileText===null?[]:[{
+       id:'second-policy-02',name:'Cross document obligations.txt',
+       mimeType:'text/plain'}])
+   ]}),
    supportsText:()=>true,
-   downloadSelectedText:async()=>{
+   downloadSelectedText:async(_owner,fileId)=>{
      if(pendingLive){const gate=pendingLive;pendingLive=null;await gate;}
      if(!remoteAccess)throw Error('DRIVE_AUTHORIZATION_REQUIRED');
-     return Buffer.from(content,'utf8');
+     return Buffer.from(fileId==='second-policy-02'?secondFileText:content,'utf8');
    }
  };
  const actors={
@@ -279,6 +283,108 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    // Return to the exact original signed bytes and owner selection; the
    // unrelated follow-on live-use and revocation tests must remain valid.
    content=SOURCE;
+   await index.sync(subject,connector);
+
+   // Cross-document WitnessGraph challenge: an inverted payer/payee
+   // relationship is not visible from any single cited document.
+   const firstRelation='The insurer must pay the hospital.';
+   const reversedRelation='The hospital must pay the insurer.';
+   content=SOURCE+'\n'+firstRelation;
+   secondFileText=reversedRelation;
+   await index.sync(subject,connector);
+   const relationSources=index.visibility(subject,connector.status(subject)).sources;
+   const firstRelationSource=relationSources.find(x=>x.filename==='Customer policy.txt');
+   const secondRelationSource=relationSources.find(x=>x.filename===
+     'Cross document obligations.txt');
+   assert.ok(firstRelationSource&&secondRelationSource);
+   const firstWitnessDecision=await request('POST',endpoint,'owner',
+     payload(att({revision:firstRelationSource.revision})));
+   assert.equal(firstWitnessDecision.status,201,JSON.stringify(firstWitnessDecision.body));
+   const relationCheckPath='/v1/evidence/protected-decisions/'+
+     firstWitnessDecision.body.id+'/relation-check';
+   assert.equal(permissionFor('POST',relationCheckPath),'evidence.ingest');
+   assert.equal((await request('POST',relationCheckPath,'other',{
+     requestId:'rel-other-user'})).status,403);
+   const relationReport=await request('POST',relationCheckPath,'owner',{
+     requestId:'rel-preview-001'});
+   assert.equal(relationReport.status,200,JSON.stringify(relationReport.body));
+   assert.equal(relationReport.body.candidateCount,1);
+   assert.equal(relationReport.body.findings[0].category,'INVERSE_PAYER_PAYEE');
+   assert.equal(relationReport.body.sourcesScanned,2);
+   assert.equal(relationReport.body.releasePermittedByThisPreview,false);
+   assert.equal(relationReport.body.semanticCompletenessVerified,false);
+   assert.ok(!JSON.stringify(relationReport.body).includes('insurer'));
+   assert.ok(!JSON.stringify(relationReport.body).includes('hospital'));
+   const relationBlock=await request('POST',
+     '/v1/evidence/protected-decisions/'+firstWitnessDecision.body.id+
+     '/grounded-deliver','owner',{requestId:'relation-conflict-block'});
+   assert.equal(relationBlock.status,409,JSON.stringify(relationBlock.body));
+   assert.equal(relationBlock.body.error,
+     'PROTECTED_GROUNDED_CROSS_SOURCE_RELATION_CONFLICT');
+   assert.ok(!JSON.stringify(relationBlock.body).includes('insurer'));
+
+   // Signing both incompatible statements is never a contradiction
+   // adjudication; both source claims can be authentic and still disagree.
+   const bothSignedDecision=await request('POST',endpoint,'owner',payload(att({
+     revision:firstRelationSource.revision,extraWitnesses:[
+       {sourceId:firstRelationSource.sourceId,
+         revision:firstRelationSource.revision,requirementId:'approval',
+         lineNumber:3,lineSha256:sha(firstRelation),
+         origin:witnessOrigin,status:'SUPPORTS'},
+       {sourceId:secondRelationSource.sourceId,
+         revision:secondRelationSource.revision,requirementId:'approval',
+         lineNumber:1,lineSha256:sha(reversedRelation),
+         origin:witnessOrigin,status:'SUPPORTS'}
+     ]
+   })));
+   assert.equal(bothSignedDecision.status,201,JSON.stringify(bothSignedDecision.body));
+   const reviewedRelations=await request('POST',
+     '/v1/evidence/protected-decisions/'+bothSignedDecision.body.id+
+     '/relation-check','owner',{requestId:'rel-both-signed'});
+   assert.equal(reviewedRelations.status,200);
+   assert.equal(reviewedRelations.body.bothSignedConflicts,1);
+   assert.equal(reviewedRelations.body.candidateCount,1);
+   const signedRelationBlock=await request('POST',
+     '/v1/evidence/protected-decisions/'+bothSignedDecision.body.id+
+     '/grounded-deliver','owner',{requestId:'rel-both-signed-block'});
+   assert.equal(signedRelationBlock.status,409);
+   assert.equal(signedRelationBlock.body.error,
+     'PROTECTED_GROUNDED_CROSS_SOURCE_RELATION_CONFLICT');
+
+   // An outdated cross-file candidate is not grounded in live bytes.
+   secondFileText='The hospital must pay the vendor.';
+   const outdatedRelation=await request('POST',relationCheckPath,'owner',{
+     requestId:'rel-modified-second-file'});
+   assert.equal(outdatedRelation.status,409);
+   assert.equal(outdatedRelation.body.error,'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH');
+   secondFileText=reversedRelation;
+
+   // Excluding the second source while its live download is in flight
+   // invalidates the original selected-folder relationship scan.
+   let continueRel;
+   pendingLive=new Promise(resolve=>{continueRel=resolve});
+   const pendingRelation=request('POST',relationCheckPath,'owner',{
+     requestId:'rel-owner-excluded-in-flight'});
+   for(let i=0;i<100&&pendingLive;i++)
+     await new Promise(resolve=>setTimeout(resolve,5));
+   assert.equal(pendingLive,null,'Relation verifier must enter Google download');
+   index.controlSource(subject,connector.status(subject),{
+     sourceId:secondRelationSource.sourceId,
+     searchable:false,reason:'OUT_OF_SCOPE'});
+   continueRel();
+   const excludedDuringRelation=await pendingRelation;
+   assert.equal(excludedDuringRelation.status,409);
+   assert.equal(excludedDuringRelation.body.error,'PROTECTED_RELATION_OWNER_SCOPE_CHANGED');
+   const afterOwnerExclusion=await request('POST',relationCheckPath,'owner',{
+     requestId:'rel-owner-excluded-then-rechecked'});
+   assert.equal(afterOwnerExclusion.status,200);
+   assert.equal(afterOwnerExclusion.body.sourcesScanned,1);
+   assert.equal(afterOwnerExclusion.body.candidateCount,0);
+   assert.equal(afterOwnerExclusion.body.semanticCompletenessVerified,false);
+   index.controlSource(subject,connector.status(subject),{
+     sourceId:secondRelationSource.sourceId,searchable:true,
+     reason:'OWNER_SELECTION'});
+   secondFileText=null;content=SOURCE;
    await index.sync(subject,connector);
    const usePath='/v1/evidence/protected-decisions/'+admit.body.id+'/use-check';
    const answerText='Synthetic reviewed response — not a claim of model correctness';
@@ -573,12 +679,13 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.equal(freshness.body.error,'PROTECTED_POLICY_REQUIRES_UNSUPPORTED_PROOF');
 
    const list=ledger.list('claims','dev');
-   assert.equal(list.summary.protectedDecisions,5);
-   assert.equal(list.summary.protectedAdmitted,4);
+   assert.equal(list.summary.protectedDecisions,7);
+   assert.equal(list.summary.protectedAdmitted,6);
    assert.equal(list.summary.protectedRevocations,1);
    assert.equal(list.summary.protectedUses,4);
    assert.equal(list.summary.protectedGroundedReleases,2);
    assert.equal(list.summary.protectedSufficiencyBlocks,1);
+   assert.equal(list.summary.protectedRelationBlocks,2);
    const auditBytes=fs.readFileSync(ledgerPath,'utf8');
    assert.ok(!auditBytes.includes(answerText));
    assert.ok(!auditBytes.includes(deliveryText));
@@ -586,13 +693,15 @@ test('approved source: independent role keys, current Google bytes and PackSpec 
    assert.ok(!auditBytes.includes(SOURCE.split('\n')[0]));
    assert.ok(!auditBytes.includes(farException));
    assert.ok(!auditBytes.includes(remediated.body.answer));
+   assert.ok(!auditBytes.includes(firstRelation));
+   assert.ok(!auditBytes.includes(reversedRelation));
    assert.ok(auditBytes.includes(answerSha256));
    assert.equal(list.summary.protectedInconclusive,0);
    assert.equal(list.observedCount,0);
    const persisted=fs.readFileSync(ledgerPath,'utf8');
    assert.equal(persisted.includes('Owner-approved policy: contractors'),false);
    assert.equal(persisted.includes('All other reimbursements need approval'),false);
-   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,4);
+   assert.equal(new EvidenceLedger(ledgerPath).list('claims','dev').summary.protectedAdmitted,6);
  }finally{
    await new Promise(ok=>server.close(ok));
    fs.rmSync(dir,{recursive:true,force:true});
