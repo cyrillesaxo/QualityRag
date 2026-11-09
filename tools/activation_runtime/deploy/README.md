@@ -1,8 +1,9 @@
 # Private QualityRAG governance API host — operator rollout
 
-**Status: not deployed by this repository package.** The only observed DigitalOcean
-VM belongs to the APX customer-discovery workflow; do not modify or reuse it
-without workload isolation and resource-ownership review.
+**Status (2026-11-08):** DigitalOcean Droplet `617283147` named
+`qualityrag-governance-isolated` exists, active, IP `159.65.251.50`.
+The API has **not** been installed/started or connected to Netlify.
+The older APX customer-discovery host is a distinct VM and must not be touched.
 
 This package runs the **existing** QualityRAG Python
 `tools.activation_runtime.cli serve` application, using a fixed
@@ -131,3 +132,57 @@ No startup-time SSH step, user-data provisioner, or GitHub workflow may
 silently mark this app as externally connected. The acceptance gate is
 a real HTTPS `/api/policy/test` and a Netlify `tools/call` with signed
 tenant identity and observed verdicts, plus cross-tenant denial checks.
+
+
+## Stage the already-created isolated server (operator action)
+
+The DigitalOcean connector cannot execute commands through SSH. Use PuTTY
+with your locally held `.ppk` private key or the provider's Droplet Console.
+Never paste the PuTTY private key or its passphrase into chat, GitHub, or CI.
+
+- Target server: `159.65.251.50` (`qualityrag-governance-isolated`).
+- SSH port: 22. The provider/host firewall is configured for the administrator
+  public IP recorded during provisioning; reconnect/update the approved IP
+  using provider console if your mobile connection changes.
+- In PuTTY: Host Name `root@159.65.251.50`, port `22`, connection SSH;
+  set **Connection > SSH > Auth > Credentials > Private key file** to the
+  QualityRAG `.ppk` saved on your computer.
+- After login, run the following, and check the repository commit before
+  installation:
+  ```sh
+  sudo apt-get update
+  sudo apt-get install -y git
+  git clone --depth=1 https://github.com/cyrillesaxo/QualityRag.git /tmp/qualityrag-stage
+  cd /tmp/qualityrag-stage
+  git rev-parse HEAD
+  sudo bash tools/activation_runtime/deploy/prepare_host.sh "$(git rev-parse HEAD)"
+  ```
+  An operator who has reviewed a specific release should check out its
+  **40-character commit** rather than relying on a moving default branch.
+- Successful output ends with `QUALITYRAG_HOST_PREPARED_NOT_STARTED` and
+  `QUALITYRAG_LOCAL_EVIDENCE_SMOKE_PASSED ADMIT INCONCLUSIVE`. Both
+  are **local, fixture-based** checks. They do not authorize production use.
+- The installer rejects non-Ubuntu 24.04 systems, wrong host names, existing
+  authority keys, an existing running service, and nonempty checkouts.
+  It fetches precisely the approved commit, runs a real Python governance
+  fixture, installs the locked-down systemd unit, and leaves it disabled.
+- Next: provision root-managed **public** verifier keys and the offline
+  issuer-managed short-lived *read-only* signed gateway token. Then configure
+  an operator-owned domain's DNS A record to `159.65.251.50`, install
+  Caddy, enable inbound ports 80/443 at **both** UFW and DigitalOcean cloud
+  firewall, verify TLS, and enable the service only after trust validation.
+  `/api/policy/test` must return real verdicts before Netlify is connected.
+  Never open port 8769 to the public internet.
+
+### Access and configuration caveats
+
+The provisioned SSH key is an RSA 2048 key generated with PuTTY, not the
+Ed25519 **governance attestation key**. SSH access is distinct from runtime
+authorization. The private SSH key stays on the operator's machine.
+The service issuer signing key stays off the server and Netlify.
+
+Production operator work is not finished merely because the Droplet is active:
+verify persistent storage, root and sudo access, firewall attachment, patch
+level, service isolation, signed tenant scoping, expiry/rotation, external TLS,
+backups, monitoring and denial of unsigned requests.
+
