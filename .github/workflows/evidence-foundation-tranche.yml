@@ -1,0 +1,36 @@
+name: Evidence foundation tranche validation
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/evidence-ledger.js'
+      - 'sdk/python/qualityrag/telemetry.py'
+      - 'sdk/python/qualityrag/verify_receipt.py'
+      - 'sdk/python/tests/test_telemetry.py'
+      - 'sdk/python/tests/test_verify_receipt.py'
+      - '.github/workflows/evidence-foundation-tranche.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evidence-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile and syntax-check isolated modules
+        run: |
+          node --check apps/registry/src/evidence-ledger.js
+          python -m compileall -q sdk/python/qualityrag/telemetry.py sdk/python/qualityrag/verify_receipt.py
+      - name: Run evidence foundation Python tests
+        working-directory: sdk/python
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m unittest discover -s tests -p 'test_telemetry.py' -v
+          python -m unittest discover -s tests -p 'test_verify_receipt.py' -v
