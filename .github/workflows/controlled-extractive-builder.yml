@@ -1,0 +1,23 @@
+name: Controlled extractive answer builder
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/source-grounded-answer.js'
+      - 'apps/registry/test/source-grounded-answer.test.js'
+      - '.github/workflows/controlled-extractive-builder.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check strict extractive source builder and adversarial exclusions
+        run: |
+          node --check apps/registry/src/source-grounded-answer.js
+          node --test apps/registry/test/source-grounded-answer.test.js
