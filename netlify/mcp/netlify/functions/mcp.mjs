@@ -15,13 +15,26 @@ const catalog=tools.map(([name,description,properties])=>({name,description,inpu
 const headers={"content-type":"application/json","cache-control":"no-store","access-control-allow-headers":"authorization,content-type,mcp-protocol-version,mcp-session-id","access-control-allow-methods":"GET,POST,OPTIONS"};
 const reply=(payload,status=200)=>new Response(JSON.stringify(payload),{status,headers});
 const err=(id,code,message)=>({jsonrpc:"2.0",id,error:{code,message}});
+const MAX_CLIENT_TOKEN_AGE_MS = 60 * 24 * 60 * 60 * 1000;
+const utcTimestamp = (value) => {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value)) return NaN;
+  const time = Date.parse(value);
+  return Number.isFinite(time) && new Date(time).toISOString().replace(".000Z", "Z") === value ? time : NaN;
+};
+const clientTokenIsCurrent = (now = Date.now()) => {
+  const issued = utcTimestamp(process.env.QUALITYRAG_MCP_TOKEN_ISSUED_AT);
+  const expires = utcTimestamp(process.env.QUALITYRAG_MCP_TOKEN_EXPIRES_AT);
+  return Number.isFinite(issued) && Number.isFinite(expires) &&
+    expires > issued && expires - issued <= MAX_CLIENT_TOKEN_AGE_MS &&
+    now >= issued && now < expires;
+};
 export default async function handler(request){
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers});
  if(request.method==="GET")return reply({error:"Use POST for JSON-RPC requests"},405);
  if(request.method!=="POST")return reply({error:"Method not allowed"},405);
  const auth=request.headers.get("authorization")||"";
  const configured=process.env.QUALITYRAG_MCP_ACCESS_TOKEN;
- if(!configured || auth!==`Bearer ${configured}`)return reply({error:"Unauthorized"},401);
+ if(!configured || !clientTokenIsCurrent() || auth!==`Bearer ${configured}`)return reply({error:"Unauthorized"},401);
  let msg;try{msg=await request.json()}catch{return reply(err(null,-32700,"Invalid JSON"),400)}
  if(!msg || msg.jsonrpc!=="2.0" || typeof msg.method!=="string")return reply(err(msg?.id??null,-32600,"Invalid JSON-RPC"),400);
  if(msg.method==="notifications/initialized")return new Response(null,{status:202,headers});
