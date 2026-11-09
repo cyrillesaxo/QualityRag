@@ -1,0 +1,33 @@
+name: Drive index and bounded scanners
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/user-drive-index.js'
+      - 'apps/registry/src/constraint-sufficiency.js'
+      - 'apps/registry/src/cross-document-relations.js'
+      - 'apps/registry/test/user-drive-index-core.test.js'
+      - 'apps/registry/test/constraint-sufficiency.test.js'
+      - 'apps/registry/test/cross-document-relations.test.js'
+      - '.github/workflows/drive-index-tranche.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          node --check apps/registry/src/user-drive-index.js
+          node --check apps/registry/src/constraint-sufficiency.js
+          node --check apps/registry/src/cross-document-relations.js
+      - name: Run owner-isolation and scanner regression tests
+        run: |
+          node --test apps/registry/test/user-drive-index-core.test.js
+          node --test apps/registry/test/constraint-sufficiency.test.js
+          node --test apps/registry/test/cross-document-relations.test.js
