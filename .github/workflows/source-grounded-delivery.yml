@@ -1,0 +1,25 @@
+name: Source-grounded last-mile delivery
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/grounded-delivery-route.js'
+      - 'apps/registry/src/server.js'
+      - 'apps/registry/test/grounded-delivery-route.test.js'
+      - '.github/workflows/source-grounded-delivery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/registry install --no-audit --no-fund
+      - name: Verify source-grounded delivery and denial
+        run: |
+          node --check apps/registry/src/grounded-delivery-route.js
+          node --test apps/registry/test/grounded-delivery-route.test.js apps/registry/test/source-grounded-answer.test.js
