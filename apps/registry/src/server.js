@@ -6,6 +6,7 @@ import {createPgSignedRegistryStore} from './pg-store.js';
 import {loadTrustedPolicyKeys} from './signed.js';
 import {createOidcAuthenticator,permissionFor} from './oidc.js';
 import {handleScopedDriveControl,handleDriveOauthCallback} from './scoped-drive-control.js';
+import {handleGovernedDriveCandidates} from './governed-drive-candidates.js';
 import {handleProtectedAdmission} from './protected-admission-route.js';
 import {handleReadOnlyEvidenceTelemetry} from './read-only-evidence-telemetry.js';
 import {handleEvidenceReview} from './evidence-review-route.js';
@@ -66,6 +67,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
   try {
    if(await handleScopedDriveControl(req,res,{pathname:url.pathname,actor,
       authenticate,driveManager,driveIndex,parseBody:body,url}))return;
+   if(await handleGovernedDriveCandidates(req,res,{url,identity,actor,
+      authenticate,driveManager,driveIndex,evidenceLedger,store,parseBody:body}))return;
    if(await handleProtectedAdmission(req,res,{pathname:url.pathname,actor,identity,
       authenticate,store,evidenceLedger,driveManager,driveIndex,
       protectedReviewTrust,protectedDriveServices,parseBody:body}))return;
