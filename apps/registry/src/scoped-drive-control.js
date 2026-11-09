@@ -2,7 +2,7 @@
 // Only enabled when both trusted OIDC and injected Drive components exist.
 const PREFIX='/v1/drives/google/';
 const ROUTES=new Set(['status','index','visibility','source-control','sync','clear-index',
- 'start','folders','folder','files','disconnect']);
+ 'start','folders','folder','files','disconnect','search']);
 function send(res,status,payload){
  res.writeHead(status,{'content-type':'application/json; charset=utf-8',
   'cache-control':'no-store','x-content-type-options':'nosniff'});
@@ -16,7 +16,8 @@ function safe(code){
   'INVALID_DRIVE_SOURCE_CONTROL','DRIVE_INDEX_DIRECTORY_REQUIRED',
   'DRIVE_AUTHORIZATION_REQUIRED','GOOGLE_DRIVE_UNAVAILABLE',
   'DRIVE_RATE_LIMITED','DRIVE_FOLDER_NOT_FOUND','INVALID_DRIVE_FOLDER_ID',
-  'INVALID_DRIVE_PAGE_TOKEN','DRIVE_OAUTH_TOO_MANY_PENDING'].includes(code)?code:'DRIVE_OPERATION_FAILED';
+  'INVALID_DRIVE_PAGE_TOKEN','DRIVE_OAUTH_TOO_MANY_PENDING',
+  'INVALID_DRIVE_SEARCH_QUERY'].includes(code)?code:'DRIVE_OPERATION_FAILED';
 }
 // Google redirects cannot attach the caller's OIDC bearer token. The manager
 // validates the single-use high-entropy state bound to the OIDC subject at start.
@@ -66,7 +67,7 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
  if(typeof actor!=='string'||!actor.trim()){
   send(res,401,{error:'UNAUTHORIZED'});return true;
  }
- const method=['source-control','sync','clear-index','start','folder','disconnect'].includes(route)?'POST':'GET';
+ const method=['source-control','sync','clear-index','start','folder','disconnect','search'].includes(route)?'POST':'GET';
  if(req.method!==method){send(res,404,{error:'NOT_FOUND'});return true}
  try{
   const conn=driveManager.status(actor);
@@ -87,6 +88,13 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
    if(oldFolder!==result.folderId)driveIndex.clear(actor);
   }
   else if(route==='files')result=await driveManager.selectedFiles(actor);
+  else if(route==='search'){
+   const data=await parseBody(req);
+   if(!data||typeof data!=='object'||Array.isArray(data)||
+      Object.keys(data).length!==1||typeof data.query!=='string')
+    throw Error('INVALID_DRIVE_SEARCH_QUERY');
+   result=driveIndex.search(actor,conn,data.query);
+  }
   else if(route==='disconnect'){
    driveIndex.clear(actor);result=await driveManager.disconnect(actor);
   }
