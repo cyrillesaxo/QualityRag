@@ -20,9 +20,6 @@ type GovernedCheck={
   externallyAnchored:boolean;scope:string};
  observations:{sourceId:string;decision:string;reasons:string[];eligibleForReviewedEvidence:boolean}[];
 };
-// The current Registry deliberately does not expose governed candidate preview or record routes.
-// Keep visible controls in a truthful unavailable state rather than generating 403/404 on click.
-const governedChallengeAvailable=false;
 type Props={token:string;folderId:string|null;connected:boolean;
   indexEnabled:boolean;lastSyncedAt?:string;serviceId:string;environment:string};
 
@@ -33,6 +30,7 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
  const [busy,setBusy]=useState('');
  const [reason,setReason]=useState('OUT_OF_SCOPE');
  const [updated,setUpdated]=useState('');
+ const [governedChallengeAvailable,setGovernedChallengeAvailable]=useState(false);
  const [requirements,setRequirements]=useState<string[]>([]);
  const [requirement,setRequirement]=useState('');
  const [requirementsError,setRequirementsError]=useState('');
@@ -54,10 +52,7 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
  useEffect(()=>{
    let active=true;
    setRequirements([]);setRequirement('');setGate(null);setRequirementsError('');
-   if(!governedChallengeAvailable){
-     setRequirementsError('Governed requirement checks are not yet enabled by this Registry. Source visibility and exclusion still work.');
-     return()=>{active=false};
-   }
+   setGovernedChallengeAvailable(false);
    if(!token||!connected||!indexEnabled||!serviceId||!environment)return;
    const query=new URLSearchParams({serviceId,environment});
    fetch('/v1/drives/google/governed-requirements?'+query.toString(),{
@@ -66,8 +61,9 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
      const content=await result.json();
      if(!result.ok)throw Error(String(content.error||'Unable to resolve approved requirements'));
      const ids=(content.requirements||[]).map((r:{id:string})=>r.id);
-     if(active){setRequirements(ids);setRequirement(ids[0]||'');}
-   }).catch(e=>{if(active)setRequirementsError(String(e))});
+     if(active){setRequirements(ids);setRequirement(ids[0]||'');
+       setGovernedChallengeAvailable(content.schema==='qualityrag.drive-governed-requirements/v1');}
+   }).catch(e=>{if(active){setGovernedChallengeAvailable(false);setRequirementsError('Governed candidate checks unavailable: '+String(e))}});
    return()=>{active=false};
  },[token,connected,indexEnabled,serviceId,environment]);
  async function checkGoverned(source:Source,record=false){
@@ -156,7 +152,7 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
        </button>
      </div>
      <div style={{border:'1px solid #d6e7d8',padding:12,borderRadius:9,margin:'12px 0'}}>
-       <strong>PackSpec candidate challenges — currently unavailable</strong>
+       <strong>PackSpec candidate challenges — service-scoped availability</strong>
        <p style={{fontSize:13,margin:'6px 0'}}>Selected service: <code>{serviceId}</code>;
          environment: <code>{environment}</code>. Requires both
          <code> drive.reader</code> and <code> evidence.reader</code>, plus access
@@ -169,7 +165,7 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
              requirements.map(id=><option key={id} value={id}>{id}</option>)}
          </select>
        </label>
-       <p style={{fontSize:12}}>These buttons remain disabled until the scoped governed-check and record-check API contracts are implemented and validated. No eligibility or approval is implied.</p>
+       <p style={{fontSize:12}}>These controls activate only after the Registry returns a valid, service-scoped requirements contract. Candidate checks cannot admit evidence or verify semantics.</p>
        <p style={{fontSize:12}}>Use “Check candidate” to preview without writing to
          the ledger. “Record challenge” requires a separate <code>evidence.reviewer</code>
          role, creates a local ledger receipt, and never changes source admission.
