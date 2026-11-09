@@ -187,3 +187,7 @@ The [PostgreSQL signed-promotion ledger](apps/registry/POSTGRES-SIGNED-LEDGER.md
 
 The [PostgreSQL deployment and recovery runbook](apps/registry/DEPLOYMENT-RUNBOOK.md) describes checksummed advisory-locked migration, fail-closed startup, liveness/readiness probes, and a non-root registry container. It does not provision production database, identity or signing credentials.
 
+
+## SDK onboarding and troubleshooting
+
+[Quickstart](docs/quickstart.md) · [SDK language guides](docs/README.md) · [Concepts](docs/concepts.md) · [Troubleshooting](docs/troubleshooting.md)
