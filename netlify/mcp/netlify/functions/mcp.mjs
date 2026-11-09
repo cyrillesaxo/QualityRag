@@ -51,6 +51,18 @@ const catalog=tools.map(([name,description,properties])=>({name,description,inpu
 const headers={"content-type":"application/json","cache-control":"no-store","access-control-allow-headers":"authorization,content-type,mcp-protocol-version,mcp-session-id","access-control-allow-methods":"GET,POST,OPTIONS"};
 const reply=(payload,status=200)=>new Response(JSON.stringify(payload),{status,headers});
 const err=(id,code,message)=>({jsonrpc:"2.0",id,error:{code,message}});
+const MAX_CLIENT_TOKEN_AGE_MS=60*24*60*60*1000;
+const parseUtcTimestamp=(value)=>{
+ if(typeof value!=="string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value))return NaN;
+ const ts=Date.parse(value);
+ return Number.isFinite(ts)&&new Date(ts).toISOString().replace(".000Z","Z")===value?ts:NaN;
+};
+const clientBearerCurrent=(now=Date.now())=>{
+ const issued=parseUtcTimestamp(process.env.QUALITYRAG_MCP_TOKEN_ISSUED_AT);
+ const expires=parseUtcTimestamp(process.env.QUALITYRAG_MCP_TOKEN_EXPIRES_AT);
+ return Number.isFinite(issued)&&Number.isFinite(expires)&&expires>issued&&
+        expires-issued<=MAX_CLIENT_TOKEN_AGE_MS&&now>=issued&&now<expires;
+};
 export default async function handler(request){
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers});
  if(request.method==="GET")return reply({error:"Use POST for JSON-RPC requests"},405);
@@ -62,7 +74,7 @@ export default async function handler(request){
  if(origin)return reply({error:"Cross-origin browser access not enabled"},403);
  const auth=request.headers.get("authorization")||"";
  const configured=process.env.QUALITYRAG_MCP_ACCESS_TOKEN;
- if(!configured || auth!==`Bearer ${configured}`)return reply({error:"Unauthorized"},401);
+ if(!configured || !clientBearerCurrent() || auth!==`Bearer ${configured}`)return reply({error:"Unauthorized"},401);
  let msg;
  try{
    const body=await request.arrayBuffer();
