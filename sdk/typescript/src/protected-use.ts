@@ -49,6 +49,25 @@ export type SourceGroundedExtract={
  receipt:UseCheckReceipt;delivery:'SERVER_GENERATED_EXTRACT_ONLY';
  answerSemanticsVerified:false;globalEnforcement:false;externallyAnchored:false;
 };
+export type CrossDocumentRelationReport={
+ schema:'qualityrag.cross-document-relation-candidates/v1';
+ status:'POTENTIAL_CROSS_SOURCE_CONFLICTS'|'NO_SUPPORTED_RELATION_CONFLICTS_FOUND';
+ candidateCount:number;findingsTruncated:boolean;bothSignedConflicts:number;
+ sourcesScanned:number;linesScanned:number;relationEdgesParsed:number;
+ findings:Array<{
+   category:'INVERSE_PAYER_PAYEE'|'POLARITY_CONFLICT';
+   left:{sourceId:string;lineNumber:number;signedSupportingWitness:boolean};
+   right:{sourceId:string;lineNumber:number;signedSupportingWitness:boolean};
+   reviewState:'NEEDS_EXPLICIT_CROSS_SOURCE_ADJUDICATION';
+ }>;
+ scope:'LIVE_VERIFIED_INCLUDED_SELECTED_FOLDER_TEXT_FILES';
+ sourceTextIncluded:false;actorNamesIncluded:false;
+ crossFileSemanticEntailmentVerified:false;
+ authoritativenessVerified:false;semanticCompletenessVerified:false;
+ supportedPatternCoverageOnly:true;
+ decisionId:string;checkedAt:string;releasePermittedByThisPreview:false;
+ nextAction:string;
+};
 export class ProtectedUseClient {
  private base:string;
  private bearer:string;
@@ -149,6 +168,62 @@ export class ProtectedUseClient {
  /** The registry constructs a verbatim extract from all signed witness anchors.
   * No caller-supplied prose is allowed. Not document-wide semantic entailment.
   */
+ /** Experimental WitnessGraph preview over currently included selected files.
+  *  No answer authorization is granted by a clean result.
+  */
+ async checkCrossDocumentRelations(decisionId:string,requestId:string):
+   Promise<CrossDocumentRelationReport>{
+   if(typeof decisionId!=='string'||!UUID.test(decisionId)||
+      typeof requestId!=='string'||!ID.test(requestId))
+     throw Error('Invalid cross-document relation request');
+   const response=await fetch(this.base+'/v1/evidence/protected-decisions/'+
+     decisionId+'/relation-check',{
+       method:'POST',cache:'no-store',redirect:'error',
+       headers:{Authorization:'Bearer '+this.bearer,'Content-Type':'application/json'},
+       body:JSON.stringify({requestId}),signal:AbortSignal.timeout(30000)
+     });
+   let report:CrossDocumentRelationReport;
+   try{
+     const raw=await response.text();
+     if(raw.length>64000)throw Error('Oversized relation report');
+     report=JSON.parse(raw) as CrossDocumentRelationReport;
+   }catch{throw Error('Cross-document relation check denied: invalid response')}
+   if(!response.ok)throw Error('Cross-document relation check denied');
+   const expectedSource=/^google_drive\/[a-f0-9]{32}$/;
+   const validAnchor=(x:{sourceId:string;lineNumber:number;
+     signedSupportingWitness:boolean}|undefined)=>
+       !!x&&expectedSource.test(x.sourceId)&&Number.isSafeInteger(x.lineNumber)&&
+       x.lineNumber>=1&&x.lineNumber<=6000&&
+       typeof x.signedSupportingWitness==='boolean';
+   if(report?.schema!=='qualityrag.cross-document-relation-candidates/v1'||
+      !['POTENTIAL_CROSS_SOURCE_CONFLICTS',
+        'NO_SUPPORTED_RELATION_CONFLICTS_FOUND'].includes(report.status)||
+      report.decisionId!==decisionId||
+      !Number.isFinite(Date.parse(report.checkedAt))||
+      !Number.isSafeInteger(report.candidateCount)||report.candidateCount<0||
+      !Number.isSafeInteger(report.sourcesScanned)||report.sourcesScanned<1||
+      !Number.isSafeInteger(report.bothSignedConflicts)||
+      report.bothSignedConflicts<0||
+      !Array.isArray(report.findings)||report.findings.length>64||
+      report.findings.length>report.candidateCount||
+      report.findings.some(f=>
+        !['INVERSE_PAYER_PAYEE','POLARITY_CONFLICT'].includes(f.category)||
+        !validAnchor(f.left)||!validAnchor(f.right)||
+        f.reviewState!=='NEEDS_EXPLICIT_CROSS_SOURCE_ADJUDICATION')||
+      report.findingsTruncated!==(report.findings.length<report.candidateCount)||
+      report.status!==(report.candidateCount?
+        'POTENTIAL_CROSS_SOURCE_CONFLICTS':
+        'NO_SUPPORTED_RELATION_CONFLICTS_FOUND')||
+      report.scope!=='LIVE_VERIFIED_INCLUDED_SELECTED_FOLDER_TEXT_FILES'||
+      report.sourceTextIncluded!==false||report.actorNamesIncluded!==false||
+      report.crossFileSemanticEntailmentVerified!==false||
+      report.authoritativenessVerified!==false||
+      report.semanticCompletenessVerified!==false||
+      report.supportedPatternCoverageOnly!==true||
+      report.releasePermittedByThisPreview!==false)
+     throw Error('Cross-document relation check denied: unsupported assurance');
+   return report;
+ }
  async extractFromReviewedSources(decisionId:string,requestId:string):
    Promise<SourceGroundedExtract>{
    if(typeof decisionId!=='string'||!UUID.test(decisionId)||
@@ -158,7 +233,7 @@ export class ProtectedUseClient {
      decisionId+'/grounded-deliver',{
        method:'POST',cache:'no-store',redirect:'error',
        headers:{Authorization:'Bearer '+this.bearer,'Content-Type':'application/json'},
-       body:JSON.stringify({requestId}),signal:AbortSignal.timeout(10000)
+       body:JSON.stringify({requestId}),signal:AbortSignal.timeout(30000)
      });
    let result:SourceGroundedExtract;
    try{
