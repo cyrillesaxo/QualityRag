@@ -8,6 +8,7 @@ import {createOidcAuthenticator,permissionFor} from './oidc.js';
 import {handleScopedDriveControl,handleDriveOauthCallback} from './scoped-drive-control.js';
 import {handleProtectedAdmission} from './protected-admission-route.js';
 import {handleReadOnlyEvidenceTelemetry} from './read-only-evidence-telemetry.js';
+import {handleEvidenceReview} from './evidence-review-route.js';
 import {handleGroundedDelivery} from './grounded-delivery-route.js';
 import {handleProtectedDecisionLifecycle} from './protected-decision-lifecycle.js';
 import {createPilotComponents} from './pilot-components.js';
@@ -68,6 +69,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
    if(await handleProtectedAdmission(req,res,{pathname:url.pathname,actor,identity,
       authenticate,store,evidenceLedger,driveManager,driveIndex,
       protectedReviewTrust,protectedDriveServices,parseBody:body}))return;
+   if(await handleEvidenceReview(req,res,{pathname:url.pathname,actor,identity,
+      authenticate,evidenceLedger,parseBody:body}))return;
    if(await handleReadOnlyEvidenceTelemetry(req,res,{url,identity,authenticate,
       evidenceLedger,store,protectedDriveServices}))return;
    if(await handleGroundedDelivery(req,res,{pathname:url.pathname,actor,identity,
