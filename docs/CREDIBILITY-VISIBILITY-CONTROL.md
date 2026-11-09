@@ -200,6 +200,23 @@ must never become a green “all exceptions found” badge.
 
 [Bounded distant-constraint evidence and limitations](CONSTRAINT-SIGNAL-SUFFICIENCY.md).
 
+### Control over cross-document relationship conflicts
+
+A signed source can still be semantically incompatible with a
+different included file. The registry now scans exact verified
+selected-folder files for narrowly expressed inverse payer/payee
+relations and opposite payment obligations. Studio shows a
+**candidate pair** with opaque source IDs and line anchors; its
+metadata-only ledger records distinct cross-document blocks.
+
+**Two valid signatures cannot convert an inconsistent relationship
+into established truth.** The customer must resolve source authority,
+scope, legal capacity, and effective date. Source exclusion is an
+explicit owner choice that narrows the scan, not proof that the
+excluded document was incorrect.
+
+[Cross-document relationship candidate graph: limits and acceptance](CROSS-DOCUMENT-RELATION-CHALLENGE.md).
+
 ### Evidence promotion boundary
 
 `SEARCH_CANDIDATE` → customer inspection of original → separately verified provenance and authority → reviewed PackSpec obligation → evidence-gate evaluation → `ADMIT` / `REFUSE` / `INCONCLUSIVE` → independent replay / customer challenge.
