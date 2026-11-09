@@ -73,8 +73,8 @@ test('record inspection, export and replay are scoped and do not mutate ledger',
  const replay=await request(f,'POST',prefix+'/replay');
  assert.equal(replay.status,200);
  assert.equal(replay.data.reproduced,true);
- assert.equal((await request(f,'POST',prefix+'/reviews')).status,404);
- assert.equal((await request(f,'POST','/v1/evidence/evaluations?serviceId=claims&environment=prod')).status,404);
+ assert.equal((await request(f,'POST',prefix+'/reviews')).status,403);
+ assert.equal((await request(f,'POST','/v1/evidence/evaluations?serviceId=claims&environment=prod')).status,403);
  assert.equal((await request(f,'GET','/v1/evidence/evaluations/invalid')).status,404);
  assert.equal(f.calls.some(c=>c.startsWith('ingest')),false);
 });
