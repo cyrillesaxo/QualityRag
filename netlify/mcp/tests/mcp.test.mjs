@@ -4,7 +4,7 @@ import handler from '../netlify/functions/mcp.mjs';
 const original={...process.env};
 const request=(method,payload,token='test-secret')=>new Request('https://example.test/mcp',{method,headers:{authorization:'Bearer '+token,'content-type':'application/json'},body:JSON.stringify(payload)});
 const rpc=(id,method,params)=>({jsonrpc:'2.0',id,method,params});
-test.beforeEach(()=>{process.env.QUALITYRAG_MCP_ACCESS_TOKEN='test-secret';process.env.QUALITYRAG_MCP_TOKEN_ISSUED_AT=new Date(Date.now()-1000).toISOString().replace(/\\.\d{3}Z$/, 'Z');process.env.QUALITYRAG_MCP_TOKEN_EXPIRES_AT=new Date(Date.now()+60*24*60*60*1000-1000).toISOString().replace(/\\.\d{3}Z$/, 'Z');delete process.env.QUALITYRAG_API_ENDPOINT;delete process.env.QUALITYRAG_API_TOKEN_JSON});
+test.beforeEach(()=>{process.env.QUALITYRAG_MCP_ACCESS_TOKEN='test-secret';process.env.QUALITYRAG_MCP_TOKEN_ISSUED_AT=new Date(Date.now()-1000).toISOString().replace(/\.\d{3}Z$/, 'Z');process.env.QUALITYRAG_MCP_TOKEN_EXPIRES_AT=new Date(Date.now()+60*24*60*60*1000-1000).toISOString().replace(/\.\d{3}Z$/, 'Z');delete process.env.QUALITYRAG_API_ENDPOINT;delete process.env.QUALITYRAG_API_TOKEN_JSON});
 test.after(()=>{process.env=original});
 test('unauthorized callers cannot initialize or enumerate tools',async()=>{assert.equal((await handler(request('POST',rpc(1,'initialize'),'wrong'))).status,401)});
 test('initialize negotiates MCP protocol',async()=>{const r=await handler(request('POST',rpc(1,'initialize')));assert.equal(r.status,200);assert.equal((await r.json()).result.protocolVersion,'2025-06-18')});
