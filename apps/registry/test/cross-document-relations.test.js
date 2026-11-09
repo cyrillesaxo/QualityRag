@@ -97,7 +97,7 @@ test('functional-sister receive form normalizes to payer and payee roles',()=>{
  ]);
  assert.equal(result.candidateCount,1);
  assert.equal(result.findings[0].category,'INVERSE_PAYER_PAYEE');
- assert.equal(result.grammar,'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V3');
+ assert.equal(result.grammar,'BOUNDED_ENGLISH_PAYMENT_ROLE_NORMALIZATION_V4');
  assert.ok(!JSON.stringify(result).includes('insurer'));
  assert.ok(!JSON.stringify(result).includes('hospital'));
 });
@@ -144,4 +144,40 @@ test('bounded multiword actors preserve direction and hide names',()=>{
  assert.equal(reversed.findings[0].category,'INVERSE_PAYER_PAYEE');
  assert.ok(!JSON.stringify(reversed).includes('health insurer'));
  assert.ok(!JSON.stringify(reversed).includes('city hospital'));
+});
+
+test('explicit transaction markers distinguish same from separate applicability without release',()=>{
+ const distinct=run([
+  {sourceId:a,lines:['For transaction TX-001: The health insurer pays the city hospital.']},
+  {sourceId:b,lines:['For transaction TX-002: The city hospital pays the health insurer.']}
+ ]);
+ assert.equal(distinct.candidateCount,1);
+ assert.equal(distinct.findings[0].category,'INVERSE_PAYER_PAYEE');
+ assert.equal(distinct.findings[0].applicability,'EXPLICIT_DISTINCT_TRANSACTIONS');
+ assert.equal(distinct.findings[0].reviewState,'NEEDS_TRANSACTION_SCOPE_REVIEW');
+ assert.equal(distinct.transactionScopeCandidates.distinct,1);
+ assert.equal(distinct.semanticCompletenessVerified,false);
+ assert.ok(!JSON.stringify(distinct).includes('TX-001'));
+ assert.ok(!JSON.stringify(distinct).includes('TX-002'));
+ const same=run([
+  {sourceId:a,lines:['For transaction TX-001: The insurer pays the hospital.']},
+  {sourceId:b,lines:['For transaction tx-001: The hospital pays the insurer.']}
+ ]);
+ assert.equal(same.candidateCount,1);
+ assert.equal(same.findings[0].applicability,'EXPLICIT_SAME_TRANSACTION');
+ assert.equal(same.transactionScopeCandidates.same,1);
+ const unknown=run([
+  {sourceId:a,lines:['For transaction TX-001: The insurer pays the hospital.']},
+  {sourceId:b,lines:['The hospital pays the insurer.']}
+ ]);
+ assert.equal(unknown.findings[0].applicability,'TRANSACTION_SCOPE_UNESTABLISHED');
+ assert.equal(unknown.transactionScopeCandidates.unknown,1);
+});
+test('malformed scope markers do not manufacture semantic coverage',()=>{
+ const result=run([
+  {sourceId:a,lines:['For transaction TX 001: The insurer pays the hospital.']},
+  {sourceId:b,lines:['For transaction TX-002: The hospital pays the insurer.']}
+ ]);
+ assert.equal(result.candidateCount,0);
+ assert.equal(result.semanticCompletenessVerified,false);
 });
