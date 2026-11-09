@@ -1,0 +1,25 @@
+name: Progressive OIDC permission regression
+on:
+  pull_request:
+    paths:
+      - 'apps/registry/src/oidc.js'
+      - 'apps/registry/test/oidc-progressive-permissions.test.js'
+      - '.github/workflows/oidc-progressive-permissions.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scoped-permissions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing registry dependencies
+        run: npm --prefix apps/registry install --no-audit --no-fund
+      - name: Validate route permissions
+        run: |
+          node --check apps/registry/src/oidc.js
+          node --test apps/registry/test/oidc-progressive-permissions.test.js
