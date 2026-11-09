@@ -9,7 +9,7 @@ const RECEIVES=new RegExp(String.raw`^\s*(?:the\s+)?(${ACTOR})\s+(receives|must 
 const PAYMENT_FROM=new RegExp(String.raw`^\s*payment\s+from\s+(?:the\s+)?(${ACTOR})\s+to\s+(?:the\s+)?(${ACTOR})\s+(is required|is prohibited)\s*[.!]?\s*$`,'i');
 // Scope is parsed only from an explicit line-level marker; absent scope is unknown.
 // Transaction identifiers remain internal and never enter result metadata.
-const TRANSACTION=/^for transaction ([a-z0-9][a-z0-9-]{0,31}):\\s*(.+)$/i;
+const TRANSACTION=/^for transaction ([a-z0-9][a-z0-9-]{0,31}):\s*(.+)$/i;
 const ACTION={
  'must pay':true,'pays':true,'shall pay':true,
  'must not pay':false,'does not pay':false,'shall not pay':false
