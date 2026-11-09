@@ -8,6 +8,7 @@ import {createOidcAuthenticator,permissionFor} from './oidc.js';
 import {handleScopedDriveControl,handleDriveOauthCallback} from './scoped-drive-control.js';
 import {handleProtectedAdmission} from './protected-admission-route.js';
 import {handleReadOnlyEvidenceTelemetry} from './read-only-evidence-telemetry.js';
+import {handleGroundedDelivery} from './grounded-delivery-route.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -67,6 +68,9 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
       protectedReviewTrust,protectedDriveServices,parseBody:body}))return;
    if(await handleReadOnlyEvidenceTelemetry(req,res,{url,identity,authenticate,
       evidenceLedger,store,protectedDriveServices}))return;
+   if(await handleGroundedDelivery(req,res,{pathname:url.pathname,actor,identity,
+      authenticate,store,evidenceLedger,driveManager,driveIndex,
+      protectedReviewTrust,protectedDriveServices,parseBody:body}))return;
    if(req.method==='GET'&&url.pathname==='/v1/state'){
     return reply(res,200,store.state?await store.state():{services:Object.values(store.data.services),policies:Object.values(store.data.policies),bindings:Object.values(store.data.bindings),signedPromotions:Object.values(store.data.signedPromotions).map(({bundle,...summary})=>summary),signedBindings:Object.values(store.data.signedBindings),contractPromotions:Object.values(store.data.contractPromotions).map(({envelope,...summary})=>summary),contractBindings:Object.values(store.data.contractBindings)});
    }
