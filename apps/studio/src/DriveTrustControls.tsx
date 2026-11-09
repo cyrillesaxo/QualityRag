@@ -20,6 +20,9 @@ type GovernedCheck={
   externallyAnchored:boolean;scope:string};
  observations:{sourceId:string;decision:string;reasons:string[];eligibleForReviewedEvidence:boolean}[];
 };
+// The current Registry deliberately does not expose governed candidate preview or record routes.
+// Keep visible controls in a truthful unavailable state rather than generating 403/404 on click.
+const governedChallengeAvailable=false;
 type Props={token:string;folderId:string|null;connected:boolean;
   indexEnabled:boolean;lastSyncedAt?:string;serviceId:string;environment:string};
 
@@ -51,6 +54,10 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
  useEffect(()=>{
    let active=true;
    setRequirements([]);setRequirement('');setGate(null);setRequirementsError('');
+   if(!governedChallengeAvailable){
+     setRequirementsError('Governed requirement checks are not yet enabled by this Registry. Source visibility and exclusion still work.');
+     return()=>{active=false};
+   }
    if(!token||!connected||!indexEnabled||!serviceId||!environment)return;
    const query=new URLSearchParams({serviceId,environment});
    fetch('/v1/drives/google/governed-requirements?'+query.toString(),{
@@ -149,7 +156,7 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
        </button>
      </div>
      <div style={{border:'1px solid #d6e7d8',padding:12,borderRadius:9,margin:'12px 0'}}>
-       <strong>Check source eligibility against an approved PackSpec</strong>
+       <strong>PackSpec candidate challenges — currently unavailable</strong>
        <p style={{fontSize:13,margin:'6px 0'}}>Selected service: <code>{serviceId}</code>;
          environment: <code>{environment}</code>. Requires both
          <code> drive.reader</code> and <code> evidence.reader</code>, plus access
@@ -157,11 +164,12 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
        <label>Approved governing requirement
          <select value={requirement} onChange={e=>{
            setRequirement(e.target.value);setGate(null);
-         }} disabled={!requirements.length||gateBusy}>
+         }} disabled={!governedChallengeAvailable||!requirements.length||gateBusy}>
            {requirements.length===0?<option value="">No approved requirement available</option>:
              requirements.map(id=><option key={id} value={id}>{id}</option>)}
          </select>
        </label>
+       <p style={{fontSize:12}}>These buttons remain disabled until the scoped governed-check and record-check API contracts are implemented and validated. No eligibility or approval is implied.</p>
        <p style={{fontSize:12}}>Use “Check candidate” to preview without writing to
          the ledger. “Record challenge” requires a separate <code>evidence.reviewer</code>
          role, creates a local ledger receipt, and never changes source admission.
@@ -213,7 +221,7 @@ export function DriveTrustControls({token,folderId,connected,indexEnabled,
              </button>
            </td>
            <td style={{borderTop:'1px solid #e2eae3',padding:9}}>
-             <button type="button" disabled={gateBusy||Boolean(busy)||!requirement}
+             <button type="button" disabled={!governedChallengeAvailable||gateBusy||Boolean(busy)||!requirement}
                onClick={()=>checkGoverned(source)}>Check candidate</button>
              <button type="button" disabled={gateBusy||Boolean(busy)||!requirement}
                onClick={()=>checkGoverned(source,true)}>Record challenge (reviewer)</button>
