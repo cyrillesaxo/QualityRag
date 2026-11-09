@@ -1,0 +1,31 @@
+name: Studio capability truthfulness
+on:
+  pull_request:
+    paths:
+      - 'apps/studio/src/main.tsx'
+      - 'apps/studio/src/ProtectedAdmission.tsx'
+      - 'apps/studio/src/ProtectedAdmissionAvailability.tsx'
+      - 'apps/studio/src/DriveTrustControls.tsx'
+      - 'apps/studio/studio-capability-integrity.test.mjs'
+      - '.github/workflows/studio-capability-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  studio-capabilities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm --prefix apps/studio install --no-audit --no-fund
+      - name: Check unavailable controls remain gated and existing views preserved
+        run: node --test apps/studio/studio-capability-integrity.test.mjs
+      - name: Build default Studio
+        run: npm --prefix apps/studio run build
+      - name: Build explicit experimental Studio
+        env:
+          VITE_QUALITYRAG_EXPERIMENTAL_STUDIO: 'true'
+        run: npm --prefix apps/studio run build

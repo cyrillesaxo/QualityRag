@@ -6,6 +6,7 @@ import EnterpriseEngines from './EnterpriseEngines';
 import {EvidenceAssurance} from './EvidenceAssurance';
 import {EvidenceTelemetryLive} from './EvidenceTelemetryLive';
 import {DriveConnections} from './DriveConnections';
+import {ProtectedAdmissionAvailability} from './ProtectedAdmissionAvailability';
 import './enterprise-engines.css';
 
 type Service={id:string;displayName:string};
@@ -405,6 +406,7 @@ function Studio(){
       <p className="notice">Research and synthetic-only workflows. No customer approval, complete source coverage, external audit anchoring or production readiness is claimed. Evidence endpoints may be disabled.</p>
       <EvidenceAssurance/>
       <DriveConnections token={token} serviceId={serviceId} environment={environment}/>
+      <ProtectedAdmissionAvailability token={token} serviceId={serviceId} environment={environment}/>
       <EvidenceTelemetryLive token={token} serviceId={serviceId} environment={environment}/>
     </section>}
    <EnterpriseEngines/>

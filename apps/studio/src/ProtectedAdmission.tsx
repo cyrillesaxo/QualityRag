@@ -39,6 +39,11 @@ type RelationPreview={
  semanticCompletenessVerified:false;
  releasePermittedByThisPreview:false;
 };
+// The current Registry integrates grounded-deliver, receipt export and revoke,
+ // but not standalone scan previews, digest-only permits, or freeform draft release.
+ // Client controls are usability gates, never a substitute for server authorization.
+ const standalonePreviewAvailable=false;
+ const freeformGatewayAvailable=false;
 type Props={token:string;serviceId:string;environment:string;enabled:boolean};
 
 export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
@@ -286,6 +291,12 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
  return <section aria-label="Customer-signed protected review" style={{
    border:'1px solid #cddfcf',borderRadius:13,padding:16,margin:'14px 0',background:'#f7fbf7'}}>
    <h3 style={{marginTop:0}}>Customer-signed protected evidence review</h3>
+   <p role="status" style={{fontSize:13,padding:10,background:'#f1f5f1'}}>
+     Current Registry supports signed admission, receipt export, owner revocation,
+     and source-grounded extractive delivery. Standalone exception/relationship
+     previews and freeform answer permits are not connected. They are not
+     evidence of a clean scan or a production approval.
+   </p>
    <p>Two separately trusted role keys—a custodian and a semantic reviewer—must
      sign the same source-and-policy claim <strong>offline</strong>. The registry
      rechecks current Google bytes and your owner-controlled source index before
@@ -333,9 +344,9 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
          or prove paraphrase entailment.</strong> Excerpts are returned only
          to the authenticated owner and are not written into the evidence ledger.
        </p>
-       <button type="button" disabled={busy||revoked}
+       <button type="button" disabled={!standalonePreviewAvailable||busy||revoked}
          onClick={checkSufficiency}>
-         Scan referenced files for distant constraints
+         Scan referenced files for distant constraints (unavailable)
        </button>
        {sufficiency&&<div role="status" style={{marginTop:10}}>
          <p>Snapshot {sufficiency.checkedAt}: checked {sufficiency.linesScanned}
@@ -375,9 +386,9 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
            and opposite payment obligations. The result lists source
            locations, not customer names or document passages. Two signed
            contradictory statements remain a conflict to investigate.</p>
-         <button type="button" disabled={busy||revoked}
+         <button type="button" disabled={!standalonePreviewAvailable||busy||revoked}
            onClick={checkRelations}>
-           Check cross-document payer/payee relationships
+           Check cross-document payer/payee relationships (unavailable)
          </button>
          {relationPreview&&<div role="status" style={{marginTop:9}}>
            <p>Snapshot {relationPreview.checkedAt}:
@@ -436,7 +447,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        borderRadius:8,border:'1px solid #e6d6bd',background:'#fffaf5'}}>
        <strong>Withdraw this signed approval</strong>
        <p style={{fontSize:12}}>An authorized <code>evidence.reviewer</code> and
-         <code> drive.manager</code> acting as the same source owner may permanently
+         acting as the original source owner may permanently
          withdraw this decision. The source can remain searchable. Withdrawal is
          recorded; older independent replay still reproduces what happened then,
          but future use is blocked.</p>
@@ -453,7 +464,7 @@ export function ProtectedAdmission({token,serviceId,environment,enabled}:Props){
        </button>
        {revocationResult&&<p role="status">{revocationResult}</p>}
      </div>}
-     {outcome.verdict==='ADMIT'&&<div style={{marginTop:15,padding:12,
+     {outcome.verdict==='ADMIT'&&freeformGatewayAvailable&&<div style={{marginTop:15,padding:12,
        borderRadius:8,border:'1px solid #dedac7'}}>
        <strong>Check whether this signed evidence may still be used</strong>
        <p style={{fontSize:12}}>
