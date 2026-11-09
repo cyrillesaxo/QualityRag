@@ -4,7 +4,12 @@ const ROLE = Object.freeze({
   read: 'policy.reader',
   author: 'policy.author',
   approve: 'policy.approver',
-  publish: 'policy.publisher'
+  publish: 'policy.publisher',
+  evidenceIngest: 'evidence.ingest',
+  evidenceRead: 'evidence.reader',
+  evidenceReview: 'evidence.reviewer',
+  driveRead: 'drive.reader',
+  driveManage: 'drive.manager'
 });
 export {ROLE};
 
@@ -31,12 +36,62 @@ export function createOidcAuthenticator({issuer,audience,jwksUri,roleClaim='role
       if(typeof payload.sub!=='string'||!payload.sub.trim())return null;
       const declared=payload[roleClaim];
       if(!Array.isArray(declared)||!declared.every(x=>typeof x==='string'))return null;
-      return {subject:issued+'#'+payload.sub,roles:new Set(declared.filter(x=>Object.values(ROLE).includes(x)))};
+      const services=payload.qualityrag_services;
+      if(services!==undefined&&(!Array.isArray(services)||!services.every(x=>
+        typeof x==='string'&&/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+$/.test(x))))
+        return null;
+      return {subject:issued+'#'+payload.sub,
+        roles:new Set(declared.filter(x=>Object.values(ROLE).includes(x))),
+        evidenceServices:new Set(services||[])};
     }catch{return null}
   };
 }
 
 export function permissionFor(method,pathname){
+  if(pathname==='/v1/drives/google/status'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/index'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/visibility'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/source-control'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/drives/google/governed-check'&&method==='POST')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/record-check'&&method==='POST')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/governed-requirements'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/search'&&method==='POST')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/sync'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/drives/google/clear-index'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/drives/google/folders'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/files'&&method==='GET')return ROLE.driveRead;
+  if(pathname==='/v1/drives/google/start'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/drives/google/folder'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/drives/google/disconnect'&&method==='POST')return ROLE.driveManage;
+  if(pathname==='/v1/evidence/enforcement'&&method==='GET')return ROLE.evidenceRead;
+  if(pathname==='/v1/evidence/protected-admit'&&method==='POST')return ROLE.evidenceIngest;
+  if(pathname.startsWith('/v1/evidence/protected-decisions/')&&
+     pathname.split('/').length===6&&
+     /^[0-9a-f-]{36}$/.test(pathname.split('/')[4])){
+     if(method==='POST'&&pathname.endsWith('/revoke'))return ROLE.evidenceReview;
+     if(method==='GET'&&pathname.endsWith('/status'))return ROLE.evidenceRead;
+  }
+  if(method==='POST'&&pathname.startsWith('/v1/evidence/protected-decisions/')&&
+     (pathname.endsWith('/use-check')||pathname.endsWith('/deliver')||
+      pathname.endsWith('/grounded-deliver')||
+      pathname.endsWith('/sufficiency-check')||
+      pathname.endsWith('/relation-check'))&&
+     pathname.split('/').length===6&&
+     /^[0-9a-f-]{36}$/.test(pathname.split('/')[4]))return ROLE.evidenceIngest;
+  if(method==='GET'&&
+    /^\/v1\/evidence\/protected-decisions\/[0-9a-f-]{36}\/export$/.test(pathname))
+    return ROLE.evidenceRead;
+  const ev='/v1/evidence/evaluations';
+  if(method==='POST'&&pathname===ev)return ROLE.evidenceIngest;
+  if(method==='GET'&&(pathname===ev||
+    (pathname.startsWith(ev+'/')&&[5,6].includes(pathname.split('/').length))))
+    return ROLE.evidenceRead;
+  if(method==='POST'&&pathname.startsWith(ev+'/')&&
+    pathname.split('/').length===6&&pathname.endsWith('/replay'))return ROLE.evidenceRead;
+  if(method==='POST'&&pathname.startsWith(ev+'/')&&
+    pathname.split('/').length===6&&pathname.endsWith('/reviews'))return ROLE.evidenceReview;
+
+
   if(method==='GET'&&(pathname==='/v1/state'||pathname.startsWith('/v1/resolve/')||
      pathname.startsWith('/v1/signed/resolve/')||pathname.startsWith('/v1/contracts/resolve/')||
      pathname==='/v1/contracts/published'))return ROLE.read;
