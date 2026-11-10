@@ -285,6 +285,34 @@ export class EvidenceLedger {
       independentPublisherVerified:false,externallyAnchored:false,
       scope:'THIS_REGISTRY_CHECK_ONLY'};
   }
+  // Read-only, exact protected-use audit lookup. Never discloses source bytes,
+  // answer text, or records belonging to another OIDC owner.
+  protectedUseStatusForOwner(decisionId,actor,requestId){
+    const decision=this.protectedDecisionForOwner(decisionId,actor);
+    if(!limited(requestId))throw Error('INVALID_PROTECTED_USE_REQUEST_ID');
+    const requestHash=hex(decision.serviceId+'@'+decision.environment+':'+requestId);
+    const item=this.readAll().find(x=>x.type==='protected-use'&&
+      x.decisionId===decision.id&&x.actorHash===decision.actorHash&&
+      x.requestHash===requestHash&&x.serviceId===decision.serviceId&&
+      x.environment===decision.environment);
+    if(!item)return {
+      schema:'qualityrag.protected-use-status/v1',
+      decisionId:decision.id,requestId,
+      state:'NOT_RECORDED_AT_CHECK_TIME',
+      retryAuthorized:false,currentSourceRevalidated:false,
+      releasePermitted:false
+    };
+    return {
+      schema:'qualityrag.protected-use-status/v1',
+      decisionId:decision.id,requestId,
+      state:'RECORDED',
+      useReceiptId:item.id,recordedAt:item.at,
+      answerSha256:item.answerSha256,policySha256:item.policySha256,
+      deliveryMode:item.deliveryMode,
+      retryAuthorized:false,currentSourceRevalidated:false,
+      releasePermitted:false
+    };
+  }
   exportProtectedDecision(id,actor){
     const row=this.protectedDecisionForOwner(id,actor);
     return {schema:'qualityrag.protected-drive-decision-replay/v1',

@@ -12,6 +12,8 @@ import {handleReadOnlyEvidenceTelemetry} from './read-only-evidence-telemetry.js
 import {handleEvidenceReview} from './evidence-review-route.js';
 import {handleGroundedDelivery} from './grounded-delivery-route.js';
 import {handleProtectedDecisionLifecycle} from './protected-decision-lifecycle.js';
+import {handleProtectedUseReconciliation} from './protected-use-reconciliation.js';
+
 import {createPilotComponents} from './pilot-components.js';
 
 const MAX_BODY=200_000;
@@ -79,6 +81,8 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
    if(await handleGroundedDelivery(req,res,{pathname:url.pathname,actor,identity,
       authenticate,store,evidenceLedger,driveManager,driveIndex,
       protectedReviewTrust,protectedDriveServices,parseBody:body}))return;
+   if(await handleProtectedUseReconciliation(req,res,{pathname:url.pathname,searchParams:url.searchParams,actor,identity,
+      authenticate,evidenceLedger}))return;
    if(await handleProtectedDecisionLifecycle(req,res,{pathname:url.pathname,actor,identity,
       authenticate,evidenceLedger,parseBody:body}))return;
    if(req.method==='GET'&&url.pathname==='/v1/state'){
