@@ -1,0 +1,25 @@
+name: Studio pilot deployment validation
+on:
+  push:
+    branches:
+      - deploy/qualityrag-studio-pilot
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert readiness probe and credential safety
+        run: node --test apps/studio/pilot-registry-readiness.test.mjs
+      - name: Install Studio
+        run: npm --prefix apps/studio install --no-audit --no-fund
+      - name: Build experimental Studio
+        env:
+          VITE_QUALITYRAG_EXPERIMENTAL_STUDIO: 'true'
+        run: npm --prefix apps/studio run build
