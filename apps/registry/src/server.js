@@ -83,7 +83,7 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
       authenticate,store,evidenceLedger,driveManager,driveIndex,
       protectedReviewTrust,protectedDriveServices,parseBody:body}))return;
    if(await handleProtectedDependencyStatus(req,res,{pathname:url.pathname,actor,identity,
-     authenticate,evidenceLedger,store,driveManager}))return;
+     authenticate,evidenceLedger,store,driveManager,driveIndex,protectedReviewTrust}))return;
    if(await handleProtectedUseReconciliation(req,res,{pathname:url.pathname,searchParams:url.searchParams,actor,identity,
       authenticate,evidenceLedger}))return;
    if(await handleProtectedDecisionLifecycle(req,res,{pathname:url.pathname,actor,identity,

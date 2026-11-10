@@ -90,6 +90,57 @@ async function request(f,{token='alice',body={requestId:'fresh-request'},method=
   return {status:r.status,data:await r.json()};
  }finally{await new Promise(done=>server.close(done))}
 }
+async function checkLiveDependency(f,{token='alice'}={}){
+ const options={authenticate:async supplied=>{
+   const resolved=await f.authenticate(supplied);
+   if(!resolved)return null;
+   return {...resolved,roles:new Set([...resolved.roles,'evidence.reader'])};
+ },evidenceLedger:f.ledger,driveManager:f.driveManager,
+   driveIndex:f.driveIndex,protectedReviewTrust:f.trust,
+   protectedDriveServices:new Set(['claims@prod'])};
+ const server=http.createServer(createHandler(f.store,null,options));
+ await new Promise(done=>server.listen(0,'127.0.0.1',done));
+ try{
+   const r=await fetch('http://127.0.0.1:'+server.address().port+
+     '/v1/evidence/protected-decisions/'+id+'/dependency-status',{
+       headers:{authorization:'Bearer '+token}
+     });
+   return {status:r.status,data:await r.json()};
+ }finally{await new Promise(done=>server.close(done))}
+}
+test('US-068 read-only recheck uses signed witness and current Google source verification without recording use',async()=>{
+ const f=fixture();
+ const r=await checkLiveDependency(f);
+ assert.equal(r.status,200,JSON.stringify(r.data));
+ assert.equal(r.data.dependencyState,'UNKNOWN');
+ assert.equal(r.data.liveSourceState,'MATCHED_AT_CHECK_TIME');
+ assert.equal(r.data.sourceBytesRevalidated,true);
+ assert.equal(r.data.reviewerKeyValidityRevalidated,false);
+ assert.equal(r.data.releasePermitted,false);
+ assert.equal(f.reads,1);
+ assert.equal(f.writes,0);
+});
+test('US-068 known source constraint conflicts mark dependency stale without releasing data',async()=>{
+ for(const opts of [{exception:true},{conflict:true},{revoked:true}]){
+   const f=fixture(opts),r=await checkLiveDependency(f);
+   assert.equal(r.status,200,JSON.stringify(r.data));
+   assert.equal(r.data.dependencyState,'STALE');
+   assert.equal(r.data.releasePermitted,false);
+   assert.equal(f.writes,0);
+ }
+});
+test('US-068 remote read failures and missing live verification do not become approvals',async()=>{
+ const f=fixture();
+ f.driveIndex.verifyLiveApprovedWitnesses=async()=>{
+   throw Error('GOOGLE_DRIVE_UNAVAILABLE');
+ };
+ const r=await checkLiveDependency(f);
+ assert.equal(r.status,200,JSON.stringify(r.data));
+ assert.equal(r.data.liveSourceState,'UNKNOWN');
+ assert.equal(r.data.sourceBytesRevalidated,false);
+ assert.equal(r.data.dependencyState,'UNKNOWN');
+ assert.equal(f.writes,0);
+});
 test('a fresh signed and live-verified source releases only exact extract, with caveats',async()=>{
  const f=fixture(),r=await request(f);
  assert.equal(r.status,200,JSON.stringify(r.data));

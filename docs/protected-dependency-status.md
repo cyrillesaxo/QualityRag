@@ -17,3 +17,36 @@ No source text, Drive folder identifier, access token, unreviewed content or sig
 A network outage or missing policy should produce UNKNOWN and never allow previously stale reports to become current. Balafons may conservatively and irreversibly invalidate a linked local lineage when Registry reports a known stale condition. Binding a Balafons lineage to the decision is an owner-declared reference, **not proof that the chosen Balafons sources were reviewed in QualityRAG**.
 
 **Before acceptance:** independent OIDC integration, real Drive and policy mutation tests, proven reviewer-key revocation lifecycle, authenticated provider webhooks/change tokens, multi-replica recovery and production audit. The endpoint should be subject to standard authenticated read rate limits and monitoring.
+
+## Live Google source revalidation extension (prepared, NOT executed)
+
+The dependency endpoint now optionally invokes the same signed human-witness
+verification and `driveIndex.verifyLiveApprovedWitnesses` pipeline used by
+QualityRAG's grounded-delivery path. It checks the owner-bound custodian and
+semantic-reviewer signatures against the active policy, re-downloads exact
+Google Drive source bytes from the selected folder under the connected owner's
+credential, checks original anchored lines and owner source-exclusion controls,
+and requests full bounded constraint/relationship scans.
+
+The response adds:
+
+- `liveSourceState=MATCHED_AT_CHECK_TIME`: the bounded signed witness
+  scope passed current provider-byte/anchor review and contradiction scans at
+  `liveCheckedAt`. `sourceBytesRevalidated=true`.
+- `liveSourceState=CHANGED`: a positively observed byte/line revision,
+  missing selected source, owner exclusion or newly detected source conflict.
+  `dependencyState=STALE` and `sourceBytesRevalidated=false`.
+- `liveSourceState=UNKNOWN`: provider outage, stale index, unavailable
+  verifier or other unestablished result. Never infer source verification.
+
+The response **always** preserves `releasePermitted=false`,
+`reviewerKeyValidityRevalidated=false` and
+`permissionRevalidatedForUse=false`. It returns no source text or answer,
+does not create a protected-use ledger event and is not globally complete
+semantic verification.
+
+**Operational constraints:** this is an expensive read requiring real Google
+API calls; rate limiting, provider quotas, audit sampling, output caching
+discipline, full provider-permission change signals, and multi-process
+transaction isolation remain unresolved. A MATCHED result is point-in-time
+only. No build, tests or deployment have been executed.

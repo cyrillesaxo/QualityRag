@@ -1,3 +1,4 @@
+import {verifyHumanReviewAttestations,humanReviewDecision} from './protected-admission.js';
 // Historical decision dependency drift. This is a metadata check only;
 // it never reads Google source bytes or grants a release.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -8,7 +9,8 @@ function reply(res,status,payload){
  res.end(JSON.stringify(payload));
 }
 export async function handleProtectedDependencyStatus(req,res,{
- pathname,actor,identity,authenticate,evidenceLedger,store,driveManager
+ pathname,actor,identity,authenticate,evidenceLedger,store,driveManager,
+ driveIndex,protectedReviewTrust
 }){
  const m=pathname.match(ROUTE);
  if(!m)return false;
@@ -46,7 +48,60 @@ export async function handleProtectedDependencyStatus(req,res,{
          driveState=drive.folderId===signedFolder?'BOUND':'FOLDER_CHANGED';
      }
    }catch{}
-   const stale=revoked||policyState==='CHANGED'||
+   // Bounded, last-mile live recheck uses the SAME owner-specific source verifier
+   // as protected grounded delivery. Never record another protected use.
+   let liveSourceState='UNKNOWN',liveCheckedAt=null;
+   if(!revoked&&policyState==='UNCHANGED'&&driveState==='BOUND'&&
+      driveIndex&&protectedReviewTrust){
+     try{
+       const activePolicy=await store.resolve(decision.serviceId,decision.environment);
+       const ownerBefore=driveManager.status(actor);
+       const signed=verifyHumanReviewAttestations(
+         decision.signedCustody,decision.signedMeaning,protectedReviewTrust,{
+           serviceId:decision.serviceId,environment:decision.environment,
+           policySha256:activePolicy.sha256,subject:actor,folderId:ownerBefore.folderId
+         });
+       if(signed.signedPayloadSha256!==decision.signedPayloadSha256)
+         throw Error('PROTECTED_USE_SIGNATURE_RECORD_MISMATCH');
+       const live=await driveIndex.verifyLiveApprovedWitnesses(
+         actor,driveManager,signed.payload.witnesses,{
+           includeWitnessLines:true,includeConstraintScan:true,includeRelationshipScan:true
+         });
+       const policyAfter=await store.resolve(decision.serviceId,decision.environment);
+       const ownerAfter=driveManager.status(actor);
+       if(policyAfter.sha256!==activePolicy.sha256||
+          ownerBefore.email!==ownerAfter.email||
+          ownerBefore.folderId!==ownerAfter.folderId||!ownerAfter.connected)
+         throw Error('PROTECTED_OWNER_CONTEXT_CHANGED');
+       const evaluation=humanReviewDecision(policyAfter.policy,policyAfter.sha256,
+         signed.payload.witnesses,live.checkedAt);
+       if(evaluation.result.verdict!=='ADMIT'||
+          JSON.stringify(evaluation.result)!==JSON.stringify(decision.result))
+         throw Error('PROTECTED_USE_EVIDENCE_CHANGED');
+       if(live.constraintScan?.candidateCount!==0||
+          live.constraintScan?.candidatesTruncated!==false||
+          live.relationshipScan?.candidateCount!==0||
+          live.relationshipScan?.candidatesTruncated!==false)
+         throw Error('PROTECTED_REVIEW_CONFLICTING_CONSTRAINTS');
+       liveSourceState='MATCHED_AT_CHECK_TIME';
+       liveCheckedAt=live.checkedAt;
+     }catch(error){
+       const confirmedChange=new Set([
+         'PROTECTED_SOURCE_REVISION_CHANGED',
+         'PROTECTED_SOURCE_NOT_FOUND',
+         'PROTECTED_SOURCE_ANCHOR_MISSING',
+         'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH',
+         'PROTECTED_LIVE_EXTRACTED_TEXT_MISMATCH',
+         'PROTECTED_SOURCE_LINE_CHANGED',
+         'PROTECTED_OWNER_EXCLUDED_SOURCE',
+         'PROTECTED_USE_SIGNATURE_RECORD_MISMATCH',
+         'PROTECTED_USE_EVIDENCE_CHANGED',
+         'PROTECTED_REVIEW_CONFLICTING_CONSTRAINTS'
+       ]);
+       liveSourceState=confirmedChange.has(error?.message)?'CHANGED':'UNKNOWN';
+     }
+   }
+   const stale=liveSourceState==='CHANGED'||revoked||policyState==='CHANGED'||
      driveState==='DISCONNECTED'||driveState==='FOLDER_CHANGED';
    reply(res,200,{
      schema:'qualityrag.protected-dependency-status/v1',
@@ -55,7 +110,8 @@ export async function handleProtectedDependencyStatus(req,res,{
      recordedPolicySha256:decision.policySha256,
      revoked,policyState,driveState,
      dependencyState:stale?'STALE':'UNKNOWN',
-     sourceBytesRevalidated:false,
+     liveSourceState,liveCheckedAt,
+     sourceBytesRevalidated:liveSourceState==='MATCHED_AT_CHECK_TIME',
      reviewerKeyValidityRevalidated:false,
      permissionRevalidatedForUse:false,
      releasePermitted:false
