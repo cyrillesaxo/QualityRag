@@ -50,3 +50,33 @@ API calls; rate limiting, provider quotas, audit sampling, output caching
 discipline, full provider-permission change signals, and multi-process
 transaction isolation remain unresolved. A MATCHED result is point-in-time
 only. No build, tests or deployment have been executed.
+
+
+## Owner-selected folder change polling (implementation draft; no build)
+
+The existing encrypted `UserDriveIndex` snapshot is reused as the durable
+owner-scoped checkpoint. `inspectSelectedFolderDrift(subject, connector)`
+reads a fresh full folder inventory under that owner's Google Drive access
+token and compares exact file IDs/MIME types against the indexed selection.
+It then re-downloads every indexed text file within existing per-file and
+folder limits and compares its SHA-256 with the encrypted baseline.
+The check returns **CHANGED** for added/removed files, a newly unsupported
+type, owner exclusions, or mismatched bytes; **UNKNOWN** for partial/truncated
+listings, stale or incomplete index, missing/denied access, concurrent
+resync, or provider failure; and **MATCHED_AT_CHECK_TIME** only after a
+bounded, complete comparison. No file names, IDs, source content or raw
+permissions are returned. No automatic index overwrite is performed.
+
+The protected-decision dependency endpoint combines this folder check with
+signed-witness live revalidation, source exception scanning, current PackSpec
+and decision revocations. It does not generate a grounded answer or consume
+a protected-use event. A CHANGED result propagates a conservative STALE
+decision to a linked Balafons lineage on its next authorized read.
+
+**Limitations:** this is a read-triggered bounded poll, not a background
+scheduler, watch-channel subscription or complete Drive permission audit.
+A positive match is point-in-time and cannot prove that Google files or
+ACLs remained unchanged after the comparison. A provider 403 stays UNKNOWN
+until trusted ACL data establishes revocation. Multi-replica locking,
+poll budgets, trusted reviewer-key revocation, and real provider pilot
+validation remain open. Code and tests are staged **without build or CI**.

@@ -59,7 +59,8 @@ function fixture(opts={}){
    documentWideSemanticCompletenessVerified:false},
   relationshipScan:{candidateCount:opts.conflict?1:0,candidatesTruncated:false}};
  const driveManager={status(){return {connected:true,folderId:'folder-a',email:'alice@example.invalid'}}};
- const driveIndex={async verifyLiveApprovedWitnesses(owner,manager,witnesses,options){
+ const driveIndex={async inspectSelectedFolderDrift(){return {state:'MATCHED_AT_CHECK_TIME',checkedAt};},
+  async verifyLiveApprovedWitnesses(owner,manager,witnesses,options){
   reads++;assert.equal(owner,subject);assert.equal(manager,driveManager);
   assert.equal(options.includeWitnessLines,true);
   assert.equal(options.includeConstraintScan,true);
@@ -128,6 +129,25 @@ test('US-068 known source constraint conflicts mark dependency stale without rel
    assert.equal(r.data.releasePermitted,false);
    assert.equal(f.writes,0);
  }
+});
+test('US-068 new Google folder file makes protected dependency stale without use',async()=>{
+ const f=fixture();
+ f.driveIndex.inspectSelectedFolderDrift=async()=>({state:'CHANGED'});
+ const r=await checkLiveDependency(f);
+ assert.equal(r.status,200);
+ assert.equal(r.data.liveSourceState,'CHANGED');
+ assert.equal(r.data.dependencyState,'STALE');
+ assert.equal(r.data.releasePermitted,false);
+ assert.equal(f.writes,0);
+});
+test('US-068 incomplete folder inventory does not claim live coverage',async()=>{
+ const f=fixture();
+ f.driveIndex.inspectSelectedFolderDrift=async()=>({state:'UNKNOWN'});
+ const r=await checkLiveDependency(f);
+ assert.equal(r.status,200);
+ assert.equal(r.data.liveSourceState,'UNKNOWN');
+ assert.equal(r.data.sourceBytesRevalidated,false);
+ assert.equal(f.writes,0);
 });
 test('US-068 remote read failures and missing live verification do not become approvals',async()=>{
  const f=fixture();

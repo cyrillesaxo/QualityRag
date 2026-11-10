@@ -83,11 +83,22 @@ export async function handleProtectedDependencyStatus(req,res,{
           live.relationshipScan?.candidateCount!==0||
           live.relationshipScan?.candidatesTruncated!==false)
          throw Error('PROTECTED_REVIEW_CONFLICTING_CONSTRAINTS');
-       liveSourceState='MATCHED_AT_CHECK_TIME';
-       liveCheckedAt=live.checkedAt;
+       // A signed-witness match does not cover newly added or deleted
+       // files in the owner-selected folder. Reuse the existing encrypted
+       // index baseline for a complete bounded folder drift check.
+       const folder=typeof driveIndex.inspectSelectedFolderDrift==='function'
+         ?await driveIndex.inspectSelectedFolderDrift(actor,driveManager)
+         :{state:'UNKNOWN'};
+       if(folder.state==='CHANGED')
+         throw Error('PROTECTED_SELECTED_FOLDER_DRIFT');
+       if(folder.state==='MATCHED_AT_CHECK_TIME'){
+         liveSourceState='MATCHED_AT_CHECK_TIME';
+         liveCheckedAt=folder.checkedAt;
+       }
      }catch(error){
        const confirmedChange=new Set([
          'PROTECTED_SOURCE_REVISION_CHANGED',
+         'PROTECTED_SELECTED_FOLDER_DRIFT',
          'PROTECTED_SOURCE_NOT_FOUND',
          'PROTECTED_SOURCE_ANCHOR_MISSING',
          'PROTECTED_LIVE_SOURCE_REVISION_MISMATCH',

@@ -238,6 +238,69 @@ export class UserDriveIndex {
   this.save(subject,snap);
   return {changed:true,visibility:this.visibility(subject,connection)};
  }
+ /**
+  * Bounded owner-folder drift poll against the encrypted last-synced index.
+  * Read-only: this never overwrites the baseline, never admits evidence,
+  * and never returns filenames, file IDs or provider response bodies.
+  * The operator/owner must request a new authorized sync after CHANGED.
+  */
+ async inspectSelectedFolderDrift(subject,connector){
+  const unchanged={schema:'qualityrag.drive-folder-drift/v1',
+    state:'UNKNOWN',checkedAt:null,sourceBytesVerified:false,
+    selectionCompletenessVerified:false,releasePermitted:false};
+  if(this.activeSyncs.has(this.location(subject)))return unchanged;
+  let conn,before;
+  try{
+   conn=connector.status(subject);
+   before=this.bound(subject,conn);
+   if(!conn?.connected||!before||!conn.folderId||conn.folderId==='root'||
+      before.coverage!=='SELECTED_FOLDER_TEXT_FILES'||!Array.isArray(before.entries))
+     return unchanged;
+   const age=this.now()-Date.parse(before.syncedAt);
+   if(!Number.isFinite(age)||age<0||age>MAX_AGE_MS)return unchanged;
+   const inventory=await connector.selectedFiles(subject);
+   if(inventory.truncated||inventory.folderId!==conn.folderId||
+      !Array.isArray(inventory.files)||inventory.files.length>100)return unchanged;
+   const indexed=before.entries;
+   const eligible=inventory.files.filter(file=>connector.supportsText(file.mimeType));
+   // A newly unsupported file also changes governance coverage. Never
+   // claim complete folder equality based on the text-only subset.
+   if(eligible.length!==inventory.files.length)
+     return {...unchanged,state:'CHANGED'};
+   if(eligible.length>MAX_DOCS||indexed.length!==eligible.length||
+      indexed.length>MAX_DOCS)
+     return {...unchanged,state:'CHANGED'};
+   const expected=new Map(indexed.map(x=>[x.fileId,x]));
+   if(expected.size!==indexed.length)return unchanged;
+   const current=new Map(eligible.map(x=>[x.id,x]));
+   if(current.size!==eligible.length)return unchanged;
+   if([...expected].some(([id,entry])=>!current.has(id)||
+      current.get(id).mimeType!==entry.mimeType))
+     return {...unchanged,state:'CHANGED'};
+   // Whole-folder included-source check: newly inserted text, deletion,
+   // owner exclusion and any byte changes conservatively invalidate.
+   const generation=this.generations.get(this.location(subject))||0;
+   for(const [fileId,source] of expected){
+     if(source.searchEnabled===false)return {...unchanged,state:'CHANGED'};
+     const bytes=await connector.downloadSelectedText(
+       subject,fileId,conn.folderId,MAX_PER_FILE);
+     if(!Buffer.isBuffer(bytes)||sha(bytes)!==source.revision)
+       return {...unchanged,state:'CHANGED'};
+   }
+   const after=connector.status(subject);
+   if(!after?.connected||after.folderId!==conn.folderId||
+      after.email!==conn.email||
+      (this.generations.get(this.location(subject))||0)!==generation||
+      this.activeSyncs.has(this.location(subject)))
+     return unchanged;
+   const now=new Date(this.now()).toISOString();
+   return {...unchanged,state:'MATCHED_AT_CHECK_TIME',checkedAt:now,
+     sourceBytesVerified:true,selectionCompletenessVerified:true};
+  }catch{
+   // Google 403, provider outage, lost index: no proof of permission.
+   return unchanged;
+  }
+ }
  async verifyLiveApprovedWitnesses(subject,connector,witnesses,
    {includeWitnessLines=false,includeConstraintScan=false,
      includeRelationshipScan=false}={}){
