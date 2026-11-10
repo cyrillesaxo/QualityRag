@@ -110,6 +110,13 @@ export class UserDriveIndex {
   try{
   const connection=connector.status(subject);
   check(connection.connected,'DRIVE_CONNECTION_NOT_FOUND');
+  // Capture before reading listing and bytes: changes during indexing can
+  // later be discovered from this durable cursor, not silently missed.
+  let changePageToken=null;
+  try{
+    if(typeof connector.driveChangeStartToken==='function')
+      changePageToken=await connector.driveChangeStartToken(subject);
+  }catch{/* Cursor unavailable => poll status UNKNOWN, not approved. */}
   check(typeof connection.folderId==='string'&&connection.folderId!=='root',
     'DRIVE_SYNC_EXPLICIT_FOLDER_REQUIRED');
   const listing=await connector.selectedFiles(subject);
@@ -166,6 +173,7 @@ export class UserDriveIndex {
   const snapshot={schema:'qualityrag.user-drive-text-index/v1',
     account:connection.email,folderId:connection.folderId,
     syncedAt:new Date(this.now()).toISOString(),
+    changePageToken,
     summary,inventory,
     controlHistory:(prior?.controlHistory||[]).slice(-100),
     coverage:summary.unsupported||summary.failed||summary.tooLarge||summary.excludedEmpty||summary.truncatedLines?
@@ -244,6 +252,63 @@ export class UserDriveIndex {
   * and never returns filenames, file IDs or provider response bodies.
   * The operator/owner must request a new authorized sync after CHANGED.
   */
+ /**
+  * Fail-closed Google Drive Changes cursor poll. A token is captured before
+  * indexing, stored inside the existing AES-GCM per-owner snapshot, and
+  * advanced only after all bounded pages have been verified. No cursor,
+  * ambiguous event, 410, truncation, or provider failure permits a MATCHED
+  * verdict. Cursor state is never exposed to the browser or API.
+  */
+ async inspectDriveChangeCursor(subject,connector,snapshot,connection){
+  const unknown={state:'UNKNOWN',completed:false};
+  if(typeof snapshot?.changePageToken!=='string'||
+     typeof connector.driveChangePage!=='function')return unknown;
+  const known=new Set(snapshot.entries.map(x=>x.fileId));
+  let cursor=snapshot.changePageToken,final=null;
+  const seen=new Set();
+  try{
+   for(let pageIndex=0;pageIndex<5;pageIndex++){
+     if(seen.has(cursor))return unknown;
+     seen.add(cursor);
+     const page=await connector.driveChangePage(subject,cursor);
+     if(!page||!Array.isArray(page.changes)||page.changes.length>100)
+       return unknown;
+     for(const item of page.changes){
+       if(!item||typeof item.fileId!=='string')return unknown;
+       // Existing selected file, selected folder itself, or new child:
+       // conservatively invalidate; resync is the only path to a new baseline.
+       if(known.has(item.fileId)||item.fileId===connection.folderId||
+         item.parents?.includes(connection.folderId))
+         return {state:'CHANGED',completed:true};
+       // Removed or inaccessible new files can lack metadata. We cannot
+       // establish whether such a file belonged to the selected folder.
+       if(item.removed||!item.metadataAvailable)return unknown;
+     }
+     if(typeof page.newStartPageToken==='string'&&
+        !page.nextPageToken){
+       final=page.newStartPageToken;
+       break;
+     }
+     if(typeof page.nextPageToken!=='string')return unknown;
+     cursor=page.nextPageToken;
+   }
+   if(!final)return unknown;
+   const after=connector.status(subject);
+   const existing=this.bound(subject,after);
+   if(!after.connected||after.email!==connection.email||
+      after.folderId!==connection.folderId||
+      existing?.syncedAt!==snapshot.syncedAt||
+      existing?.changePageToken!==snapshot.changePageToken||
+      this.activeSyncs.has(this.location(subject)))return unknown;
+   // Reuse the existing encrypted, atomic snapshot writer. No source
+   // bodies or provenance are modified; only the opaque cursor advances.
+   if(final!==snapshot.changePageToken)
+     this.save(subject,{...snapshot,changePageToken:final});
+   return {state:'NO_RELEVANT_EVENTS',completed:true};
+  }catch{
+   return unknown;
+  }
+ }
  async inspectSelectedFolderDrift(subject,connector){
   const unchanged={schema:'qualityrag.drive-folder-drift/v1',
     state:'UNKNOWN',checkedAt:null,sourceBytesVerified:false,
@@ -293,6 +358,11 @@ export class UserDriveIndex {
       (this.generations.get(this.location(subject))||0)!==generation||
       this.activeSyncs.has(this.location(subject)))
      return unchanged;
+   // Full folder equality alone cannot establish no lost changes between
+   // sync and this check; the cursor must complete and be advanced.
+   const changeStatus=await this.inspectDriveChangeCursor(subject,connector,before,conn);
+   if(changeStatus.state==='CHANGED')return {...unchanged,state:'CHANGED'};
+   if(changeStatus.state!=='NO_RELEVANT_EVENTS')return unchanged;
    const now=new Date(this.now()).toISOString();
    return {...unchanged,state:'MATCHED_AT_CHECK_TIME',checkedAt:now,
      sourceBytesVerified:true,selectionCompletenessVerified:true};

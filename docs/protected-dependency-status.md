@@ -80,3 +80,36 @@ ACLs remained unchanged after the comparison. A provider 403 stays UNKNOWN
 until trusted ACL data establishes revocation. Multi-replica locking,
 poll budgets, trusted reviewer-key revocation, and real provider pilot
 validation remain open. Code and tests are staged **without build or CI**.
+
+
+## Durable owner-scoped Google Changes cursor (implementation draft)
+
+The OAuth connector now supports Drive v3 `changes/startPageToken` and
+bounded paginated `changes` requests, using the same encrypted per-user
+authorization as existing Google Drive reads. A fresh opaque start cursor is
+captured **before** an authorized Drive index rebuild, then stored inside
+that owner's existing AES-GCM index snapshot. No cursor is sent to the UI.
+
+At an authorized protected-decision dependency read, QualityRAG compares
+the current folder inventory and bytes to the encrypted snapshot and then
+checks the Google Changes cursor. Changes for an indexed file, the selected
+folder itself, or a newly observed child mark the source **CHANGED**. Removed
+events with unknown parentage, incomplete pages, expired/invalid cursors,
+Google 403/429/5xx, missing cursor, and pagination beyond the fixed budget
+yield **UNKNOWN**, not SAT or permission revocation. Unrelated events
+are permitted only after all bounded pages complete; the new cursor is
+atomically saved in the encrypted owner index. Previously indexed source
+bytes and control flags are never overwritten by polling.
+
+This implementation is **read-triggered** rather than a cron or push
+subscription: there is no scheduled cross-tenant scan, Google webhook,
+background worker or guaranteed maximum detection latency. A lost index
+requires a fresh owner-authorized sync to establish a new cursor. Multi-
+replica coordination/compare-and-swap, production OAuth scope verification,
+provider quotas, Google change-token expiration recovery, and customer
+permission-revocation pilots remain acceptance blockers.
+
+A Google permission failure alone cannot distinguish revoked access from
+an outage or expired token. It must remain UNKNOWN; claiming an independently
+verified ACL revocation requires separate authoritative evidence. No
+compile, test execution, CI, merge or deployment has occurred.

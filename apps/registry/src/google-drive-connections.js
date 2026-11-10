@@ -336,6 +336,46 @@ export class GoogleDriveConnections{
     }
     return result;
   }
+  // Google Drive Changes API v3. A cursor is opaque, scoped to this owner
+  // connection and never returned to a client. Full pagination is mandatory.
+  async driveChangeStartToken(subject){
+    const token=await this.getToken(subject);
+    const response=await this.googleGet(token,'/changes/startPageToken',{
+      fields:'startPageToken',supportsAllDrives:'false'
+    });
+    const cursor=response.startPageToken;
+    assert(typeof cursor==='string'&&cursor.length>0&&cursor.length<=1024&&
+      /^[A-Za-z0-9._~+/=-]+$/.test(cursor),'INVALID_DRIVE_CHANGE_CURSOR');
+    return cursor;
+  }
+  async driveChangePage(subject,cursor){
+    assert(typeof cursor==='string'&&cursor.length>0&&cursor.length<=1024&&
+      /^[A-Za-z0-9._~+/=-]+$/.test(cursor),'INVALID_DRIVE_CHANGE_CURSOR');
+    const token=await this.getToken(subject);
+    const data=await this.googleGet(token,'/changes',{
+      pageToken:cursor,pageSize:'100',includeRemoved:'true',
+      fields:'nextPageToken,newStartPageToken,changes(fileId,removed,file(id,mimeType,parents,trashed))'
+    });
+    assert(Array.isArray(data.changes)&&data.changes.length<=100,
+      'INVALID_DRIVE_CHANGE_RESPONSE');
+    const next=data.nextPageToken??null,final=data.newStartPageToken??null;
+    assert((next===null)!==(final===null),'INVALID_DRIVE_CHANGE_RESPONSE');
+    for(const candidate of [next,final])if(candidate!==null)
+      assert(typeof candidate==='string'&&candidate.length>0&&candidate.length<=1024&&
+        /^[A-Za-z0-9._~+/=-]+$/.test(candidate),'INVALID_DRIVE_CHANGE_RESPONSE');
+    const changes=data.changes.map(item=>{
+      assert(item&&typeof item==='object'&&
+        typeof item.fileId==='string'&&SAFE_ID.test(item.fileId)&&
+        typeof item.removed==='boolean','INVALID_DRIVE_CHANGE_RESPONSE');
+      const parents=Array.isArray(item.file?.parents)?
+        item.file.parents.filter(x=>typeof x==='string'&&SAFE_ID.test(x)):[];
+      return {fileId:item.fileId,removed:item.removed,
+        parents,mimeType:typeof item.file?.mimeType==='string'?item.file.mimeType:null,
+        trashed:item.file?.trashed===true,
+        metadataAvailable:Boolean(item.file)};
+    });
+    return {changes,nextPageToken:next,newStartPageToken:final};
+  }
   async selectedFiles(subject){
     const data=this.decrypt(validateSubject(subject));
     if(!data)fail('DRIVE_CONNECTION_NOT_FOUND');

@@ -22,7 +22,7 @@ function fixture(){
  idx.save(subject,{
   schema:'qualityrag.user-drive-text-index/v1',account:connection.email,
   folderId:connection.folderId,syncedAt:new Date(now).toISOString(),
-  coverage:'SELECTED_FOLDER_TEXT_FILES',entries:[entry]
+  coverage:'SELECTED_FOLDER_TEXT_FILES',changePageToken:'cursor-01',entries:[entry]
  });
  const files=[{id:entry.fileId,mimeType:entry.mimeType}];
  const calls=[];
@@ -33,7 +33,11 @@ function fixture(){
    supportsText:mime=>mime==='text/plain',
    downloadSelectedText:async(s,id,folder,max)=>{
      calls.push({s,id,folder,max});return Buffer.from(body);
-   }
+   },
+   driveChangePage:async(_s,cursor)=>({
+     changes:[],nextPageToken:null,
+     newStartPageToken:cursor==='cursor-01'?'cursor-02':'cursor-03'
+   })
  };
  return {idx,connector,files,calls,cleanup:()=>rmSync(dir,{recursive:true,force:true})};
 }
@@ -47,7 +51,9 @@ test('US-068 bounded folder poll compares owner encrypted index without mutation
    assert.equal(checked.selectionCompletenessVerified,true);
    assert.equal(checked.releasePermitted,false);
    assert.equal(f.calls.length,1);
-   assert.deepEqual(f.idx.load(subject),before);
+   const after=f.idx.load(subject);
+   assert.deepEqual(after.entries,before.entries);
+   assert.equal(after.changePageToken,'cursor-02');
    assert.equal(JSON.stringify(checked).includes('file-one'),false);
    assert.equal(JSON.stringify(checked).includes(body),false);
  }finally{f.cleanup()}
@@ -88,5 +94,71 @@ test('US-068 cannot claim unchanged if index was cleared during provider fetch',
      return Buffer.from(body);
    };
    assert.equal((await f.idx.inspectSelectedFolderDrift(subject,f.connector)).state,'UNKNOWN');
+ }finally{f.cleanup()}
+});
+
+test('US-068 change cursor detects selected file, selected folder, and newly added child',async()=>{
+ const f=fixture();
+ try{
+   for(const change of [
+     {fileId:'file-one',removed:false,parents:['folder-private'],metadataAvailable:true},
+     {fileId:'folder-private',removed:false,parents:[],metadataAvailable:true},
+     {fileId:'new-file',removed:false,parents:['folder-private'],metadataAvailable:true}
+   ]){
+     f.connector.driveChangePage=async()=>({
+       changes:[change],nextPageToken:null,newStartPageToken:'cursor-02'
+     });
+     const checked=await f.idx.inspectSelectedFolderDrift(subject,f.connector);
+     assert.equal(checked.state,'CHANGED');
+     assert.equal(f.idx.load(subject).changePageToken,'cursor-01');
+   }
+ }finally{f.cleanup()}
+});
+test('US-068 unknown Drive cursor events, lost token and overflow never advance checkpoint',async()=>{
+ const f=fixture();
+ try{
+   f.connector.driveChangePage=async()=>({changes:[{
+     fileId:'unknown-file',removed:true,parents:[],metadataAvailable:false
+   }],nextPageToken:null,newStartPageToken:'cursor-02'});
+   assert.equal((await f.idx.inspectSelectedFolderDrift(subject,f.connector)).state,'UNKNOWN');
+   assert.equal(f.idx.load(subject).changePageToken,'cursor-01');
+   f.connector.driveChangePage=async()=>({changes:[],nextPageToken:'cursor-02',newStartPageToken:null});
+   assert.equal((await f.idx.inspectSelectedFolderDrift(subject,f.connector)).state,'UNKNOWN');
+   f.connector.driveChangePage=async()=>{throw Error('GOOGLE_410_CURSOR_EXPIRED')};
+   assert.equal((await f.idx.inspectSelectedFolderDrift(subject,f.connector)).state,'UNKNOWN');
+   assert.equal(f.idx.load(subject).changePageToken,'cursor-01');
+   const previous=f.idx.load(subject);
+   f.idx.save(subject,{...previous,changePageToken:null});
+   assert.equal((await f.idx.inspectSelectedFolderDrift(subject,f.connector)).state,'UNKNOWN');
+ }finally{f.cleanup()}
+});
+test('US-068 unrelated Drive events paginate and advance encrypted cursor',async()=>{
+ const f=fixture();
+ try{
+   const read=[];
+   f.connector.driveChangePage=async(_subject,cursor)=>{
+     read.push(cursor);
+     return cursor==='cursor-01'?{
+       changes:[{fileId:'another-folder-file',removed:false,parents:['other-folder'],metadataAvailable:true}],
+       nextPageToken:'cursor-next',newStartPageToken:null
+     }:{changes:[],nextPageToken:null,newStartPageToken:'cursor-latest'};
+   };
+   assert.equal((await f.idx.inspectSelectedFolderDrift(subject,f.connector)).state,'MATCHED_AT_CHECK_TIME');
+   assert.deepEqual(read,['cursor-01','cursor-next']);
+   assert.equal(f.idx.load(subject).changePageToken,'cursor-latest');
+ }finally{f.cleanup()}
+});
+
+test('US-068 index sync captures owner change cursor before listing bytes',async()=>{
+ const f=fixture();
+ try{
+   const operations=[];
+   const list=f.connector.selectedFiles;
+   f.connector.driveChangeStartToken=async()=>{operations.push('cursor');return 'sync-start';};
+   f.connector.selectedFiles=async()=>{operations.push('listing');return list();};
+   const synced=await f.idx.sync(subject,f.connector);
+   assert.equal(synced.indexed,true);
+   assert.deepEqual(operations.slice(0,2),['cursor','listing']);
+   assert.equal(f.idx.load(subject).changePageToken,'sync-start');
  }finally{f.cleanup()}
 });
