@@ -106,6 +106,7 @@ export async function verifyRegistryToken(token:string):Promise<void>{
   const res=await fetch(path,{headers:{Authorization:'Bearer '+token,Accept:'application/json'},
    cache:'no-store',redirect:'error'});
   if(res.status===401||res.status===403){challenged=true;continue}
+  if(res.status===404)continue; // Pilot may not enable both policy and Drive scopes.
   if(!res.ok)throw Error('QualityRAG Registry is unavailable (HTTP '+res.status+').');
   if(!(res.headers.get('content-type')||'').includes('application/json'))
    throw Error('Registry returned an HTML page instead of an authenticated API response.');
@@ -114,6 +115,10 @@ export async function verifyRegistryToken(token:string):Promise<void>{
   const data=JSON.parse(raw);
   if(!data||typeof data!=='object'||Array.isArray(data))
    throw Error('Registry returned an invalid response.');
+  if(path==='/v1/state'&&(!Array.isArray(data.services)||!Array.isArray(data.policies)))
+   throw Error('Registry state did not match the expected contract.');
+  if(path==='/v1/drives/google/status'&&data.provider!=='google_drive')
+   throw Error('Registry Drive status did not match the expected contract.');
   return;
  }
  throw Error(challenged?'Your Google identity lacks assigned QualityRAG Registry roles.':
