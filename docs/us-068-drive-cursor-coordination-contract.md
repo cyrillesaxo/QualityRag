@@ -1,0 +1,74 @@
+# US-068 — multi-replica Drive cursor coordination contract (implementation prerequisite)
+
+Status: SPECIFIED / UNBUILT / UNTESTED / NOT ACCEPTED
+Base: QualityRAG detached commit 12854aa. This document does not claim an implementation.
+
+## Observed gap
+
+`UserDriveIndex.inspectDriveChangeCursor` checks the current encrypted snapshot and active in-process syncs, then writes with `save`. This is process-local coordination; replicas with independent memory and filesystem views can both pass the check and overwrite one another's checkpoint. A read-then-write without a shared atomic conditional operation cannot prove checkpoint integrity.
+
+## State and invariants
+
+A cursor checkpoint is scoped by immutable `tenant/owner subject + connection identity + selected folder + baseline generation`. Store checkpoint encrypted; expose no Google page token or OAuth token in API responses, logs or traces.
+
+- A cursor never advances past unprocessed changes.
+- `CHANGED` irreversibly marks the existing baseline stale; no subsequent poll can reclassify that baseline as current.
+- `UNKNOWN` never advances a checkpoint and never confers release approval.
+- A complete, bounded scan with no relevant changes may advance only by a durable CAS against the exact baseline generation, prior cursor version and selected binding.
+- A new sync baseline invalidates all outstanding poll leases and cursors for the previous generation.
+- Concurrent workers must not let the later-finishing, older worker overwrite a newer checkpoint.
+- A successful CAS is not enough to prove source-byte freshness, owner ACL authorization or release readiness; existing fresh byte/selection checks and signed review gates still apply.
+
+## Smallest safe storage reuse
+
+Prefer the existing shared, encrypted owner-index storage *only if* it supports an atomic conditional write that all running replicas share. Required interface:
+
+```ts
+loadCheckpoint(ownerKey): Promise<{
+  baselineGeneration: string;
+  cursorVersion: number;
+  encryptedCursor: Uint8Array | null;
+  bindingDigest: string;
+  stale: boolean;
+}>
+
+compareAndSwapCheckpoint({
+  ownerKey, expectedGeneration, expectedCursorVersion,
+  expectedBindingDigest, nextEncryptedCursor, observedChange,
+}): Promise<"ADVANCED" | "STALE" | "CONFLICT">
+```
+
+If current owner-index storage is a local file with no shared atomic CAS, **do not** silently use an in-memory lock or a local rename as a distributed solution. Either place cursor state in an already-operated transactional store shared by replicas, or keep polling explicitly single-writer and return UNKNOWN when exclusive ownership cannot be established. No new database is justified before this reuse check.
+
+## Safe algorithm
+
+1. Verify caller's owner identity, current Google connection binding, selected folder and baseline generation.
+2. Load versioned cursor and reject missing/stale/ambiguous binding as UNKNOWN.
+3. Page through Drive Changes with strict page/total-event/time budgets. Record no mutation while fetching. A selected-file, selected-folder, or relevant child event produces CHANGED. Missing parent metadata or provider errors produce UNKNOWN.
+4. Re-read current binding; reject any generation, identity or folder drift.
+5. Persist via the shared atomic CAS. Relevant change must commit STALE before returning a confirmed CHANGED to downstream consumers.
+6. If CAS fails due to a competing poll or sync, return UNKNOWN (or safely restart within a separate bounded budget); never report MATCHED from stale observations.
+7. Run live source-byte and complete inventory validation against the **same generation**. Produce MATCHED_AT_CHECK_TIME only if all evidence checks completed, the checkpoint CAS succeeded, and no binding drift occurred.
+
+## Automatic polling
+
+Use an authenticated, bounded worker with owner-scoped access only; never use a global service account to impersonate individual Drive owners. Schedule due checkpoints with deterministic jitter and quotas per tenant/owner and Google project. Persist next-attempt and last-complete metadata in shared storage to survive restart; retry transient errors with exponential backoff, never skip expired/ambiguous tokens. A push notification is only a trigger to poll, not trusted proof of content or permission change. Metrics include age of last completed check, UNKNOWN count, 410 cursor expirations, CAS conflicts, duration, page-budget aborts, change-to-STALE lag and quota responses without source IDs or tokens.
+
+## Required adversarial tests (written specification; not executed)
+
+| Scenario | Required result |
+|---|---|
+| Two replicas read same version, finish out of order | At most one checkpoint CAS succeeds; other UNKNOWN |
+| Sync replaces baseline while poll is paginating | Old poll cannot write; UNKNOWN |
+| Relevant changed file across middle page | Persistent STALE; no cursor advancement as clean |
+| Removed file without parent evidence | UNKNOWN; no advancement |
+| Google 410, timeout, 403, truncated pages, looped token | UNKNOWN; no advancement |
+| Irrelevant changes, all pages complete, CAS wins | Advance opaque cursor only |
+| Poll repeats same final page after crash | Idempotent or UNKNOWN; never falsely MATCHED |
+| Disconnected owner, changed folder, changed delegated subject | Denied/UNKNOWN; no cross-owner reads |
+| Quota budget exhausted | UNKNOWN and observable bounded retry |
+| Permission denied | UNKNOWN, not proven revocation unless independently verified |
+
+## Acceptance gate
+
+Do not label US-068 READY/ACCEPTED until storage atomics are evidenced, concurrency tests executed against two separate process instances, real Google Drive integration and permission tests pass, and independent security/product acceptance is recorded. No build, deployment, merge, or release is authorized by this specification.
