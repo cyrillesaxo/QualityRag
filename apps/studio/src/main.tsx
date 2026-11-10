@@ -7,6 +7,7 @@ import {EvidenceAssurance} from './EvidenceAssurance';
 import {EvidenceTelemetryLive} from './EvidenceTelemetryLive';
 import {DriveConnections} from './DriveConnections';
 import {RegistryReadiness} from './RegistryReadiness';
+import {StudioLogin} from './StudioLogin';
 import {ProtectedAdmissionAvailability} from './ProtectedAdmissionAvailability';
 import './enterprise-engines.css';
 
@@ -252,12 +253,24 @@ function Studio(){
  }
  async function refresh(){try{setState(await request('/v1/state'));setMessage('Registry loaded')}catch(e){setMessage(String(e))}}
  async function run(operation:()=>Promise<unknown>){try{await operation();await refresh()}catch(e){setMessage(String(e))}}
- useEffect(()=>{if(token)refresh()},[]); // Authentication is deliberately supplied by the operator; not persisted.
+ useEffect(()=>{if(token)refresh()},[]); // Tokens remain in page memory, never persisted.
+ if(!token)return <StudioLogin onAuthenticated={setToken}/>;
  return <main>
    <header><span className="logo">◈</span><div><h1>QualityRag Studio</h1><p>APX-inspired policy workbench · service registry · governed bindings</p></div></header>
-   <section className="notice"><strong>Local development preview.</strong> This UI accepts an operator token in local mode or an OIDC bearer token when the registry enables OIDC. Authentication occurs at the registry. The UI has no interactive OIDC login flow, tenant isolation or production multi-user state.</section>
+   <section className="notice"><strong>Research pilot dashboard.</strong> Signing in with Google authenticates an identity but does not grant policy, reviewer or Drive permissions. All scoped actions are enforced by the Registry. Customer acceptance and production security review remain outstanding.</section>
    <RegistryReadiness/>
-   <section className="panel"><h2>Connect to registry</h2><p className="notice"><strong>Do not paste an OIDC token or customer secrets until the authenticated HTTPS Registry gateway has been independently configured and verified.</strong> This public Netlify preview is not an identity provider or a secure onboarding portal.</p><div className="line"><label>Registry bearer token<input type="password" autoComplete="off" value={token} onChange={e=>setToken(e.target.value)} placeholder="Development token or OIDC access token"/></label><button onClick={refresh} disabled={!token}>Connect / refresh</button></div><p className="status" role="status">{message}</p></section>
+   <section className="panel"><h2>Registry session</h2>
+    <div className="line">
+     <button type="button" onClick={refresh}>Refresh authorized data</button>
+     <button type="button" onClick={()=>{setToken('');setMessage('');
+       setState({services:[],policies:[],bindings:[],signedPromotions:[],
+         signedBindings:[],contractPromotions:[],contractBindings:[]})}}>Sign out</button>
+    </div>
+    <p className="status" role="status">{message}</p>
+    <p style={{fontSize:12}}>The Registry access token stays only in page memory
+      and is cleared when you sign out or reload. Signing out does not revoke
+      the identity provider session.</p>
+   </section>
    <div className="columns"><section className="panel"><h2>1. Register service</h2><p>Identify the application that will consume an approved policy.</p><label>Service ID<input value={serviceId} onChange={e=>setServiceId(e.target.value)}/></label><label>Display name<input value={name} onChange={e=>setName(e.target.value)}/></label><button disabled={!token} onClick={()=>run(()=>request('/v1/services','POST',{id:serviceId,displayName:name}))}>Register service</button><ul>{state.services.map(s=><li key={s.id}>{s.displayName} <code>{s.id}</code></li>)}</ul></section>
    <section className="panel"><h2>2. Draft and approve PackSpec</h2><p>Each version is immutable after creation; approve explicitly before binding.</p><label>PackSpec JSON<textarea spellCheck={false} value={editor} onChange={e=>setEditor(e.target.value)}/></label><button disabled={!token} onClick={()=>run(()=>request('/v1/policies/drafts','POST',JSON.parse(editor)))}>Save draft</button><ul>{state.policies.map(p=><li key={p.sha256}><code>{p.policy.id}@{p.policy.version}</code><span>{p.status}</span>{p.status==='DRAFT'&&<button disabled={!token} onClick={()=>run(()=>request('/v1/policies/'+encodeURIComponent(p.policy.id)+'/'+encodeURIComponent(p.policy.version)+'/approve','POST'))}>Approve</button>}</li>)}</ul></section></div>
    <section className="panel"><h2>3. Assign policy to environment</h2><p>Services resolve only approved versions. Application SDKs enforce the resolved requirements locally.</p><div className="line"><label>Service<input value={serviceId} onChange={e=>setServiceId(e.target.value)}/></label><label>Environment<input value={environment} onChange={e=>setEnvironment(e.target.value)}/></label><label>Policy ID<input value={policyId} onChange={e=>setPolicyId(e.target.value)}/></label><label>Version<input value={version} onChange={e=>setVersion(e.target.value)}/></label></div><button disabled={!token} onClick={()=>run(()=>request('/v1/bindings','POST',{serviceId,environment,policyId,version}))}>Bind approved policy</button><ul>{state.bindings.map(b=><li key={b.serviceId+'@'+b.environment}><code>{b.serviceId}@{b.environment}</code> → {b.policyId}@{b.version}</li>)}</ul><p>Resolve endpoint: <code>GET /v1/resolve/{serviceId}/{environment}</code></p></section>
