@@ -286,6 +286,45 @@ export class UserDriveIndex {
     activity:(snap.controlHistory||[]).slice(-30).reverse()
   };
  }
+ async controlSharedSource(subject,connection,input){
+  check(this.cursorCoordinator,'DRIVE_SHARED_COORDINATOR_REQUIRED');
+  check(input&&!Array.isArray(input)&&typeof input==='object'&&
+    Object.keys(input).length===3&&Object.hasOwn(input,'sourceId')&&
+    Object.hasOwn(input,'searchable')&&Object.hasOwn(input,'reason'),
+    'INVALID_DRIVE_SOURCE_CONTROL');
+  check(typeof input.sourceId==='string'&&
+    /^google_drive[/][a-f0-9]{32}$/.test(input.sourceId)&&
+    typeof input.searchable==='boolean'&&
+    (input.searchable?input.reason==='OWNER_SELECTION':
+      ['SENSITIVE','OUT_OF_SCOPE','NEEDS_REVIEW'].includes(input.reason)),
+    'INVALID_DRIVE_SOURCE_CONTROL');
+  check(!this.activeSyncs.has(this.location(subject)),'DRIVE_SYNC_IN_PROGRESS');
+  const before=await this.cursorCoordinator.read(subject);
+  const snap=await this.sharedBound(subject,connection);
+  check(before&&snap,'DRIVE_SHARED_INDEX_NOT_READY');
+  const source=snap.entries.find(e=>e.sourceId===input.sourceId);
+  check(source,'DRIVE_SOURCE_NOT_FOUND');
+  if((source.searchEnabled!==false)===input.searchable)
+    return {changed:false,sourceTruth:'UNVERIFIED',
+      governanceStatus:'NOT_EVALUATED',releasePermitted:false};
+  const next={...snap,
+    entries:snap.entries.map(e=>e.sourceId===input.sourceId?
+      {...e,searchEnabled:input.searchable}:e),
+    controlHistory:[...(snap.controlHistory||[]),{
+      at:new Date(this.now()).toISOString(),
+      sourceId:input.sourceId,action:input.searchable?'INCLUDE':'EXCLUDE',
+      reason:input.reason
+    }].slice(-100)};
+  const result=await this.cursorCoordinator.updateOwnerControls({
+    subject,expected:before,snapshot:next,
+    encryptedSnapshot:this.encode(subject,next)
+  });
+  check(result==='UPDATED','DRIVE_SHARED_CONTROL_CONFLICT');
+  // The shared baseline is now STALE. An owner resync is required before
+  // protected evidence can be used. No local file becomes authoritative.
+  return {changed:true,sourceTruth:'UNVERIFIED',governanceStatus:'STALE',
+    releasePermitted:false,requiresResync:true};
+ }
  controlSource(subject,connection,input){
   if(this.cursorCoordinator)stop('DRIVE_SHARED_SOURCE_CONTROL_NOT_IMPLEMENTED');
   check(input&&!Array.isArray(input)&&typeof input==='object'&&
