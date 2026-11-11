@@ -18,13 +18,21 @@ function fixture(){
  const pool={query:async(sql,args)=>{
   const key=args[0],existing=rows.get(key);
   if(sql.includes('INSERT INTO')){
+   if(existing)return {rowCount:0,rows:[]};
    const next={generation:args[1],binding_digest:args[2],
-     cursor_version:existing?existing.cursor_version+1:0,
-     encrypted_cursor:JSON.parse(args[3]),stale:false};
-   if(existing?.generation===args[1])return {rowCount:0,rows:[]};
-   rows.set(key,next);return {rowCount:1,rows:[{cursor_version:next.cursor_version}]};
+     cursor_version:0,encrypted_cursor:JSON.parse(args[3]),stale:false};
+   rows.set(key,next);return {rowCount:1,rows:[{cursor_version:0}]};
   }
   if(sql.includes('SELECT'))return {rowCount:existing?1:0,rows:existing?[{...existing}]:[]};
+  if(sql.includes('UPDATE')&&sql.includes('generation=$5')){
+   if(!existing||existing.generation!==args[1]||
+      existing.binding_digest!==args[2]||
+      existing.cursor_version!==args[3])return {rowCount:0,rows:[]};
+   existing.generation=args[4];existing.binding_digest=args[5];
+   existing.encrypted_cursor=JSON.parse(args[6]);existing.stale=false;
+   existing.cursor_version++;
+   return {rowCount:1,rows:[{cursor_version:existing.cursor_version}]};
+  }
   if(sql.includes('UPDATE')&&sql.includes('stale=true')){
    if(!existing||existing.generation!==args[1]||existing.binding_digest!==args[2]||
      existing.stale)return {rowCount:0,rows:[]};
@@ -141,5 +149,61 @@ test('failed durability write degrades confirmed byte change to UNKNOWN',async()
   f.connector.downloadSelectedText=async()=>Buffer.from('Changed');
   f.coordinator.markStale=async()=>{throw Error('PG_UNAVAILABLE')};
   assert.equal((await f.idx.inspectSelectedFolderDrift(owner,f.connector)).state,'UNKNOWN');
+ }finally{f.cleanup()}
+});
+
+test('owner resync replaces a stale checkpoint with a new fenced generation',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,f.idx.encode(owner,{cursor:'initial'}));
+  const old=await f.coordinator.read(owner);
+  await f.coordinator.markStale({subject:owner,generation:old.generation,
+    binding:old.binding_digest});
+  f.connector.driveChangeStartToken=async()=> 'new-start';
+  const result=await f.idx.sync(owner,f.connector);
+  assert.equal(result.indexed,true);
+  const cp=await f.coordinator.read(owner);
+  assert.equal(cp.stale,false);
+  assert.notEqual(cp.generation,old.generation);
+  assert.equal(f.idx.decode(owner,cp.encrypted_cursor).cursor,'new-start');
+  assert.equal(f.idx.load(owner).changePageToken,'new-start');
+ }finally{f.cleanup()}
+});
+test('concurrent checkpoint conflict prevents publishing losing local baseline',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,f.idx.encode(owner,{cursor:'initial'}));
+  const original=f.idx.load(owner);
+  f.connector.driveChangeStartToken=async()=> 'resync-start';
+  f.coordinator.replaceBaseline=async()=> 'CONFLICT';
+  await assert.rejects(f.idx.sync(owner,f.connector),/DRIVE_SYNC_CHECKPOINT_CONFLICT/);
+  assert.deepEqual(f.idx.load(owner),original);
+ }finally{f.cleanup()}
+});
+test('failed local index publish after checkpoint CAS remains UNKNOWN',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,f.idx.encode(owner,{cursor:'initial'}));
+  f.connector.driveChangeStartToken=async()=> 'resync-start';
+  const originalSave=f.idx.save.bind(f.idx);
+  f.idx.save=()=>{throw Error('DISK_FAILURE')};
+  await assert.rejects(f.idx.sync(owner,f.connector),/DISK_FAILURE/);
+  f.idx.save=originalSave;
+  assert.equal((await f.idx.inspectSelectedFolderDrift(owner,f.connector)).state,'UNKNOWN');
+ }finally{f.cleanup()}
+});
+test('two workers observing same cursor version cannot both replace baseline',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,f.idx.encode(owner,{cursor:'initial'}));
+  const before=await f.coordinator.read(owner);
+  const next1={...f.snapshot,baselineId:'generation-2'};
+  const next2={...f.snapshot,baselineId:'generation-3'};
+  assert.equal(await f.coordinator.replaceBaseline(owner,next1,
+    f.idx.encode(owner,{cursor:'next-1'}),before),'REPLACED');
+  assert.equal(await f.coordinator.replaceBaseline(owner,next2,
+    f.idx.encode(owner,{cursor:'next-2'}),before),'CONFLICT');
+  assert.equal((await f.coordinator.read(owner)).generation,
+    f.coordinator.generation(owner,next1));
  }finally{f.cleanup()}
 });
