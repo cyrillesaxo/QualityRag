@@ -15,6 +15,12 @@ export async function handleGovernedDriveCandidates(req,res,{url,identity,actor,
  if(!authenticate||!driveManager||!driveIndex){
   reply(res,404,{error:'DRIVE_GOVERNED_CHECK_DISABLED'});return true;
  }
+ // Candidate previews currently use the synchronous local index; disable them
+ // until their evidence binding is switched to the shared encrypted snapshot.
+ if(driveIndex.cursorCoordinator){
+  reply(res,503,{error:'DRIVE_SHARED_CANDIDATES_PENDING',
+    sourceTruth:'UNKNOWN',releasePermitted:false});return true;
+ }
  if(!identity?.roles?.has('drive.reader')||!identity.roles.has('evidence.reader')){
   reply(res,403,{error:'FORBIDDEN'});return true;
  }
