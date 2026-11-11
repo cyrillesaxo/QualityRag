@@ -268,3 +268,22 @@ test('shared snapshot remains owner-bound and cannot be read by another subject'
   assert.equal(await f.idx.sharedBound('issuer#bob',f.connector.status()),null);
  }finally{f.cleanup()}
 });
+
+test('resync from STALE preserves owner-excluded source from shared baseline',async()=>{
+ const f=fixture();
+ try{
+  const excluded={...f.snapshot,entries:f.snapshot.entries.map(e=>({
+    ...e,searchEnabled:false
+  }))};
+  await f.coordinator.establish(owner,excluded,
+   f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,excluded));
+  const cp=await f.coordinator.read(owner);
+  await f.coordinator.markStale({subject:owner,generation:cp.generation,
+    binding:cp.binding_digest});
+  f.connector.driveChangeStartToken=async()=> 'new-start';
+  await f.idx.sync(owner,f.connector);
+  const shared=await f.idx.sharedBound(owner,f.connector.status());
+  assert.equal(shared.entries[0].searchEnabled,false);
+  assert.equal(f.idx.load(owner).entries[0].searchEnabled,false);
+ }finally{f.cleanup()}
+});
