@@ -96,3 +96,45 @@ read/review routes against stale shared state require further implementation.
 The tests under `pg-drive-cursor-index-integration.test.js` use an in-memory
 SQL behavior fake and are not proof of real PostgreSQL transaction isolation.
 A real two-process PostgreSQL and Google Drive acceptance suite is required.
+
+## 2026-11-11 shared encrypted baseline increment — prepared, unbuilt
+
+Migration `013_drive_shared_encrypted_baseline.sql` adds an encrypted source
+snapshot to the existing PostgreSQL checkpoint row without modifying the
+checksum of migration 012. Both the current source baseline and the opaque
+change cursor are encrypted using the existing owner-bound AES-GCM index
+envelope and written in the **same conditional PostgreSQL statement** on
+first sync and fenced replacement. No second database is introduced.
+
+The protected live-source and selected-folder freshness paths now obtain
+their baseline through `sharedBound`, which verifies owner, Drive binding,
+integrity, and generation against the shared checkpoint. Local cache absence
+or divergence cannot substitute evidence. STALE prevents protected reading.
+Explicit owner resync preserves prior owner exclusions from the shared
+baseline even when it was marked STALE. Shared index clear, folder change,
+disconnect and relevant provider authorization failures trigger durable
+checkpoint invalidation before local cleanup.
+
+Unmigrated synchronous local routes (status/index/visibility/search and
+governed candidate previews) are explicitly unavailable when shared mode is
+enabled; local-only source-control writes are rejected to avoid silently
+diverging owner privacy controls. This is a **conservative partial rollout**,
+not an end-to-end feature completion. New regression cases are written but
+unexecuted.
+
+### Remaining prerequisites
+
+1. Shared, per-user Google OAuth credential synchronization and rotation:
+   current `GoogleDriveConnections.records` is process-local and file-backed.
+2. Shared owner controls with CAS and their read/write UI adapters; restore
+   coherent status, search, and candidate previews from the shared baseline.
+3. Make all protected governance routes that access the index exclusively
+   consume the same shared generation, including checks after asynchronous
+   provider fetches and before ledger admission.
+4. Real two-process PostgreSQL transaction tests with migration checks,
+   crash and failover injection, as well as Google Drive pagination and
+   permission-revocation evidence. Provider errors remain UNKNOWN.
+5. Authenticated periodic polling, quotas, observability, production
+   deployment controls, customer evidence and independent acceptance.
+
+No build, test execution, merge or deployment was performed for this increment.
