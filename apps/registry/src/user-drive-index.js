@@ -256,7 +256,7 @@ export class UserDriveIndex {
   this.save(subject,snapshot);
   return this.status(subject,connection);
   }catch(error){
-    if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
+    if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')await this.clearCoordinated(subject);
     throw error;
   }finally{
     this.activeSyncs.delete(ownerKey);
@@ -532,7 +532,7 @@ export class UserDriveIndex {
       bytes=await connector.downloadSelectedText(subject,fileId,
         connection.folderId,MAX_PER_FILE);
     }catch(error){
-      if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
+      if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')await this.clearCoordinated(subject);
       throw Error('PROTECTED_LIVE_GOOGLE_VERIFICATION_FAILED');
     }
     check(Buffer.isBuffer(bytes)&&sha(bytes)===source.revision,
