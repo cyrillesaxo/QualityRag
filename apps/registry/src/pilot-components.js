@@ -40,7 +40,7 @@ function validateChild(root,target){
  }
  return full;
 }
-export function createPilotComponents(env,{fetchImpl,cursorCoordinator=null}={}){
+export function createPilotComponents(env,{fetchImpl,cursorCoordinator=null,oauthPending=null}={}){
  if(env.QUALITYRAG_PILOT_MODE!=='true')return {
   driveManager:null,driveIndex:null,evidenceLedger:null,
   protectedReviewTrust:null,protectedDriveServices:new Set()
@@ -80,6 +80,7 @@ export function createPilotComponents(env,{fetchImpl,cursorCoordinator=null}={})
   clientSecret:required(env,'QUALITYRAG_GOOGLE_CLIENT_SECRET'),
   redirectUri:required(env,'QUALITYRAG_GOOGLE_REDIRECT_URI'),
   studioOrigin:required(env,'QUALITYRAG_STUDIO_ORIGIN'),
+  oauthPending,
   ...(fetchImpl?{fetchImpl}:{})
  });
  const driveIndex=new UserDriveIndex({dir:files.index,encryptionKey:indexKey,
