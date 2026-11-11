@@ -113,3 +113,33 @@ test('baseline generation mismatch makes an otherwise fresh selected folder UNKN
   assert.equal((await f.idx.inspectSelectedFolderDrift(owner,f.connector)).state,'UNKNOWN');
  }finally{f.cleanup()}
 });
+
+test('byte drift persists STALE through shared coordinator before CHANGED',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,f.idx.encode(owner,{cursor:'initial'}));
+  f.connector.downloadSelectedText=async()=>Buffer.from('Changed document bytes');
+  assert.equal((await f.idx.inspectSelectedFolderDrift(owner,f.connector)).state,'CHANGED');
+  assert.equal((await f.coordinator.read(owner)).stale,true);
+ }finally{f.cleanup()}
+});
+test('folder inventory drift persists STALE without waiting for change pagination',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,f.idx.encode(owner,{cursor:'initial'}));
+  f.connector.selectedFiles=async()=>({folderId:'selected',truncated:false,files:[
+   {id:'file-1',mimeType:'text/plain'},{id:'file-2',mimeType:'text/plain'}
+  ]});
+  assert.equal((await f.idx.inspectSelectedFolderDrift(owner,f.connector)).state,'CHANGED');
+  assert.equal((await f.coordinator.read(owner)).stale,true);
+ }finally{f.cleanup()}
+});
+test('failed durability write degrades confirmed byte change to UNKNOWN',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,f.idx.encode(owner,{cursor:'initial'}));
+  f.connector.downloadSelectedText=async()=>Buffer.from('Changed');
+  f.coordinator.markStale=async()=>{throw Error('PG_UNAVAILABLE')};
+  assert.equal((await f.idx.inspectSelectedFolderDrift(owner,f.connector)).state,'UNKNOWN');
+ }finally{f.cleanup()}
+});
