@@ -8,7 +8,7 @@ const authFields=['access_token','refresh_token','expires_at','email',
 
 export class PgDriveOwnerCredentials {
  constructor(pool,{identityKey,encryptionKey}={}){
-  requireValid(pool&&typeof pool.connect==='function','DRIVE_CREDENTIAL_POOL_REQUIRED');
+  requireValid(pool&&typeof pool.connect==='function'&&typeof pool.query==='function','DRIVE_CREDENTIAL_POOL_REQUIRED');
   requireValid(validKey(identityKey)&&validKey(encryptionKey),
     'DRIVE_CREDENTIAL_KEYS_REQUIRED');
   requireValid(!identityKey.equals(encryptionKey),'DRIVE_CREDENTIAL_KEY_SEPARATION_REQUIRED');
@@ -109,7 +109,8 @@ export class PgDriveOwnerCredentials {
   // the credential by inserting an obsolete refresh result.
   const result=await this.pool.query(`
     UPDATE qr_drive_owner_credentials SET
-      disconnected=true,revision=revision+1,updated_at=now()
+      disconnected=true,credential_envelope=NULL,
+      revision=revision+1,updated_at=now()
     WHERE owner_key=$1 AND disconnected=false
     RETURNING revision
   `,[this.owner(subject)]);
