@@ -84,7 +84,7 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
   if(route==='status')result={...conn,indexEnabled:true,index:driveIndex.status(actor,conn)};
   else if(route==='index')result=driveIndex.status(actor,conn);
   else if(route==='visibility')result=driveIndex.visibility(actor,conn);
-  else if(route==='start')result=driveManager.start(actor);
+  else if(route==='start')result=await driveManager.startCoordinated(actor);
   else if(route==='folders')result=await driveManager.folders(actor,
     url?.searchParams.get('parentId')||'root',url?.searchParams.get('pageToken')||null);
   else if(route==='folder'){
