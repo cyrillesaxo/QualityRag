@@ -1,4 +1,4 @@
-import {createHmac} from 'node:crypto';
+import {createHmac,createHash} from 'node:crypto';
 
 // Shared transactional coordinator; requires the already-operated Registry PG pool.
 // Caller encrypts the Google cursor using UserDriveIndex.encode and supplies only
@@ -18,8 +18,11 @@ export class PgDriveCursorCoordinator {
  }
  owner(subject){return this.digest('owner/v1',subject)}
  generation(subject,snapshot){
-  return this.digest('baseline/v1',subject+'\0'+snapshot.syncedAt+'\0'+snapshot.folderId+
-    '\0'+snapshot.account+'\0'+(snapshot.entries||[]).map(e=>e.fileId+':'+e.revision).join('|'));
+  const fingerprint=createHash('sha256').update(JSON.stringify({
+   id:snapshot.baselineId??null,at:snapshot.syncedAt,folder:snapshot.folderId,
+   account:snapshot.account,entries:(snapshot.entries||[]).map(e=>[e.fileId,e.revision,e.searchEnabled])
+  })).digest('hex');
+  return this.digest('baseline/v1',subject+'\0'+fingerprint);
  }
  binding(subject,connection){
   return this.digest('binding/v1',subject+'\0'+connection.email+'\0'+connection.folderId);
