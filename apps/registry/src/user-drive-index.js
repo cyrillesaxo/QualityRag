@@ -120,6 +120,10 @@ export class UserDriveIndex {
   this.activeSyncs.add(ownerKey);
   const startGeneration=this.generations.get(ownerKey)||0;
   try{
+  // Read the shared version BEFORE provider I/O, not after it. Two replicas
+  // trying to resync from the same baseline cannot both publish.
+  const checkpointBefore=this.cursorCoordinator?
+    await this.cursorCoordinator.read(subject):null;
   const connection=connector.status(subject);
   check(connection.connected,'DRIVE_CONNECTION_NOT_FOUND');
   // Capture before reading listing and bytes: changes during indexing can
@@ -197,15 +201,29 @@ export class UserDriveIndex {
     'DRIVE_SYNC_INVALIDATED');
   check(latest.connected&&latest.email===connection.email&&
     latest.folderId===connection.folderId,'DRIVE_SYNC_INVALIDATED');
-  // The file index is a local baseline; the PG checkpoint is a separate
-  // authority. A crash between these writes leaves UNKNOWN, never SAT.
-  // Multi-replica shared baseline coordination is NOT established by this.
-  this.save(subject,snapshot);
+  // Publish the shared checkpoint first. If the process dies before the
+  // local snapshot is written, readers observe a generation mismatch and
+  // MUST return UNKNOWN. Never publish a losing local snapshot after CAS.
   if(this.cursorCoordinator){
     check(typeof changePageToken==='string','DRIVE_CURSOR_NOT_AVAILABLE');
-    await this.cursorCoordinator.establish(subject,snapshot,
-      this.encode(subject,{cursor:changePageToken}));
+    const encrypted=this.encode(subject,{cursor:changePageToken});
+    if(checkpointBefore){
+      const status=await this.cursorCoordinator.replaceBaseline(
+        subject,snapshot,encrypted,checkpointBefore);
+      check(status==='REPLACED','DRIVE_SYNC_CHECKPOINT_CONFLICT');
+    }else{
+      try{await this.cursorCoordinator.establish(subject,snapshot,encrypted)}
+      catch(error){
+        if(error?.message==='CURSOR_BASELINE_ALREADY_EXISTS')
+          stop('DRIVE_SYNC_CHECKPOINT_CONFLICT');
+        throw error;
+      }
+    }
   }
+  // The local encrypted source index is still not a shared transactional
+  // baseline. This CAS fences writers, but per-replica index deployment
+  // remains unsupported until source snapshots have shared storage.
+  this.save(subject,snapshot);
   return this.status(subject,connection);
   }catch(error){
     if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
