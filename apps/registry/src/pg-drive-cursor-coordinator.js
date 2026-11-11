@@ -46,6 +46,33 @@ export class PgDriveCursorCoordinator {
   ensure(result.rowCount===1,'CURSOR_BASELINE_ALREADY_EXISTS');
   return {generation,binding};
  }
+ // A later successful owner resync may replace an existing checkpoint only
+ // when its snapshot/version still matches what was read BEFORE Google I/O.
+ // Atomic SQL CAS serializes competing replicas. STALE is deliberately
+ // replaceable by a NEW generation after explicit owner resynchronization.
+ async replaceBaseline(subject,snapshot,encryptedCursor,expected){
+  ensure(snapshot&&snapshot.syncedAt&&snapshot.folderId&&snapshot.account,
+    'CURSOR_BASELINE_REQUIRED');
+  ensure(encryptedCursor?.v===1&&typeof encryptedCursor.ct==='string',
+    'CURSOR_CIPHERTEXT_REQUIRED');
+  ensure(expected&&valid(expected.generation)&&valid(expected.binding_digest),
+    'CURSOR_EXPECTATION_INVALID');
+  const version=Number(expected.cursor_version);
+  ensure(Number.isSafeInteger(version)&&version>=0,'CURSOR_EXPECTATION_INVALID');
+  const generation=this.generation(subject,snapshot);
+  const binding=this.binding(subject,{email:snapshot.account,folderId:snapshot.folderId});
+  ensure(generation!==expected.generation,'CURSOR_BASELINE_ALREADY_EXISTS');
+  const result=await this.pool.query(`
+   UPDATE qr_drive_cursor_checkpoints SET
+    generation=$5,binding_digest=$6,cursor_version=cursor_version+1,
+    encrypted_cursor=$7::jsonb,stale=false,updated_at=now()
+   WHERE owner_key=$1 AND generation=$2 AND binding_digest=$3
+     AND cursor_version=$4
+   RETURNING cursor_version
+  `,[this.owner(subject),expected.generation,expected.binding_digest,
+     version,generation,binding,JSON.stringify(encryptedCursor)]);
+  return result.rowCount===1?'REPLACED':'CONFLICT';
+ }
  async read(subject){
   const result=await this.pool.query(
    'SELECT generation,binding_digest,cursor_version,encrypted_cursor,stale FROM qr_drive_cursor_checkpoints WHERE owner_key=$1',
