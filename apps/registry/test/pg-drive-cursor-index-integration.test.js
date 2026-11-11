@@ -230,3 +230,41 @@ test('tampered shared ciphertext fails closed even with a matching local index',
   assert.equal((await f.idx.inspectSelectedFolderDrift(owner,f.connector)).state,'UNKNOWN');
  }finally{f.cleanup()}
 });
+
+test('owner clear marks shared source baseline STALE before deleting local file',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,
+   f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,f.snapshot));
+  const outcome=await f.idx.clearCoordinated(owner);
+  assert.equal(outcome.removed,true);
+  assert.equal((await f.coordinator.read(owner)).stale,true);
+  assert.equal((await f.idx.sharedBound(owner,f.connector.status())),null);
+ }finally{f.cleanup()}
+});
+test('failed shared invalidation does not clear local cache as if successful',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,
+   f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,f.snapshot));
+  f.coordinator.markStale=async()=>{throw Error('PG_UNAVAILABLE')};
+  await assert.rejects(f.idx.clearCoordinated(owner),/PG_UNAVAILABLE/);
+  assert.ok(f.idx.load(owner));
+ }finally{f.cleanup()}
+});
+test('shared mode refuses direct local-only owner source-control mutation',async()=>{
+ const f=fixture();
+ try{
+  assert.throws(()=>f.idx.controlSource(owner,f.connector.status(),{
+    sourceId:'google_drive/'+'a'.repeat(32),searchable:false,reason:'SENSITIVE'
+  }),/DRIVE_SHARED_SOURCE_CONTROL_NOT_IMPLEMENTED/);
+ }finally{f.cleanup()}
+});
+test('shared snapshot remains owner-bound and cannot be read by another subject',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,
+   f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,f.snapshot));
+  assert.equal(await f.idx.sharedBound('issuer#bob',f.connector.status()),null);
+ }finally{f.cleanup()}
+});
