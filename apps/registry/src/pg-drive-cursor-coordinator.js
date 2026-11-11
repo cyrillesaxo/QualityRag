@@ -97,6 +97,33 @@ export class PgDriveCursorCoordinator {
   `,[this.owner(subject),generation,binding,version,JSON.stringify(encryptedCursor)]);
   return result.rowCount===1?'ADVANCED':'CONFLICT';
  }
+ // Owner exclusions/re-inclusions change the *governance baseline*.
+ // Apply one CAS to the encrypted shared source snapshot; mark it STALE
+ // so old protected decisions cannot inherit approval after a control edit.
+ async updateOwnerControls({subject,expected,snapshot,encryptedSnapshot}){
+  ensure(expected&&valid(expected.generation)&&valid(expected.binding_digest),
+    'CURSOR_EXPECTATION_INVALID');
+  const version=Number(expected.cursor_version);
+  ensure(Number.isSafeInteger(version)&&version>=0,'CURSOR_EXPECTATION_INVALID');
+  ensure(encryptedSnapshot?.v===1&&typeof encryptedSnapshot.ct==='string',
+    'CURSOR_SNAPSHOT_CIPHERTEXT_REQUIRED');
+  ensure(snapshot?.account&&snapshot?.folderId&&Array.isArray(snapshot.entries),
+    'CURSOR_BASELINE_REQUIRED');
+  const generation=this.generation(subject,snapshot);
+  const binding=this.binding(subject,{email:snapshot.account,folderId:snapshot.folderId});
+  ensure(generation!==expected.generation&&binding===expected.binding_digest,
+    'CURSOR_CONTROL_BINDING_INVALID');
+  const result=await this.pool.query(`
+    UPDATE qr_drive_cursor_checkpoints SET
+      generation=$5, encrypted_snapshot=$6::jsonb,
+      stale=true, cursor_version=cursor_version+1, updated_at=now()
+    WHERE owner_key=$1 AND generation=$2 AND binding_digest=$3
+      AND cursor_version=$4 AND stale=false
+    RETURNING cursor_version
+  `,[this.owner(subject),expected.generation,expected.binding_digest,
+      version,generation,JSON.stringify(encryptedSnapshot)]);
+  return result.rowCount===1?'UPDATED':'CONFLICT';
+ }
  async markStale({subject,generation,binding}){
   ensure(valid(generation)&&valid(binding),'CURSOR_EXPECTATION_INVALID');
   const result=await this.pool.query(`
