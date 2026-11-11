@@ -8,14 +8,16 @@ const identityKey=randomBytes(32);
 const snap={syncedAt:'2026-11-10T12:00:00.000Z',folderId:'f1',account:'a@example.test',
  entries:[{fileId:'f',revision:'r'}]};
 const encrypted={v:1,iv:'iv',ct:'ciphertext',tag:'tag'};
+const snapshotEnvelope={v:1,iv:'iv2',ct:'encrypted-index',tag:'tag2'};
 test('cursor coordinator stores encrypted envelope without plain owner or token',async()=>{
  const calls=[],pool={query:async(sql,args)=>{
   calls.push({sql,args});return {rowCount:1,rows:[]};
  }};
  const c=new PgDriveCursorCoordinator(pool,{identityKey});
- const {generation,binding}=await c.establish('issuer#alice',snap,encrypted);
+ const {generation,binding}=await c.establish('issuer#alice',snap,encrypted,snapshotEnvelope);
  assert.match(generation,/^[a-f0-9]{64}$/);assert.match(binding,/^[a-f0-9]{64}$/);
  assert.equal(calls.length,1);
+ assert.equal(JSON.parse(calls[0].args[4]).ct,'encrypted-index');
  assert.equal(calls[0].args.some(v=>String(v).includes('issuer#alice')),false);
  assert.equal(calls[0].args.some(v=>String(v).includes('a@example.test')),false);
  assert.equal(JSON.parse(calls[0].args[3]).ct,'ciphertext');
@@ -45,7 +47,7 @@ test('confirmed stale is fenced by exact baseline and remains irreversible for s
 test('same-generation establishment cannot reset a stale checkpoint',async()=>{
  const pool={query:async()=>({rowCount:0,rows:[]})};
  const c=new PgDriveCursorCoordinator(pool,{identityKey});
- await assert.rejects(c.establish('issuer#alice',snap,encrypted),
+ await assert.rejects(c.establish('issuer#alice',snap,encrypted,snapshotEnvelope),
    /CURSOR_BASELINE_ALREADY_EXISTS/);
 });
 
@@ -53,7 +55,7 @@ test('different baseline cannot overwrite an existing checkpoint without fencing
  const statements=[];
  const pool={query:async(sql,args)=>{statements.push({sql,args});return {rowCount:0,rows:[]}}};
  const c=new PgDriveCursorCoordinator(pool,{identityKey});
- await assert.rejects(c.establish('issuer#alice',{...snap,baselineId:'newer'},encrypted),
+ await assert.rejects(c.establish('issuer#alice',{...snap,baselineId:'newer'},encrypted,snapshotEnvelope),
    /CURSOR_BASELINE_ALREADY_EXISTS/);
  assert.match(statements[0].sql,/ON CONFLICT \(owner_key\) DO NOTHING/);
  assert.doesNotMatch(statements[0].sql,/DO UPDATE SET/);
