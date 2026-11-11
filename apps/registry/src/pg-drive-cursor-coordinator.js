@@ -37,15 +37,12 @@ export class PgDriveCursorCoordinator {
    INSERT INTO qr_drive_cursor_checkpoints
     (owner_key,generation,binding_digest,cursor_version,encrypted_cursor,stale)
    VALUES ($1,$2,$3,0,$4::jsonb,false)
-   ON CONFLICT (owner_key) DO UPDATE SET
-    generation=EXCLUDED.generation,binding_digest=EXCLUDED.binding_digest,
-    cursor_version=qr_drive_cursor_checkpoints.cursor_version+1,
-    encrypted_cursor=EXCLUDED.encrypted_cursor,stale=false,updated_at=now()
-   WHERE qr_drive_cursor_checkpoints.generation <> EXCLUDED.generation
+   ON CONFLICT (owner_key) DO NOTHING
    RETURNING cursor_version
   `,[owner,generation,binding,JSON.stringify(encryptedCursor)]);
-  // Re-establishing an identical generation must never clear STALE or reset
-  // another worker's cursor. A genuinely new generation may replace it.
+  // Fail closed: neither the same generation nor an older competing sync
+  // may overwrite this baseline. A new generation requires an explicit,
+  // separately fenced replacement transaction (not yet implemented).
   ensure(result.rowCount===1,'CURSOR_BASELINE_ALREADY_EXISTS');
   return {generation,binding};
  }
