@@ -60,3 +60,21 @@ test('different baseline cannot overwrite an existing checkpoint without fencing
  assert.match(statements[0].sql,/ON CONFLICT \(owner_key\) DO NOTHING/);
  assert.doesNotMatch(statements[0].sql,/DO UPDATE SET/);
 });
+
+test('owner-control update fences cursor version and makes the new baseline STALE',async()=>{
+ const queries=[],pool={query:async(sql,args)=>{
+  queries.push({sql,args});return {rowCount:1,rows:[{cursor_version:8}]};
+ }};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ const original={...snap,baselineId:'first',entries:[{fileId:'f',revision:'r',searchEnabled:true}]};
+ const changed={...original,entries:[{...original.entries[0],searchEnabled:false}]};
+ const expected={generation:c.generation('issuer#alice',original),
+   binding_digest:c.binding('issuer#alice',{email:snap.account,folderId:snap.folderId}),
+   cursor_version:7};
+ assert.equal(await c.updateOwnerControls({subject:'issuer#alice',expected,
+  snapshot:changed,encryptedSnapshot:snapshotEnvelope}),'UPDATED');
+ assert.match(queries[0].sql,/stale=true/);
+ assert.match(queries[0].sql,/cursor_version=\$4 AND stale=false/);
+ assert.equal(queries[0].args[3],7);
+ assert.equal(JSON.parse(queries[0].args[5]).ct,'encrypted-index');
+});
