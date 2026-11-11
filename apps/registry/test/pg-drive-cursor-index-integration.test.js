@@ -25,6 +25,14 @@ function fixture(){
    rows.set(key,next);return {rowCount:1,rows:[{cursor_version:0}]};
   }
   if(sql.includes('SELECT'))return {rowCount:existing?1:0,rows:existing?[{...existing}]:[]};
+  if(sql.includes('UPDATE')&&sql.includes('encrypted_snapshot=$6::jsonb')){
+   if(!existing||existing.generation!==args[1]||
+      existing.binding_digest!==args[2]||existing.cursor_version!==args[3]||
+      existing.stale)return {rowCount:0,rows:[]};
+   existing.generation=args[4];existing.encrypted_snapshot=JSON.parse(args[5]);
+   existing.stale=true;existing.cursor_version++;
+   return {rowCount:1,rows:[{cursor_version:existing.cursor_version}]};
+  }
   if(sql.includes('UPDATE')&&sql.includes('generation=$5')){
    if(!existing||existing.generation!==args[1]||
       existing.binding_digest!==args[2]||
@@ -285,5 +293,60 @@ test('resync from STALE preserves owner-excluded source from shared baseline',as
   const shared=await f.idx.sharedBound(owner,f.connector.status());
   assert.equal(shared.entries[0].searchEnabled,false);
   assert.equal(f.idx.load(owner).entries[0].searchEnabled,false);
+ }finally{f.cleanup()}
+});
+
+test('shared owner source exclusion is CAS-durable and immediately STALE',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,
+    f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,f.snapshot));
+  const result=await f.idx.controlSharedSource(owner,f.connector.status(),{
+    sourceId:'google_drive/'+'a'.repeat(32),searchable:false,reason:'SENSITIVE'
+  });
+  assert.equal(result.changed,true);
+  assert.equal(result.governanceStatus,'STALE');
+  const cp=await f.coordinator.read(owner);
+  assert.equal(cp.stale,true);
+  assert.equal(f.idx.decode(owner,cp.encrypted_snapshot).entries[0].searchEnabled,false);
+  assert.equal(await f.idx.sharedBound(owner,f.connector.status()),null);
+  assert.equal(f.idx.load(owner).entries[0].searchEnabled,true);
+ }finally{f.cleanup()}
+});
+test('shared source-control fails closed on concurrent checkpoint replacement',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,
+    f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,f.snapshot));
+  f.coordinator.updateOwnerControls=async()=> 'CONFLICT';
+  await assert.rejects(f.idx.controlSharedSource(owner,f.connector.status(),{
+    sourceId:'google_drive/'+'a'.repeat(32),searchable:false,reason:'OUT_OF_SCOPE'
+  }),/DRIVE_SHARED_CONTROL_CONFLICT/);
+  assert.equal((await f.coordinator.read(owner)).stale,false);
+ }finally{f.cleanup()}
+});
+test('shared controls do not permit cross-owner source mutation',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,
+    f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,f.snapshot));
+  await assert.rejects(f.idx.controlSharedSource('issuer#bob',f.connector.status(),{
+    sourceId:'google_drive/'+'a'.repeat(32),searchable:false,reason:'SENSITIVE'
+  }),/DRIVE_SHARED_INDEX_NOT_READY/);
+  assert.equal((await f.coordinator.read(owner)).stale,false);
+ }finally{f.cleanup()}
+});
+test('shared exclusion persists through owner-authorized resync',async()=>{
+ const f=fixture();
+ try{
+  await f.coordinator.establish(owner,f.snapshot,
+    f.idx.encode(owner,{cursor:'initial'}),f.idx.encode(owner,f.snapshot));
+  await f.idx.controlSharedSource(owner,f.connector.status(),{
+    sourceId:'google_drive/'+'a'.repeat(32),searchable:false,reason:'SENSITIVE'
+  });
+  f.connector.driveChangeStartToken=async()=> 'resync-start';
+  await f.idx.sync(owner,f.connector);
+  const after=await f.idx.sharedBound(owner,f.connector.status());
+  assert.equal(after.entries[0].searchEnabled,false);
  }finally{f.cleanup()}
 });
