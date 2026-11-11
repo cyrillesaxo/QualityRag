@@ -110,13 +110,13 @@ export class UserDriveIndex {
   if(snapshot.account!==connection.email||snapshot.folderId!==connection.folderId)return null;
   return snapshot;
  }
- async sharedBound(subject,connection){
+ async sharedBound(subject,connection,{allowStale=false}={}){
   // In coordinated mode, local files are never authoritative for protected
   // freshness. Missing, malformed or stale shared state fails closed.
   if(!this.cursorCoordinator)return this.bound(subject,connection);
   if(!connection?.connected||!connection.email||!connection.folderId)return null;
   const checkpoint=await this.cursorCoordinator.read(subject);
-  if(!checkpoint||checkpoint.stale||!checkpoint.encrypted_snapshot)return null;
+  if(!checkpoint||(!allowStale&&checkpoint.stale)||!checkpoint.encrypted_snapshot)return null;
   let snapshot;
   try{snapshot=this.decode(subject,checkpoint.encrypted_snapshot)}catch{return null}
   if(snapshot?.schema!=='qualityrag.user-drive-text-index/v1'||
@@ -172,7 +172,7 @@ export class UserDriveIndex {
   const entries=[];
   // Preserve owner exclusions across source revisions and successful resyncs,
   // but only for this same authenticated account and selected folder.
-  const prior=await this.sharedBound(subject,connection);
+  const prior=await this.sharedBound(subject,connection,{allowStale:true});
   const oldControls=new Map((prior?.entries||[]).map(e=>[e.fileId,e.searchEnabled!==false]));
   const inventory=listing.files.map(f=>({
     name:boundedName(f.name),mimeType:f.mimeType,
