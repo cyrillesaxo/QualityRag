@@ -98,6 +98,23 @@ export class UserDriveIndex {
   if(snapshot.account!==connection.email||snapshot.folderId!==connection.folderId)return null;
   return snapshot;
  }
+ async sharedBound(subject,connection){
+  // In coordinated mode, local files are never authoritative for protected
+  // freshness. Missing, malformed or stale shared state fails closed.
+  if(!this.cursorCoordinator)return this.bound(subject,connection);
+  if(!connection?.connected||!connection.email||!connection.folderId)return null;
+  const checkpoint=await this.cursorCoordinator.read(subject);
+  if(!checkpoint||checkpoint.stale||!checkpoint.encrypted_snapshot)return null;
+  let snapshot;
+  try{snapshot=this.decode(subject,checkpoint.encrypted_snapshot)}catch{return null}
+  if(snapshot?.schema!=='qualityrag.user-drive-text-index/v1'||
+     !Array.isArray(snapshot.entries)||snapshot.account!==connection.email||
+     snapshot.folderId!==connection.folderId)return null;
+  if(this.cursorCoordinator.generation(subject,snapshot)!==checkpoint.generation||
+     this.cursorCoordinator.binding(subject,connection)!==checkpoint.binding_digest)
+    return null;
+  return snapshot;
+ }
  status(subject,connection){
   const snap=this.bound(subject,connection);
   if(!snap)return {indexed:false,sourceCount:0,syncStatus:'NOT_INDEXED',coverage:'UNKNOWN'};
@@ -143,7 +160,7 @@ export class UserDriveIndex {
   const entries=[];
   // Preserve owner exclusions across source revisions and successful resyncs,
   // but only for this same authenticated account and selected folder.
-  const prior=this.bound(subject,connection);
+  const prior=await this.sharedBound(subject,connection);
   const oldControls=new Map((prior?.entries||[]).map(e=>[e.fileId,e.searchEnabled!==false]));
   const inventory=listing.files.map(f=>({
     name:boundedName(f.name),mimeType:f.mimeType,
@@ -209,10 +226,11 @@ export class UserDriveIndex {
     const encrypted=this.encode(subject,{cursor:changePageToken});
     if(checkpointBefore){
       const status=await this.cursorCoordinator.replaceBaseline(
-        subject,snapshot,encrypted,checkpointBefore);
+        subject,snapshot,encrypted,checkpointBefore,this.encode(subject,snapshot));
       check(status==='REPLACED','DRIVE_SYNC_CHECKPOINT_CONFLICT');
     }else{
-      try{await this.cursorCoordinator.establish(subject,snapshot,encrypted)}
+      try{await this.cursorCoordinator.establish(subject,snapshot,encrypted,
+        this.encode(subject,snapshot))}
       catch(error){
         if(error?.message==='CURSOR_BASELINE_ALREADY_EXISTS')
           stop('DRIVE_SYNC_CHECKPOINT_CONFLICT');
@@ -341,7 +359,7 @@ export class UserDriveIndex {
      cursor=page.nextPageToken;
    }
    if(!final)return unknown;
-   const after=connector.status(subject),existing=this.bound(subject,after);
+   const after=connector.status(subject),existing=await this.sharedBound(subject,after);
    if(!after.connected||after.email!==connection.email||
      after.folderId!==connection.folderId||
      existing?.syncedAt!==snapshot.syncedAt||
@@ -360,7 +378,7 @@ export class UserDriveIndex {
      // Confirm that a concurrent local sync or control edit did not supersede
      // the baseline during the database round trip.
      const latest=connector.status(subject);
-     const latestSnapshot=this.bound(subject,latest);
+     const latestSnapshot=await this.sharedBound(subject,latest);
      if(!latestSnapshot||
        coordinator.generation(subject,latestSnapshot)!==generation||
        latest.folderId!==connection.folderId||latest.email!==connection.email)
@@ -394,7 +412,7 @@ export class UserDriveIndex {
   let conn,before;
   try{
    conn=connector.status(subject);
-   before=this.bound(subject,conn);
+   before=await this.sharedBound(subject,conn);
    if(!conn?.connected||!before||!conn.folderId||conn.folderId==='root'||
       before.coverage!=='SELECTED_FOLDER_TEXT_FILES'||!Array.isArray(before.entries))
      return unchanged;
@@ -459,7 +477,7 @@ export class UserDriveIndex {
   const ownerKey=this.location(subject);
   check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
   const connection=connector.status(subject);
-  const snapshot=this.bound(subject,connection);
+  const snapshot=await this.sharedBound(subject,connection);
   check(snapshot&&connection.folderId!=='root'&&
     snapshot.coverage==='SELECTED_FOLDER_TEXT_FILES',
     'PROTECTED_SOURCE_COVERAGE_INCOMPLETE');
@@ -519,7 +537,7 @@ export class UserDriveIndex {
   // so a concurrent owner exclusion cannot interleave between final check
   // and admission on this single-process research registry.
   check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
-  const latest=connector.status(subject),current=this.bound(subject,latest);
+  const latest=connector.status(subject),current=await this.sharedBound(subject,latest);
   check(latest.connected&&latest.email===connection.email&&
     latest.folderId===connection.folderId&&current&&
     current.syncedAt===snapshot.syncedAt&&
