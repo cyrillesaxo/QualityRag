@@ -185,7 +185,7 @@ export class UserDriveIndex {
   const snapshot={schema:'qualityrag.user-drive-text-index/v1',
     account:connection.email,folderId:connection.folderId,
     syncedAt:new Date(this.now()).toISOString(),
-    changePageToken,
+    changePageToken,baselineId:randomBytes(16).toString('hex'),
     summary,inventory,
     controlHistory:(prior?.controlHistory||[]).slice(-100),
     coverage:summary.unsupported||summary.failed||summary.tooLarge||summary.excludedEmpty||summary.truncatedLines?
