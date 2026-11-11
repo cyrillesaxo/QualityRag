@@ -359,6 +359,19 @@ export class UserDriveIndex {
   const unchanged={schema:'qualityrag.drive-folder-drift/v1',
     state:'UNKNOWN',checkedAt:null,sourceBytesVerified:false,
     selectionCompletenessVerified:false,releasePermitted:false};
+  // A confirmed drift must be durably STALE before the Registry reports
+  // CHANGED. A checkpoint failure cannot masquerade as a proven invalidation.
+  const changed=async(snapshot,connection)=>{
+    if(!this.cursorCoordinator)return {...unchanged,state:'CHANGED'};
+    try{
+      const coordinator=this.cursorCoordinator;
+      const status=await coordinator.markStale({
+        subject,generation:coordinator.generation(subject,snapshot),
+        binding:coordinator.binding(subject,connection)
+      });
+      return status==='STALE'?{...unchanged,state:'CHANGED'}:unchanged;
+    }catch{return unchanged}
+  };
   if(this.activeSyncs.has(this.location(subject)))return unchanged;
   let conn,before;
   try{
@@ -377,26 +390,26 @@ export class UserDriveIndex {
    // A newly unsupported file also changes governance coverage. Never
    // claim complete folder equality based on the text-only subset.
    if(eligible.length!==inventory.files.length)
-     return {...unchanged,state:'CHANGED'};
+     return await changed(before,conn);
    if(eligible.length>MAX_DOCS||indexed.length!==eligible.length||
       indexed.length>MAX_DOCS)
-     return {...unchanged,state:'CHANGED'};
+     return await changed(before,conn);
    const expected=new Map(indexed.map(x=>[x.fileId,x]));
    if(expected.size!==indexed.length)return unchanged;
    const current=new Map(eligible.map(x=>[x.id,x]));
    if(current.size!==eligible.length)return unchanged;
    if([...expected].some(([id,entry])=>!current.has(id)||
       current.get(id).mimeType!==entry.mimeType))
-     return {...unchanged,state:'CHANGED'};
+     return await changed(before,conn);
    // Whole-folder included-source check: newly inserted text, deletion,
    // owner exclusion and any byte changes conservatively invalidate.
    const generation=this.generations.get(this.location(subject))||0;
    for(const [fileId,source] of expected){
-     if(source.searchEnabled===false)return {...unchanged,state:'CHANGED'};
+     if(source.searchEnabled===false)return await changed(before,conn);
      const bytes=await connector.downloadSelectedText(
        subject,fileId,conn.folderId,MAX_PER_FILE);
      if(!Buffer.isBuffer(bytes)||sha(bytes)!==source.revision)
-       return {...unchanged,state:'CHANGED'};
+       return await changed(before,conn);
    }
    const after=connector.status(subject);
    if(!after?.connected||after.folderId!==conn.folderId||
@@ -407,7 +420,7 @@ export class UserDriveIndex {
    // Full folder equality alone cannot establish no lost changes between
    // sync and this check; the cursor must complete and be advanced.
    const changeStatus=await this.inspectDriveChangeCursor(subject,connector,before,conn);
-   if(changeStatus.state==='CHANGED')return {...unchanged,state:'CHANGED'};
+   if(changeStatus.state==='CHANGED')return await changed(before,conn);
    if(changeStatus.state!=='NO_RELEVANT_EVENTS')return unchanged;
    const now=new Date(this.now()).toISOString();
    return {...unchanged,state:'MATCHED_AT_CHECK_TIME',checkedAt:now,
