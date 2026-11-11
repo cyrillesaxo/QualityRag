@@ -72,3 +72,27 @@ Use an authenticated, bounded worker with owner-scoped access only; never use a 
 ## Acceptance gate
 
 Do not label US-068 READY/ACCEPTED until storage atomics are evidenced, concurrency tests executed against two separate process instances, real Google Drive integration and permission tests pass, and independent security/product acceptance is recorded. No build, deployment, merge, or release is authorized by this specification.
+
+## Implementation increment — fenced resync (unbuilt)
+
+The branch now contains `PgDriveCursorCoordinator.replaceBaseline`, which applies an
+atomic PostgreSQL `UPDATE` conditional on the owner key, expected generation,
+binding digest and cursor version. It accepts a distinct new generation after a
+confirmed STALE baseline; a stale or competing writer receives `CONFLICT`.
+
+`UserDriveIndex.sync` reads the expected checkpoint **before** Google network
+calls, publishes its new database generation first, then writes the encrypted
+local index only if CAS succeeds. If the process dies between these operations,
+the baseline fingerprint differs and freshness checks return UNKNOWN. A
+subsequent authorized resync can recover with a new generation. Absent a
+usable start-page token, it refuses a coordinated resync without publishing
+the local file.
+
+**Unresolved architecture boundary:** A local index on separate replicas
+remains inconsistent, so this is a fenced single-host pilot increment, **not**
+a production multi-replica data plane. Migrating baseline content to a shared
+encrypted transactional store, reconciling old index caches, and protecting all
+read/review routes against stale shared state require further implementation.
+The tests under `pg-drive-cursor-index-integration.test.js` use an in-memory
+SQL behavior fake and are not proof of real PostgreSQL transaction isolation.
+A real two-process PostgreSQL and Google Drive acceptance suite is required.
