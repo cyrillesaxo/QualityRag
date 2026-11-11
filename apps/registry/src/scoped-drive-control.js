@@ -17,7 +17,9 @@ function safe(code){
   'DRIVE_AUTHORIZATION_REQUIRED','GOOGLE_DRIVE_UNAVAILABLE',
   'DRIVE_RATE_LIMITED','DRIVE_FOLDER_NOT_FOUND','INVALID_DRIVE_FOLDER_ID',
   'INVALID_DRIVE_PAGE_TOKEN','DRIVE_OAUTH_TOO_MANY_PENDING',
-  'INVALID_DRIVE_SEARCH_QUERY'].includes(code)?code:'DRIVE_OPERATION_FAILED';
+  'INVALID_DRIVE_SEARCH_QUERY','DRIVE_SHARED_CONTROL_CONFLICT',
+  'DRIVE_SHARED_INDEX_NOT_READY','DRIVE_SYNC_CHECKPOINT_CONFLICT'].includes(code)?
+    code:'DRIVE_OPERATION_FAILED';
 }
 // Google redirects cannot attach the caller's OIDC bearer token. The manager
 // validates the single-use high-entropy state bound to the OIDC subject at start.
@@ -121,7 +123,10 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
   const status=code==='INVALID_DRIVE_SOURCE_CONTROL'?400:
     code==='DRIVE_CONNECTION_NOT_FOUND'||code==='DRIVE_FOLDER_NOT_CONFIGURED'||
     code==='DRIVE_INDEX_NOT_FOUND'||code==='DRIVE_SYNC_IN_PROGRESS'||
-    code==='DRIVE_SYNC_INVALIDATED'?409:
+    code==='DRIVE_SYNC_INVALIDATED'||
+    code==='DRIVE_SHARED_CONTROL_CONFLICT'||
+    code==='DRIVE_SHARED_INDEX_NOT_READY'||
+    code==='DRIVE_SYNC_CHECKPOINT_CONFLICT'?409:
     code==='DRIVE_AUTHORIZATION_REQUIRED'?403:400;
   send(res,status,{error:code});return true;
  }
