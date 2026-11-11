@@ -30,7 +30,7 @@ export class PgDriveCursorCoordinator {
     'CURSOR_CIPHERTEXT_REQUIRED');
   const owner=this.owner(subject),generation=this.generation(subject,snapshot);
   const binding=this.binding(subject,{email:snapshot.account,folderId:snapshot.folderId});
-  await this.pool.query(`
+  const result=await this.pool.query(`
    INSERT INTO qr_drive_cursor_checkpoints
     (owner_key,generation,binding_digest,cursor_version,encrypted_cursor,stale)
    VALUES ($1,$2,$3,0,$4::jsonb,false)
@@ -38,7 +38,12 @@ export class PgDriveCursorCoordinator {
     generation=EXCLUDED.generation,binding_digest=EXCLUDED.binding_digest,
     cursor_version=qr_drive_cursor_checkpoints.cursor_version+1,
     encrypted_cursor=EXCLUDED.encrypted_cursor,stale=false,updated_at=now()
+   WHERE qr_drive_cursor_checkpoints.generation <> EXCLUDED.generation
+   RETURNING cursor_version
   `,[owner,generation,binding,JSON.stringify(encryptedCursor)]);
+  // Re-establishing an identical generation must never clear STALE or reset
+  // another worker's cursor. A genuinely new generation may replace it.
+  ensure(result.rowCount===1,'CURSOR_BASELINE_ALREADY_EXISTS');
   return {generation,binding};
  }
  async read(subject){
@@ -54,11 +59,11 @@ export class PgDriveCursorCoordinator {
     'CURSOR_CIPHERTEXT_REQUIRED');
   const result=await this.pool.query(`
    UPDATE qr_drive_cursor_checkpoints SET
-     cursor_version=cursor_version+1,encrypted_cursor=$6::jsonb,updated_at=now()
+     cursor_version=cursor_version+1,encrypted_cursor=$5::jsonb,updated_at=now()
    WHERE owner_key=$1 AND generation=$2 AND binding_digest=$3
-     AND cursor_version=$4 AND stale=false AND $5=true
+     AND cursor_version=$4 AND stale=false
    RETURNING cursor_version
-  `,[this.owner(subject),generation,binding,version,true,JSON.stringify(encryptedCursor)]);
+  `,[this.owner(subject),generation,binding,version,JSON.stringify(encryptedCursor)]);
   return result.rowCount===1?'ADVANCED':'CONFLICT';
  }
  async markStale({subject,generation,binding}){
