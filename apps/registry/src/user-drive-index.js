@@ -23,12 +23,13 @@ function boundedName(value){
  return typeof value==='string'?value.slice(0,180):'';
 }
 export class UserDriveIndex {
- constructor({dir,encryptionKey,now=()=>Date.now()}){
+ constructor({dir,encryptionKey,now=()=>Date.now(),cursorCoordinator=null}){
   check(typeof dir==='string'&&dir.length>0,'DRIVE_INDEX_DIRECTORY_REQUIRED');
   const key=Buffer.from(encryptionKey||'','base64');
   check(key.length===32&&key.toString('base64')===encryptionKey,'INVALID_DRIVE_INDEX_KEY');
   this.dir=dir;this.key=key;this.now=now;
   this.activeSyncs=new Set();this.generations=new Map();
+  this.cursorCoordinator=cursorCoordinator;
  }
  location(subject){
   check(typeof subject==='string'&&subject.length>0,'DRIVE_INDEX_SUBJECT_REQUIRED');
@@ -42,6 +43,17 @@ export class UserDriveIndex {
   const raw=Buffer.concat([cipher.update(JSON.stringify(snapshot),'utf8'),cipher.final()]);
   return {v:1,iv:iv.toString('base64url'),ct:raw.toString('base64url'),
     tag:cipher.getAuthTag().toString('base64url')};
+ }
+ decode(subject,envelope){
+  check(envelope?.v===1,'DRIVE_INDEX_INTEGRITY_FAILURE');
+  const decipher=createDecipheriv('aes-256-gcm',this.key,
+    Buffer.from(envelope.iv,'base64url'));
+  decipher.setAAD(Buffer.from('qualityrag.drive-index/v1:'+subject));
+  decipher.setAuthTag(Buffer.from(envelope.tag,'base64url'));
+  return JSON.parse(Buffer.concat([
+    decipher.update(Buffer.from(envelope.ct,'base64url')),
+    decipher.final()
+  ]).toString('utf8'));
  }
  load(subject){
   const location=this.location(subject);
@@ -185,7 +197,15 @@ export class UserDriveIndex {
     'DRIVE_SYNC_INVALIDATED');
   check(latest.connected&&latest.email===connection.email&&
     latest.folderId===connection.folderId,'DRIVE_SYNC_INVALIDATED');
+  // The file index is a local baseline; the PG checkpoint is a separate
+  // authority. A crash between these writes leaves UNKNOWN, never SAT.
+  // Multi-replica shared baseline coordination is NOT established by this.
   this.save(subject,snapshot);
+  if(this.cursorCoordinator){
+    check(typeof changePageToken==='string','DRIVE_CURSOR_NOT_AVAILABLE');
+    await this.cursorCoordinator.establish(subject,snapshot,
+      this.encode(subject,{cursor:changePageToken}));
+  }
   return this.status(subject,connection);
   }catch(error){
     if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
@@ -261,53 +281,79 @@ export class UserDriveIndex {
   */
  async inspectDriveChangeCursor(subject,connector,snapshot,connection){
   const unknown={state:'UNKNOWN',completed:false};
-  if(typeof snapshot?.changePageToken!=='string'||
-     typeof connector.driveChangePage!=='function')return unknown;
-  const known=new Set(snapshot.entries.map(x=>x.fileId));
-  let cursor=snapshot.changePageToken,final=null;
-  const seen=new Set();
+  if(typeof connector.driveChangePage!=='function')return unknown;
+  const coordinator=this.cursorCoordinator;
+  let cursor,checkpoint=null,generation=null,binding=null;
   try{
+   if(coordinator){
+     checkpoint=await coordinator.read(subject);
+     generation=coordinator.generation(subject,snapshot);
+     binding=coordinator.binding(subject,connection);
+     if(!checkpoint||checkpoint.stale||
+        checkpoint.generation!==generation||checkpoint.binding_digest!==binding)
+       return unknown;
+     const decoded=this.decode(subject,checkpoint.encrypted_cursor);
+     cursor=decoded.cursor;
+   }else cursor=snapshot?.changePageToken;
+   if(typeof cursor!=='string'||!cursor.length)return unknown;
+   const known=new Set(snapshot.entries.map(x=>x.fileId));
+   let final=null;
+   const seen=new Set();
    for(let pageIndex=0;pageIndex<5;pageIndex++){
      if(seen.has(cursor))return unknown;
      seen.add(cursor);
      const page=await connector.driveChangePage(subject,cursor);
-     if(!page||!Array.isArray(page.changes)||page.changes.length>100)
-       return unknown;
+     if(!page||!Array.isArray(page.changes)||page.changes.length>100)return unknown;
      for(const item of page.changes){
        if(!item||typeof item.fileId!=='string')return unknown;
-       // Existing selected file, selected folder itself, or new child:
-       // conservatively invalidate; resync is the only path to a new baseline.
        if(known.has(item.fileId)||item.fileId===connection.folderId||
-         item.parents?.includes(connection.folderId))
+          item.parents?.includes(connection.folderId)){
+         if(coordinator){
+           const status=await coordinator.markStale({subject,generation,binding});
+           return status==='STALE'?{state:'CHANGED',completed:true}:unknown;
+         }
          return {state:'CHANGED',completed:true};
-       // Removed or inaccessible new files can lack metadata. We cannot
-       // establish whether such a file belonged to the selected folder.
+       }
        if(item.removed||!item.metadataAvailable)return unknown;
      }
-     if(typeof page.newStartPageToken==='string'&&
-        !page.nextPageToken){
-       final=page.newStartPageToken;
-       break;
+     if(typeof page.newStartPageToken==='string'&&!page.nextPageToken){
+       final=page.newStartPageToken;break;
      }
      if(typeof page.nextPageToken!=='string')return unknown;
      cursor=page.nextPageToken;
    }
    if(!final)return unknown;
-   const after=connector.status(subject);
-   const existing=this.bound(subject,after);
+   const after=connector.status(subject),existing=this.bound(subject,after);
    if(!after.connected||after.email!==connection.email||
-      after.folderId!==connection.folderId||
-      existing?.syncedAt!==snapshot.syncedAt||
-      existing?.changePageToken!==snapshot.changePageToken||
-      this.activeSyncs.has(this.location(subject)))return unknown;
-   // Reuse the existing encrypted, atomic snapshot writer. No source
-   // bodies or provenance are modified; only the opaque cursor advances.
-   if(final!==snapshot.changePageToken)
-     this.save(subject,{...snapshot,changePageToken:final});
+     after.folderId!==connection.folderId||
+     existing?.syncedAt!==snapshot.syncedAt||
+     this.activeSyncs.has(this.location(subject)))return unknown;
+   if(coordinator){
+     // The current process's file and shared checkpoint must still describe
+     // the same baseline. The SQL conditional update fences a competing poll.
+     if(coordinator.generation(subject,existing)!==generation)return unknown;
+     const version=Number(checkpoint.cursor_version);
+     if(!Number.isSafeInteger(version))return unknown;
+     const result=await coordinator.advance({
+       subject,generation,binding,version,
+       encryptedCursor:this.encode(subject,{cursor:final})
+     });
+     if(result!=='ADVANCED')return unknown;
+     // Confirm that a concurrent local sync or control edit did not supersede
+     // the baseline during the database round trip.
+     const latest=connector.status(subject);
+     const latestSnapshot=this.bound(subject,latest);
+     if(!latestSnapshot||
+       coordinator.generation(subject,latestSnapshot)!==generation||
+       latest.folderId!==connection.folderId||latest.email!==connection.email)
+       return unknown;
+   }else{
+     if(existing?.changePageToken!==snapshot.changePageToken)return unknown;
+     if(final!==snapshot.changePageToken)
+       this.save(subject,{...snapshot,changePageToken:final});
+   }
    return {state:'NO_RELEVANT_EVENTS',completed:true};
-  }catch{
-   return unknown;
-  }
+  }catch{return unknown}
  }
  async inspectSelectedFolderDrift(subject,connector){
   const unchanged={schema:'qualityrag.drive-folder-drift/v1',
