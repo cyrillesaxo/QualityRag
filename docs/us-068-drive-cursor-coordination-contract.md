@@ -165,3 +165,37 @@ Google OAuth connections and refresh locking; authenticated scheduled polling
 and quota budgets; independent ACL/revocation proof; real database/provider,
 authorization, accessibility and customer acceptance tests. No builds, merges,
 CI runs or deployments were initiated.
+
+## 2026-11-11 shared OAuth groundwork (prepared, unbuilt)
+
+Implemented additive migrations 014 (encrypted per-user Google credentials) and
+015 (encrypted OAuth pending states) on the existing Registry PostgreSQL.
+`PgDriveOwnerCredentials` derives HMAC owner keys, encrypts stored Google
+credentials with AES-256-GCM and an owner-bound AAD, supports explicit
+authorization, transactional `SELECT ... FOR UPDATE` refresh with a bounded
+lock/statement timeout, and disconnect tombstones that erase credential
+ciphertext. Re-consent is the only operation that may revive a disconnected
+owner record. Source-index cryptographic keys remain separate.
+
+`PgDriveOAuthPending` stores encrypted owner+PKCE verifier for 10 minutes
+and consumes states by `DELETE ... RETURNING`; callbacks routed to another
+Registry replica can therefore verify the same one-time state. The existing
+`GoogleDriveConnections.startCoordinated` and OAuth callback opt into this
+shared state when the PostgreSQL cursor feature is enabled. The old
+single-process pilot's sync start method is retained.
+
+**Critical pending wiring:** `PgDriveOwnerCredentials` is a standalone
+repository implementation, **not yet the active credential store used by
+`GoogleDriveConnections`**. The connector's `status`, `decrypt`,
+`replace`, `refresh`, `selectFolder` and `disconnect` continue to rely
+on the process-local credential JSON file. A successful cross-replica OAuth
+callback can still write credentials only to the callback replica until
+these methods and their route consumers are migrated. The shared PKCE
+change must not be represented as complete multi-replica Google Drive
+connectivity. No database migrations or tests have been executed.
+
+The next changes must wire a coherent asynchronous credential API across
+the scope/authorization routes, eliminate local token lookups in coordinated
+mode, and verify refresh, logout and re-consent concurrency against two
+actual PostgreSQL clients. State and refresh secrets must never appear in
+logs, telemetry or API responses.
