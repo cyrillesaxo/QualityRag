@@ -77,7 +77,7 @@ export {safeError as safeDriveError};
 
 export class GoogleDriveConnections{
   constructor({file,encryptionKey,clientId,clientSecret,redirectUri,studioOrigin,fetchImpl=fetch,
-    now=()=>Date.now()}){
+    now=()=>Date.now(),oauthPending=null}){
     assert(typeof file==='string'&&file.length>0,'DRIVE_FILE_REQUIRED');
     assert(typeof clientId==='string'&&clientId.length>12,'GOOGLE_CLIENT_ID_REQUIRED');
     assert(typeof clientSecret==='string'&&clientSecret.length>8,'GOOGLE_CLIENT_SECRET_REQUIRED');
@@ -87,7 +87,7 @@ export class GoogleDriveConnections{
     this.redirectUri=validateRedirect(redirectUri);
     this.studioOrigin=validateOrigin(studioOrigin,'STUDIO_ORIGIN');
     this.fetch=fetchImpl;this.now=now;
-    this.pending=new Map();
+    this.pending=new Map();this.oauthPending=oauthPending;
     this.records=this.load();
   }
   load(){
@@ -167,6 +167,20 @@ export class GoogleDriveConnections{
     return {authorizationUrl:GOOGLE_AUTH+'?'+params.toString(),
       expiresInSeconds:600,provider:'google_drive',scope:'drive.readonly'};
   }
+  async startCoordinated(subject){
+    if(!this.oauthPending)return this.start(subject);
+    const started=this.start(subject);
+    const state=new URL(started.authorizationUrl).searchParams.get('state');
+    const key=digest(state),pending=this.pending.get(key);
+    assert(pending,'DRIVE_OAUTH_STATE_INVALID');
+    try{
+      await this.oauthPending.issue(state,pending);
+      return started;
+    }finally{
+      // In coordinated mode only PostgreSQL may validate/consume this state.
+      this.pending.delete(key);
+    }
+  }
   async exchange(subject,code,verifier){
     const params=new URLSearchParams({
       client_id:this.clientId,client_secret:this.clientSecret,code,
@@ -201,9 +215,11 @@ export class GoogleDriveConnections{
   }
   async callback({state,code,error}){
     assert(typeof state==='string'&&state.length<=120,'DRIVE_OAUTH_STATE_INVALID');
-    const pending=this.pending.get(digest(state));
+    const pending=this.oauthPending?
+      await this.oauthPending.consume(state):this.pending.get(digest(state));
     assert(pending,'DRIVE_OAUTH_STATE_INVALID');
-    this.pending.delete(digest(state)); // single-use even if Google exchange fails
+    if(!this.oauthPending)this.pending.delete(digest(state));
+    // DB mode consumes one-time state even if the Google exchange fails.
     assert(this.now()-pending.at<=600_000,'DRIVE_OAUTH_STATE_EXPIRED');
     if(error||typeof code!=='string'||code.length<1||code.length>2500)fail('GOOGLE_OAUTH_FAILED');
     await this.exchange(pending.subject,code,pending.verifier);
