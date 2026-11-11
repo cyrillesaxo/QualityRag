@@ -90,6 +90,18 @@ export class UserDriveIndex {
   try{fs.unlinkSync(location)}catch(e){if(e.code!=='ENOENT')throw e}
   return {indexed:false,removed:true};
  }
+ async clearCoordinated(subject){
+  if(this.cursorCoordinator){
+    const checkpoint=await this.cursorCoordinator.read(subject);
+    if(checkpoint){
+      const outcome=await this.cursorCoordinator.markStale({
+        subject,generation:checkpoint.generation,binding:checkpoint.binding_digest
+      });
+      check(outcome==='STALE','DRIVE_SHARED_INVALIDATION_FAILED');
+    }
+  }
+  return this.clear(subject);
+ }
  bound(subject,connection){
   if(!connection?.connected||typeof connection.email!=='string'||
     typeof connection.folderId!=='string'||!connection.folderId)return null;
