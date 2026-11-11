@@ -40,7 +40,7 @@ function validateChild(root,target){
  }
  return full;
 }
-export function createPilotComponents(env,{fetchImpl}={}){
+export function createPilotComponents(env,{fetchImpl,cursorCoordinator=null}={}){
  if(env.QUALITYRAG_PILOT_MODE!=='true')return {
   driveManager:null,driveIndex:null,evidenceLedger:null,
   protectedReviewTrust:null,protectedDriveServices:new Set()
@@ -82,7 +82,8 @@ export function createPilotComponents(env,{fetchImpl}={}){
   studioOrigin:required(env,'QUALITYRAG_STUDIO_ORIGIN'),
   ...(fetchImpl?{fetchImpl}:{})
  });
- const driveIndex=new UserDriveIndex({dir:files.index,encryptionKey:indexKey});
+ const driveIndex=new UserDriveIndex({dir:files.index,encryptionKey:indexKey,
+  cursorCoordinator});
  const evidenceLedger=new EvidenceLedger(files.ledger);
  return {driveManager,driveIndex,evidenceLedger,protectedReviewTrust,
   protectedDriveServices:scopes};
