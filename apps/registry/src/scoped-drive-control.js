@@ -71,6 +71,13 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
  if(req.method!==method){send(res,404,{error:'NOT_FOUND'});return true}
  try{
   const conn=driveManager.status(actor);
+  // Legacy synchronous previews are local-only; do not present them as
+  // authoritative after the encrypted index moves to shared PostgreSQL.
+  if(driveIndex.cursorCoordinator&&
+    ['status','index','visibility','search'].includes(route)){
+    send(res,503,{error:'DRIVE_SHARED_READ_ADAPTER_PENDING',
+      sourceTruth:'UNKNOWN',releasePermitted:false});return true;
+  }
   let result;
   if(route==='status')result={...conn,indexEnabled:true,index:driveIndex.status(actor,conn)};
   else if(route==='index')result=driveIndex.status(actor,conn);
