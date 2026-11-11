@@ -17,6 +17,7 @@ import {handleProtectedDependencyStatus} from './protected-dependency-status.js'
 
 import {createPilotComponents} from './pilot-components.js';
 import {PgDriveCursorCoordinator} from './pg-drive-cursor-coordinator.js';
+import {PgDriveOAuthPending} from './pg-drive-oauth-pending.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -190,7 +191,11 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
   const cursorCoordinator=cursorEnabled?new PgDriveCursorCoordinator(store.pool,{
     identityKey:Buffer.from(cursorKeyRaw,'base64')
   }):null;
-  const pilot=createPilotComponents(process.env,{cursorCoordinator});
+  const oauthPending=cursorEnabled?new PgDriveOAuthPending(store.pool,{
+    identityKey:Buffer.from(cursorKeyRaw,'base64'),
+    encryptionKey:Buffer.from(process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY||'','base64')
+  }):null;
+  const pilot=createPilotComponents(process.env,{cursorCoordinator,oauthPending});
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
     {trustedPolicyKeys:keys,trustedContractKeys:contractKeys,authenticate:oidc,enforceSeparation:!!oidc,...pilot}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
