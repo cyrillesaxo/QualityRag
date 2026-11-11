@@ -41,7 +41,7 @@ export async function handleDriveOauthCallback(req,res,{url,authenticate,driveMa
   if(!completed||typeof completed.subject!=='string'||!completed.subject.trim())
    throw Error('DRIVE_OAUTH_SUBJECT_MISMATCH');
   // A new account connection invalidates any previously indexed source scope.
-  driveIndex.clear(completed.subject);
+  await driveIndex.clearCoordinated(completed.subject);
   succeeded=true;
  }catch{ /* Do not reflect provider error, state or authorization code. */ }
  // This origin is configured and validated by the manager, never read from URL.
@@ -85,7 +85,7 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
     throw Error('INVALID_DRIVE_FOLDER_ID');
    const oldFolder=conn.folderId;
    result=await driveManager.selectFolder(actor,data.folderId);
-   if(oldFolder!==result.folderId)driveIndex.clear(actor);
+   if(oldFolder!==result.folderId)await driveIndex.clearCoordinated(actor);
   }
   else if(route==='files')result=await driveManager.selectedFiles(actor);
   else if(route==='search'){
@@ -96,7 +96,7 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
    result=driveIndex.search(actor,conn,data.query);
   }
   else if(route==='disconnect'){
-   driveIndex.clear(actor);result=await driveManager.disconnect(actor);
+   await driveIndex.clearCoordinated(actor);result=await driveManager.disconnect(actor);
   }
   else if(route==='source-control'){
    // Local-only exclusion changes cannot safely mutate an already shared
@@ -109,7 +109,7 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
      throw Error('INVALID_DRIVE_SOURCE_CONTROL');
    result=driveIndex.controlSource(actor,conn,data);
   }else if(route==='sync')result=await driveIndex.sync(actor,driveManager);
-  else result=driveIndex.clear(actor);
+  else result=await driveIndex.clearCoordinated(actor);
   send(res,200,result);return true;
  }catch(error){
   const code=safe(error?.message);
