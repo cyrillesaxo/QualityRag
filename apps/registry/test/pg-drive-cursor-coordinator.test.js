@@ -48,3 +48,13 @@ test('same-generation establishment cannot reset a stale checkpoint',async()=>{
  await assert.rejects(c.establish('issuer#alice',snap,encrypted),
    /CURSOR_BASELINE_ALREADY_EXISTS/);
 });
+
+test('different baseline cannot overwrite an existing checkpoint without fencing',async()=>{
+ const statements=[];
+ const pool={query:async(sql,args)=>{statements.push({sql,args});return {rowCount:0,rows:[]}}};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ await assert.rejects(c.establish('issuer#alice',{...snap,baselineId:'newer'},encrypted),
+   /CURSOR_BASELINE_ALREADY_EXISTS/);
+ assert.match(statements[0].sql,/ON CONFLICT \(owner_key\) DO NOTHING/);
+ assert.doesNotMatch(statements[0].sql,/DO UPDATE SET/);
+});
