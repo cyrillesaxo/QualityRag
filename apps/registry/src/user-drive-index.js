@@ -287,6 +287,7 @@ export class UserDriveIndex {
   };
  }
  controlSource(subject,connection,input){
+  if(this.cursorCoordinator)stop('DRIVE_SHARED_SOURCE_CONTROL_NOT_IMPLEMENTED');
   check(input&&!Array.isArray(input)&&typeof input==='object'&&
     Object.keys(input).length===3&&Object.hasOwn(input,'sourceId')&&
     Object.hasOwn(input,'searchable')&&Object.hasOwn(input,'reason'),
