@@ -3,10 +3,11 @@
 CREATE TABLE IF NOT EXISTS qr_drive_owner_credentials (
  owner_key char(64) PRIMARY KEY,
  revision bigint NOT NULL DEFAULT 1 CHECK (revision > 0),
- credential_envelope jsonb NOT NULL,
+ credential_envelope jsonb,
  disconnected boolean NOT NULL DEFAULT false,
  updated_at timestamptz NOT NULL DEFAULT now(),
- CHECK (jsonb_typeof(credential_envelope) = 'object')
+ CHECK ((disconnected AND credential_envelope IS NULL) OR
+        (NOT disconnected AND jsonb_typeof(credential_envelope) = 'object'))
 );
 REVOKE ALL ON qr_drive_owner_credentials FROM PUBLIC;
 -- The application service role must be granted privileges explicitly by
