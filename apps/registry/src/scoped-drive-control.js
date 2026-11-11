@@ -106,15 +106,13 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
    await driveIndex.clearCoordinated(actor);result=await driveManager.disconnect(actor);
   }
   else if(route==='source-control'){
-   // Local-only exclusion changes cannot safely mutate an already shared
-   // baseline. Reject until owner controls use the same PostgreSQL CAS.
-   if(driveIndex.cursorCoordinator)
-     throw Error('DRIVE_SHARED_SOURCE_CONTROL_NOT_IMPLEMENTED');
    const data=await parseBody(req);
    if(!data||typeof data!=='object'||Array.isArray(data)||
       Object.keys(data).some(key=>!['sourceId','searchable','reason'].includes(key)))
      throw Error('INVALID_DRIVE_SOURCE_CONTROL');
-   result=driveIndex.controlSource(actor,conn,data);
+   result=driveIndex.cursorCoordinator?
+     await driveIndex.controlSharedSource(actor,conn,data):
+     driveIndex.controlSource(actor,conn,data);
   }else if(route==='sync')result=await driveIndex.sync(actor,driveManager);
   else result=await driveIndex.clearCoordinated(actor);
   send(res,200,result);return true;
