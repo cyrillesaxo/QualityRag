@@ -138,3 +138,30 @@ unexecuted.
    deployment controls, customer evidence and independent acceptance.
 
 No build, test execution, merge or deployment was performed for this increment.
+
+## 2026-11-11 owner source-control CAS increment (prepared; unbuilt)
+
+A new `PgDriveCursorCoordinator.updateOwnerControls` uses a single PostgreSQL
+conditional UPDATE on the expected owner, baseline generation, folder binding,
+cursor version and non-STALE state. It commits an AES-GCM encrypted revised
+source baseline, changes generation and marks STALE in the same update. The
+authenticated `source-control` route now calls
+`UserDriveIndex.controlSharedSource` when coordinated mode is enabled.
+
+Both owner exclusions and re-inclusions invalidate governed use: a control
+mutation never silently grants SAT or release permission. A successful edit
+requires a new authorized Google resync before protected use. The existing
+shared-baseline resync preserves excluded file IDs and reasons through the
+stored control history; failed, concurrent and cross-owner edits never write
+a local-only substitute. The synchronous legacy `controlSource` method
+continues to reject coordinated mode.
+
+Additional in-memory SQL harness tests cover CAS fencing, cross-owner denial,
+control changes surviving resync, and stale-state persistence. These tests
+have **not** run and are not equivalent to two-process PostgreSQL acceptance.
+
+Remaining: coherent shared status/search/candidate adapters; durable per-user
+Google OAuth connections and refresh locking; authenticated scheduled polling
+and quota budgets; independent ACL/revocation proof; real database/provider,
+authorization, accessibility and customer acceptance tests. No builds, merges,
+CI runs or deployments were initiated.
