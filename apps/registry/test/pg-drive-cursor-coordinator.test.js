@@ -41,3 +41,10 @@ test('confirmed stale is fenced by exact baseline and remains irreversible for s
  assert.equal(await c.markStale(input),'STALE');
  assert.equal(await c.markStale(input),'STALE');
 });
+
+test('same-generation establishment cannot reset a stale checkpoint',async()=>{
+ const pool={query:async()=>({rowCount:0,rows:[]})};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ await assert.rejects(c.establish('issuer#alice',snap,encrypted),
+   /CURSOR_BASELINE_ALREADY_EXISTS/);
+});
