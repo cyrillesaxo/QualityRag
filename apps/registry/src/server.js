@@ -16,6 +16,7 @@ import {handleProtectedUseReconciliation} from './protected-use-reconciliation.j
 import {handleProtectedDependencyStatus} from './protected-dependency-status.js';
 
 import {createPilotComponents} from './pilot-components.js';
+import {PgDriveCursorCoordinator} from './pg-drive-cursor-coordinator.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -176,7 +177,20 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
  try{
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
-  const pilot=createPilotComponents(process.env);
+  // Opt-in: reuse the signed Registry's existing PG pool. Never silently
+  // activate distributed cursor claims for the file-backed pilot.
+  const cursorEnabled=process.env.QUALITYRAG_DRIVE_CURSOR_PG==='true';
+  if(cursorEnabled&&(backend!=='postgres'||!store.pool||
+     process.env.QUALITYRAG_PILOT_MODE!=='true'))
+    throw Error('DRIVE_CURSOR_PG_REQUIRES_PG_PILOT');
+  const cursorKeyRaw=process.env.QUALITYRAG_DRIVE_CURSOR_IDENTITY_KEY;
+  if(cursorEnabled&&(!cursorKeyRaw||Buffer.from(cursorKeyRaw,'base64').length!==32||
+    Buffer.from(cursorKeyRaw,'base64').toString('base64')!==cursorKeyRaw))
+    throw Error('DRIVE_CURSOR_IDENTITY_KEY_REQUIRED');
+  const cursorCoordinator=cursorEnabled?new PgDriveCursorCoordinator(store.pool,{
+    identityKey:Buffer.from(cursorKeyRaw,'base64')
+  }):null;
+  const pilot=createPilotComponents(process.env,{cursorCoordinator});
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
     {trustedPolicyKeys:keys,trustedContractKeys:contractKeys,authenticate:oidc,enforceSeparation:!!oidc,...pilot}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';
