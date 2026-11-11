@@ -27,19 +27,21 @@ export class PgDriveCursorCoordinator {
  binding(subject,connection){
   return this.digest('binding/v1',subject+'\0'+connection.email+'\0'+connection.folderId);
  }
- async establish(subject,snapshot,encryptedCursor){
+ async establish(subject,snapshot,encryptedCursor,encryptedSnapshot){
   ensure(snapshot&&snapshot.syncedAt&&snapshot.folderId&&snapshot.account,'CURSOR_BASELINE_REQUIRED');
   ensure(encryptedCursor&&encryptedCursor.v===1&&typeof encryptedCursor.ct==='string',
     'CURSOR_CIPHERTEXT_REQUIRED');
+  ensure(encryptedSnapshot?.v===1&&typeof encryptedSnapshot.ct==='string',
+    'CURSOR_SNAPSHOT_CIPHERTEXT_REQUIRED');
   const owner=this.owner(subject),generation=this.generation(subject,snapshot);
   const binding=this.binding(subject,{email:snapshot.account,folderId:snapshot.folderId});
   const result=await this.pool.query(`
    INSERT INTO qr_drive_cursor_checkpoints
-    (owner_key,generation,binding_digest,cursor_version,encrypted_cursor,stale)
-   VALUES ($1,$2,$3,0,$4::jsonb,false)
+    (owner_key,generation,binding_digest,cursor_version,encrypted_cursor,encrypted_snapshot,stale)
+   VALUES ($1,$2,$3,0,$4::jsonb,$5::jsonb,false)
    ON CONFLICT (owner_key) DO NOTHING
    RETURNING cursor_version
-  `,[owner,generation,binding,JSON.stringify(encryptedCursor)]);
+  `,[owner,generation,binding,JSON.stringify(encryptedCursor),JSON.stringify(encryptedSnapshot)]);
   // Fail closed: neither the same generation nor an older competing sync
   // may overwrite this baseline. A new generation requires an explicit,
   // separately fenced replacement transaction (not yet implemented).
@@ -50,11 +52,13 @@ export class PgDriveCursorCoordinator {
  // when its snapshot/version still matches what was read BEFORE Google I/O.
  // Atomic SQL CAS serializes competing replicas. STALE is deliberately
  // replaceable by a NEW generation after explicit owner resynchronization.
- async replaceBaseline(subject,snapshot,encryptedCursor,expected){
+ async replaceBaseline(subject,snapshot,encryptedCursor,expected,encryptedSnapshot){
   ensure(snapshot&&snapshot.syncedAt&&snapshot.folderId&&snapshot.account,
     'CURSOR_BASELINE_REQUIRED');
   ensure(encryptedCursor?.v===1&&typeof encryptedCursor.ct==='string',
     'CURSOR_CIPHERTEXT_REQUIRED');
+  ensure(encryptedSnapshot?.v===1&&typeof encryptedSnapshot.ct==='string',
+    'CURSOR_SNAPSHOT_CIPHERTEXT_REQUIRED');
   ensure(expected&&valid(expected.generation)&&valid(expected.binding_digest),
     'CURSOR_EXPECTATION_INVALID');
   const version=Number(expected.cursor_version);
@@ -65,17 +69,17 @@ export class PgDriveCursorCoordinator {
   const result=await this.pool.query(`
    UPDATE qr_drive_cursor_checkpoints SET
     generation=$5,binding_digest=$6,cursor_version=cursor_version+1,
-    encrypted_cursor=$7::jsonb,stale=false,updated_at=now()
+    encrypted_cursor=$7::jsonb,encrypted_snapshot=$8::jsonb,stale=false,updated_at=now()
    WHERE owner_key=$1 AND generation=$2 AND binding_digest=$3
      AND cursor_version=$4
    RETURNING cursor_version
   `,[this.owner(subject),expected.generation,expected.binding_digest,
-     version,generation,binding,JSON.stringify(encryptedCursor)]);
+     version,generation,binding,JSON.stringify(encryptedCursor),JSON.stringify(encryptedSnapshot)]);
   return result.rowCount===1?'REPLACED':'CONFLICT';
  }
  async read(subject){
   const result=await this.pool.query(
-   'SELECT generation,binding_digest,cursor_version,encrypted_cursor,stale FROM qr_drive_cursor_checkpoints WHERE owner_key=$1',
+   'SELECT generation,binding_digest,cursor_version,encrypted_cursor,encrypted_snapshot,stale FROM qr_drive_cursor_checkpoints WHERE owner_key=$1',
    [this.owner(subject)]);
   return result.rows[0]||null;
  }
