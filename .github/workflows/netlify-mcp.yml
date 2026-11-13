@@ -17,7 +17,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python governance API test dependencies
+        run: python -m pip install 'cryptography==50.0.2' 'jsonschema==4.25.1'
       - name: Syntax check
         run: node --check netlify/mcp/netlify/functions/mcp.mjs
       - name: Adapter contract tests
         run: node --test netlify/mcp/tests/*.test.mjs
+      # Runs only once the qualityrag-mcp site builds deploy previews from this repository (base
+      # directory netlify/mcp). Set the repository variable QUALITYRAG_MCP_PREVIEWS_ENABLED=true then.
+      - name: Live Netlify preview authentication and readiness smoke
+        if: github.event_name == 'pull_request' && vars.QUALITYRAG_MCP_PREVIEWS_ENABLED == 'true'
+        env:
+          QUALITYRAG_MCP_PREVIEW_URL: https://deploy-preview-${{ github.event.pull_request.number }}--qualityrag-mcp.netlify.app/
+        run: node netlify/mcp/tests/live-preview-smoke.mjs
