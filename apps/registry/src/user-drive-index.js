@@ -23,12 +23,13 @@ function boundedName(value){
  return typeof value==='string'?value.slice(0,180):'';
 }
 export class UserDriveIndex {
- constructor({dir,encryptionKey,now=()=>Date.now()}){
+ constructor({dir,encryptionKey,now=()=>Date.now(),cursorCoordinator=null}){
   check(typeof dir==='string'&&dir.length>0,'DRIVE_INDEX_DIRECTORY_REQUIRED');
   const key=Buffer.from(encryptionKey||'','base64');
   check(key.length===32&&key.toString('base64')===encryptionKey,'INVALID_DRIVE_INDEX_KEY');
   this.dir=dir;this.key=key;this.now=now;
   this.activeSyncs=new Set();this.generations=new Map();
+  this.cursorCoordinator=cursorCoordinator;
  }
  location(subject){
   check(typeof subject==='string'&&subject.length>0,'DRIVE_INDEX_SUBJECT_REQUIRED');
@@ -42,6 +43,17 @@ export class UserDriveIndex {
   const raw=Buffer.concat([cipher.update(JSON.stringify(snapshot),'utf8'),cipher.final()]);
   return {v:1,iv:iv.toString('base64url'),ct:raw.toString('base64url'),
     tag:cipher.getAuthTag().toString('base64url')};
+ }
+ decode(subject,envelope){
+  check(envelope?.v===1,'DRIVE_INDEX_INTEGRITY_FAILURE');
+  const decipher=createDecipheriv('aes-256-gcm',this.key,
+    Buffer.from(envelope.iv,'base64url'));
+  decipher.setAAD(Buffer.from('qualityrag.drive-index/v1:'+subject));
+  decipher.setAuthTag(Buffer.from(envelope.tag,'base64url'));
+  return JSON.parse(Buffer.concat([
+    decipher.update(Buffer.from(envelope.ct,'base64url')),
+    decipher.final()
+  ]).toString('utf8'));
  }
  load(subject){
   const location=this.location(subject);
@@ -78,6 +90,18 @@ export class UserDriveIndex {
   try{fs.unlinkSync(location)}catch(e){if(e.code!=='ENOENT')throw e}
   return {indexed:false,removed:true};
  }
+ async clearCoordinated(subject){
+  if(this.cursorCoordinator){
+    const checkpoint=await this.cursorCoordinator.read(subject);
+    if(checkpoint){
+      const outcome=await this.cursorCoordinator.markStale({
+        subject,generation:checkpoint.generation,binding:checkpoint.binding_digest
+      });
+      check(outcome==='STALE','DRIVE_SHARED_INVALIDATION_FAILED');
+    }
+  }
+  return this.clear(subject);
+ }
  bound(subject,connection){
   if(!connection?.connected||typeof connection.email!=='string'||
     typeof connection.folderId!=='string'||!connection.folderId)return null;
@@ -86,12 +110,60 @@ export class UserDriveIndex {
   if(snapshot.account!==connection.email||snapshot.folderId!==connection.folderId)return null;
   return snapshot;
  }
+ async sharedBound(subject,connection,{allowStale=false}={}){
+  // In coordinated mode, local files are never authoritative for protected
+  // freshness. Missing, malformed or stale shared state fails closed.
+  if(!this.cursorCoordinator)return this.bound(subject,connection);
+  if(!connection?.connected||!connection.email||!connection.folderId)return null;
+  const checkpoint=await this.cursorCoordinator.read(subject);
+  if(!checkpoint||(!allowStale&&checkpoint.stale)||!checkpoint.encrypted_snapshot)return null;
+  let snapshot;
+  try{snapshot=this.decode(subject,checkpoint.encrypted_snapshot)}catch{return null}
+  if(snapshot?.schema!=='qualityrag.user-drive-text-index/v1'||
+     !Array.isArray(snapshot.entries)||snapshot.account!==connection.email||
+     snapshot.folderId!==connection.folderId)return null;
+  if(this.cursorCoordinator.generation(subject,snapshot)!==checkpoint.generation||
+     this.cursorCoordinator.binding(subject,connection)!==checkpoint.binding_digest)
+    return null;
+  return snapshot;
+ }
+ // US-068 shared read adapter: the verified shared baseline plus whether the shared checkpoint is
+ // STALE. Integrity, owner, binding and generation checks are those of sharedBound; a local cache is
+ // never consulted. A STALE baseline may be *shown* (and still enforces owner exclusions) but is
+ // never fresh evidence.
+ async sharedView(subject,connection){
+  check(this.cursorCoordinator,'DRIVE_SHARED_COORDINATOR_REQUIRED');
+  const snapshot=await this.sharedBound(subject,connection,{allowStale:true});
+  if(!snapshot)return {snapshot:null,stale:false};
+  const checkpoint=await this.cursorCoordinator.read(subject);
+  return {snapshot,stale:checkpoint?.stale===true};
+ }
+ async statusShared(subject,connection){
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return {...this.statusFrom(snapshot,{stale}),activityLogScope:'SHARED_ENCRYPTED_BASELINE'};
+ }
+ async visibilityShared(subject,connection){
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return {...this.visibilityFrom(snapshot,connection,{stale}),activityLogScope:'SHARED_ENCRYPTED_BASELINE'};
+ }
+ async searchShared(subject,connection,query){
+  const tokens=this.searchTerms(query);
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return this.searchFrom(snapshot,tokens,{stale});
+ }
+ async checkGovernedCandidatesShared(subject,connection,policy,policySha256,candidates){
+  this.validateCandidates(policy,policySha256,candidates);
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return this.candidatesFrom(snapshot,connection,policy,policySha256,candidates,{stale});
+ }
  status(subject,connection){
-  const snap=this.bound(subject,connection);
+  return this.statusFrom(this.bound(subject,connection));
+ }
+ statusFrom(snap,{stale=false}={}){
   if(!snap)return {indexed:false,sourceCount:0,syncStatus:'NOT_INDEXED',coverage:'UNKNOWN'};
   const age=this.now()-Date.parse(snap.syncedAt);
   return {indexed:true,sourceCount:snap.entries.length,lastSyncedAt:snap.syncedAt,
-    syncStatus:age>=MAX_AGE_MS?'STALE':'READY',
+    syncStatus:stale||age>=MAX_AGE_MS?'STALE':'READY',
     coverage:snap.coverage,summary:snap.summary,
     sourceControls:{
       searchable:snap.entries.filter(e=>e.searchEnabled!==false).length,
@@ -108,8 +180,19 @@ export class UserDriveIndex {
   this.activeSyncs.add(ownerKey);
   const startGeneration=this.generations.get(ownerKey)||0;
   try{
-  const connection=connector.status(subject);
+  // Read the shared version BEFORE provider I/O, not after it. Two replicas
+  // trying to resync from the same baseline cannot both publish.
+  const checkpointBefore=this.cursorCoordinator?
+    await this.cursorCoordinator.read(subject):null;
+  const connection=(await connector.status(subject));
   check(connection.connected,'DRIVE_CONNECTION_NOT_FOUND');
+  // Capture before reading listing and bytes: changes during indexing can
+  // later be discovered from this durable cursor, not silently missed.
+  let changePageToken=null;
+  try{
+    if(typeof connector.driveChangeStartToken==='function')
+      changePageToken=await connector.driveChangeStartToken(subject);
+  }catch{/* Cursor unavailable => poll status UNKNOWN, not approved. */}
   check(typeof connection.folderId==='string'&&connection.folderId!=='root',
     'DRIVE_SYNC_EXPLICIT_FOLDER_REQUIRED');
   const listing=await connector.selectedFiles(subject);
@@ -120,7 +203,7 @@ export class UserDriveIndex {
   const entries=[];
   // Preserve owner exclusions across source revisions and successful resyncs,
   // but only for this same authenticated account and selected folder.
-  const prior=this.bound(subject,connection);
+  const prior=await this.sharedBound(subject,connection,{allowStale:true});
   const oldControls=new Map((prior?.entries||[]).map(e=>[e.fileId,e.searchEnabled!==false]));
   const inventory=listing.files.map(f=>({
     name:boundedName(f.name),mimeType:f.mimeType,
@@ -166,34 +249,60 @@ export class UserDriveIndex {
   const snapshot={schema:'qualityrag.user-drive-text-index/v1',
     account:connection.email,folderId:connection.folderId,
     syncedAt:new Date(this.now()).toISOString(),
+    changePageToken,baselineId:randomBytes(16).toString('hex'),
     summary,inventory,
     controlHistory:(prior?.controlHistory||[]).slice(-100),
     coverage:summary.unsupported||summary.failed||summary.tooLarge||summary.excludedEmpty||summary.truncatedLines?
       'PARTIAL':'SELECTED_FOLDER_TEXT_FILES',entries};
   // Atomic replacement prunes removed/deleted sources on each successful resync.
   // Search rejects a changed account/folder even if an old index remains on disk.
-  const latest=connector.status(subject);
+  const latest=(await connector.status(subject));
   check((this.generations.get(ownerKey)||0)===startGeneration,
     'DRIVE_SYNC_INVALIDATED');
   check(latest.connected&&latest.email===connection.email&&
     latest.folderId===connection.folderId,'DRIVE_SYNC_INVALIDATED');
+  // Publish the shared checkpoint first. If the process dies before the
+  // local snapshot is written, readers observe a generation mismatch and
+  // MUST return UNKNOWN. Never publish a losing local snapshot after CAS.
+  if(this.cursorCoordinator){
+    check(typeof changePageToken==='string','DRIVE_CURSOR_NOT_AVAILABLE');
+    const encrypted=this.encode(subject,{cursor:changePageToken});
+    if(checkpointBefore){
+      const status=await this.cursorCoordinator.replaceBaseline(
+        subject,snapshot,encrypted,checkpointBefore,this.encode(subject,snapshot));
+      check(status==='REPLACED','DRIVE_SYNC_CHECKPOINT_CONFLICT');
+    }else{
+      try{await this.cursorCoordinator.establish(subject,snapshot,encrypted,
+        this.encode(subject,snapshot))}
+      catch(error){
+        if(error?.message==='CURSOR_BASELINE_ALREADY_EXISTS')
+          stop('DRIVE_SYNC_CHECKPOINT_CONFLICT');
+        throw error;
+      }
+    }
+  }
+  // The local encrypted source index is still not a shared transactional
+  // baseline. This CAS fences writers, but per-replica index deployment
+  // remains unsupported until source snapshots have shared storage.
   this.save(subject,snapshot);
   return this.status(subject,connection);
   }catch(error){
-    if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
+    if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')await this.clearCoordinated(subject);
     throw error;
   }finally{
     this.activeSyncs.delete(ownerKey);
   }
  }
  visibility(subject,connection){
-  const snap=this.bound(subject,connection);
+  return this.visibilityFrom(this.bound(subject,connection),connection);
+ }
+ visibilityFrom(snap,connection,{stale=false}={}){
   if(!snap)return {indexed:false,coverage:'UNKNOWN',sources:[],inventory:[],
     activity:[],sourceTruth:'UNVERIFIED',packSpecAdmission:'NOT_PERFORMED'};
   const age=this.now()-Date.parse(snap.syncedAt);
   return {
     indexed:true,lastSyncedAt:snap.syncedAt,
-    stale:!Number.isFinite(age)||age<0||age>MAX_AGE_MS,
+    stale:stale||!Number.isFinite(age)||age<0||age>MAX_AGE_MS,
     account:connection.email,folderId:connection.folderId,
     scope:'ONE_SELECTED_FOLDER_DIRECT_CHILDREN',
     coverage:snap.coverage,summary:snap.summary,
@@ -210,7 +319,47 @@ export class UserDriveIndex {
     activity:(snap.controlHistory||[]).slice(-30).reverse()
   };
  }
+ async controlSharedSource(subject,connection,input){
+  check(this.cursorCoordinator,'DRIVE_SHARED_COORDINATOR_REQUIRED');
+  check(input&&!Array.isArray(input)&&typeof input==='object'&&
+    Object.keys(input).length===3&&Object.hasOwn(input,'sourceId')&&
+    Object.hasOwn(input,'searchable')&&Object.hasOwn(input,'reason'),
+    'INVALID_DRIVE_SOURCE_CONTROL');
+  check(typeof input.sourceId==='string'&&
+    /^google_drive[/][a-f0-9]{32}$/.test(input.sourceId)&&
+    typeof input.searchable==='boolean'&&
+    (input.searchable?input.reason==='OWNER_SELECTION':
+      ['SENSITIVE','OUT_OF_SCOPE','NEEDS_REVIEW'].includes(input.reason)),
+    'INVALID_DRIVE_SOURCE_CONTROL');
+  check(!this.activeSyncs.has(this.location(subject)),'DRIVE_SYNC_IN_PROGRESS');
+  const before=await this.cursorCoordinator.read(subject);
+  const snap=await this.sharedBound(subject,connection);
+  check(before&&snap,'DRIVE_SHARED_INDEX_NOT_READY');
+  const source=snap.entries.find(e=>e.sourceId===input.sourceId);
+  check(source,'DRIVE_SOURCE_NOT_FOUND');
+  if((source.searchEnabled!==false)===input.searchable)
+    return {changed:false,sourceTruth:'UNVERIFIED',
+      governanceStatus:'NOT_EVALUATED',releasePermitted:false};
+  const next={...snap,
+    entries:snap.entries.map(e=>e.sourceId===input.sourceId?
+      {...e,searchEnabled:input.searchable}:e),
+    controlHistory:[...(snap.controlHistory||[]),{
+      at:new Date(this.now()).toISOString(),
+      sourceId:input.sourceId,action:input.searchable?'INCLUDE':'EXCLUDE',
+      reason:input.reason
+    }].slice(-100)};
+  const result=await this.cursorCoordinator.updateOwnerControls({
+    subject,expected:before,snapshot:next,
+    encryptedSnapshot:this.encode(subject,next)
+  });
+  check(result==='UPDATED','DRIVE_SHARED_CONTROL_CONFLICT');
+  // The shared baseline is now STALE. An owner resync is required before
+  // protected evidence can be used. No local file becomes authoritative.
+  return {changed:true,sourceTruth:'UNVERIFIED',governanceStatus:'STALE',
+    releasePermitted:false,requiresResync:true};
+ }
  controlSource(subject,connection,input){
+  if(this.cursorCoordinator)stop('DRIVE_SHARED_SOURCE_CONTROL_NOT_IMPLEMENTED');
   check(input&&!Array.isArray(input)&&typeof input==='object'&&
     Object.keys(input).length===3&&Object.hasOwn(input,'sourceId')&&
     Object.hasOwn(input,'searchable')&&Object.hasOwn(input,'reason'),
@@ -238,6 +387,170 @@ export class UserDriveIndex {
   this.save(subject,snap);
   return {changed:true,visibility:this.visibility(subject,connection)};
  }
+ /**
+  * Bounded owner-folder drift poll against the encrypted last-synced index.
+  * Read-only: this never overwrites the baseline, never admits evidence,
+  * and never returns filenames, file IDs or provider response bodies.
+  * The operator/owner must request a new authorized sync after CHANGED.
+  */
+ /**
+  * Fail-closed Google Drive Changes cursor poll. A token is captured before
+  * indexing, stored inside the existing AES-GCM per-owner snapshot, and
+  * advanced only after all bounded pages have been verified. No cursor,
+  * ambiguous event, 410, truncation, or provider failure permits a MATCHED
+  * verdict. Cursor state is never exposed to the browser or API.
+  */
+ async inspectDriveChangeCursor(subject,connector,snapshot,connection){
+  const unknown={state:'UNKNOWN',completed:false};
+  if(typeof connector.driveChangePage!=='function')return unknown;
+  const coordinator=this.cursorCoordinator;
+  let cursor,checkpoint=null,generation=null,binding=null;
+  try{
+   if(coordinator){
+     checkpoint=await coordinator.read(subject);
+     generation=coordinator.generation(subject,snapshot);
+     binding=coordinator.binding(subject,connection);
+     if(!checkpoint||checkpoint.stale||
+        checkpoint.generation!==generation||checkpoint.binding_digest!==binding)
+       return unknown;
+     const decoded=this.decode(subject,checkpoint.encrypted_cursor);
+     cursor=decoded.cursor;
+   }else cursor=snapshot?.changePageToken;
+   if(typeof cursor!=='string'||!cursor.length)return unknown;
+   const known=new Set(snapshot.entries.map(x=>x.fileId));
+   let final=null;
+   const seen=new Set();
+   for(let pageIndex=0;pageIndex<5;pageIndex++){
+     if(seen.has(cursor))return unknown;
+     seen.add(cursor);
+     const page=await connector.driveChangePage(subject,cursor);
+     if(!page||!Array.isArray(page.changes)||page.changes.length>100)return unknown;
+     for(const item of page.changes){
+       if(!item||typeof item.fileId!=='string')return unknown;
+       if(known.has(item.fileId)||item.fileId===connection.folderId||
+          item.parents?.includes(connection.folderId)){
+         if(coordinator){
+           const status=await coordinator.markStale({subject,generation,binding});
+           return status==='STALE'?{state:'CHANGED',completed:true}:unknown;
+         }
+         return {state:'CHANGED',completed:true};
+       }
+       if(item.removed||!item.metadataAvailable)return unknown;
+     }
+     if(typeof page.newStartPageToken==='string'&&!page.nextPageToken){
+       final=page.newStartPageToken;break;
+     }
+     if(typeof page.nextPageToken!=='string')return unknown;
+     cursor=page.nextPageToken;
+   }
+   if(!final)return unknown;
+   const after=(await connector.status(subject)),existing=await this.sharedBound(subject,after);
+   if(!after.connected||after.email!==connection.email||
+     after.folderId!==connection.folderId||
+     existing?.syncedAt!==snapshot.syncedAt||
+     this.activeSyncs.has(this.location(subject)))return unknown;
+   if(coordinator){
+     // The current process's file and shared checkpoint must still describe
+     // the same baseline. The SQL conditional update fences a competing poll.
+     if(coordinator.generation(subject,existing)!==generation)return unknown;
+     const version=Number(checkpoint.cursor_version);
+     if(!Number.isSafeInteger(version))return unknown;
+     const result=await coordinator.advance({
+       subject,generation,binding,version,
+       encryptedCursor:this.encode(subject,{cursor:final})
+     });
+     if(result!=='ADVANCED')return unknown;
+     // Confirm that a concurrent local sync or control edit did not supersede
+     // the baseline during the database round trip.
+     const latest=(await connector.status(subject));
+     const latestSnapshot=await this.sharedBound(subject,latest);
+     if(!latestSnapshot||
+       coordinator.generation(subject,latestSnapshot)!==generation||
+       latest.folderId!==connection.folderId||latest.email!==connection.email)
+       return unknown;
+   }else{
+     if(existing?.changePageToken!==snapshot.changePageToken)return unknown;
+     if(final!==snapshot.changePageToken)
+       this.save(subject,{...snapshot,changePageToken:final});
+   }
+   return {state:'NO_RELEVANT_EVENTS',completed:true};
+  }catch{return unknown}
+ }
+ async inspectSelectedFolderDrift(subject,connector){
+  const unchanged={schema:'qualityrag.drive-folder-drift/v1',
+    state:'UNKNOWN',checkedAt:null,sourceBytesVerified:false,
+    selectionCompletenessVerified:false,releasePermitted:false};
+  // A confirmed drift must be durably STALE before the Registry reports
+  // CHANGED. A checkpoint failure cannot masquerade as a proven invalidation.
+  const changed=async(snapshot,connection)=>{
+    if(!this.cursorCoordinator)return {...unchanged,state:'CHANGED'};
+    try{
+      const coordinator=this.cursorCoordinator;
+      const status=await coordinator.markStale({
+        subject,generation:coordinator.generation(subject,snapshot),
+        binding:coordinator.binding(subject,connection)
+      });
+      return status==='STALE'?{...unchanged,state:'CHANGED'}:unchanged;
+    }catch{return unchanged}
+  };
+  if(this.activeSyncs.has(this.location(subject)))return unchanged;
+  let conn,before;
+  try{
+   conn=(await connector.status(subject));
+   before=await this.sharedBound(subject,conn);
+   if(!conn?.connected||!before||!conn.folderId||conn.folderId==='root'||
+      before.coverage!=='SELECTED_FOLDER_TEXT_FILES'||!Array.isArray(before.entries))
+     return unchanged;
+   const age=this.now()-Date.parse(before.syncedAt);
+   if(!Number.isFinite(age)||age<0||age>MAX_AGE_MS)return unchanged;
+   const inventory=await connector.selectedFiles(subject);
+   if(inventory.truncated||inventory.folderId!==conn.folderId||
+      !Array.isArray(inventory.files)||inventory.files.length>100)return unchanged;
+   const indexed=before.entries;
+   const eligible=inventory.files.filter(file=>connector.supportsText(file.mimeType));
+   // A newly unsupported file also changes governance coverage. Never
+   // claim complete folder equality based on the text-only subset.
+   if(eligible.length!==inventory.files.length)
+     return await changed(before,conn);
+   if(eligible.length>MAX_DOCS||indexed.length!==eligible.length||
+      indexed.length>MAX_DOCS)
+     return await changed(before,conn);
+   const expected=new Map(indexed.map(x=>[x.fileId,x]));
+   if(expected.size!==indexed.length)return unchanged;
+   const current=new Map(eligible.map(x=>[x.id,x]));
+   if(current.size!==eligible.length)return unchanged;
+   if([...expected].some(([id,entry])=>!current.has(id)||
+      current.get(id).mimeType!==entry.mimeType))
+     return await changed(before,conn);
+   // Whole-folder included-source check: newly inserted text, deletion,
+   // owner exclusion and any byte changes conservatively invalidate.
+   const generation=this.generations.get(this.location(subject))||0;
+   for(const [fileId,source] of expected){
+     if(source.searchEnabled===false)return await changed(before,conn);
+     const bytes=await connector.downloadSelectedText(
+       subject,fileId,conn.folderId,MAX_PER_FILE);
+     if(!Buffer.isBuffer(bytes)||sha(bytes)!==source.revision)
+       return await changed(before,conn);
+   }
+   const after=(await connector.status(subject));
+   if(!after?.connected||after.folderId!==conn.folderId||
+      after.email!==conn.email||
+      (this.generations.get(this.location(subject))||0)!==generation||
+      this.activeSyncs.has(this.location(subject)))
+     return unchanged;
+   // Full folder equality alone cannot establish no lost changes between
+   // sync and this check; the cursor must complete and be advanced.
+   const changeStatus=await this.inspectDriveChangeCursor(subject,connector,before,conn);
+   if(changeStatus.state==='CHANGED')return await changed(before,conn);
+   if(changeStatus.state!=='NO_RELEVANT_EVENTS')return unchanged;
+   const now=new Date(this.now()).toISOString();
+   return {...unchanged,state:'MATCHED_AT_CHECK_TIME',checkedAt:now,
+     sourceBytesVerified:true,selectionCompletenessVerified:true};
+  }catch{
+   // Google 403, provider outage, lost index: no proof of permission.
+   return unchanged;
+  }
+ }
  async verifyLiveApprovedWitnesses(subject,connector,witnesses,
    {includeWitnessLines=false,includeConstraintScan=false,
      includeRelationshipScan=false}={}){
@@ -248,8 +561,8 @@ export class UserDriveIndex {
     'PROTECTED_WITNESS_LIMIT');
   const ownerKey=this.location(subject);
   check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
-  const connection=connector.status(subject);
-  const snapshot=this.bound(subject,connection);
+  const connection=(await connector.status(subject));
+  const snapshot=await this.sharedBound(subject,connection);
   check(snapshot&&connection.folderId!=='root'&&
     snapshot.coverage==='SELECTED_FOLDER_TEXT_FILES',
     'PROTECTED_SOURCE_COVERAGE_INCOMPLETE');
@@ -292,7 +605,7 @@ export class UserDriveIndex {
       bytes=await connector.downloadSelectedText(subject,fileId,
         connection.folderId,MAX_PER_FILE);
     }catch(error){
-      if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')this.clear(subject);
+      if(error?.message==='DRIVE_AUTHORIZATION_REQUIRED')await this.clearCoordinated(subject);
       throw Error('PROTECTED_LIVE_GOOGLE_VERIFICATION_FAILED');
     }
     check(Buffer.isBuffer(bytes)&&sha(bytes)===source.revision,
@@ -309,7 +622,7 @@ export class UserDriveIndex {
   // so a concurrent owner exclusion cannot interleave between final check
   // and admission on this single-process research registry.
   check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
-  const latest=connector.status(subject),current=this.bound(subject,latest);
+  const latest=(await connector.status(subject)),current=await this.sharedBound(subject,latest);
   check(latest.connected&&latest.email===connection.email&&
     latest.folderId===connection.folderId&&current&&
     current.syncedAt===snapshot.syncedAt&&
@@ -372,6 +685,10 @@ export class UserDriveIndex {
   // Guarded route from Drive *candidates* to governed evaluation. It deliberately
   // cannot ADMIT because lexical text and owner consent do not attest semantics
   // or independent source provenance.
+  this.validateCandidates(policy,policySha256,candidates);
+  return this.candidatesFrom(this.bound(subject,connection),connection,policy,policySha256,candidates);
+ }
+ validateCandidates(policy,policySha256,candidates){
   check(policy&&typeof policy.id==='string'&&
     typeof policy.version==='string'&&Array.isArray(policy.requirements)&&
     typeof policySha256==='string'&&/^[0-9a-f]{64}$/.test(policySha256),
@@ -398,9 +715,11 @@ export class UserDriveIndex {
     check(!seen.has(key),'DRIVE_GATE_DUPLICATE_CANDIDATE');
     seen.add(key);
   }
-  const snapshot=this.bound(subject,connection);
+ }
+ candidatesFrom(snapshot,connection,policy,policySha256,candidates,{stale=false}={}){
   const age=snapshot?this.now()-Date.parse(snapshot.syncedAt):NaN;
-  const fresh=Number.isFinite(age)&&age>=0&&age<=MAX_AGE_MS;
+  // A STALE shared checkpoint is never current, but its owner exclusions still apply below.
+  const fresh=!stale&&Number.isFinite(age)&&age>=0&&age<=MAX_AGE_MS;
   const observations=candidates.map(candidate=>{
     const source=snapshot?.entries.find(e=>e.sourceId===candidate.sourceId);
     const reasons=[];
@@ -447,15 +766,21 @@ export class UserDriveIndex {
     observations
   };
  }
- search(subject,connection,query){
+ searchTerms(query){
   check(typeof query==='string'&&query.trim().length>1&&query.length<=MAX_QUERY,
     'INVALID_DRIVE_SEARCH_QUERY');
   const tokens=terms(query);
   check(tokens.length>0&&tokens.length<=12,'INVALID_DRIVE_SEARCH_QUERY');
-  const snap=this.bound(subject,connection);
+  return tokens;
+ }
+ search(subject,connection,query){
+  const tokens=this.searchTerms(query);
+  return this.searchFrom(this.bound(subject,connection),tokens);
+ }
+ searchFrom(snap,tokens,{stale=false}={}){
   if(!snap)return {hits:[],indexed:false,coverage:'UNKNOWN',reason:'NOT_INDEXED'};
   const age=this.now()-Date.parse(snap.syncedAt);
-  if(!Number.isFinite(age)||age<0||age>MAX_AGE_MS)
+  if(stale||!Number.isFinite(age)||age<0||age>MAX_AGE_MS)
     return {hits:[],indexed:true,coverage:'STALE',reason:'SYNC_REQUIRED',lastSyncedAt:snap.syncedAt};
   const hits=[];
   for(const source of snap.entries){

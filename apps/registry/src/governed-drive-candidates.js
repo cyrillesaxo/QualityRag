@@ -59,8 +59,11 @@ export async function handleGovernedDriveCandidates(req,res,{url,identity,actor,
     admissionStatus:'NOT_EVALUATED',sourceProvenance:'NOT_VERIFIED'});
    return true;
   }
-  const result=driveIndex.checkGovernedCandidates(actor,driveManager.status(actor),
-    bound.policy,bound.sha256,candidates);
+  // US-068: in shared mode candidates are checked against the verified shared baseline only.
+  const connection=await driveManager.status(actor);
+  const result=driveIndex.cursorCoordinator?
+    await driveIndex.checkGovernedCandidatesShared(actor,connection,bound.policy,bound.sha256,candidates):
+    driveIndex.checkGovernedCandidates(actor,connection,bound.policy,bound.sha256,candidates);
   // Ledger writes only after all scoped policy and source-index validations.
   const receipt=record?evidenceLedger.recordCandidateCheck(
    serviceId,environment,actor,bound.sha256,result):null;

@@ -77,7 +77,7 @@ export {safeError as safeDriveError};
 
 export class GoogleDriveConnections{
   constructor({file,encryptionKey,clientId,clientSecret,redirectUri,studioOrigin,fetchImpl=fetch,
-    now=()=>Date.now()}){
+    now=()=>Date.now(),oauthPending=null,credentialStore=null}){
     assert(typeof file==='string'&&file.length>0,'DRIVE_FILE_REQUIRED');
     assert(typeof clientId==='string'&&clientId.length>12,'GOOGLE_CLIENT_ID_REQUIRED');
     assert(typeof clientSecret==='string'&&clientSecret.length>8,'GOOGLE_CLIENT_SECRET_REQUIRED');
@@ -87,8 +87,21 @@ export class GoogleDriveConnections{
     this.redirectUri=validateRedirect(redirectUri);
     this.studioOrigin=validateOrigin(studioOrigin,'STUDIO_ORIGIN');
     this.fetch=fetchImpl;this.now=now;
-    this.pending=new Map();
-    this.records=this.load();
+    this.pending=new Map();this.oauthPending=oauthPending;
+    // US-068 coordinated mode: owner credentials live only in the shared, encrypted PostgreSQL store
+    // (PgDriveOwnerCredentials), so every Registry replica sees the same connection, folder,
+    // refresh and disconnect. The local credential file is never read or written in this mode.
+    assert(!credentialStore||!!oauthPending,'DRIVE_SHARED_CREDENTIALS_REQUIRE_SHARED_OAUTH_STATE');
+    this.credentialStore=credentialStore;
+    this.records=credentialStore?{}:this.load();
+  }
+  // One credential read path for both modes. Coordinated mode never falls back to the local file.
+  async credential(subject){
+    if(!this.credentialStore)return this.decrypt(subject);
+    const found=await this.credentialStore.get(subject);
+    if(!found)return null;
+    assert(authKeys.every(k=>Object.hasOwn(found.value,k)),'DRIVE_STORAGE_INTEGRITY_FAILURE');
+    return found.value;
   }
   load(){
     if(!fs.existsSync(this.file))return {};
@@ -131,12 +144,23 @@ export class GoogleDriveConnections{
     }catch{fail('DRIVE_STORAGE_INTEGRITY_FAILURE')}
   }
   replace(subject,data){
+    assert(!this.credentialStore,'DRIVE_LOCAL_CREDENTIAL_WRITE_FORBIDDEN');
     this.records[digest(subject)]=this.encrypt(subject,data);
     this.save();
   }
+  // A new authorization (OAuth exchange). Coordinated: supersedes the shared row and revives a
+  // disconnected owner only through this explicit re-consent.
+  async store(subject,data){
+    if(this.credentialStore){await this.credentialStore.authorize(subject,data);return}
+    this.replace(subject,data);
+  }
+  // Synchronous in file mode (unchanged); a Promise in coordinated mode. Callers await it.
   status(subject){
     subject=validateSubject(subject);
-    const stored=this.decrypt(subject);
+    if(this.credentialStore)return this.credential(subject).then(stored=>this.describe(stored));
+    return this.describe(this.decrypt(subject));
+  }
+  describe(stored){
     return stored?{
       provider:'google_drive',connected:true,
       email:stored.email,displayName:stored.display_name,
@@ -167,6 +191,20 @@ export class GoogleDriveConnections{
     return {authorizationUrl:GOOGLE_AUTH+'?'+params.toString(),
       expiresInSeconds:600,provider:'google_drive',scope:'drive.readonly'};
   }
+  async startCoordinated(subject){
+    if(!this.oauthPending)return this.start(subject);
+    const started=this.start(subject);
+    const state=new URL(started.authorizationUrl).searchParams.get('state');
+    const key=digest(state),pending=this.pending.get(key);
+    assert(pending,'DRIVE_OAUTH_STATE_INVALID');
+    try{
+      await this.oauthPending.issue(state,pending);
+      return started;
+    }finally{
+      // In coordinated mode only PostgreSQL may validate/consume this state.
+      this.pending.delete(key);
+    }
+  }
   async exchange(subject,code,verifier){
     const params=new URLSearchParams({
       client_id:this.clientId,client_secret:this.clientSecret,code,
@@ -188,10 +226,10 @@ export class GoogleDriveConnections{
     const about=await this.googleGet(data.access_token,'/about',{'fields':'user(emailAddress,displayName)'});
     const email=about.user?.emailAddress;
     assert(typeof email==='string'&&VALID_USER.test(email),'GOOGLE_OAUTH_FAILED');
-    const existing=this.decrypt(subject);
+    const existing=await this.credential(subject);
     // A re-consent to a different account cannot silently keep the old selected folder.
     const same=existing?.email===email;
-    this.replace(subject,{
+    await this.store(subject,{
       access_token:data.access_token,refresh_token:data.refresh_token,
       expires_at:this.now()+Math.max(30,Number(data.expires_in)-45)*1000,
       email,display_name:typeof about.user.displayName==='string'?about.user.displayName:'',
@@ -201,15 +239,29 @@ export class GoogleDriveConnections{
   }
   async callback({state,code,error}){
     assert(typeof state==='string'&&state.length<=120,'DRIVE_OAUTH_STATE_INVALID');
-    const pending=this.pending.get(digest(state));
+    const pending=this.oauthPending?
+      await this.oauthPending.consume(state):this.pending.get(digest(state));
     assert(pending,'DRIVE_OAUTH_STATE_INVALID');
-    this.pending.delete(digest(state)); // single-use even if Google exchange fails
+    if(!this.oauthPending)this.pending.delete(digest(state));
+    // DB mode consumes one-time state even if the Google exchange fails.
     assert(this.now()-pending.at<=600_000,'DRIVE_OAUTH_STATE_EXPIRED');
     if(error||typeof code!=='string'||code.length<1||code.length>2500)fail('GOOGLE_OAUTH_FAILED');
     await this.exchange(pending.subject,code,pending.verifier);
     return {connected:true,origin:this.studioOrigin,subject:pending.subject};
   }
   async refresh(subject,stored){
+    if(this.credentialStore){
+      // Row-locked across replicas: a replica that waited re-checks the token another replica just
+      // rotated instead of calling Google again with a superseded predecessor.
+      const {value}=await this.credentialStore.refreshLocked(subject,async current=>
+        current.expires_at>this.now()+10_000?current:{...current,...await this.rotate(current)});
+      return value.access_token;
+    }
+    const updated={...stored,...await this.rotate(stored)};
+    this.replace(subject,updated);
+    return updated.access_token;
+  }
+  async rotate(stored){
     const params=new URLSearchParams({
       client_id:this.clientId,client_secret:this.clientSecret,
       refresh_token:stored.refresh_token,grant_type:'refresh_token'
@@ -222,14 +274,12 @@ export class GoogleDriveConnections{
     const data=strictJson(await response.text());
     assert(typeof data.access_token==='string'&&data.access_token.length>20&&
       Number.isFinite(data.expires_in),'DRIVE_AUTHORIZATION_REQUIRED');
-    const updated={...stored,access_token:data.access_token,
+    return {access_token:data.access_token,
       expires_at:this.now()+Math.max(30,Number(data.expires_in)-45)*1000};
-    this.replace(subject,updated);
-    return updated.access_token;
   }
   async getToken(subject){
     subject=validateSubject(subject);
-    const stored=this.decrypt(subject);
+    const stored=await this.credential(subject);
     if(!stored)fail('DRIVE_CONNECTION_NOT_FOUND');
     return stored.expires_at>this.now()+10_000?
       stored.access_token:await this.refresh(subject,stored);
@@ -274,6 +324,10 @@ export class GoogleDriveConnections{
       name=String(f.name||'').slice(0,250);
       assert(name.length>0,'DRIVE_FOLDER_NOT_FOUND');
     }
+    if(this.credentialStore){
+      await this.credentialStore.selectFolder(subject,folderId,name);
+      return this.status(subject);
+    }
     const data=this.decrypt(subject);
     data.folder_id=folderId;data.folder_name=name;
     this.replace(subject,data);
@@ -290,7 +344,7 @@ export class GoogleDriveConnections{
     validateFolderId(selectedFolderId);
     assert(Number.isInteger(maxBytes)&&maxBytes>0&&maxBytes<=96_000,
       'DRIVE_SOURCE_SIZE_INVALID');
-    const account=this.decrypt(validateSubject(subject));
+    const account=await this.credential(validateSubject(subject));
     assert(account&&account.folder_id===selectedFolderId&&selectedFolderId!=='root',
       'DRIVE_FOLDER_NOT_CONFIGURED');
     const token=await this.getToken(subject);
@@ -336,8 +390,48 @@ export class GoogleDriveConnections{
     }
     return result;
   }
+  // Google Drive Changes API v3. A cursor is opaque, scoped to this owner
+  // connection and never returned to a client. Full pagination is mandatory.
+  async driveChangeStartToken(subject){
+    const token=await this.getToken(subject);
+    const response=await this.googleGet(token,'/changes/startPageToken',{
+      fields:'startPageToken',supportsAllDrives:'false'
+    });
+    const cursor=response.startPageToken;
+    assert(typeof cursor==='string'&&cursor.length>0&&cursor.length<=1024&&
+      /^[A-Za-z0-9._~+/=-]+$/.test(cursor),'INVALID_DRIVE_CHANGE_CURSOR');
+    return cursor;
+  }
+  async driveChangePage(subject,cursor){
+    assert(typeof cursor==='string'&&cursor.length>0&&cursor.length<=1024&&
+      /^[A-Za-z0-9._~+/=-]+$/.test(cursor),'INVALID_DRIVE_CHANGE_CURSOR');
+    const token=await this.getToken(subject);
+    const data=await this.googleGet(token,'/changes',{
+      pageToken:cursor,pageSize:'100',includeRemoved:'true',
+      fields:'nextPageToken,newStartPageToken,changes(fileId,removed,file(id,mimeType,parents,trashed))'
+    });
+    assert(Array.isArray(data.changes)&&data.changes.length<=100,
+      'INVALID_DRIVE_CHANGE_RESPONSE');
+    const next=data.nextPageToken??null,final=data.newStartPageToken??null;
+    assert((next===null)!==(final===null),'INVALID_DRIVE_CHANGE_RESPONSE');
+    for(const candidate of [next,final])if(candidate!==null)
+      assert(typeof candidate==='string'&&candidate.length>0&&candidate.length<=1024&&
+        /^[A-Za-z0-9._~+/=-]+$/.test(candidate),'INVALID_DRIVE_CHANGE_RESPONSE');
+    const changes=data.changes.map(item=>{
+      assert(item&&typeof item==='object'&&
+        typeof item.fileId==='string'&&SAFE_ID.test(item.fileId)&&
+        typeof item.removed==='boolean','INVALID_DRIVE_CHANGE_RESPONSE');
+      const parents=Array.isArray(item.file?.parents)?
+        item.file.parents.filter(x=>typeof x==='string'&&SAFE_ID.test(x)):[];
+      return {fileId:item.fileId,removed:item.removed,
+        parents,mimeType:typeof item.file?.mimeType==='string'?item.file.mimeType:null,
+        trashed:item.file?.trashed===true,
+        metadataAvailable:Boolean(item.file)};
+    });
+    return {changes,nextPageToken:next,newStartPageToken:final};
+  }
   async selectedFiles(subject){
-    const data=this.decrypt(validateSubject(subject));
+    const data=await this.credential(validateSubject(subject));
     if(!data)fail('DRIVE_CONNECTION_NOT_FOUND');
     if(!data.folder_id)fail('DRIVE_FOLDER_NOT_CONFIGURED');
     const token=await this.getToken(subject);
@@ -358,10 +452,15 @@ export class GoogleDriveConnections{
   }
   async disconnect(subject){
     subject=validateSubject(subject);
-    const stored=this.decrypt(subject);
+    const stored=await this.credential(subject);
     if(!stored)return {connected:false,revoked:false};
-    delete this.records[digest(subject)];
-    this.save(); // local credentials are always removed even when remote revocation is unavailable
+    if(this.credentialStore){
+      // Shared tombstone first: every replica stops using the credential before remote revocation.
+      await this.credentialStore.disconnect(subject);
+    }else{
+      delete this.records[digest(subject)];
+      this.save(); // local credentials are always removed even when remote revocation is unavailable
+    }
     let revoked=false;
     try{
       const response=await this.fetch(GOOGLE_REVOKE,{

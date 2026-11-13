@@ -1,0 +1,80 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomBytes} from 'node:crypto';
+import {PgDriveCursorCoordinator} from '../src/pg-drive-cursor-coordinator.js';
+
+// Contract-level queries are inspected; real two-process PG integration remains pending.
+const identityKey=randomBytes(32);
+const snap={syncedAt:'2026-11-10T12:00:00.000Z',folderId:'f1',account:'a@example.test',
+ entries:[{fileId:'f',revision:'r'}]};
+const encrypted={v:1,iv:'iv',ct:'ciphertext',tag:'tag'};
+const snapshotEnvelope={v:1,iv:'iv2',ct:'encrypted-index',tag:'tag2'};
+test('cursor coordinator stores encrypted envelope without plain owner or token',async()=>{
+ const calls=[],pool={query:async(sql,args)=>{
+  calls.push({sql,args});return {rowCount:1,rows:[]};
+ }};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ const {generation,binding}=await c.establish('issuer#alice',snap,encrypted,snapshotEnvelope);
+ assert.match(generation,/^[a-f0-9]{64}$/);assert.match(binding,/^[a-f0-9]{64}$/);
+ assert.equal(calls.length,1);
+ assert.equal(JSON.parse(calls[0].args[4]).ct,'encrypted-index');
+ assert.equal(calls[0].args.some(v=>String(v).includes('issuer#alice')),false);
+ assert.equal(calls[0].args.some(v=>String(v).includes('a@example.test')),false);
+ assert.equal(JSON.parse(calls[0].args[3]).ct,'ciphertext');
+});
+test('CAS requires exact version/generation/binding and stale=false',async()=>{
+ const calls=[],pool={query:async(sql,args)=>{calls.push({sql,args});return {rowCount:0,rows:[]}}};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ const generation='a'.repeat(64),binding='b'.repeat(64);
+ assert.equal(await c.advance({subject:'alice',generation,binding,version:3,encryptedCursor:encrypted}),'CONFLICT');
+ assert.match(calls[0].sql,/cursor_version=\$4 AND stale=false/);
+ assert.equal(calls[0].args[3],3);
+ await assert.rejects(c.advance({subject:'alice',generation,binding,version:-1,encryptedCursor:encrypted}),
+   /CURSOR_EXPECTATION_INVALID/);
+});
+test('confirmed stale is fenced by exact baseline and remains irreversible for same generation',async()=>{
+ let count=0;
+ const pool={query:async(sql)=>{
+  if(sql.includes('UPDATE'))return {rowCount:count++===0?1:0,rows:[]};
+  return {rowCount:1,rows:[{generation:'a'.repeat(64),binding_digest:'b'.repeat(64),stale:true}]};
+ }};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ const input={subject:'alice',generation:'a'.repeat(64),binding:'b'.repeat(64)};
+ assert.equal(await c.markStale(input),'STALE');
+ assert.equal(await c.markStale(input),'STALE');
+});
+
+test('same-generation establishment cannot reset a stale checkpoint',async()=>{
+ const pool={query:async()=>({rowCount:0,rows:[]})};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ await assert.rejects(c.establish('issuer#alice',snap,encrypted,snapshotEnvelope),
+   /CURSOR_BASELINE_ALREADY_EXISTS/);
+});
+
+test('different baseline cannot overwrite an existing checkpoint without fencing',async()=>{
+ const statements=[];
+ const pool={query:async(sql,args)=>{statements.push({sql,args});return {rowCount:0,rows:[]}}};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ await assert.rejects(c.establish('issuer#alice',{...snap,baselineId:'newer'},encrypted,snapshotEnvelope),
+   /CURSOR_BASELINE_ALREADY_EXISTS/);
+ assert.match(statements[0].sql,/ON CONFLICT \(owner_key\) DO NOTHING/);
+ assert.doesNotMatch(statements[0].sql,/DO UPDATE SET/);
+});
+
+test('owner-control update fences cursor version and makes the new baseline STALE',async()=>{
+ const queries=[],pool={query:async(sql,args)=>{
+  queries.push({sql,args});return {rowCount:1,rows:[{cursor_version:8}]};
+ }};
+ const c=new PgDriveCursorCoordinator(pool,{identityKey});
+ const original={...snap,baselineId:'first',entries:[{fileId:'f',revision:'r',searchEnabled:true}]};
+ const changed={...original,entries:[{...original.entries[0],searchEnabled:false}]};
+ const expected={generation:c.generation('issuer#alice',original),
+   binding_digest:c.binding('issuer#alice',{email:snap.account,folderId:snap.folderId}),
+   cursor_version:7};
+ assert.equal(await c.updateOwnerControls({subject:'issuer#alice',expected,
+  snapshot:changed,encryptedSnapshot:snapshotEnvelope}),'UPDATED');
+ assert.match(queries[0].sql,/stale=true/);
+ assert.match(queries[0].sql,/cursor_version=\$4 AND stale=false/);
+ assert.equal(queries[0].args[3],7);
+ assert.equal(JSON.parse(queries[0].args[5]).ct,'encrypted-index');
+});

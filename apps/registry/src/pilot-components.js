@@ -40,7 +40,7 @@ function validateChild(root,target){
  }
  return full;
 }
-export function createPilotComponents(env,{fetchImpl}={}){
+export function createPilotComponents(env,{fetchImpl,cursorCoordinator=null,oauthPending=null,credentialStore=null}={}){
  if(env.QUALITYRAG_PILOT_MODE!=='true')return {
   driveManager:null,driveIndex:null,evidenceLedger:null,
   protectedReviewTrust:null,protectedDriveServices:new Set()
@@ -74,15 +74,21 @@ export function createPilotComponents(env,{fetchImpl}={}){
   if(!s.isDirectory()||s.isSymbolicLink()||(s.mode&0o077)!==0)
    throw Error('PILOT_DIRECTORY_NOT_PRIVATE');
  }
+ // US-068: shared state is all-or-nothing. Coordinated cursors without shared OAuth state and shared
+ // credentials would let one replica connect while another still reads its own local file.
+ if((cursorCoordinator||oauthPending||credentialStore)&&!(cursorCoordinator&&oauthPending&&credentialStore))
+  throw Error('PILOT_SHARED_DRIVE_STATE_INCOMPLETE');
  const driveManager=new GoogleDriveConnections({
   file:files.credentials,encryptionKey:driveKey,
   clientId:required(env,'QUALITYRAG_GOOGLE_CLIENT_ID'),
   clientSecret:required(env,'QUALITYRAG_GOOGLE_CLIENT_SECRET'),
   redirectUri:required(env,'QUALITYRAG_GOOGLE_REDIRECT_URI'),
   studioOrigin:required(env,'QUALITYRAG_STUDIO_ORIGIN'),
+  oauthPending,credentialStore,
   ...(fetchImpl?{fetchImpl}:{})
  });
- const driveIndex=new UserDriveIndex({dir:files.index,encryptionKey:indexKey});
+ const driveIndex=new UserDriveIndex({dir:files.index,encryptionKey:indexKey,
+  cursorCoordinator});
  const evidenceLedger=new EvidenceLedger(files.ledger);
  return {driveManager,driveIndex,evidenceLedger,protectedReviewTrust,
   protectedDriveServices:scopes};

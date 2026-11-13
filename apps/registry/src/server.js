@@ -12,7 +12,13 @@ import {handleReadOnlyEvidenceTelemetry} from './read-only-evidence-telemetry.js
 import {handleEvidenceReview} from './evidence-review-route.js';
 import {handleGroundedDelivery} from './grounded-delivery-route.js';
 import {handleProtectedDecisionLifecycle} from './protected-decision-lifecycle.js';
+import {handleProtectedUseReconciliation} from './protected-use-reconciliation.js';
+import {handleProtectedDependencyStatus} from './protected-dependency-status.js';
+
 import {createPilotComponents} from './pilot-components.js';
+import {PgDriveCursorCoordinator} from './pg-drive-cursor-coordinator.js';
+import {PgDriveOAuthPending} from './pg-drive-oauth-pending.js';
+import {PgDriveOwnerCredentials} from './pg-drive-owner-credentials.js';
 
 const MAX_BODY=200_000;
 function reply(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));}
@@ -79,6 +85,10 @@ export function createHandler(store,token,{trustedPolicyKeys=new Map(),trustedCo
    if(await handleGroundedDelivery(req,res,{pathname:url.pathname,actor,identity,
       authenticate,store,evidenceLedger,driveManager,driveIndex,
       protectedReviewTrust,protectedDriveServices,parseBody:body}))return;
+   if(await handleProtectedDependencyStatus(req,res,{pathname:url.pathname,actor,identity,
+     authenticate,evidenceLedger,store,driveManager,driveIndex,protectedReviewTrust}))return;
+   if(await handleProtectedUseReconciliation(req,res,{pathname:url.pathname,searchParams:url.searchParams,actor,identity,
+      authenticate,evidenceLedger}))return;
    if(await handleProtectedDecisionLifecycle(req,res,{pathname:url.pathname,actor,identity,
       authenticate,evidenceLedger,parseBody:body}))return;
    if(req.method==='GET'&&url.pathname==='/v1/state'){
@@ -169,7 +179,29 @@ if(process.argv[1]&&path.resolve(process.argv[1])===own){
  try{
   // Require explicit, checksummed migration before serving any requests.
   if(store.readiness)await store.readiness();
-  const pilot=createPilotComponents(process.env);
+  // Opt-in: reuse the signed Registry's existing PG pool. Never silently
+  // activate distributed cursor claims for the file-backed pilot.
+  const cursorEnabled=process.env.QUALITYRAG_DRIVE_CURSOR_PG==='true';
+  if(cursorEnabled&&(backend!=='postgres'||!store.pool||
+     process.env.QUALITYRAG_PILOT_MODE!=='true'))
+    throw Error('DRIVE_CURSOR_PG_REQUIRES_PG_PILOT');
+  const cursorKeyRaw=process.env.QUALITYRAG_DRIVE_CURSOR_IDENTITY_KEY;
+  if(cursorEnabled&&(!cursorKeyRaw||Buffer.from(cursorKeyRaw,'base64').length!==32||
+    Buffer.from(cursorKeyRaw,'base64').toString('base64')!==cursorKeyRaw))
+    throw Error('DRIVE_CURSOR_IDENTITY_KEY_REQUIRED');
+  const cursorCoordinator=cursorEnabled?new PgDriveCursorCoordinator(store.pool,{
+    identityKey:Buffer.from(cursorKeyRaw,'base64')
+  }):null;
+  const oauthPending=cursorEnabled?new PgDriveOAuthPending(store.pool,{
+    identityKey:Buffer.from(cursorKeyRaw,'base64'),
+    encryptionKey:Buffer.from(process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY||'','base64')
+  }):null;
+  // Shared per-owner Google credentials: separate keys for owner identity and credential encryption.
+  const credentialStore=cursorEnabled?new PgDriveOwnerCredentials(store.pool,{
+    identityKey:Buffer.from(cursorKeyRaw,'base64'),
+    encryptionKey:Buffer.from(process.env.QUALITYRAG_DRIVE_ENCRYPTION_KEY||'','base64')
+  }):null;
+  const pilot=createPilotComponents(process.env,{cursorCoordinator,oauthPending,credentialStore});
   const server=http.createServer(createHandler(store,process.env.QUALITYRAG_REGISTRY_TOKEN,
     {trustedPolicyKeys:keys,trustedContractKeys:contractKeys,authenticate:oidc,enforceSeparation:!!oidc,...pilot}));
   const host=process.env.QUALITYRAG_BIND_HOST||'127.0.0.1';

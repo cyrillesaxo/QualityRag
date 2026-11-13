@@ -42,7 +42,7 @@ export async function handleProtectedAdmission(req,res,{pathname,authenticate,ac
    send(res,403,{error:'PROTECTED_ADMISSION_SCOPE_NOT_PROTECTED'});return true;
   }
   const policy=await store.resolve(serviceId,environment);
-  const connection=driveManager.status(actor);
+  const connection=(await driveManager.status(actor));
   if(!connection?.connected||!connection.folderId||connection.folderId==='root')
    throw Error('PROTECTED_OWNER_CONTEXT_CHANGED');
   const verified=verifyHumanReviewAttestations(custody,meaning,protectedReviewTrust,{
@@ -54,7 +54,7 @@ export async function handleProtectedAdmission(req,res,{pathname,authenticate,ac
   const live=await driveIndex.verifyLiveApprovedWitnesses(actor,driveManager,verified.payload.witnesses);
   // Re-resolve asynchronously; no admission if policy or owner scope changed during I/O.
   const current=await store.resolve(serviceId,environment);
-  const latest=driveManager.status(actor);
+  const latest=(await driveManager.status(actor));
   if(current.sha256!==policy.sha256||!latest.connected||
      latest.folderId!==connection.folderId||latest.email!==connection.email)
     throw Error('PROTECTED_OWNER_CONTEXT_CHANGED');
