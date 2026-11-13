@@ -8,3 +8,10 @@ The adapter supports MCP initialize, ping, tools/list and tools/call. **Backend 
 
 Production checklist: verify the exact upstream operation protocol, implement structured input schemas from the Python server, configure OAuth for ChatGPT remote connectors instead of a static token, add CORS origin restrictions, integration tests, rate limits, and connect Neon persistence to the backend. Do not publicly advertise an endpoint until these pass.
 \n**Deployment verification:** a ready static homepage does not prove Netlify registered the MCP function. Inspect the deployment `available_functions` for `mcp` and `health`. With no `QUALITYRAG_MCP_ACCESS_TOKEN`, `POST /mcp` must return HTTP 401; with no backend credentials, `/health` returns HTTP 503 and must not claim the governance engine is operational. Never configure a fake upstream simply to turn the status green.\n
+
+## Netlify site configuration
+
+The site's build configuration is `netlify/mcp/netlify.toml`. Set the `qualityrag-mcp` site's **base
+directory to `netlify/mcp`**. The repository root holds no Netlify configuration, because more than
+one Netlify site builds from this repository. To let pull requests run the live preview smoke test,
+enable deploy previews on the site and set the repository variable `QUALITYRAG_MCP_PREVIEWS_ENABLED=true`.
