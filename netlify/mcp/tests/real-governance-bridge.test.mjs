@@ -57,6 +57,9 @@ test("real signed Python governance API produces both admissible and inconclusiv
   const {child,ready}=await launch();
   try{
     process.env.QUALITYRAG_MCP_ACCESS_TOKEN="local-bridge-test";
+  // main enforces a current, at most 60-day client bearer window (security(mcp) 60-day expiry).
+  process.env.QUALITYRAG_MCP_TOKEN_ISSUED_AT=new Date(Date.now()-1000).toISOString().replace(/\.\d{3}Z$/,"Z");
+  process.env.QUALITYRAG_MCP_TOKEN_EXPIRES_AT=new Date(Date.now()+30*24*60*60*1000).toISOString().replace(/\.\d{3}Z$/,"Z");
     process.env.QUALITYRAG_API_ENDPOINT="https://fixture-governance.example";
     process.env.QUALITYRAG_API_TOKEN_JSON=JSON.stringify(ready.token);
 
