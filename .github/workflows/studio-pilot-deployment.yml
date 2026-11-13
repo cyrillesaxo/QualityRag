@@ -2,7 +2,15 @@ name: Studio pilot deployment validation
 on:
   push:
     branches:
+      - main
       - deploy/qualityrag-studio-pilot
+    paths:
+      - 'apps/studio/**'
+      - '.github/workflows/studio-pilot-deployment.yml'
+  pull_request:
+    paths:
+      - 'apps/studio/**'
+      - '.github/workflows/studio-pilot-deployment.yml'
   workflow_dispatch:
 permissions:
   contents: read

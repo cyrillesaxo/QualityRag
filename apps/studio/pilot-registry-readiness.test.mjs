@@ -13,9 +13,16 @@ test('pilot diagnostic checks only same-origin readiness without credentials',()
  assert.match(source,/typeof \(data as \{ready:unknown\}\)\.ready!=='boolean'/);
  assert.match(source,/Authentication, OAuth, and authorization remain unverified/);
 });
-test('operator gets explicit credential safety warning and diagnostic ahead of token form',()=>{
- const diag=app.indexOf('<RegistryReadiness/>');
- const input=app.indexOf('Registry bearer token');
- assert.ok(diag>0&&input>diag);
- assert.match(app,/Do not paste an OIDC token or customer secrets/);
+const login=readFileSync('apps/studio/src/StudioLogin.tsx','utf8');
+test('no public bearer-token form: sign-in first, manual tokens only behind an explicit operator flag',()=>{
+ // The dashboard is unreachable without a verified token; the login page comes first.
+ assert.match(app,/if\(!token\)return <StudioLogin onAuthenticated=\{setToken\}\/>/);
+ assert.doesNotMatch(app,/Registry bearer token/);
+ // A manual token field exists only when the operator flag is set, with its own warning.
+ assert.match(login,/VITE_QUALITYRAG_ALLOW_MANUAL_TOKEN==='true'/);
+ assert.match(login,/\{manualAllowed&&<details/);
+ assert.match(login,/Never paste production credentials into an unverified deployment/);
+ assert.match(login,/type="password" autoComplete="off"/);
+ // The readiness diagnostic is shown on the login page, before any credential is entered.
+ assert.ok(login.indexOf('<RegistryReadiness/>')>0);
 });

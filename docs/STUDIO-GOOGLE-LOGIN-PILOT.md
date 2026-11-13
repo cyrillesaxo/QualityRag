@@ -8,6 +8,13 @@ The static Studio includes a login page with **Continue with Google**. The contr
 
 The public React login is not an access control for the published JavaScript assets. All data/API authorization belongs in the secure Registry. Do not expose Registry on a public unprotected host, put client secrets in `VITE_*` variables, or send customer documents during a smoke test.
 
+## Netlify site configuration
+
+The Studio build configuration lives in `apps/studio/netlify.toml`. Set the Netlify site's **base
+directory to `apps/studio`** (the repository root holds no Netlify configuration, because more than one
+Netlify site builds from this repository). The `marvelous-griffin-ee3535` site currently deploys from the
+`deploy/qualityrag-studio-pilot` branch, which still carries its own root configuration.
+
 ## Required frontend build configuration (Netlify project, Builds scope)
 
 - `VITE_QUALITYRAG_OIDC_CLIENT_ID` — **public** client ID, not a Google client secret

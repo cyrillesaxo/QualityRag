@@ -1,8 +1,9 @@
-# Dedicated QualityRAG Studio pilot. Do not use this branch to publish Registry.
-# The browser app is experimental and requires an independently configured
-# authenticated Registry on the same origin for /v1/* endpoints.
+# QualityRAG Studio (experimental) — read by Netlify when the site's base directory is apps/studio.
+# Kept inside the package (not at the repository root) because several Netlify sites build from this
+# repository; a root netlify.toml would apply to all of them. Do not use it to publish Registry.
+# The browser app requires an independently configured authenticated Registry on the same origin
+# for /v1/* endpoints.
 [build]
-  base = "apps/studio"
   command = "npm install --no-audit --no-fund && npm run build"
   publish = "dist"
 
