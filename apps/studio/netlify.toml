@@ -1,0 +1,22 @@
+# QualityRAG Studio (experimental) — read by Netlify when the site's base directory is apps/studio.
+# Kept inside the package (not at the repository root) because several Netlify sites build from this
+# repository; a root netlify.toml would apply to all of them. Do not use it to publish Registry.
+# The browser app requires an independently configured authenticated Registry on the same origin
+# for /v1/* endpoints.
+[build]
+  command = "npm install --no-audit --no-fund && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  VITE_QUALITYRAG_EXPERIMENTAL_STUDIO = "true"
+
+# Do not proxy /v1/* to an unverified backend. The pilot must not silently
+# turn API requests into successful HTML responses.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"
