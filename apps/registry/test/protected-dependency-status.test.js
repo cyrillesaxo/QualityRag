@@ -28,7 +28,10 @@ function fixture({policySha=policy,revoked=false,folder='folder-one',connected=t
 async function check(variant,token='reader'){
  const f=fixture(variant);
  const server=http.createServer(createHandler(f.store,null,{
-   authenticate:auth,evidenceLedger:f.ledger,driveManager:f.driveManager
+   authenticate:auth,evidenceLedger:f.ledger,driveManager:f.driveManager,
+   // createHandler requires the index whenever Drive is enabled; live witness checks stay off
+   // here because no protected review trust is configured.
+   driveIndex:{}
  }));
  await new Promise(done=>server.listen(0,'127.0.0.1',done));
  try{

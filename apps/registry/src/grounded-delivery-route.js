@@ -52,7 +52,7 @@ export async function handleGroundedDelivery(req,res,{pathname,identity,actor,
    throw Error('PROTECTED_DECISION_REVOKED');
   const policy=await store.resolve(decision.serviceId,decision.environment);
   if(policy.sha256!==decision.policySha256)throw Error('PROTECTED_USE_POLICY_CHANGED');
-  const owner=driveManager.status(actor);
+  const owner=(await driveManager.status(actor));
   if(!owner?.connected||!owner.folderId||owner.folderId==='root')
    throw Error('PROTECTED_OWNER_CONTEXT_CHANGED');
   const verified=verifyHumanReviewAttestations(
@@ -65,7 +65,7 @@ export async function handleGroundedDelivery(req,res,{pathname,identity,actor,
    actor,driveManager,verified.payload.witnesses,{
     includeWitnessLines:true,includeConstraintScan:true,includeRelationshipScan:true});
   const latestPolicy=await store.resolve(decision.serviceId,decision.environment);
-  const latestOwner=driveManager.status(actor);
+  const latestOwner=(await driveManager.status(actor));
   if(latestPolicy.sha256!==policy.sha256||!latestOwner?.connected||
      latestOwner.email!==owner.email||latestOwner.folderId!==owner.folderId)
    throw Error('PROTECTED_USE_POLICY_CHANGED');

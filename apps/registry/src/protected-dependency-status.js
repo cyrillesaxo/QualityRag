@@ -39,7 +39,7 @@ export async function handleProtectedDependencyStatus(req,res,{
    }catch{}
    let driveState='UNKNOWN';
    try{
-     const drive=driveManager.status(actor);
+     const drive=(await driveManager.status(actor));
      if(!drive?.connected||!drive.folderId||drive.folderId==='root')
        driveState='DISCONNECTED';
      else {
@@ -55,7 +55,7 @@ export async function handleProtectedDependencyStatus(req,res,{
       driveIndex&&protectedReviewTrust){
      try{
        const activePolicy=await store.resolve(decision.serviceId,decision.environment);
-       const ownerBefore=driveManager.status(actor);
+       const ownerBefore=(await driveManager.status(actor));
        const signed=verifyHumanReviewAttestations(
          decision.signedCustody,decision.signedMeaning,protectedReviewTrust,{
            serviceId:decision.serviceId,environment:decision.environment,
@@ -68,7 +68,7 @@ export async function handleProtectedDependencyStatus(req,res,{
            includeWitnessLines:true,includeConstraintScan:true,includeRelationshipScan:true
          });
        const policyAfter=await store.resolve(decision.serviceId,decision.environment);
-       const ownerAfter=driveManager.status(actor);
+       const ownerAfter=(await driveManager.status(actor));
        if(policyAfter.sha256!==activePolicy.sha256||
           ownerBefore.email!==ownerAfter.email||
           ownerBefore.folderId!==ownerAfter.folderId||!ownerAfter.connected)

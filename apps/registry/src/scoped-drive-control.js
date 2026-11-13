@@ -21,6 +21,15 @@ function safe(code){
   'DRIVE_SHARED_INDEX_NOT_READY','DRIVE_SYNC_CHECKPOINT_CONFLICT'].includes(code)?
     code:'DRIVE_OPERATION_FAILED';
 }
+// Coordinated (shared PostgreSQL) operations when the implementation provides them; the original
+// synchronous interface otherwise. Both real classes implement the coordinated methods with a local
+// fallback, so this only keeps narrower implementations (and test doubles) working unchanged.
+async function clearIndex(driveIndex,subject){
+ return typeof driveIndex.clearCoordinated==='function'?driveIndex.clearCoordinated(subject):driveIndex.clear(subject);
+}
+async function startConnect(driveManager,subject){
+ return typeof driveManager.startCoordinated==='function'?driveManager.startCoordinated(subject):driveManager.start(subject);
+}
 // Google redirects cannot attach the caller's OIDC bearer token. The manager
 // validates the single-use high-entropy state bound to the OIDC subject at start.
 export async function handleDriveOauthCallback(req,res,{url,authenticate,driveManager,driveIndex}){
@@ -43,7 +52,7 @@ export async function handleDriveOauthCallback(req,res,{url,authenticate,driveMa
   if(!completed||typeof completed.subject!=='string'||!completed.subject.trim())
    throw Error('DRIVE_OAUTH_SUBJECT_MISMATCH');
   // A new account connection invalidates any previously indexed source scope.
-  await driveIndex.clearCoordinated(completed.subject);
+  await clearIndex(driveIndex,completed.subject);
   succeeded=true;
  }catch{ /* Do not reflect provider error, state or authorization code. */ }
  // This origin is configured and validated by the manager, never read from URL.
@@ -72,19 +81,16 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
  const method=['source-control','sync','clear-index','start','folder','disconnect','search'].includes(route)?'POST':'GET';
  if(req.method!==method){send(res,404,{error:'NOT_FOUND'});return true}
  try{
-  const conn=driveManager.status(actor);
-  // Legacy synchronous previews are local-only; do not present them as
-  // authoritative after the encrypted index moves to shared PostgreSQL.
-  if(driveIndex.cursorCoordinator&&
-    ['status','index','visibility','search'].includes(route)){
-    send(res,503,{error:'DRIVE_SHARED_READ_ADAPTER_PENDING',
-      sourceTruth:'UNKNOWN',releasePermitted:false});return true;
-  }
+  const conn=(await driveManager.status(actor));
+  // US-068: with the index in shared PostgreSQL, reads come only from the verified shared baseline,
+  // never from this replica's local cache.
+  const shared=!!driveIndex.cursorCoordinator;
+  const indexStatus=()=>shared?driveIndex.statusShared(actor,conn):driveIndex.status(actor,conn);
   let result;
-  if(route==='status')result={...conn,indexEnabled:true,index:driveIndex.status(actor,conn)};
-  else if(route==='index')result=driveIndex.status(actor,conn);
-  else if(route==='visibility')result=driveIndex.visibility(actor,conn);
-  else if(route==='start')result=await driveManager.startCoordinated(actor);
+  if(route==='status')result={...conn,indexEnabled:true,index:await indexStatus()};
+  else if(route==='index')result=await indexStatus();
+  else if(route==='visibility')result=shared?await driveIndex.visibilityShared(actor,conn):driveIndex.visibility(actor,conn);
+  else if(route==='start')result=await startConnect(driveManager,actor);
   else if(route==='folders')result=await driveManager.folders(actor,
     url?.searchParams.get('parentId')||'root',url?.searchParams.get('pageToken')||null);
   else if(route==='folder'){
@@ -94,7 +100,7 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
     throw Error('INVALID_DRIVE_FOLDER_ID');
    const oldFolder=conn.folderId;
    result=await driveManager.selectFolder(actor,data.folderId);
-   if(oldFolder!==result.folderId)await driveIndex.clearCoordinated(actor);
+   if(oldFolder!==result.folderId)await clearIndex(driveIndex,actor);
   }
   else if(route==='files')result=await driveManager.selectedFiles(actor);
   else if(route==='search'){
@@ -102,10 +108,10 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
    if(!data||typeof data!=='object'||Array.isArray(data)||
       Object.keys(data).length!==1||typeof data.query!=='string')
     throw Error('INVALID_DRIVE_SEARCH_QUERY');
-   result=driveIndex.search(actor,conn,data.query);
+   result=shared?await driveIndex.searchShared(actor,conn,data.query):driveIndex.search(actor,conn,data.query);
   }
   else if(route==='disconnect'){
-   await driveIndex.clearCoordinated(actor);result=await driveManager.disconnect(actor);
+   await clearIndex(driveIndex,actor);result=await driveManager.disconnect(actor);
   }
   else if(route==='source-control'){
    const data=await parseBody(req);
@@ -116,7 +122,7 @@ export async function handleScopedDriveControl(req,res,{pathname,actor,authentic
      await driveIndex.controlSharedSource(actor,conn,data):
      driveIndex.controlSource(actor,conn,data);
   }else if(route==='sync')result=await driveIndex.sync(actor,driveManager);
-  else result=await driveIndex.clearCoordinated(actor);
+  else result=await clearIndex(driveIndex,actor);
   send(res,200,result);return true;
  }catch(error){
   const code=safe(error?.message);

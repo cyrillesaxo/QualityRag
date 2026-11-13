@@ -104,6 +104,34 @@ export class PgDriveOwnerCredentials {
    throw error;
   }finally{db.release()}
  }
+ // Folder selection is an owner decision, not a token rotation: it is the only update that may
+ // change folder_id/folder_name. It locks the row, refuses a disconnected owner (no resurrection)
+ // and keeps the account and tokens unchanged.
+ async selectFolder(subject,folderId,folderName){
+  requireValid(typeof folderId==='string'&&/^[a-zA-Z0-9_-]{1,200}$/.test(folderId)&&
+    typeof folderName==='string'&&folderName.length>0&&folderName.length<=250,'INVALID_DRIVE_FOLDER_ID');
+  const db=await this.pool.connect();let began=false;
+  try{
+   await db.query('BEGIN');began=true;
+   await db.query("SET LOCAL lock_timeout = '3000ms'");
+   const current=await db.query(`
+     SELECT credential_envelope,disconnected FROM qr_drive_owner_credentials
+     WHERE owner_key=$1 FOR UPDATE
+   `,[this.owner(subject)]);
+   requireValid(current.rowCount===1&&!current.rows[0].disconnected,'DRIVE_CONNECTION_NOT_FOUND');
+   const value=this.open(subject,current.rows[0].credential_envelope);
+   const next={...value,folder_id:folderId,folder_name:folderName};
+   const updated=await db.query(`
+     UPDATE qr_drive_owner_credentials SET credential_envelope=$2::jsonb,revision=revision+1,updated_at=now()
+     WHERE owner_key=$1 RETURNING revision
+   `,[this.owner(subject),JSON.stringify(this.seal(subject,next))]);
+   await db.query('COMMIT');began=false;
+   return {revision:Number(updated.rows[0].revision)};
+  }catch(error){
+   if(began)try{await db.query('ROLLBACK')}catch{}
+   throw error;
+  }finally{db.release()}
+ }
  async disconnect(subject){
   // Retain a tombstone, so an in-flight worker cannot accidentally restore
   // the credential by inserting an obsolete refresh result.

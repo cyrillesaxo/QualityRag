@@ -199,3 +199,70 @@ the scope/authorization routes, eliminate local token lookups in coordinated
 mode, and verify refresh, logout and re-consent concurrency against two
 actual PostgreSQL clients. State and refresh secrets must never appear in
 logs, telemetry or API responses.
+
+## 2026-11-13 integration increment — built, executed and wired
+
+This increment builds and **executes** the earlier groundwork and closes the cross-replica gaps
+listed above. Status remains **not READY/ACCEPTED** (see the acceptance gate).
+
+**Executed for the first time.** The full Registry suite runs against a real PostgreSQL 16:
+210 tests pass (main had 131). The first run of the branch found five regressions in the existing
+routes, now fixed:
+
+- `scoped-drive-control` called `startCoordinated`/`clearCoordinated` unconditionally. Narrower
+  implementations now fall back to `start`/`clear`.
+- The new dependency-status test built a handler that violated the `createHandler` invariant.
+
+**Real two-process PostgreSQL acceptance** (`pg-drive-two-process.test.js`). Each race runs as two
+separate OS processes with their own pools, released together by a barrier, and is stable over
+repeated runs:
+
+| Scenario | Result |
+|---|---|
+| Two replicas advance the same cursor version (5 rounds) | Exactly one `ADVANCED`, one `CONFLICT` per round |
+| Fenced resync racing an old-generation poll | Never both; an old-generation poll can never write afterwards |
+| `markStale` racing `advance` | STALE wins and is irreversible; later advances `CONFLICT` |
+| One OAuth state consumed on two replicas | Exactly one succeeds; the other gets `DRIVE_OAUTH_STATE_INVALID` |
+| Two replicas refresh the same credential | Serialised: each sees a different predecessor; revision +2 |
+| Refresh held past `lock_timeout` | The waiter fails closed (`lock timeout`) and never sees a credential |
+| Refresh after disconnect | `DRIVE_CONNECTION_NOT_FOUND`; the tombstone is not resurrected |
+
+**Shared credentials wired (was "critical pending wiring").** With `QUALITYRAG_DRIVE_CURSOR_PG=true`:
+
+- **Store:** the server injects `PgDriveOwnerCredentials`, and `GoogleDriveConnections` reads and
+  writes owner credentials only through it. The local credential file is never read or written in
+  this mode.
+- **Connector methods:** `status` is async in this mode. Exchange, folder selection
+  (`selectFolder`, row-locked, refuses tombstones), token refresh (row-locked; a waiting replica
+  reuses the rotated token) and disconnect (shared tombstone first) all go through the store.
+- **Call sites:** every route awaits `status`.
+- **All-or-nothing:** shared cursors, shared OAuth state and shared credentials are enabled
+  together (`PILOT_SHARED_DRIVE_STATE_INCOMPLETE`).
+- **Evidence:** `drive-shared-credentials.test.js` uses two connector replicas with separate local
+  files and separate pools on real PostgreSQL. It covers:
+  - connect started on A and completed on B;
+  - a folder chosen on B is A's folder;
+  - concurrent expired-token refresh rotates once at Google;
+  - disconnect on A stops B immediately, and re-consent reconnects without the old folder.
+
+**Shared read adapters (was "explicitly unavailable").** Status, index, visibility, search and
+governed candidate checks now read the verified shared baseline (`sharedView` on top of
+`sharedBound`) instead of answering 503:
+
+- A STALE checkpoint is reported as STALE, search returns no hits (`SYNC_REQUIRED`), and the
+  candidate check is `NOT_CURRENT`.
+- Owner exclusions are still enforced on a STALE baseline, so a denial is never hidden behind
+  staleness.
+- **Evidence:** `drive-shared-index-real-pg.test.js` uses two index replicas on real PostgreSQL. It
+  covers reading from a replica without a local index, a different account binding being refused,
+  an exclusion made on A being enforced on B, and drift inspection (clean advance, durable STALE,
+  then UNKNOWN).
+
+**Still not evidenced (blocking acceptance):**
+- Live Google Drive OAuth, pagination, 410 cursor expiry and permission-revocation behaviour; Google
+  is a local fake in every test above.
+- Authenticated scheduled polling with quotas and observability.
+- Production deployment controls: the pilot remains loopback-only.
+- Accessibility and customer acceptance, and independent security/product acceptance.
+- `QUALITYRAG_DRIVE_ENCRYPTION_KEY` currently encrypts both shared OAuth state and shared
+  credentials (separated by AAD). Dedicated keys per purpose would be stricter.

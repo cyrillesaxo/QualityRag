@@ -127,12 +127,43 @@ export class UserDriveIndex {
     return null;
   return snapshot;
  }
+ // US-068 shared read adapter: the verified shared baseline plus whether the shared checkpoint is
+ // STALE. Integrity, owner, binding and generation checks are those of sharedBound; a local cache is
+ // never consulted. A STALE baseline may be *shown* (and still enforces owner exclusions) but is
+ // never fresh evidence.
+ async sharedView(subject,connection){
+  check(this.cursorCoordinator,'DRIVE_SHARED_COORDINATOR_REQUIRED');
+  const snapshot=await this.sharedBound(subject,connection,{allowStale:true});
+  if(!snapshot)return {snapshot:null,stale:false};
+  const checkpoint=await this.cursorCoordinator.read(subject);
+  return {snapshot,stale:checkpoint?.stale===true};
+ }
+ async statusShared(subject,connection){
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return {...this.statusFrom(snapshot,{stale}),activityLogScope:'SHARED_ENCRYPTED_BASELINE'};
+ }
+ async visibilityShared(subject,connection){
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return {...this.visibilityFrom(snapshot,connection,{stale}),activityLogScope:'SHARED_ENCRYPTED_BASELINE'};
+ }
+ async searchShared(subject,connection,query){
+  const tokens=this.searchTerms(query);
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return this.searchFrom(snapshot,tokens,{stale});
+ }
+ async checkGovernedCandidatesShared(subject,connection,policy,policySha256,candidates){
+  this.validateCandidates(policy,policySha256,candidates);
+  const {snapshot,stale}=await this.sharedView(subject,connection);
+  return this.candidatesFrom(snapshot,connection,policy,policySha256,candidates,{stale});
+ }
  status(subject,connection){
-  const snap=this.bound(subject,connection);
+  return this.statusFrom(this.bound(subject,connection));
+ }
+ statusFrom(snap,{stale=false}={}){
   if(!snap)return {indexed:false,sourceCount:0,syncStatus:'NOT_INDEXED',coverage:'UNKNOWN'};
   const age=this.now()-Date.parse(snap.syncedAt);
   return {indexed:true,sourceCount:snap.entries.length,lastSyncedAt:snap.syncedAt,
-    syncStatus:age>=MAX_AGE_MS?'STALE':'READY',
+    syncStatus:stale||age>=MAX_AGE_MS?'STALE':'READY',
     coverage:snap.coverage,summary:snap.summary,
     sourceControls:{
       searchable:snap.entries.filter(e=>e.searchEnabled!==false).length,
@@ -153,7 +184,7 @@ export class UserDriveIndex {
   // trying to resync from the same baseline cannot both publish.
   const checkpointBefore=this.cursorCoordinator?
     await this.cursorCoordinator.read(subject):null;
-  const connection=connector.status(subject);
+  const connection=(await connector.status(subject));
   check(connection.connected,'DRIVE_CONNECTION_NOT_FOUND');
   // Capture before reading listing and bytes: changes during indexing can
   // later be discovered from this durable cursor, not silently missed.
@@ -225,7 +256,7 @@ export class UserDriveIndex {
       'PARTIAL':'SELECTED_FOLDER_TEXT_FILES',entries};
   // Atomic replacement prunes removed/deleted sources on each successful resync.
   // Search rejects a changed account/folder even if an old index remains on disk.
-  const latest=connector.status(subject);
+  const latest=(await connector.status(subject));
   check((this.generations.get(ownerKey)||0)===startGeneration,
     'DRIVE_SYNC_INVALIDATED');
   check(latest.connected&&latest.email===connection.email&&
@@ -263,13 +294,15 @@ export class UserDriveIndex {
   }
  }
  visibility(subject,connection){
-  const snap=this.bound(subject,connection);
+  return this.visibilityFrom(this.bound(subject,connection),connection);
+ }
+ visibilityFrom(snap,connection,{stale=false}={}){
   if(!snap)return {indexed:false,coverage:'UNKNOWN',sources:[],inventory:[],
     activity:[],sourceTruth:'UNVERIFIED',packSpecAdmission:'NOT_PERFORMED'};
   const age=this.now()-Date.parse(snap.syncedAt);
   return {
     indexed:true,lastSyncedAt:snap.syncedAt,
-    stale:!Number.isFinite(age)||age<0||age>MAX_AGE_MS,
+    stale:stale||!Number.isFinite(age)||age<0||age>MAX_AGE_MS,
     account:connection.email,folderId:connection.folderId,
     scope:'ONE_SELECTED_FOLDER_DIRECT_CHILDREN',
     coverage:snap.coverage,summary:snap.summary,
@@ -411,7 +444,7 @@ export class UserDriveIndex {
      cursor=page.nextPageToken;
    }
    if(!final)return unknown;
-   const after=connector.status(subject),existing=await this.sharedBound(subject,after);
+   const after=(await connector.status(subject)),existing=await this.sharedBound(subject,after);
    if(!after.connected||after.email!==connection.email||
      after.folderId!==connection.folderId||
      existing?.syncedAt!==snapshot.syncedAt||
@@ -429,7 +462,7 @@ export class UserDriveIndex {
      if(result!=='ADVANCED')return unknown;
      // Confirm that a concurrent local sync or control edit did not supersede
      // the baseline during the database round trip.
-     const latest=connector.status(subject);
+     const latest=(await connector.status(subject));
      const latestSnapshot=await this.sharedBound(subject,latest);
      if(!latestSnapshot||
        coordinator.generation(subject,latestSnapshot)!==generation||
@@ -463,7 +496,7 @@ export class UserDriveIndex {
   if(this.activeSyncs.has(this.location(subject)))return unchanged;
   let conn,before;
   try{
-   conn=connector.status(subject);
+   conn=(await connector.status(subject));
    before=await this.sharedBound(subject,conn);
    if(!conn?.connected||!before||!conn.folderId||conn.folderId==='root'||
       before.coverage!=='SELECTED_FOLDER_TEXT_FILES'||!Array.isArray(before.entries))
@@ -499,7 +532,7 @@ export class UserDriveIndex {
      if(!Buffer.isBuffer(bytes)||sha(bytes)!==source.revision)
        return await changed(before,conn);
    }
-   const after=connector.status(subject);
+   const after=(await connector.status(subject));
    if(!after?.connected||after.folderId!==conn.folderId||
       after.email!==conn.email||
       (this.generations.get(this.location(subject))||0)!==generation||
@@ -528,7 +561,7 @@ export class UserDriveIndex {
     'PROTECTED_WITNESS_LIMIT');
   const ownerKey=this.location(subject);
   check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
-  const connection=connector.status(subject);
+  const connection=(await connector.status(subject));
   const snapshot=await this.sharedBound(subject,connection);
   check(snapshot&&connection.folderId!=='root'&&
     snapshot.coverage==='SELECTED_FOLDER_TEXT_FILES',
@@ -589,7 +622,7 @@ export class UserDriveIndex {
   // so a concurrent owner exclusion cannot interleave between final check
   // and admission on this single-process research registry.
   check(!this.activeSyncs.has(ownerKey),'PROTECTED_SOURCE_SYNC_IN_PROGRESS');
-  const latest=connector.status(subject),current=await this.sharedBound(subject,latest);
+  const latest=(await connector.status(subject)),current=await this.sharedBound(subject,latest);
   check(latest.connected&&latest.email===connection.email&&
     latest.folderId===connection.folderId&&current&&
     current.syncedAt===snapshot.syncedAt&&
@@ -652,6 +685,10 @@ export class UserDriveIndex {
   // Guarded route from Drive *candidates* to governed evaluation. It deliberately
   // cannot ADMIT because lexical text and owner consent do not attest semantics
   // or independent source provenance.
+  this.validateCandidates(policy,policySha256,candidates);
+  return this.candidatesFrom(this.bound(subject,connection),connection,policy,policySha256,candidates);
+ }
+ validateCandidates(policy,policySha256,candidates){
   check(policy&&typeof policy.id==='string'&&
     typeof policy.version==='string'&&Array.isArray(policy.requirements)&&
     typeof policySha256==='string'&&/^[0-9a-f]{64}$/.test(policySha256),
@@ -678,9 +715,11 @@ export class UserDriveIndex {
     check(!seen.has(key),'DRIVE_GATE_DUPLICATE_CANDIDATE');
     seen.add(key);
   }
-  const snapshot=this.bound(subject,connection);
+ }
+ candidatesFrom(snapshot,connection,policy,policySha256,candidates,{stale=false}={}){
   const age=snapshot?this.now()-Date.parse(snapshot.syncedAt):NaN;
-  const fresh=Number.isFinite(age)&&age>=0&&age<=MAX_AGE_MS;
+  // A STALE shared checkpoint is never current, but its owner exclusions still apply below.
+  const fresh=!stale&&Number.isFinite(age)&&age>=0&&age<=MAX_AGE_MS;
   const observations=candidates.map(candidate=>{
     const source=snapshot?.entries.find(e=>e.sourceId===candidate.sourceId);
     const reasons=[];
@@ -727,15 +766,21 @@ export class UserDriveIndex {
     observations
   };
  }
- search(subject,connection,query){
+ searchTerms(query){
   check(typeof query==='string'&&query.trim().length>1&&query.length<=MAX_QUERY,
     'INVALID_DRIVE_SEARCH_QUERY');
   const tokens=terms(query);
   check(tokens.length>0&&tokens.length<=12,'INVALID_DRIVE_SEARCH_QUERY');
-  const snap=this.bound(subject,connection);
+  return tokens;
+ }
+ search(subject,connection,query){
+  const tokens=this.searchTerms(query);
+  return this.searchFrom(this.bound(subject,connection),tokens);
+ }
+ searchFrom(snap,tokens,{stale=false}={}){
   if(!snap)return {hits:[],indexed:false,coverage:'UNKNOWN',reason:'NOT_INDEXED'};
   const age=this.now()-Date.parse(snap.syncedAt);
-  if(!Number.isFinite(age)||age<0||age>MAX_AGE_MS)
+  if(stale||!Number.isFinite(age)||age<0||age>MAX_AGE_MS)
     return {hits:[],indexed:true,coverage:'STALE',reason:'SYNC_REQUIRED',lastSyncedAt:snap.syncedAt};
   const hits=[];
   for(const source of snap.entries){
