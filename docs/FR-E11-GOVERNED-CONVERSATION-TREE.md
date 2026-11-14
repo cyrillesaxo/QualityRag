@@ -138,32 +138,34 @@ The smallest slice that tests the idea is 069, 070, 073, 076, 079 and 084.
 4. **Gold set source:** which conversations may be used, and who the second annotator is.
 5. **Relation to the proposal:** whether this epic is evaluated inside the Reversible Semantic Compilation paper or as a separate study. The paper's own acceptance gate targets documents, not conversations.
 
-## Implementation evidence — slices 1 and 2
+## Implementation evidence — slices 1 to 3
 
-Package: `tools/conversation_tree/` · Guide: [CONVERSATION-TREE.md](CONVERSATION-TREE.md) · Tests: `tools/conversation_tree/tests/` (63 tests) · CI: `.github/workflows/conversation-tree.yml`
+Package: `tools/conversation_tree/` · Guide: [CONVERSATION-TREE.md](CONVERSATION-TREE.md) · Tests: `tools/conversation_tree/tests/` (76 tests) · CI: `.github/workflows/conversation-tree.yml`
 
 Local, deterministic, SQLite only. No model is called anywhere in the package. Statuses follow the FR.MD rule: a linked open PR is **IN_REVIEW**; nothing is DONE without merged review and independent evidence. "Has a direct test" below means a test exists in this package, not that the criterion is accepted.
 
 | Story | Module | Criteria with a direct test | Not delivered |
 |---|---|---|---|
 | US-069 | `tree.py` | 1, 2 (randomized byte round trip, restart), 3, 4 | Reuse of the US-017 custody module; attachments by reference |
-| US-070 | `tree.py` | 1, 2, 3, 5 | 4: operator and user-level rules above the root |
+| US-070 | `tree.py` | 1, 2, 3, 4 (standing OPERATOR and USER rules apply to every branch and cannot be superseded), 5 | — |
 | US-071 | `tree.py` | 1, 2 (turn-level anchors), 4, 5 | 3: only explicit supersession; no automatic conflict resolution |
 | US-072 | `classify.py` | 1, 2, 3, 5 | 4: accuracy UNMEASURED |
 | US-073 | `tree.py` | 1, 2, 3, 4, 5 | — |
 | US-074 | `differential.py`, `tree.py` | 2, 3, 4, 5 | 1: the caller runs both branches; equal model and budget are checked from declared values only |
 | US-075 | `tree.py` | 2, 3, 4 (refuses at the cap; the caller must ask the user) | 1 automatic witness detection; 5 metrics |
 | US-076 | `tree.py` | 1, 2, 5; 3 by this package's own conservation check | 3 reuse of `rct_source_span_conservation.py`; 4 `CONTRADICTED` status |
-| US-077 | `triggers.py` | 1, 2, 4 | 3 recall and false-trigger rate UNMEASURED; 5 invalidation on trigger-set change |
+| US-077 | `triggers.py`, `tree.py` | 1, 2, 4, 5 (a changed trigger set blocks a complete verdict) | 3 recall and false-trigger rate UNMEASURED |
 | US-078 | `compaction.py` | 1, 2, 3 | 4, 5: probes check span availability only; no model answers a probe; independence is a declared source |
 | US-079 | `tree.py` | 1, 2, 3, 4, 5 | — |
 | US-080 | `lake.py` | 1, 2, 4; 3 on local SQLite only | 3 PostgreSQL tenant ledger and an authenticated principal; 5 encryption at rest and retention |
 | US-081 | `retrieval.py` | 2, 3, 4, 5; 1 by turn, span and branch | 1 retrieval of a PackSpec by version ID; matching is lexical only |
 | US-082 | `mcp_server.py` | 2, 3 (size bounds), 5 | 1 not added to `tools/activation_runtime/mcp_server.py` or the Netlify adapter; 3 tenant authorization; 4 parity |
 | US-083 | `receipts.py` | 1, 3; 2 as a reported `STALE` status the caller must honor | 2 automatic blocking; 4 change-impact recall and false-invalidation rate |
-| US-084 | `evaluation.py` | Harness only: gold-file validator and scorer | Criteria 1 to 5: there are no threads, no annotators and no frozen set |
+| US-084 | `evaluation.py` | Tooling only: export a stored conversation, blank annotation template, two-annotator reconciliation with raw agreement, freeze with fingerprint, validator, scorer | Criteria 1 to 5: there are no threads, no annotators and no frozen set |
+| US-085 | `comparison.py`, [pre-registration draft](CONVERSATION-TREE-PREREGISTRATION.md) | Harness only: constraint availability per arm at a matched word budget (C0, C2, C3) | Every criterion. C1 and C4 are NOT_RUN, the primary endpoint needs model answers, and the pre-registration is an unsigned draft |
+| US-086 | `view.py` | 1, 3, 4 as a static read-only page; stored text is escaped | 2: no actions; not part of Studio |
 
-Not started: US-085 (pre-registered comparison) and US-086 (Studio view). The falsifiable claim at the top of this document is untested.
+No story is complete. The falsifiable claim at the top of this document is untested: no gold set exists and no model has been run.
 
 **Decisions taken in the code that the owner may reverse**
 - On `AGREE`, the differential test closes the **isolated** branch and keeps the merged one, because the merged branch retains the governance. Closing is reversible.

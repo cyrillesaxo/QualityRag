@@ -33,7 +33,10 @@ prompt. The parent branch is left untouched.
 | `receipts.py` | `receipt_status` says whether a gate verdict is still valid; `dependents` lists merged branches that inherited a node's governance |
 | `lake.py` | One conversation database per tenant and conversation, with tombstone deletion |
 | `mcp_server.py` | Read-only stdio tools for an assistant: `conversation_manifest`, `conversation_gate`, `conversation_get`, `conversation_search`, `conversation_ledger` |
-| `evaluation.py` | Validates a frozen, double-annotated gold file and scores the classifier and triggers against it |
+| `evaluation.py` | Gold-set tooling: `thread_from_tree`, `template`, `reconcile`, `freeze`, `validate`, `score` |
+| `comparison.py` | Constraint availability per arm at a matched word budget; arms that need a model are `NOT_RUN` |
+| `view.py` | Static, read-only HTML page of the tree and its ledgers |
+| `add_standing_rule` | Operator (SYSTEM turn) or user-level (USER turn) rules above the tree; they apply to every branch and cannot be superseded |
 
 Search receipt states: `ALL_MATCHES_RETURNED`, `PARTIAL`, `NONE_IN_SCOPE`, `NOT_SEARCHED`, `INDEX_INCOMPLETE`.
 `full_coverage_claimed` is always false.
@@ -44,6 +47,9 @@ Search receipt states: `ALL_MATCHES_RETURNED`, `PARTIAL`, `NONE_IN_SCOPE`, `NOT_
 python -m unittest discover -s tools/conversation_tree/tests -p 'test_*.py' -v
 python -m tools.conversation_tree.demo
 python -m tools.conversation_tree.evaluation            # UNMEASURED until a gold file is supplied
+python -m tools.conversation_tree.evaluation template /absolute/threads.json
+python -m tools.conversation_tree.evaluation reconcile /absolute/a.json /absolute/b.json
+python -m tools.conversation_tree.view /absolute/conversation.sqlite > tree.html
 QUALITYRAG_CONVERSATION_DB=/absolute/conversation.sqlite python -m tools.conversation_tree.mcp_server
 ```
 
@@ -55,7 +61,7 @@ QUALITYRAG_CONVERSATION_DB=/absolute/conversation.sqlite python -m tools.convers
 - **The classifier is unmeasured.** Only explicit markers produce `REFINE` or `PIVOT`; everything else
   forks. It has not been scored against human labels.
 - **Only USER turns bind.** Assistant, tool and system text cannot govern, confirm, supersede or witness.
-  Operator and user-level rules above the root are not modeled yet.
+  Rules above the root exist only as standing rules added explicitly by the host.
 - **Scope of the gate and manifest.** They check whether turns are loaded. They do not check that a model
   used them, and an empty inventory stays `INCONCLUSIVE`.
 - **Search is lexical.** `NONE_IN_SCOPE` means no shared words, not that nothing relevant exists.
@@ -69,4 +75,5 @@ QUALITYRAG_CONVERSATION_DB=/absolute/conversation.sqlite python -m tools.convers
 - **Trust boundary.** Hash chains and triggers detect ordinary corruption; they do not stop a database
   administrator.
 
-No gold conversation set, comparison against full-context or summary baselines, or Studio view exists yet.
+No gold conversation set exists and no model has been run, so nothing here is evidence that the tree
+beats loading the full transcript. The Studio app is untouched.

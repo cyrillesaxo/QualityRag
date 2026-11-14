@@ -13,8 +13,18 @@ Gold file (JSON):
                  "label": "REFINE" | "AMBIGUOUS" | "PIVOT" (USER turns after the first),
                  "constraints": [{"start", "end"}] (USER turns)}]}]
   frozen_sha256  fingerprint of ``threads``, fixed before any system output is seen
+  A constraint may carry ``"in_force_at_end": false`` when a later turn retired it (default true).
 
-    python -m tools.conversation_tree.evaluation /absolute/gold.json
+Producing a gold set (no step creates a label for you):
+  1. template(threads)            -> one blank annotation file per annotator
+  2. each annotator fills labels and constraint spans independently
+  3. reconcile(first, second)     -> raw agreement, the disagreements, and a draft
+  4. an expert resolves the draft's open items
+  5. freeze(threads, ...)         -> the gold file, fingerprinted
+
+    python -m tools.conversation_tree.evaluation score /absolute/gold.json
+    python -m tools.conversation_tree.evaluation template /absolute/threads.json
+    python -m tools.conversation_tree.evaluation reconcile /absolute/a.json /absolute/b.json
 """
 from __future__ import annotations
 
@@ -67,6 +77,107 @@ def validate(gold):
     return gold
 
 
+ANNOTATION_SCHEMA = "qualityrag.conversation-annotation/v0.1"
+
+
+def thread_from_tree(tree, thread_id):
+    """Export a stored conversation as a thread to annotate. Non-text turns are refused, not skipped."""
+    turns = []
+    for turn in tree.turns():
+        try:
+            text = turn["content"].decode("utf-8")
+        except UnicodeDecodeError:
+            raise ValueError("Turn %s is not text and cannot be annotated" % turn["turn_id"]) from None
+        turns.append({"turn_id": turn["turn_id"], "actor": turn["actor"], "text": text})
+    return {"thread_id": thread_id, "turns": turns}
+
+
+def _source(threads):
+    """Fingerprint of the text being annotated, independent of any labels."""
+    return fingerprint([[t["thread_id"], [[u["turn_id"], u["actor"], u["text"]] for u in t["turns"]]]
+                        for t in threads])
+
+
+def template(threads):
+    """Blank annotation file: every later USER turn needs a label, every USER turn a constraint list."""
+    out = []
+    for thread in threads:
+        seen_user, turns = False, []
+        for turn in thread["turns"]:
+            if not isinstance(turn.get("text"), str) or turn.get("actor") not in ("USER", "ASSISTANT", "TOOL", "SYSTEM"):
+                raise ValueError("Invalid turn")
+            item = {"turn_id": turn["turn_id"], "actor": turn["actor"], "text": turn["text"]}
+            if turn["actor"] == "USER":
+                item["constraints"] = None  # to fill: [] or [{"start", "end"}]
+                if seen_user:
+                    item["label"] = None    # to fill: REFINE | AMBIGUOUS | PIVOT
+                seen_user = True
+            turns.append(item)
+        out.append({"thread_id": thread["thread_id"], "turns": turns})
+    return {"schema": ANNOTATION_SCHEMA, "annotator": None, "source_sha256": _source(out), "threads": out}
+
+
+def _chars(spans):
+    return {i for span in spans for i in range(span["start"], span["end"])}
+
+
+def reconcile(first, second):
+    """Compare two independent annotations. Agreements are kept; disagreements are left open for an expert."""
+    for item in (first, second):
+        if item.get("schema") != ANNOTATION_SCHEMA or not isinstance(item.get("annotator"), str) or not item["annotator"]:
+            raise ValueError("Each file needs the annotation schema and an annotator ID")
+        if item.get("source_sha256") != _source(item["threads"]):
+            raise ValueError("Annotated text differs from the template it came from")
+    if first["annotator"] == second["annotator"] or first["source_sha256"] != second["source_sha256"]:
+        raise ValueError("Two different annotators must label the same text")
+    labelled = same = union = both = 0
+    disagreements, draft = [], []
+    for left, right in zip(first["threads"], second["threads"]):
+        turns = []
+        for a, b in zip(left["turns"], right["turns"]):
+            item = {"turn_id": a["turn_id"], "actor": a["actor"], "text": a["text"]}
+            if a["actor"] == "USER":
+                if a.get("constraints") is None or b.get("constraints") is None:
+                    raise ValueError("Unfilled constraints in %s" % a["turn_id"])
+                ca, cb = _chars(a["constraints"]), _chars(b["constraints"])
+                union, both = union + len(ca | cb), both + len(ca & cb)
+                agreed = ca == cb
+                item["constraints"] = a["constraints"] if agreed else None
+                if not agreed:
+                    disagreements.append({"thread_id": left["thread_id"], "turn_id": a["turn_id"],
+                                          "field": "constraints", "first": a["constraints"],
+                                          "second": b["constraints"]})
+                if "label" in a:
+                    if a["label"] not in LABELS or b.get("label") not in LABELS:
+                        raise ValueError("Unfilled or invalid label in %s" % a["turn_id"])
+                    labelled += 1
+                    same += a["label"] == b["label"]
+                    item["label"] = a["label"] if a["label"] == b["label"] else None
+                    if a["label"] != b["label"]:
+                        disagreements.append({"thread_id": left["thread_id"], "turn_id": a["turn_id"],
+                                              "field": "label", "first": a["label"], "second": b["label"]})
+            turns.append(item)
+        draft.append({"thread_id": left["thread_id"], "turns": turns})
+    return {"annotators": [first["annotator"], second["annotator"]],
+            "agreement": {"raw": same / labelled if labelled else 1.0,
+                          "raw_constraint_chars": both / union if union else 1.0,
+                          "labelled_turns": labelled},
+            "disagreements": disagreements, "draft_threads": draft,
+            "next": "An expert resolves every null in draft_threads, then freeze()."}
+
+
+def freeze(threads, *, annotators, agreement, reconciled, provenance):
+    """Fingerprint the resolved threads as the gold set. Refuses while anything is still open."""
+    for thread in threads:
+        for turn in thread["turns"]:
+            if turn["actor"] == "USER" and (turn.get("constraints") is None or turn.get("label", "") is None):
+                raise ValueError("Unresolved item in %s" % turn["turn_id"])
+    gold = {"schema": GOLD_SCHEMA, "provenance": provenance, "annotators": list(annotators),
+            "agreement": {**agreement, "reconciled": reconciled}, "threads": threads,
+            "frozen_sha256": fingerprint(threads)}
+    return validate(gold)
+
+
 def score(gold=None):
     """Confusion matrix for the classifier and recall / false-trigger rate for the triggers."""
     if gold is None:
@@ -106,12 +217,24 @@ def score(gold=None):
             "note": "No confidence intervals: sample size and intervals belong to the pre-registration (US-085)."}
 
 
+def _load(path):
+    with open(path, "rb") as handle:
+        return strict_json(handle.read(), max_bytes=20_000_000)
+
+
 def main(argv):
-    if len(argv) != 2:
-        print(json.dumps(score(None), indent=2))
-        return 0
-    with open(argv[1], "rb") as handle:
-        print(json.dumps(score(strict_json(handle.read(), max_bytes=20_000_000)), indent=2))
+    command, paths = (argv[1], argv[2:]) if len(argv) > 1 else ("score", [])
+    if command == "score" and len(paths) <= 1:
+        result = score(_load(paths[0]) if paths else None)
+    elif command == "template" and len(paths) == 1:
+        result = template(_load(paths[0]))
+    elif command == "reconcile" and len(paths) == 2:
+        result = reconcile(_load(paths[0]), _load(paths[1]))
+    else:
+        print("usage: evaluation [score [gold.json] | template threads.json | reconcile a.json b.json]",
+              file=sys.stderr)
+        return 2
+    print(json.dumps(result, indent=2))
     return 0
 
 

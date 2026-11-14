@@ -175,7 +175,7 @@ class ConversationTree:
     def replay(self):
         """Rebuild the tree deterministically from custody and the event chain."""
         turns = {t["turn_id"]: t for t in self.turns()}
-        branches, classifications, differentials, head = {}, [], [], None
+        branches, classifications, differentials, standing, head = {}, [], [], [], None
         for event in self._events():
             kind, data, eid = event["kind"], event["data"], event["event_id"]
             head = event["event_hash"]
@@ -194,6 +194,11 @@ class ConversationTree:
                 continue
             if kind == "DIFFERENTIAL":
                 differentials.append({**data, "event_id": eid})
+                continue
+            if kind == "STANDING":
+                if data["turn_id"] not in turns:
+                    raise ValueError("Event references a turn missing from custody")
+                standing.append({**data, "event_id": eid})
                 continue
             branch = branches.get(data.get("branch"))
             if branch is None:
@@ -217,7 +222,7 @@ class ConversationTree:
                 raise ValueError("Unknown event kind")
             branch["history"].append(eid)
         return {"schema": SCHEMA, "turns": turns, "branches": branches,
-                "classifications": classifications, "differentials": differentials, "head": head,
+                "classifications": classifications, "differentials": differentials, "standing": standing, "head": head,
                 "independent_validation": "NOT_ESTABLISHED"}
 
     # ------------------------------------------------------------------ helpers
@@ -231,12 +236,17 @@ class ConversationTree:
             inherited = ConversationTree._effective(state, branch["parent"])[:branch["parent_upto"]]
         return inherited + branch["members"]
 
+    @staticmethod
+    def _scope(state, name):
+        """Standing rules above the tree, then the branch's own visible turns."""
+        return [s["turn_id"] for s in state["standing"]] + ConversationTree._effective(state, name)
+
     def visible_turns(self, branch):
-        """Turn IDs in scope for a branch, in order."""
+        """Turn IDs in scope for a branch, in order: standing rules first, then the branch context."""
         state = self.replay()
         if branch not in state["branches"]:
             raise ValueError("Unknown branch")
-        return self._effective(state, branch)
+        return self._scope(state, branch)
 
     @staticmethod
     def _candidates(turn):
@@ -290,7 +300,8 @@ class ConversationTree:
 
     @staticmethod
     def _placed(state, turn_id):
-        return any(turn_id in b["members"] for b in state["branches"].values())
+        return (any(turn_id in b["members"] for b in state["branches"].values())
+                or any(turn_id == s["turn_id"] for s in state["standing"]))
 
     def _new_branch(self, state, at, *, name, kind, parent, turn_id, fork_id):
         identity(name)
@@ -316,6 +327,25 @@ class ConversationTree:
                 self._append("CONFIRM", at, {"branch": name, "turn_id": confirmed,
                                              "by_turn": info["by"], "inherited_from": info["event_id"]})
 
+    # ------------------------------------------------------------------ standing rules (US-070 criterion 4)
+
+    def add_standing_rule(self, *, turn_id, level, at):
+        """Place a rule above the tree. It applies to every branch, isolated ones included.
+
+        OPERATOR rules come from a SYSTEM turn, USER-level rules from a USER turn. No node
+        can amend, supersede or prune a standing rule; there is deliberately no API for it.
+        """
+        def operation(state):
+            turn = state["turns"].get(turn_id)
+            wanted = {"OPERATOR": "SYSTEM", "USER": "USER"}.get(level)
+            if turn is None or wanted is None or turn["actor"] != wanted:
+                raise ValueError("OPERATOR rules need a SYSTEM turn; USER rules need a USER turn")
+            if self._placed(state, turn_id):
+                raise ValueError("Turn already placed")
+            self._append("STANDING", at, {"turn_id": turn_id, "level": level})
+        self._write(operation)
+        return self.replay()
+
     # ------------------------------------------------------------------ governance (US-070/071)
 
     def open_root(self, *, turn_id, at, branch="root"):
@@ -324,6 +354,8 @@ class ConversationTree:
             if state["branches"]:
                 raise ValueError("Root already exists")
             self._require_user(state, turn_id)
+            if self._placed(state, turn_id):
+                raise ValueError("Turn already placed")
             self._new_branch(state, at, name=branch, kind="ROOT", parent=None,
                              turn_id=turn_id, fork_id=None)
         self._write(operation)
@@ -504,6 +536,7 @@ class ConversationTree:
         if node is None:
             raise ValueError("Unknown branch")
         visible = set(self._effective(state, branch))
+        standing = {s["turn_id"]: s["event_id"] for s in state["standing"]}
         spec = node["packspecs"][-1]
         obligations = {(o["turn_id"], o["start"], o["end"]): o for o in spec["obligations"]}
         spans, counts, chars = [], dict.fromkeys(DISPOSITIONS, 0), dict.fromkeys(DISPOSITIONS, 0)
@@ -523,6 +556,11 @@ class ConversationTree:
             placed = self._placed(state, turn["turn_id"])
             for item in scan(text):
                 start, end = item["start"], item["end"]
+                if turn["turn_id"] in standing:
+                    record(turn, start, end, "REPRESENTED", rule="STANDING_RULE",
+                           cites=standing[turn["turn_id"]],
+                           obligation="st-%s-%d-%d" % (turn["turn_id"], start, end))
+                    continue
                 if turn["turn_id"] not in visible:
                     if placed:
                         record(turn, start, end, "EXCLUDED_BY_RULE", rule="OUT_OF_BRANCH_SCOPE",
@@ -592,11 +630,29 @@ class ConversationTree:
             rows.append({"obligation_id": item["obligation_id"], "critical": item["critical"],
                          "status": status})
         unknown = spec["unknown"]
-        complete = not required and not unknown
+        for rule in state["standing"]:  # every span of a standing rule is a critical obligation
+            turn = state["turns"][rule["turn_id"]]
+            text = _decode(turn["content"])
+            if text is None:
+                unknown = True
+                continue
+            for item in scan(text):
+                oid = "st-%s-%d-%d" % (turn["turn_id"], item["start"], item["end"])
+                held = turn["turn_id"] in loaded
+                if not held:
+                    required.append({"obligation_id": oid, "turn_id": turn["turn_id"],
+                                     "start": item["start"], "end": item["end"]})
+                rows.append({"obligation_id": oid, "critical": True, "level": rule["level"],
+                             "status": "SUPPORTED" if held else "UNSUPPORTED"})
+        # Candidates produced by another trigger inventory cannot support a verdict under this one.
+        stale_triggers = spec["trigger_set"] != TRIGGER_SET
+        complete = not required and not unknown and not stale_triggers
         return {"schema": SCHEMA, "branch": branch, "packspec_version": spec["version"],
                 "packspec_status": spec["status"], "trigger_set": TRIGGER_SET, "snapshot": state["head"],
                 "verdict": "COMPLETE_WITHIN_SCOPE" if complete else "INCONCLUSIVE",
                 "required_reads": required, "unknown_inventory": unknown, "obligations": rows,
+                "stale_trigger_set": stale_triggers,
+                "standing_rules": [s["turn_id"] for s in state["standing"]],
                 "scope": "Declared lexical obligation candidates of this branch only",
                 "domain_admission": "INCONCLUSIVE", "can_generate": False}
 

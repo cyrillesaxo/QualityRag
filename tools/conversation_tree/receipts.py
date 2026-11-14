@@ -21,6 +21,8 @@ def receipt_status(tree, receipt):
                         if row["status"] == "NOT_APPLICABLE"}
         if set(node["superseded"]) != retired_then:
             reasons.append("OBLIGATION_RETIRED")
+    if [s["turn_id"] for s in state["standing"]] != receipt.get("standing_rules", []):
+        reasons.append("STANDING_RULES_CHANGED")
     return {"status": "STALE" if reasons else "VALID", "reasons": reasons,
             "branch": receipt.get("branch"), "issued_snapshot": receipt.get("snapshot"),
             "current_snapshot": state["head"]}

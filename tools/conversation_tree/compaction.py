@@ -39,7 +39,8 @@ def manifest(tree, branch, *, loaded, max_entries=DEFAULT_MAX_ENTRIES):
                 "turn_id": span["turn_id"], "start": span["start"], "end": span["end"],
                 "actor": span["actor"], "disposition": span["disposition"], "rule": span["rule"],
                 "obligation_id": span["obligation_id"], "families": found,
-                "critical": span["actor"] == "USER" and bool(CRITICAL_FAMILIES.intersection(found)),
+                "critical": span["rule"] == "STANDING_RULE" or (
+                    span["actor"] == "USER" and bool(CRITICAL_FAMILIES.intersection(found))),
                 "stub": " ".join(text.split())[:STUB_CHARS], "folded_spans": folded}
 
     entries = [entry(span) for span in spans]
