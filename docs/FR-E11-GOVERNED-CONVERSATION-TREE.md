@@ -138,24 +138,42 @@ The smallest slice that tests the idea is 069, 070, 073, 076, 079 and 084.
 4. **Gold set source:** which conversations may be used, and who the second annotator is.
 5. **Relation to the proposal:** whether this epic is evaluated inside the Reversible Semantic Compilation paper or as a separate study. The paper's own acceptance gate targets documents, not conversations.
 
-## Implementation evidence — first slice
+## Implementation evidence — slices 1 and 2
 
-Package: `tools/conversation_tree/` · Guide: [CONVERSATION-TREE.md](CONVERSATION-TREE.md) · Tests: `tools/conversation_tree/tests/test_conversation_tree.py` · CI: `.github/workflows/conversation-tree.yml`
+Package: `tools/conversation_tree/` · Guide: [CONVERSATION-TREE.md](CONVERSATION-TREE.md) · Tests: `tools/conversation_tree/tests/` (63 tests) · CI: `.github/workflows/conversation-tree.yml`
 
-Local, deterministic, SQLite only. No model is called. Statuses follow the FR.MD rule: a linked open PR is **IN_REVIEW**; nothing is DONE without merged review and independent evidence. "Met" below means a direct test exists in this package, not that the criterion is accepted.
+Local, deterministic, SQLite only. No model is called anywhere in the package. Statuses follow the FR.MD rule: a linked open PR is **IN_REVIEW**; nothing is DONE without merged review and independent evidence. "Has a direct test" below means a test exists in this package, not that the criterion is accepted.
 
-| Story | Criteria with a direct test | Not delivered in this slice |
-|---|---|---|
-| US-069 | 1 (hash, actor, sequence, timestamp), 2 (randomized byte round trip, restart), 3 (altered or deleted turn fails), 4 | Reuse of the US-017 custody module; attachments by reference |
-| US-070 | 1, 2, 3, 5 | 4: operator and user-level rules above the root |
-| US-071 | 1, 2 (turn-level anchors), 4, 5 | 3: only explicit supersession exists; no automatic conflict resolution |
-| US-072 | 1, 2, 3, 5 | 4: accuracy is UNMEASURED; there is no gold set |
-| US-073 | 1, 2, 3, 4, 5 | — |
-| US-075 | 2, 3, 4 (refuses at the cap; the caller must ask the user) | 1 automatic witness detection; 5 metrics |
-| US-076 | 1, 2, 5; 3 by this package's own conservation check | 3 reuse of `rct_source_span_conservation.py`; 4 `CONTRADICTED` status |
-| US-077 | 1, 2, 4 | 3 recall and false-trigger rate are UNMEASURED; 5 invalidation on trigger-set change |
-| US-079 | 1, 2, 3, 4, 5 | — |
+| Story | Module | Criteria with a direct test | Not delivered |
+|---|---|---|---|
+| US-069 | `tree.py` | 1, 2 (randomized byte round trip, restart), 3, 4 | Reuse of the US-017 custody module; attachments by reference |
+| US-070 | `tree.py` | 1, 2, 3, 5 | 4: operator and user-level rules above the root |
+| US-071 | `tree.py` | 1, 2 (turn-level anchors), 4, 5 | 3: only explicit supersession; no automatic conflict resolution |
+| US-072 | `classify.py` | 1, 2, 3, 5 | 4: accuracy UNMEASURED |
+| US-073 | `tree.py` | 1, 2, 3, 4, 5 | — |
+| US-074 | `differential.py`, `tree.py` | 2, 3, 4, 5 | 1: the caller runs both branches; equal model and budget are checked from declared values only |
+| US-075 | `tree.py` | 2, 3, 4 (refuses at the cap; the caller must ask the user) | 1 automatic witness detection; 5 metrics |
+| US-076 | `tree.py` | 1, 2, 5; 3 by this package's own conservation check | 3 reuse of `rct_source_span_conservation.py`; 4 `CONTRADICTED` status |
+| US-077 | `triggers.py` | 1, 2, 4 | 3 recall and false-trigger rate UNMEASURED; 5 invalidation on trigger-set change |
+| US-078 | `compaction.py` | 1, 2, 3 | 4, 5: probes check span availability only; no model answers a probe; independence is a declared source |
+| US-079 | `tree.py` | 1, 2, 3, 4, 5 | — |
+| US-080 | `lake.py` | 1, 2, 4; 3 on local SQLite only | 3 PostgreSQL tenant ledger and an authenticated principal; 5 encryption at rest and retention |
+| US-081 | `retrieval.py` | 2, 3, 4, 5; 1 by turn, span and branch | 1 retrieval of a PackSpec by version ID; matching is lexical only |
+| US-082 | `mcp_server.py` | 2, 3 (size bounds), 5 | 1 not added to `tools/activation_runtime/mcp_server.py` or the Netlify adapter; 3 tenant authorization; 4 parity |
+| US-083 | `receipts.py` | 1, 3; 2 as a reported `STALE` status the caller must honor | 2 automatic blocking; 4 change-impact recall and false-invalidation rate |
+| US-084 | `evaluation.py` | Harness only: gold-file validator and scorer | Criteria 1 to 5: there are no threads, no annotators and no frozen set |
 
-Not started: US-074, US-078, US-080 to US-086. In particular there is no lake, no retrieval API, no MCP tool, no gold set and no comparison against full-context or summary baselines, so the falsifiable claim at the top of this document is untested.
+Not started: US-085 (pre-registered comparison) and US-086 (Studio view). The falsifiable claim at the top of this document is untested.
 
-**Known limits of the slice:** obligation candidates are English lexical triggers and miss any constraint without a marker; the classifier is a small rule set; the gate reads turn-level loading, not what a model actually attended to; an empty inventory keeps the gate at `INCONCLUSIVE` by design; a database administrator can rewrite local state.
+**Decisions taken in the code that the owner may reverse**
+- On `AGREE`, the differential test closes the **isolated** branch and keeps the merged one, because the merged branch retains the governance. Closing is reversible.
+- A fork is a snapshot: a merged branch does not inherit amendments its parent makes after the fork. `receipts.dependents` reports when the parent has advanced.
+- A deleted conversation ID is never reused within its tenant.
+
+**Known limits**
+- Obligation candidates are English lexical triggers and miss any constraint without a marker.
+- The classifier is a small rule set. The only scores that exist come from a synthetic test fixture, which the harness labels as not evidence.
+- The gate and manifest reason about which turns are loaded, not about what a model attended to.
+- An empty inventory keeps the gate at `INCONCLUSIVE` by design.
+- The lake's `principal` is caller-supplied; the host must authenticate it.
+- Hash chains and triggers detect ordinary corruption; a database administrator can rewrite local state.

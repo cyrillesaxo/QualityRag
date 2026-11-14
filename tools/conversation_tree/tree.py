@@ -1,7 +1,9 @@
 """Governed conversation tree: custody, node PackSpecs, drift fork, ledger and read-back gate.
 
 Implements the first slice of EPIC E11 (docs/FR-E11-GOVERNED-CONVERSATION-TREE.md):
-US-069, US-070, US-071, US-072, US-073, part of US-075, US-076, US-077 and US-079.
+US-069 to US-073, part of US-075, US-076, US-077 and US-079. Later stories live in the sibling
+modules: differential (US-074), compaction (US-078), lake (US-080), retrieval (US-081),
+mcp_server (US-082), receipts (US-083) and evaluation (US-084 harness).
 
 Everything is deterministic and local. No model is called. Nothing here validates
 meaning: obligations are lexical candidates, the classifier is unmeasured, and the
@@ -173,7 +175,7 @@ class ConversationTree:
     def replay(self):
         """Rebuild the tree deterministically from custody and the event chain."""
         turns = {t["turn_id"]: t for t in self.turns()}
-        branches, classifications, head = {}, [], None
+        branches, classifications, differentials, head = {}, [], [], None
         for event in self._events():
             kind, data, eid = event["kind"], event["data"], event["event_id"]
             head = event["event_hash"]
@@ -189,6 +191,9 @@ class ConversationTree:
                 continue
             if kind == "CLASSIFY":
                 classifications.append({**data, "event_id": eid})
+                continue
+            if kind == "DIFFERENTIAL":
+                differentials.append({**data, "event_id": eid})
                 continue
             branch = branches.get(data.get("branch"))
             if branch is None:
@@ -212,7 +217,7 @@ class ConversationTree:
                 raise ValueError("Unknown event kind")
             branch["history"].append(eid)
         return {"schema": SCHEMA, "turns": turns, "branches": branches,
-                "classifications": classifications, "head": head,
+                "classifications": classifications, "differentials": differentials, "head": head,
                 "independent_validation": "NOT_ESTABLISHED"}
 
     # ------------------------------------------------------------------ helpers
@@ -225,6 +230,13 @@ class ConversationTree:
         if branch["kind"] == "MERGED":
             inherited = ConversationTree._effective(state, branch["parent"])[:branch["parent_upto"]]
         return inherited + branch["members"]
+
+    def visible_turns(self, branch):
+        """Turn IDs in scope for a branch, in order."""
+        state = self.replay()
+        if branch not in state["branches"]:
+            raise ValueError("Unknown branch")
+        return self._effective(state, branch)
 
     @staticmethod
     def _candidates(turn):
@@ -450,6 +462,38 @@ class ConversationTree:
             self._append("REOPEN", at, {"branch": branch, "turn_id": witness_turn})
         self._write(operation)
         return self.replay()
+
+    # ------------------------------------------------------------------ differential test (US-074)
+
+    def record_differential(self, *, fork_id, isolated, merged, at):
+        """Compare the answers of the two fork branches and act on the result.
+
+        The caller runs both branches; this records the comparison. AGREE means the earlier
+        context did not change the declared decisions, so the isolated branch is closed (the
+        merged branch keeps the governance and loses nothing). DIVERGE and UNKNOWN close nothing
+        and return the differences for the user. Closing is reversible with reopen().
+        """
+        from .differential import compare
+        result = compare(isolated, merged)
+
+        def operation(state):
+            names = (fork_id + "-iso", fork_id + "-mrg")
+            if isolated.get("branch") != names[0] or merged.get("branch") != names[1]:
+                raise ValueError("Answers must come from the two branches of this fork")
+            for name in names:
+                node = self._live(state, name)
+                if node["fork_id"] != fork_id:
+                    raise ValueError("Branch does not belong to this fork")
+            if any(d["fork_id"] == fork_id for d in state["differentials"]):
+                raise ValueError("Fork already compared")
+            event = self._append("DIFFERENTIAL", at, {"fork_id": fork_id, **result})
+            if result["handled_as"] == "AGREE":
+                self._append("PRUNE", at, {"branch": names[0], "turn_id": None,
+                                           "reason": "DIFFERENTIAL_AGREE: earlier context not load-bearing",
+                                           "by_event": event})
+            return event
+        event = self._write(operation)
+        return {**result, "event_id": event, "state": self.replay()}
 
     # ------------------------------------------------------------------ ledger (US-076)
 

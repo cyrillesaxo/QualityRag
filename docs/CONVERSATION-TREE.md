@@ -23,11 +23,28 @@ The **isolated** branch sees only the new prompt. The **merged** branch sees the
 the fork, inherits the parent PackSpec, its retirements and its user confirmations, and adds the new
 prompt. The parent branch is left untouched.
 
+## Around the tree
+
+| Module | Purpose |
+|---|---|
+| `differential.py` + `record_differential` | Compare the declared decisions of the isolated and merged branches. `AGREE` closes the isolated branch; `DIVERGE` or `UNKNOWN` closes nothing and returns the differences |
+| `compaction.py` | `manifest` lists every in-scope span the assistant is not holding; `verify` fails a compaction that dropped a span with no entry; `probe` turns failed independent probes into spans to load |
+| `retrieval.py` | `build_index`, `search`, `get`. Every search returns a coverage receipt and refuses to answer from a missing or lagging index |
+| `receipts.py` | `receipt_status` says whether a gate verdict is still valid; `dependents` lists merged branches that inherited a node's governance |
+| `lake.py` | One conversation database per tenant and conversation, with tombstone deletion |
+| `mcp_server.py` | Read-only stdio tools for an assistant: `conversation_manifest`, `conversation_gate`, `conversation_get`, `conversation_search`, `conversation_ledger` |
+| `evaluation.py` | Validates a frozen, double-annotated gold file and scores the classifier and triggers against it |
+
+Search receipt states: `ALL_MATCHES_RETURNED`, `PARTIAL`, `NONE_IN_SCOPE`, `NOT_SEARCHED`, `INDEX_INCOMPLETE`.
+`full_coverage_claimed` is always false.
+
 ## Run
 
 ```bash
 python -m unittest discover -s tools/conversation_tree/tests -p 'test_*.py' -v
 python -m tools.conversation_tree.demo
+python -m tools.conversation_tree.evaluation            # UNMEASURED until a gold file is supplied
+QUALITYRAG_CONVERSATION_DB=/absolute/conversation.sqlite python -m tools.conversation_tree.mcp_server
 ```
 
 ## Boundaries
@@ -39,11 +56,17 @@ python -m tools.conversation_tree.demo
   forks. It has not been scored against human labels.
 - **Only USER turns bind.** Assistant, tool and system text cannot govern, confirm, supersede or witness.
   Operator and user-level rules above the root are not modeled yet.
-- **Scope of the gate.** It checks whether the turns behind critical candidates are loaded. It does not
-  check that a model used them, and an empty inventory stays `INCONCLUSIVE`.
+- **Scope of the gate and manifest.** They check whether turns are loaded. They do not check that a model
+  used them, and an empty inventory stays `INCONCLUSIVE`.
+- **Search is lexical.** `NONE_IN_SCOPE` means no shared words, not that nothing relevant exists.
+- **Local reference only.** The lake is SQLite with a caller-supplied principal; it is not the PostgreSQL
+  tenant ledger, and it has no encryption at rest or retention policy. The MCP server is bound by its
+  host to one database and is not wired into the existing gateway or the Netlify adapter.
+- **No model runs here.** The differential test compares decisions the caller declares; probes check
+  span availability.
 - **Separate chain.** The event chain follows the Gardener pattern but does not write to the Gardener or
   the Research Ledger. See open decision 1 in the epic.
 - **Trust boundary.** Hash chains and triggers detect ordinary corruption; they do not stop a database
   administrator.
 
-No lake, retrieval API, MCP tool, differential branch test or evaluation exists yet.
+No gold conversation set, comparison against full-context or summary baselines, or Studio view exists yet.
