@@ -979,3 +979,12 @@ passed 337 focused tests and all 23 workflows. A follow-up completion-metadata
 commit must pass CI with live GitHub verification of both closure records. This
 accepts software criteria only; research/domain review and other explicit gates
 remain unchanged. The current ledger has 2 DONE, 35 IN_REVIEW and 14 BLOCKED.
+
+## 30. Proposed EPIC E11 — governed conversation tree (separate addendum)
+
+Stories 069 to 086 for applying QualityRag to AI conversation threads are drafted in
+[docs/FR-E11-GOVERNED-CONVERSATION-TREE.md](docs/FR-E11-GOVERNED-CONVERSATION-TREE.md), with an
+experimental local implementation in `tools/conversation_tree/`. They are kept outside this file because the inventory
+audit fixes this backlog at stories 001 to 051. They are not part of the formal ledger counts above and
+none is DONE.
+
