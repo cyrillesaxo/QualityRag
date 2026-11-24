@@ -13,6 +13,45 @@ SCHEMA = "rct.experiential-assertions/v1"
 KINDS = frozenset({"CONTEXT", "DECISION", "OUTCOME", "MECHANISM", "CAUSAL", "BOUNDARY"})
 
 
+PORTABLE_ANCHOR_SCHEMA = "rct.source-anchor/v1"
+
+
+def resolve_portable_anchor(anchor, *, witness_id, root_id, source_ref, source_bytes):
+    """Translate a portable anchor using host-resolved source identity.
+
+    source_ref is the identifier from the trusted host source registry, not
+    an alias supplied by the candidate. The later signed custody gate still
+    validates witness ownership, obligation, signature and lineage.
+    """
+    if (not isinstance(anchor, dict) or set(anchor) != {
+            "schema", "source_id", "content_sha256", "start_byte", "end_byte", "quote"}
+            or anchor["schema"] != PORTABLE_ANCHOR_SCHEMA
+            or not isinstance(source_ref, str) or not source_ref
+            or anchor["source_id"] != source_ref
+            or not isinstance(witness_id, str) or not witness_id
+            or not isinstance(root_id, str) or not root_id):
+        raise ValueError("Invalid portable source identity")
+    raw = source_bytes.get(root_id)
+    if not isinstance(raw, bytes) or not 1 <= len(raw) <= 2_000_000:
+        raise ValueError("Missing portable source bytes")
+    start, end = anchor["start_byte"], anchor["end_byte"]
+    if (sha256(raw).hexdigest() != anchor["content_sha256"]
+            or type(start) is not int or type(end) is not int
+            or not 0 <= start < end <= len(raw) or not isinstance(anchor["quote"], str)):
+        raise ValueError("Invalid portable anchor revision or range")
+    try:
+        raw.decode("utf-8", errors="strict")
+        quoted = anchor["quote"].encode("utf-8", errors="strict")
+        raw[:start].decode("utf-8", errors="strict")
+        raw[start:end].decode("utf-8", errors="strict")
+    except UnicodeError as exc:
+        raise ValueError("Invalid portable anchor Unicode boundary") from exc
+    if raw[start:end] != quoted:
+        raise ValueError("Invalid portable anchor quotation")
+    return {"witness_id": witness_id, "root_id": root_id,
+            "start_byte": start, "end_byte": end, "quote": anchor["quote"]}
+
+
 def assertion_binding(candidate, claims, pack, witnesses, source_bytes):
     """Validate exact UTF-8 byte anchors and one-to-one claim obligations."""
     if not isinstance(candidate, dict) or not candidate:
