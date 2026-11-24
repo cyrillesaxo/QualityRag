@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from rct_experiential_assertions import assertion_binding, assess_experiential_assertions
+from rct_experiential_assertions import assertion_binding, assess_experiential_assertions, resolve_portable_anchor
 from test_rct_source_custody import SourceCustodyTests
 
 class ExperientialTests(unittest.TestCase):
@@ -55,6 +55,24 @@ class ExperientialTests(unittest.TestCase):
     def test_contradiction_preserved(self):
         self.custody.records[2]["status"]="CONTRADICTS"
         self.assertEqual(self.assess()["verdict"],"REFUSE")
+
+class PortableAnchorTests(unittest.TestCase):
+    def test_multilingual_portable_anchor(self):
+        from hashlib import sha256
+        raw = "Café 🧠".encode("utf-8")
+        anchor = {"schema":"rct.source-anchor/v1","source_id":"doc",
+                  "content_sha256":sha256(raw).hexdigest(),"start_byte":6,
+                  "end_byte":10,"quote":"🧠"}
+        args = dict(witness_id="w",root_id="root",source_ref="doc",
+                    source_bytes={"root":raw})
+        result = resolve_portable_anchor(anchor, **args)
+        self.assertEqual(result["start_byte"], 6)
+        self.assertEqual(result["end_byte"], 10)
+        self.assertEqual(result["quote"], "🧠")
+        for changed in (dict(anchor,start_byte=7),dict(anchor,source_id="other"),
+                        dict(anchor,content_sha256="0"*64),dict(anchor,quote="wrong")):
+            with self.assertRaises(ValueError):
+                resolve_portable_anchor(changed, **args)
 
 if __name__=="__main__":
     unittest.main()
