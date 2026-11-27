@@ -50,7 +50,8 @@ export function questionTargetDigest({ownerBinding,service,environment,policyDig
 export async function verifyQuestionReview({envelope,expected,lookupReviewer,consumeNonce,now=Date.now()}={}){
  try{
   if(!exact(envelope,['payload','signature'])||typeof lookupReviewer!=='function'||typeof consumeNonce!=='function'||!Number.isSafeInteger(now))return fail('AUTHORITY_UNAVAILABLE');
-  const p=envelope.payload,bytes=questionReviewBytes(p);
+  const p=structuredClone(envelope.payload),bytes=questionReviewBytes(p);
+  expected=structuredClone(expected);
   if(!expected||!['ownerBinding','service','environment','policyDigest','targetDigest'].every(k=>p[k]===expected[k]))return fail('SCOPE_MISMATCH');
   if(p.issuedAt>now||p.expiresAt<=now||p.expiresAt<=p.issuedAt||p.expiresAt-p.issuedAt>600000)return fail('EXPIRED_OR_INVALID_TIME');
   const reviewer=await lookupReviewer(p.reviewerId,expected);
@@ -59,7 +60,7 @@ export async function verifyQuestionReview({envelope,expected,lookupReviewer,con
   if(typeof sig!=='string'||!/^[A-Za-z0-9_-]{86}$/.test(sig))return fail('INVALID_SIGNATURE');
   const raw=Buffer.from(sig,'base64url');
   if(raw.length!==64||raw.toString('base64url')!==sig||!verify(null,bytes,reviewer.key,raw))return fail('INVALID_SIGNATURE');
-  if(await consumeNonce({reviewerId:p.reviewerId,nonce:p.nonce,expiresAt:p.expiresAt,expected})!==true)return fail('REPLAY_OR_STORAGE_UNAVAILABLE');
+  if(await consumeNonce({reviewerId:p.reviewerId,nonce:p.nonce,expiresAt:p.expiresAt,expected,grantVersion:reviewer.grantVersion,keyDigest:digest(reviewer.key.export({type:'spki',format:'der'}))})!==true)return fail('REPLAY_OR_STORAGE_UNAVAILABLE');
   return {verdict:p.decision,reason:'SIGNED_HUMAN_REVIEW',receiptDigest:digest(bytes),reviewerId:p.reviewerId,meaningVerifiedByMachine:false,answerStatus:'UNKNOWN',learnerStatus:'UNKNOWN'};
  }catch{return fail('INVALID_OR_UNAVAILABLE_REVIEW');}
 }
