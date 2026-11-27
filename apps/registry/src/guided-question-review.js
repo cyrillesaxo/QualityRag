@@ -51,16 +51,16 @@ export async function verifyQuestionReview({envelope,expected,lookupReviewer,con
  try{
   if(!exact(envelope,['payload','signature'])||typeof lookupReviewer!=='function'||typeof consumeNonce!=='function'||!Number.isSafeInteger(now))return fail('AUTHORITY_UNAVAILABLE');
   const p=structuredClone(envelope.payload),bytes=questionReviewBytes(p);
+  const sig=envelope.signature,receiptDigest=digest(bytes);
   expected=structuredClone(expected);
   if(!expected||!['ownerBinding','service','environment','policyDigest','targetDigest'].every(k=>p[k]===expected[k]))return fail('SCOPE_MISMATCH');
   if(p.issuedAt>now||p.expiresAt<=now||p.expiresAt<=p.issuedAt||p.expiresAt-p.issuedAt>600000)return fail('EXPIRED_OR_INVALID_TIME');
   const reviewer=await lookupReviewer(p.reviewerId,expected);
   if(!reviewer||reviewer.active!==true||reviewer.authorized!==true||!(reviewer.key instanceof KeyObject)||reviewer.key.type!=='public'||reviewer.key.asymmetricKeyType!=='ed25519')return fail('REVIEWER_NOT_AUTHORIZED');
-  const sig=envelope.signature;
   if(typeof sig!=='string'||!/^[A-Za-z0-9_-]{86}$/.test(sig))return fail('INVALID_SIGNATURE');
   const raw=Buffer.from(sig,'base64url');
   if(raw.length!==64||raw.toString('base64url')!==sig||!verify(null,bytes,reviewer.key,raw))return fail('INVALID_SIGNATURE');
-  if(await consumeNonce({reviewerId:p.reviewerId,nonce:p.nonce,expiresAt:p.expiresAt,expected,grantVersion:reviewer.grantVersion,keyDigest:digest(reviewer.key.export({type:'spki',format:'der'}))})!==true)return fail('REPLAY_OR_STORAGE_UNAVAILABLE');
-  return {verdict:p.decision,reason:'SIGNED_HUMAN_REVIEW',receiptDigest:digest(bytes),reviewerId:p.reviewerId,meaningVerifiedByMachine:false,answerStatus:'UNKNOWN',learnerStatus:'UNKNOWN'};
+  if(await consumeNonce({reviewerId:p.reviewerId,nonce:p.nonce,expiresAt:p.expiresAt,expected,receiptDigest,verdict:p.decision,grantVersion:reviewer.grantVersion,keyDigest:digest(reviewer.key.export({type:'spki',format:'der'}))})!==true)return fail('REPLAY_OR_STORAGE_UNAVAILABLE');
+  return {verdict:p.decision,reason:'SIGNED_HUMAN_REVIEW',receiptDigest,reviewerId:p.reviewerId,meaningVerifiedByMachine:false,answerStatus:'UNKNOWN',learnerStatus:'UNKNOWN'};
  }catch{return fail('INVALID_OR_UNAVAILABLE_REVIEW');}
 }
