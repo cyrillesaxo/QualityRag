@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {reconstructIndexedSource,createBalafonsQuestionSourceReader} from '../src/guided-question-balafons-source.js';
+const rows=[{revision:'r1',ordinal:0,start_offset:0,end_offset:5,content:'abcde'},{revision:'r1',ordinal:1,start_offset:3,end_offset:8,content:'defgh'}];
+const sourceId='balafons:owner:doc',identity={subject:'owner'};
+const live={id:sourceId,revision:'r1',text:'abcdefgh'};
+test('overlap reconstruction preserves exact content but is not authority',()=>{assert.deepEqual(reconstructIndexedSource(rows),{revision:'r1',text:'abcdefgh',authority:'INDEX_CANDIDATE_ONLY'});});
+test('mixed revisions, gaps, missing initial chunk and conflicting overlaps refuse',()=>{for(const mutated of [[rows[0],{...rows[1],revision:'r2'}],[rows[0],{...rows[1],start_offset:6,end_offset:11}],[rows[1]],[rows[0],{...rows[1],content:'XXfgh'}]])assert.equal(reconstructIndexedSource(mutated),null);});
+test('reader binds tenant and principal and checks live content',async()=>{const calls=[];const read=createBalafonsQuestionSourceReader({pool:{query:async(sql,args)=>{calls.push({sql,args});return {rows};}},readAuthorizedLiveSource:async(i,id)=>{assert.equal(i,identity);assert.equal(id,sourceId);return live;}});assert.deepEqual(await read(identity,sourceId),live);assert.deepEqual(calls[0].args,['balafons:owner','owner',sourceId]);assert.match(calls[0].sql,/w.deleted=false/);assert.match(calls[0].sql,/NOT EXISTS/);assert.equal(await read({subject:'other'},sourceId),null);assert.equal(calls.length,1);});
+test('unavailable, changed or longer live source never admits indexed candidate',async()=>{for(const value of [null,{...live,revision:'r2'},{...live,text:'abcdefghmore'},{...live,id:'other'}]){const read=createBalafonsQuestionSourceReader({pool:{query:async()=>({rows})},readAuthorizedLiveSource:async()=>value});assert.equal(await read(identity,sourceId),null);}});
+test('missing live authority refuses initialization; read failures abstain',async()=>{assert.throws(()=>createBalafonsQuestionSourceReader({pool:{query:async()=>({rows})}}));const read=createBalafonsQuestionSourceReader({pool:{query:async()=>{throw Error('offline');}},readAuthorizedLiveSource:async()=>live});assert.equal(await read(identity,sourceId),null);});
