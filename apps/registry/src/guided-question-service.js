@@ -29,7 +29,12 @@ export function createGuidedQuestionService({pool,resolveAuthorizedTarget}={}){
   try{
    if(!hex(receiptDigest))return unknown();
    const expected=await resolve(identity,selector,'read');
-   return expected?await lifecycle.resolveEligibility(receiptDigest,expected):unknown();
+   if(!expected)return unknown();
+   const status=await lifecycle.resolveEligibility(receiptDigest,expected);
+   // Echo only independently resolved binding, never a client-provided digest.
+   return status.state==='ACTIVE'&&status.eligibleAtCheck===true
+    ? {...status,schema:'qualityrag.guided-question-eligibility/v1',receiptDigest,targetDigest:expected.targetDigest}
+    : status;
   }catch{return unknown();}
  }
  return {submit,eligibility};
