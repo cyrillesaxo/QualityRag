@@ -22,11 +22,12 @@ export function questionReviewBytes(p){
 export function questionTargetDigest({ownerBinding,service,environment,policyDigest,source,concept,goalId,evidence,operatorId,relation=null}={}){
  if(![ownerBinding,policyDigest].every(hex)||![service,environment].every(id))throw Error('INVALID_SCOPE');
  const text=source?.text;
- const str=v=>typeof v==='string'&&v.length>0&&v.length<=1024;
- if(typeof text!=='string'||text.length>100000||![source?.id,source?.revision,concept?.id,concept?.revision,concept?.label,goalId,evidence?.id,evidence?.obligationId,evidence?.kind,evidence?.consequence,operatorId].every(str))throw Error('INVALID_TARGET');
+ const wellFormed=v=>typeof v==='string'&&!/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(v);
+ const str=v=>wellFormed(v)&&v.length>0&&v.length<=1024;
+ if(!wellFormed(text)||text.length>100000||![source?.id,source?.revision,concept?.id,concept?.revision,concept?.label,goalId,evidence?.id,evidence?.obligationId,evidence?.kind,evidence?.consequence,operatorId].every(str))throw Error('INVALID_TARGET');
  if(evidence.sourceId!==source.id||evidence.revision!==source.revision||evidence.conceptId!==concept.id||evidence.semanticRevision!==concept.revision)throw Error('SCOPE_MISMATCH');
  const span=(a,lo=0,hi=text.length)=>{
-  if(!Number.isInteger(a?.start)||!Number.isInteger(a?.end)||a.start<lo||a.end>hi||a.end<=a.start||typeof a.quote!=='string'||text.slice(a.start,a.end)!==a.quote)throw Error('INVALID_SOURCE_SPAN');
+  if(!Number.isInteger(a?.start)||!Number.isInteger(a?.end)||a.start<lo||a.end>hi||a.end<=a.start||!wellFormed(a.quote)||text.slice(a.start,a.end)!==a.quote)throw Error('INVALID_SOURCE_SPAN');
   return [a.start,a.end,a.quote];
  };
  const anchor=span(evidence);
