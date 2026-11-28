@@ -20,7 +20,7 @@ args=None if q is None else [[a['role'],*span(a)] for a in q['arguments']]
 r=t.get('relation')
 rel=None if r is None else [r['id'],r['type'],span(r['from']),span(r['cue']),span(r['to'])]
 schema='qualityrag.guided-question-review/v1'
-target=sha(compact([schema,t['ownerBinding'],t['service'],t['environment'],t['policyDigest'],s['id'],s['revision'],sha(s['text'].encode('utf-8')),c['id'],c['revision'],c['label'],t['goalId'],e['id'],e['obligationId'],e['kind'],e['consequence'],t['operatorId'],span(e),args,rel]))
+target=sha(compact(['qualityrag.guided-question-target/v2',t['ownerBinding'],t['service'],t['environment'],t['policyDigest'],s['id'],s['revision'],sha(s['text'].encode('utf-8')),c['id'],c['revision'],c['label'],t['goalId'],e['id'],e['obligationId'],e['kind'],e['consequence'],t['operatorId'],span(e),args,rel,e['proposedPremise']]))
 p=x['payload']
 keys=['schema','ownerBinding','service','environment','policyDigest','targetDigest','nonce','issuedAt','expiresAt','decision','reviewerId']
 review=b'QUALITYRAG/'+schema.encode('ascii')+b'\x00'+compact([p[k] for k in keys])
@@ -29,7 +29,7 @@ print(json.dumps({'target':target,'review':sha(review)}))
 function fixture(text){
  const source={id:'source',revision:'r1',text};
  const concept={id:'c',revision:'r1',label:'Concept é'};
- const evidence={id:'e',obligationId:'o',kind:'boundary',consequence:'Preserve condition',sourceId:source.id,revision:source.revision,conceptId:concept.id,semanticRevision:concept.revision,start:0,end:text.length,quote:text};
+ const evidence={proposedPremise:'The source describes a condition to investigate.',id:'e',obligationId:'o',kind:'boundary',consequence:'Preserve condition',sourceId:source.id,revision:source.revision,conceptId:concept.id,semanticRevision:concept.revision,start:0,end:text.length,quote:text};
  return {ownerBinding:'a'.repeat(64),service:'lexyread',environment:'test',policyDigest:'b'.repeat(64),source,concept,evidence,goalId:'g',operatorId:'boundary'};
 }
 test('Python and JavaScript agree on Unicode target and signed payload digests',()=>{
