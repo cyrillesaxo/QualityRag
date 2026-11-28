@@ -31,6 +31,10 @@ export function questionTargetDigest({ownerBinding,service,environment,policyDig
   return [a.start,a.end,a.quote];
  };
  const anchor=span(evidence);
+ // Version the target separately from the signed envelope. A premise-bound
+ // target cannot reuse a legacy digest, even when all other fields match.
+ const premise=evidence.proposedPremise;
+ if(!str(premise)||!premise.trim())throw Error('PROPOSED_PREMISE_REQUIRED');
  const t=evidence.questionTarget;
  let args=null;
  if(t!=null){
@@ -43,7 +47,7 @@ export function questionTargetDigest({ownerBinding,service,environment,policyDig
   if(![relation.id,relation.type].every(str))throw Error('INVALID_RELATION');
   rel=[relation.id,relation.type,span(relation.from,evidence.start,evidence.end),span(relation.cue,evidence.start,evidence.end),span(relation.to,evidence.start,evidence.end)];
  }
- return digest(Buffer.from(JSON.stringify([SCHEMA,ownerBinding,service,environment,policyDigest,source.id,source.revision,digest(Buffer.from(text,'utf8')),concept.id,concept.revision,concept.label,goalId,evidence.id,evidence.obligationId,evidence.kind,evidence.consequence,operatorId,anchor,args,rel]),'utf8'));
+ return digest(Buffer.from(JSON.stringify(['qualityrag.guided-question-target/v2',ownerBinding,service,environment,policyDigest,source.id,source.revision,digest(Buffer.from(text,'utf8')),concept.id,concept.revision,concept.label,goalId,evidence.id,evidence.obligationId,evidence.kind,evidence.consequence,operatorId,anchor,args,rel,premise]),'utf8'));
 }
 // expected and trust must originate from authenticated server-side state.
 // consumeNonce must atomically reserve a nonce in durable storage, never a
