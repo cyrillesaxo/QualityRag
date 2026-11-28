@@ -8,7 +8,7 @@ const pem=publicKey.export({type:'spki',format:'pem'});
 const selector={service:'lexyread',environment:'test',targetId:'target1'};
 const identity={subject:'owner1',roles:new Set(['evidence.ingest','evidence.reader']),evidenceServices:new Set(['lexyread@test'])};
 const text='Accept only if ready.';
-const target={ownerBinding:'a'.repeat(64),service:'lexyread',environment:'test',policyDigest:'b'.repeat(64),source:{id:'s',revision:'r',text},concept:{id:'c',revision:'v',label:'accept'},goalId:'g',operatorId:'boundary',evidence:{id:'e',obligationId:'o',kind:'boundary',consequence:'Preserve condition',sourceId:'s',revision:'r',conceptId:'c',semanticRevision:'v',start:0,end:text.length,quote:text}};
+const target={ownerBinding:'a'.repeat(64),service:'lexyread',environment:'test',policyDigest:'b'.repeat(64),source:{id:'s',revision:'r',text},concept:{id:'c',revision:'v',label:'accept'},goalId:'g',operatorId:'boundary',evidence:{proposedPremise:'Acceptance depends on readiness.',id:'e',obligationId:'o',kind:'boundary',consequence:'Preserve condition',sourceId:'s',revision:'r',conceptId:'c',semanticRevision:'v',start:0,end:text.length,quote:text}};
 function signed(){
  const now=Date.now();
  const payload={schema:SCHEMA,ownerBinding:target.ownerBinding,service:target.service,environment:target.environment,policyDigest:target.policyDigest,targetDigest:questionTargetDigest(target),nonce:'fixture-nonce-0001',issuedAt:now-100,expiresAt:now+60000,decision:'ADMIT',reviewerId:'reviewer'};
